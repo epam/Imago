@@ -1,0 +1,311 @@
+/****************************************************************************
+ * Copyright (C) 2009-2010 GGA Software Services LLC
+ * 
+ * This file is part of Imago toolkit.
+ * 
+ * This file may be distributed and/or modified under the terms of the
+ * GNU General Public License version 3 as published by the Free Software
+ * Foundation and appearing in the file LICENSE.GPL included in the
+ * packaging of this file.
+ * 
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ ***************************************************************************/
+
+#include <cstring>
+#include <cmath>
+#include <deque>
+#include <vector>
+
+#include "boost/foreach.hpp"
+
+#include "exception.h"
+#include "font.h"
+#include "fourier_descriptors_extractor.h"
+#include "png_loader.h"
+#include "image.h"
+#include "segment.h"
+#include "image_utils.h"
+#include "segmentator.h"
+
+using namespace imago;
+
+Font::Font( const char *filename, int descCount )
+{
+   _count = descCount;
+   int s = 0;
+   s = strlen(filename);
+   while (filename[s - 1] != '.')
+      s--;
+
+   if (strcmp(filename + s, "png") == 0)
+      _loadFromImage(filename);
+   else if (strcmp(filename + s, "font") == 0)
+      _loadFromFile(filename);
+   else
+      throw LogicException("Unsupported font file format: %s", filename);
+}
+
+Font::Font( int font_id )
+{
+   if (font_id >= 0 && font_id < MAX_FONTS)
+   {
+      switch (font_id)
+      {
+      case ARIAL:
+         _loadArial();
+         break;
+      case ARIAL_BOLD:
+         _loadArialBold();
+         break;
+      case SERIF:
+         _loadSerif();
+         break;
+      }
+   }
+   else
+      throw LogicException("Undefinded built in font specified: %d", font_id);
+}
+Font::~Font()
+{
+}
+
+#define FONT_INIT(ch)                             \
+   do                                             \
+   {                                              \
+      _symbols.push_back(FontItem());             \
+      FontItem *fi = &(_symbols[_symbols.size() - 1]);         \
+      const char *str = #ch;                      \
+      fi->sym = str[0];                           \
+      double *arr_ptr;                            \
+      if (strcmp(str, "plus") == 0)               \
+         fi->sym = '+';                           \
+      else if (strcmp(str, "minus") == 0)         \
+         fi->sym = '-';                           \
+      arr_ptr = descr_##ch;                       \
+      _mapping[fi->sym] = _symbols.size() - 1;    \
+      fi->features.descriptors.resize(2 * _count);\
+      for (int i = 0; i < _count * 2; i++)        \
+         fi->features.descriptors[i] = arr_ptr[i];\
+   } while (0);
+
+void Font::_loadArial()
+{
+   _mapping.resize(255);
+#include "arial.font.inc"
+}
+
+void Font::_loadArialBold()
+{
+   _mapping.resize(255);
+#include "arial_bold.font.inc"
+}
+
+void Font::_loadSerif()
+{
+   _mapping.resize(255);
+#include "serif.font.inc"
+}
+
+#undef FONT_INIT
+
+void Font::_loadFromFile( const char *filename )
+{
+   FILE *fin = fopen(filename, "r");
+   _mapping.resize(255);
+   fscanf(fin, "%d\n", &_count);
+   for (;;)
+   {
+      if (feof(fin))
+         break;
+
+      _symbols.push_back(FontItem());
+      FontItem *fi = &_symbols[_symbols.size() - 1];
+      fscanf(fin, "%c", &fi->sym);
+      _mapping[fi->sym] = _symbols.size() - 1;
+      fi->features.descriptors.resize(2 * _count);
+      for (int i = 0; i < 2 * _count; i++)
+      {
+         fscanf(fin, " %lf", &fi->features.descriptors[i]);
+      }
+      fscanf(fin, "\n");
+   }
+   fclose(fin);
+}
+
+void Font::prepareSegment( Segment *seg ) const
+{
+   const std::vector<double> &desc = seg->getFeatures().descriptors;
+   if ((int)desc.size() / 2 < _count)
+      FourierDescriptorsExtractor::getDescriptors(seg, _count);
+}
+
+char Font::findBest( const std::vector<double> &descriptors, int begin, int end, double *dist ) const
+{
+   char res = 0;
+   double d, min_d = 1e10;
+   
+   for (int i = begin; i < end; i++)
+   {
+      d = _compare(i, descriptors);
+
+      if (d < min_d)
+      {
+         res = _symbols[i].sym;
+         min_d = d;
+      }
+   }
+
+   if (dist)
+      *dist = min_d;
+
+   return res;
+}
+
+char Font::findBest( Segment *img, int begin, int end, double *dist ) const
+{
+   const std::vector<double> &desc = img->getFeatures().descriptors;
+   if ((int)desc.size() / 2 < _count)
+      FourierDescriptorsExtractor::getDescriptors(img, _count);
+   
+   return findBest(desc, begin, end, dist);
+}
+
+
+char Font::findBest( const Segment *img, int begin, int end, double *dist ) const
+{ 
+   const std::vector<double> &desc = img->getFeatures().descriptors;
+
+   return findBest(desc, begin, end, dist);
+}
+
+char Font::findBest( const Segment *img, const std::string &letters, double *dist ) const
+{
+   char res = 0;
+   double d, min_d = 1e10;
+   int ind;
+   const std::vector<double> &desc = img->getFeatures().descriptors;
+   if ((int)desc.size() / 2 < _count)
+      FourierDescriptorsExtractor::getDescriptors(img, _count);
+   
+   for (int i = 0; i < (int)letters.size(); i++)
+   {
+      ind = _mapping[letters[i]];
+      d = _compare(ind, desc);
+
+      if (d < min_d)
+      {
+         res = _symbols[ind].sym;
+         min_d = d;
+      }
+   }
+
+   if (dist)
+      *dist = min_d;
+   
+   return res;
+}
+
+int Font::findCapitalHeight( SegmentDeque &segments ) const
+{
+   int cap_height = 0;
+   int mean_height = 0;
+   int seg_height;
+   double d, min_d = 1e10;
+   int k = 0;
+
+   BOOST_FOREACH( Segment *s, segments )
+      mean_height += s->getHeight();
+   
+   mean_height = mean_height / segments.size();
+
+   BOOST_FOREACH( Segment *seg, segments )
+   {
+      std::vector<double> &desc = seg->getFeatures().descriptors;
+
+      if ((int)desc.size() / 2 < _count)
+         FourierDescriptorsExtractor::getDescriptors(seg, _count);
+      
+      for (int i = 0; i < (int)_symbols.size(); i++)
+      {
+         if (_symbols[i].sym >= 'A' && _symbols[i].sym <= 'Z')
+         {         
+            d = _compare(i, desc);
+            seg_height = seg->getHeight();
+            
+            if (d < min_d && seg_height >= mean_height)
+            {
+               min_d = d;
+               cap_height = seg_height;
+            }
+         }
+      }
+      k++;
+   }
+
+   return cap_height;
+}
+
+double Font::_compare( int ind, const std::vector<double> &desc ) const
+{
+   double d = 0;
+   double a, b;
+   double weight = 1;
+   for (int i = 0; i < (int)desc.size(); i++)
+   {
+      a = _symbols[ind].features.descriptors[i];
+      b = desc[i];
+
+      if ((i % 2))
+         weight = 0.5;  //"Constants", not config maybe ?
+      else
+         weight = 1.5;
+      d += weight * (a - b) * (a - b);
+   }
+
+   d = sqrt(d);
+
+   return d;
+}
+   
+void Font::_loadFromImage( const char *imgname )
+{
+   Image img;
+   SegmentDeque segments;
+
+   ImageUtils::loadImageFromFile(img, imgname);
+   Segmentator::segmentate(img, segments);
+
+   _mapping.resize(255);
+   SegmentDeque::iterator it = segments.begin();
+   for (int i = 0; i < (int)segments.size() - 2; i++)
+   {
+      if (i == 34 || i == 35)
+         ++it;
+
+      _symbols.push_back(FontItem());
+      FontItem *fi = &_symbols[_symbols.size() - 1];
+      Segment *segment = *it;
+
+      ++it;
+
+      std::vector<double> &desc = segment->getFeatures().descriptors;
+      if ((int)desc.size() / 2 < _count)
+         FourierDescriptorsExtractor::getDescriptors(segment, _count);
+   
+      fi->features.descriptors = desc;
+
+      if (i < 26) //"Constants", not config maybe ?
+         fi->sym = 'A' + i;
+      else if (i < 52)
+         fi->sym = 'a' + (i - 26);
+      else if (i < 62)
+         fi->sym = '0' + (i - 52);
+      else if (i == 62)
+         fi->sym = '+';
+      else if (i == 63)
+         fi->sym = '-';
+
+      _mapping[fi->sym] = _symbols.size() - 1;
+   }
+}

@@ -1,0 +1,13 @@
+#!/bin/bash
+
+JAVA_OPTS="-Dawt.useSystemAAFontSettings=on"
+
+#Following symlinks
+path=$0
+while [ -h "$path" ]; do
+    path=$(ls -ld $path | sed -r 's/^.*->.//')
+done
+
+CLASSPATH="$(dirname $path)/ego.jar:$CLASSPATH"
+export CLASSPATH
+java $JAVA_OPTS com.gga.Ego "$@"

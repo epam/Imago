@@ -1,0 +1,33 @@
+import os
+from os.path import join
+
+Import('env')
+Import('libimago')
+
+include_dirs = [
+'../imago/src'
+]
+
+c_env = env.Clone()
+c_env.Append(CPPPATH = include_dirs)
+c_env.Append(LIBS = libimago)
+
+builddir = env['BUILDDIR']
+
+imago_h = File('src/imago_c.h')
+
+imago_c_obj = c_env.SharedObject(target = os.path.join(builddir, 'imago_c'), source = ['src/imago_c.cpp'])
+imago_c_static = c_env.StaticLibrary(target = os.path.join(builddir, 'imago_c_static'), source = imago_c_obj)
+imago_c_shared = c_env.SharedLibrary(target = os.path.join(builddir, 'imago_c_shared'), source = imago_c_obj)
+Depends(imago_c_shared, libimago)
+Depends(imago_c_static, libimago)
+
+path = join(env['OUTPUT_DIR'], 'imago_c', env['TARGET_SUFFIX'])
+env.Install(path, [imago_c_static, imago_c_shared, imago_h])
+env.Alias('imago_c', path)
+env.Alias('all', path)
+Default('imago_c')
+
+Export('imago_c_static')
+Export('imago_c_shared')
+Export('imago_h')

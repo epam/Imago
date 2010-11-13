@@ -1,0 +1,29 @@
+import os
+from os.path import join
+
+Import('env')
+Import('libimago')
+Import('imago_c_static')
+
+include_dirs = [
+'../imago/src',
+'../imago_c/src'
+]
+
+alter_ego_env = env.Clone()
+alter_ego_env.Append(CPPPATH = include_dirs)
+alter_ego_env.Append(LIBS = [imago_c_static, libimago])
+
+builddir = env['BUILDDIR']
+
+alter_ego_obj = alter_ego_env.SharedObject(target = join(builddir, 'alter-ego'), source = 'src/alter_ego.cpp')
+
+alter_ego = alter_ego_env.Program(target = join(builddir, 'alter_ego'), source =  alter_ego_obj)
+Depends(alter_ego, [libimago, imago_c_static])
+
+path = join('../', env['OUTPUT_DIR'], 'alter-ego', env['TARGET_SUFFIX'])
+env.Install(path, alter_ego)
+Default(env.Alias('alter-ego', path))
+env.Alias('all', path)
+
+Export('alter_ego')

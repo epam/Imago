@@ -1,0 +1,109 @@
+import os
+from os.path import normpath, join
+
+Import('env')
+
+Import('imagojni')
+Import('imagojar')
+
+cenv = env.Clone()
+
+if cenv['PLATFORM'] == 'win32':
+   sep = ';'
+else:
+   sep = ':'
+
+libs_path = os.path.abspath('lib')
+
+ego_libs = []
+
+for root, dirs, files in os.walk(libs_path):
+    if root.find('.svn') != -1:
+        continue
+    for f in files:
+        ego_libs.append(File(os.path.abspath(join(root, f))))
+
+needed_jars = ['indigo-java.jar',
+	       'indigo-renderer-java.jar',		
+               'jai_core.jar',
+               'jai_codec.jar',
+               'PDFRenderer.jar'
+               ]
+classpath = ''
+for jar in needed_jars:
+   classpath += join(libs_path, jar) + sep
+
+classpath += str(imagojar[0])
+cenv['JAVACLASSPATH'] = classpath
+cenv['JAVAVERSION'] = '1.6'
+
+classes = cenv.Java('classes', 'src')
+Requires(classes, imagojar)
+
+#egojar = cenv.Jar('ego.jar', classes + ['mani.mf', 'images'])
+
+cmd = cenv['JAR'] + ' cmf ego/mani.mf ego/ego.jar -C ego/classes . -C ego/src resources'
+
+egojar = cenv.Command('ego.jar', 'SConscript', cmd) #'SConscript' is a dummy param
+Depends(egojar, classes)
+
+path = join(env['OUTPUT_DIR'], 'ego')
+env.Install(path, egojar)
+env.Install(path, File(join("runscripts", "ego")))
+Chmod(join(path, "ego"), 0755)
+#env.Install(path, File(join("runscripts", "ego.bat")))
+env.Alias('ego', path)
+env.Alias('all', path)
+
+
+
+path = join(env['OUTPUT_DIR'], 'ego', 'lib')
+egolib = path
+env.Install(path, imagojar)
+env.Alias('ego', path)
+env.Alias('all', path)
+
+if env['OS'] == 'Mac':
+   path = join(path, env['OS'], env['MACOSX_VERSION'])
+else:
+   path = join(path, env['OS'], env['TARGET_BITS'])
+
+env.Install(path, imagojni)
+env.Alias('ego', path)
+env.Alias('all', path)
+
+for f in ego_libs:
+   if str(f).endswith('jar'):
+      path = egolib
+      env.Install(path, f)
+   else:
+      s = str(f)
+      if s.find('Win') != -1:
+         Os = 'Win'
+      elif s.find('Linux') != -1:
+         Os = 'Linux'
+      else:
+         Os = 'Mac'
+         
+      if Os != 'Mac':
+         if s.find('x86') != -1:
+            bits = 'x86'
+         else:
+            bits = 'x64'
+            
+         path = join(egolib, Os, bits)
+         env.Install(path, f)
+         env.Alias('ego', path)
+         env.Alias('all', path)
+      else:
+         if s.find('10.5') != -1:
+            ver = '10.5'
+         else:
+            ver = '10.6'
+
+         path = join(egolib, Os, ver)
+         env.Install(path, f)
+         env.Alias('ego', path)            
+         env.Alias('all', path)
+Export('egojar')
+Export('ego_libs')

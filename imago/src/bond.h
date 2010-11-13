@@ -1,0 +1,44 @@
+/****************************************************************************
+ * Copyright (C) 2009-2010 GGA Software Services LLC
+ * 
+ * This file is part of Imago toolkit.
+ * 
+ * This file may be distributed and/or modified under the terms of the
+ * GNU General Public License version 3 as published by the Free Software
+ * Foundation and appearing in the file LICENSE.GPL included in the
+ * packaging of this file.
+ * 
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ ***************************************************************************/
+
+#ifndef _bond_h
+#define _bond_h
+
+namespace imago
+{
+   enum BondType
+   {
+      SINGLE = 1,
+      DOUBLE,
+      TRIPLE,
+      AROMATIC,
+      SINGLE_UP,
+      SINGLE_DOWN,
+      UNKNOWN
+   };
+
+   struct Bond
+   {
+      double length, k;
+      BondType type;
+
+      Bond() {};
+
+      Bond( double _length, double _k, BondType _type ) : length(_length),
+         k(_k), type(_type) {};
+   };
+}
+
+
+#endif /* _bond_h_ */
