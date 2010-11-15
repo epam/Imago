@@ -1,0 +1,24 @@
+import os
+
+env = Environment(ENV = os.environ)
+
+import platform
+print platform.machine()
+
+if env['PLATFORM'] == 'win32':
+   env.Append(CCFLAGS = '/O2 /Oi /GL- /EHsc /D "_CRT_SECURE_NO_DEPRECATE" /MT  /D "WIN32" /D "NDEBUG" /D "_LIB" /D "_UNICODE" /D "UNICODE" /FD /Gy /W3 /nologo /c /Zi /TP /wd4345 /wd4244',
+              CPPPATH = ['#libpng'],
+              LIBPATH = ['#libpng'],
+              LIBS = ['libpng32.lib'],
+              LINKFLAGS = '/nologo'
+              )
+
+else:   
+   env.Append(CCFLAGS = '-O2',
+              CPPPATH = ['../../../output/imago_c', '../../../imago/src/'],
+              LIBS = ['png', 'pthread', 'imago_c', 'imago_lib'],
+              LIBPATH = ['../../../output/imago/', '../../../output/imago_c']           
+              )
+
+env.Program(target = 'main', source = 'main.cpp')
+

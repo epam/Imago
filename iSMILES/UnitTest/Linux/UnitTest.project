@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="utf-8"?>
+<CodeLite_Project Name="UnitTest" InternalType="Console">
+  <Description/>
+  <Dependencies/>
+  <Settings Type="Executable">
+    <Configuration Name="Debug" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="-g" Required="yes" PreCompiledHeader="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Debug" Command="./$(ProjectName)" CommandArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+    </Configuration>
+    <Configuration Name="Release" CompilerType="gnu g++" DebuggerType="GNU gdb debugger" Type="" BuildCmpWithGlobalSettings="append" BuildLnkWithGlobalSettings="append" BuildResWithGlobalSettings="append">
+      <Compiler Options="" Required="yes" PreCompiledHeader="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="-O2" Required="yes"/>
+      <ResourceCompiler Options="" Required="no"/>
+      <General OutputFile="$(IntermediateDirectory)/$(ProjectName)" IntermediateDirectory="./Release" Command="./$(ProjectName)" CommandArguments="" WorkingDirectory="$(IntermediateDirectory)" PauseExecWhenProcTerminates="yes"/>
+      <Debugger IsRemote="no" RemoteHostName="" RemoteHostPort="" DebuggerPath="">
+        <PostConnectCommands/>
+        <StartupCommands/>
+      </Debugger>
+      <PreBuild/>
+      <PostBuild/>
+      <CustomBuild Enabled="no">
+        <RebuildCommand/>
+        <CleanCommand/>
+        <BuildCommand/>
+        <PreprocessFileCommand/>
+        <SingleFileCommand/>
+        <MakefileGenerationCommand/>
+        <ThirdPartyToolName>None</ThirdPartyToolName>
+        <WorkingDirectory/>
+      </CustomBuild>
+      <AdditionalRules>
+        <CustomPostBuild/>
+        <CustomPreBuild/>
+      </AdditionalRules>
+    </Configuration>
+    <GlobalSettings>
+      <Compiler Options="">
+        <IncludePath Value="."/>
+      </Compiler>
+      <Linker Options="">
+        <LibraryPath Value="."/>
+        <Library Value="libpng"/>
+      </Linker>
+      <ResourceCompiler Options=""/>
+    </GlobalSettings>
+  </Settings>
+  <VirtualDirectory Name="UnitTest">
+    <File Name="../main.cpp"/>
+    <File Name="../Draw.cpp"/>
+    <File Name="../Draw.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Image">
+    <File Name="../../src/Image/FilePNG.cpp"/>
+    <File Name="../../src/Image/FilePNG.h"/>
+    <File Name="../../src/Image/ImageFilter.h"/>
+    <File Name="../../src/Image/Pixel.h"/>
+    <File Name="../../src/Image/Point.h"/>
+    <File Name="../../src/Image/Region.h"/>
+    <File Name="../../src/Image/LineDefinition.h"/>
+    <File Name="../../src/Image/Image.h"/>
+    <File Name="../../src/Image/Triangle.h"/>
+    <File Name="../../src/Image/Rectangle.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Vectorization">
+    <File Name="../../src/Vectorization/ImageMap.cpp"/>
+    <File Name="../../src/Vectorization/Bounds.cpp"/>
+    <File Name="../../src/Vectorization/Vectorize.h"/>
+    <File Name="../../src/Vectorization/LinearApproximation.cpp"/>
+    <File Name="../../src/Vectorization/ImageMap.h"/>
+    <File Name="../../src/Vectorization/LinearApproximation.h"/>
+    <File Name="../../src/Vectorization/RangeArray.cpp"/>
+    <File Name="../../src/Vectorization/Contour.h"/>
+    <File Name="../../src/Vectorization/Bounds.h"/>
+    <File Name="../../src/Vectorization/Contour.cpp"/>
+    <File Name="../../src/Vectorization/Vectorize.cpp"/>
+    <File Name="../../src/Vectorization/Line.h"/>
+    <File Name="../../src/Vectorization/RangeArray.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Common">
+    <File Name="../../src/Parameters.h"/>
+    <File Name="../../src/Timer.h"/>
+    <File Name="../../src/Histogram.h"/>
+  </VirtualDirectory>
+  <VirtualDirectory Name="Molecule">
+    <File Name="../../src/Molecule/Molecule.h"/>
+    <File Name="../../src/Molecule/Link.h"/>
+    <File Name="../../src/Molecule/Element.h"/>
+  </VirtualDirectory>
+</CodeLite_Project>

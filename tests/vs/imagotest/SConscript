@@ -1,0 +1,17 @@
+#IMAGOTEST
+import os, os.path as OP, glob
+
+Import ('env')
+Import('libimago')
+
+cenv = env.Clone()
+source_files = glob.glob('src/*.cpp')
+
+cenv.Append(CPPPATH = '../../../imago/src')
+
+imagotest_objs = []
+for filename in source_files:
+   base = OP.splitext(OP.basename(filename))[0]
+   imagotest_objs.append(cenv.StaticObject(target = env['BUILDDIR'] + base, source = filename))
+
+imagotest = cenv.Program(target = 'imagotest', source = imagotest_objs + libimago)

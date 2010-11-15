@@ -1,0 +1,32 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImageFilter", "ImageFilter.vcxproj", "{B1BFB9C2-C094-40DF-AA38-05FB4D442A07}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "SMILES", "..\SMILES\SMILES.vcxproj", "{35FF7408-A051-4109-84A2-9B4E5197AF45}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Molecule", "..\Molecule\Molecule.vcxproj", "{40D7B9C2-4F6F-4ED4-9922-76886EA0D04B}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1BFB9C2-C094-40DF-AA38-05FB4D442A07}.Debug|Win32.ActiveCfg = Debug|Win32
+		{B1BFB9C2-C094-40DF-AA38-05FB4D442A07}.Debug|Win32.Build.0 = Debug|Win32
+		{B1BFB9C2-C094-40DF-AA38-05FB4D442A07}.Release|Win32.ActiveCfg = Release|Win32
+		{B1BFB9C2-C094-40DF-AA38-05FB4D442A07}.Release|Win32.Build.0 = Release|Win32
+		{35FF7408-A051-4109-84A2-9B4E5197AF45}.Debug|Win32.ActiveCfg = Debug|Win32
+		{35FF7408-A051-4109-84A2-9B4E5197AF45}.Debug|Win32.Build.0 = Debug|Win32
+		{35FF7408-A051-4109-84A2-9B4E5197AF45}.Release|Win32.ActiveCfg = Release|Win32
+		{35FF7408-A051-4109-84A2-9B4E5197AF45}.Release|Win32.Build.0 = Release|Win32
+		{40D7B9C2-4F6F-4ED4-9922-76886EA0D04B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{40D7B9C2-4F6F-4ED4-9922-76886EA0D04B}.Debug|Win32.Build.0 = Debug|Win32
+		{40D7B9C2-4F6F-4ED4-9922-76886EA0D04B}.Release|Win32.ActiveCfg = Release|Win32
+		{40D7B9C2-4F6F-4ED4-9922-76886EA0D04B}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal
