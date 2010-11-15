@@ -78,7 +78,10 @@ CEXPORT void imagoReleaseSessionId( qword id )
 {
    RecognitionContext *context;
    if ((context = (RecognitionContext*)gSession.get()->context()) != 0)
+   {
       delete context;
+      gSession.get()->context() = 0;
+   }
    SessionManager::getInstance().releaseSID(id);
 }
 

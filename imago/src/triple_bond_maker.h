@@ -37,6 +37,13 @@ namespace imago
       virtual ~TripleBondMaker();
    private:
       TripleBondMaker( const TripleBondMaker & );
+
+      Edge first, second, third;
+      Edge empty;
+      Vertex fb, fe, sb, se, tb, te;
+      
+      Result _validateVertices();
+      
       Skeleton &_s;
       Graph &_g;
       double _avgBondLength;
