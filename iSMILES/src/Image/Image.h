@@ -1,6 +1,7 @@
 #pragma once
 #include <string.h>
 #include <math.h>
+#include <algorithm>
 #include <vector>
 #include "Pixel.h"
 #include "Point.h"
@@ -40,7 +41,7 @@ namespace gga
         inline void  setPixel    (size_t x, size_t  y, const Pixel val)  { if(x < Width && y < Height) Data[x + y * Width] = val;}
         inline Pixel getPixel(size_t x, size_t  y) const     { return (x < Width && y < Height) ? Data[x + y * Width] : Pixel(BACKGROUND);}
         inline Pixel getPixel(const Point& p)     const      { return getPixel(p.X, p.Y);}
-		inline bool isInside (const Point& p)     const      { return p.X < Width && p.Y < Height;}
+        inline bool isInside (const Point& p)     const      { return p.X < Width && p.Y < Height;}
         inline bool isFilled (const Point& p)     const      { return isInside(p) && !getPixel(p).isBackground(); }
         inline void crop(size_t xo, size_t yo, size_t xend, size_t yend)
         {
@@ -72,7 +73,398 @@ namespace gga
                 drawLine(points[i-1].X, points[i-1].Y, points[i].X, points[i].Y, line);
         }
 
+   private:
+        inline void setEdges (size_t xc, size_t yc, size_t x, size_t y, size_t mask, const Pixel pixel)
+        {
+            if(mask&1)
+                setPixel(xc+x, yc+y, pixel);
+            if(mask&2)
+                setPixel(xc+y, yc+x, pixel);
+            if(mask&4)
+                setPixel(xc+y, yc-x, pixel);
+            if(mask&8)
+                setPixel(xc+x, yc-y, pixel);
+            if(mask&16)
+                setPixel(xc-x, yc-y, pixel);
+            if(mask&32)
+                setPixel(xc-y, yc-x, pixel);
+            if(mask&64)
+                setPixel(xc-y, yc+x, pixel);
+            if(mask&128)
+                setPixel(xc-x, yc+y, pixel);
+        }
+        inline void setEdges (size_t xc, size_t yc, size_t x, size_t y, size_t mask, Points &points)
+        {
+            if(mask&1)
+                points.push_back(Point(xc+x, yc+y));
+            if(mask&2)
+                points.push_back(Point(xc+y, yc+x));
+            if(mask&4)
+                points.push_back(Point(xc+y, yc-x));
+            if(mask&8)
+                points.push_back(Point(xc+x, yc-y));
+            if(mask&16)
+                points.push_back(Point(xc-x, yc-y));
+            if(mask&32)
+                points.push_back(Point(xc-y, yc-x));
+            if(mask&64)
+                points.push_back(Point(xc-y, yc+x));
+            if(mask&128)
+                points.push_back(Point(xc-x, yc+y));
+        }
+
+        inline void setEdgeCircle(size_t xo, size_t yo, size_t xe, size_t ye, size_t dx, size_t dy, size_t swap, size_t radius, int *sx, int *sy, const Pixel pixel)
+        {
+        //Bresenham's circule draw algorithm
+            int  x = 0,  y = radius,  d = 3 - (radius<<1);
+            int mask = 255;
+            int ddx = xe - xo;
+            *sx = 0; 
+            *sy = 0;
+
+            if (ddx < 0)
+                ddx=-1;
+            else 
+                ddx=1;
+
+            while (x < y)
+            {
+                int rrr  = x * dx;
+                int rrr2 = y * dy;
+                if(swap)
+                {
+                    if(rrr>=rrr2)
+                    {
+                        mask = 255-1-2-128-64;
+                        if(!rrr)
+                        {
+                            *sx = y; 
+                            *sy = ddx*x; 
+                        }
+                    }
+                    else
+                    {
+                      mask = 255-128-1-2-4;
+                      if(ddx<0)
+                          mask = 255-2-4-8-16;
+                      *sx = ddx*y; 
+                      *sy = x; 
+                    }
+                }
+                else
+                {
+                    if(rrr>=rrr2)
+                    {
+                        mask = 255-1-2-4-8;
+                        if(!rrr)
+                            {
+                                *sx = ddx*x; 
+                                *sy = y; 
+                            }
+                    }
+                    else
+                    {
+                      mask = 255-1-2-4-128;
+                      if(ddx<0)
+                          mask = 255-2-4-8-16;
+                      *sx = ddx*x; 
+                      *sy = y; 
+                    }
+                }
+
+                if (ddx < 0)
+                    mask=~ mask;
+
+                setEdges (xo, yo, x, y, mask, pixel);
+                setEdges (xe, ye, x, y, ~mask, pixel);
+                
+                if (d < 0)
+                    d = d + 4*x + 6;
+                else
+                {
+                    d = d + 4*(x-y) + 10;
+                    --y;
+                }
+                ++x;
+            }
+            if (x == y)
+            {
+                setEdges (xo, yo, x, y, mask, pixel);
+                setEdges (xe, ye, x, y, ~mask, pixel);
+            } 
+        } 
+
+        inline void setEdgeCircle(size_t xo, size_t yo, size_t xe, size_t ye, size_t dx, size_t dy, size_t swap, size_t radius, int *sx, int *sy, Points &points)
+        {
+        //Bresenham's circule draw algorithm
+            int  x = 0,  y = radius,  d = 3 - (radius<<1);
+            int mask = 255;
+            int ddx = xe - xo;
+            *sx = 0; 
+            *sy = 0;
+
+            if (ddx < 0)
+                ddx=-1;
+            else 
+                ddx=1;
+
+            while (x < y)
+            {
+                int rrr  = x * dx;
+                int rrr2 = y * dy;
+
+                if(swap)
+                {
+                    if(rrr>=rrr2)
+                    {
+                        mask = 255-1-2-128-64;
+                        if(!rrr)
+                        {
+                            *sx = y; 
+                            *sy = ddx*x; 
+                        }
+                    }
+                    else
+                    {
+                      mask = 255-128-1-2-4;
+                      if(ddx<0)
+                          mask = 255-2-4-8-16;
+                      *sx = ddx*y; 
+                      *sy = x; 
+                    }
+                }
+                else
+                {
+                    if(rrr>=rrr2)
+                    {
+                        mask = 255-1-2-4-8;
+                        if(!rrr)
+                            {
+                                *sx = ddx*x; 
+                                *sy = y; 
+                            }
+                    }
+                    else
+                    {
+                      mask = 255-1-2-4-128;
+                      if(ddx<0)
+                          mask = 255-2-4-8-16;
+                      *sx = ddx*x; 
+                      *sy = y; 
+                    }
+                }
+
+                if (ddx < 0)
+                    mask=~ mask;
+
+                setEdges (xo, yo, x, y, mask, points);
+                setEdges (xe, ye, x, y, ~mask, points);
+                if (d < 0)
+                    d = d + 4*x + 6;
+                else
+                {
+                    d = d + 4*(x-y) + 10;
+                    --y;
+                }
+                ++x;
+            }
+            if (x == y)
+            {
+                setEdges (xo, yo, x, y, mask, points);
+                setEdges (xe, ye, x, y, ~mask, points);
+            } 
+        } 
+
+    public:
+        inline void drawSardelka(size_t xo, size_t yo, size_t xend, size_t yend, const LineDefinition& line = LineDefinition(INK,1))
+        {
+        //Bresenham's line draw algorithm
+            int  dx, dy, s, sx, sy, kl, swap, incr1, incr2, svx, svy;
+
+               sy = 1;
+               if ((dy = yend-yo) < 0)
+               {
+                   int xt = xo;
+                   int yt = yo;
+                   xo = xend;
+                   yo = yend;
+                   xend = xt;
+                   yend = yt;
+                   dy = -dy;
+               }
+               else if (dy == 0) 
+                   --sy;
+            // calculation dx and steps
+               sx = 0;
+               if ((dx = xend-xo) < 0)
+               {
+                    dx = -dx;
+                    --sx;
+               }
+               else if (dx>0)
+                   ++sx;
+
+            // calculate the slope
+               swap = 0;
+               if ((kl = dx) < (s = dy))
+               {
+                  dx = s;
+                  dy = kl;
+                  kl = s;
+                  ++swap;
+               }
+
+               s = (incr1 = dy<<1) - dx;
+                                    // incr1 - constant of scalar recalculation
+                                    // if current s < 0  and
+                                    // s - initial difference
+               incr2 = dx<<1;       // second constant of scalar recalculation
+                                    // use when s >= 0
+               setEdgeCircle(xo,yo,xend,yend, dx, dy, swap, line.Width/2, &svx, &svy, line.Color);
+               setPixel (xo+svx,yo-svy,line.Color); // current point of vector
+               setPixel (xo-svx,yo+svy,line.Color); // current point of vector
+               while (--kl >= 0)
+               {
+                  int ssx = 0;
+                  int ssy = 0;
+                  if (s >= 0)
+                  {
+                     if (swap)
+                     {
+                         xo+= sx;
+                         ssx = sx;
+                     }
+                     else
+                     {
+                         yo+= sy;
+                         ssy = sy;
+                     }
+                     s-= incr2;
+                  }
+                  if (swap)
+                  {
+                      yo += sy;
+                      ssy = sy;
+                  }
+                  else
+                  {
+                      xo+= sx;
+                      ssx = sx;
+                  }
+                  s += incr1;
+                  setPixel (xo+svx,yo-svy,line.Color); // current point of vector
+                  setPixel (xo-svx,yo+svy,line.Color); // current point of vector
+               }
+        }  
+
         inline void drawLine(size_t xo, size_t yo, size_t xend, size_t yend, const LineDefinition& line = LineDefinition(INK,1))
+        {
+        //Bresenham's line draw algorithm
+        //    if(line.Width < 2)
+        //    { // fast draw
+        //        drawHairline( xo, yo, xend, yend, line);
+        //        return;
+        //    }
+            int  dx, dy, s, sx, sy, kl, swap, incr1, incr2, svx, svy;
+            Points points;
+
+               sy = 1;
+               if ((dy = yend-yo) < 0)
+               {
+                   int xt = xo;
+                   int yt = yo;
+                   xo = xend;
+                   yo = yend;
+                   xend = xt;
+                   yend = yt;
+                   dy = -dy;
+               }
+               else if (dy == 0) 
+                   --sy;
+            // calculation dx and steps
+               sx = 0;
+               if ((dx = xend-xo) < 0)
+               {
+                    dx = -dx;
+                    --sx;
+               }
+               else if (dx>0)
+                   ++sx;
+
+            // calculate the slope
+               swap = 0;
+               if ((kl = dx) < (s = dy))
+               {
+                  dx = s;
+                  dy = kl;
+                  kl = s;
+                  ++swap;
+               }
+
+               s = (incr1 = dy<<1) - dx;
+                                    // incr1 - constant of scalar recalculation
+                                    // if current s < 0  and
+                                    // s - initial difference
+               incr2 = dx<<1;       // second constant of scalar recalculation
+                                    // use when s >= 0
+               setEdgeCircle(xo,yo,xend,yend, dx, dy, swap, line.Width/2, &svx, &svy, points);
+               points.push_back(Point(xo+svx, yo-svy));
+               points.push_back(Point(xo-svx, yo+svy));
+    
+               while (--kl >= 0)
+               {
+                  int ssx = 0;
+                  int ssy = 0;
+                  if (s >= 0)
+                  {
+                     if (swap)
+                     {
+                         xo+= sx;
+                         ssx = sx;
+                     }
+                     else
+                     {
+                         yo+= sy;
+                         ssy = sy;
+                     }
+                     s-= incr2;
+                  }
+                  if (swap)
+                  {
+                      yo += sy;
+                      ssy = sy;
+                  }
+                  else
+                  {
+                      xo+= sx;
+                      ssx = sx;
+                  }
+                  s += incr1;
+
+
+                  points.push_back(Point(xo+svx,yo-svy)); // current point of vector
+                  points.push_back(Point(xo-svx,yo+svy)); // current point of vector
+               }
+
+               std::sort(points.begin(), points.end());
+               Points::const_iterator first = points.begin();
+               for (Points::const_iterator it = points.begin(); it != points.end(); it++)
+               {
+                   if((it+1) == points.end())
+                   {
+                       memset(&Data[first->X + first->Y * Width], line.Color.Value, (it->X - first->X)+1);
+                       break;
+                   }
+
+                   if(first->Y != (it+1)->Y)
+                   {
+                       memset(&Data[first->X + first->Y * Width], line.Color.Value, (it->X - first->X)+1);
+                       first = it+1;
+                   }
+               }
+        }  
+
+        inline void drawHairline(size_t xo, size_t yo, size_t xend, size_t yend, const LineDefinition& line = LineDefinition(INK,1))
         {
         //Bresenham's line draw algorithm
             int  dx, dy, s, sx, sy, kl, swap, incr1, incr2;
@@ -111,7 +503,7 @@ namespace gga
                                     // s - initial difference
                incr2 = dx<<1;       // second constant of scalar recalculation
                                     // use when s >= 0
-               setPixel (xo,yo,line.Color); // the first pixel of vector
+               setPixel (xo,yo,line.Color); // current point of vector
                while (--kl >= 0)
                {
                   if (s >= 0)
@@ -130,7 +522,7 @@ namespace gga
                   setPixel (xo,yo,line.Color); // current point of vector
                }
         }  
-    private:
+   private:
         inline void draw8CirculePixels (size_t xc, size_t yc, size_t x, size_t y, const LineDefinition& line = LineDefinition(INK,1))
         {
             setPixel(xc+x, yc+y, line.Color);
