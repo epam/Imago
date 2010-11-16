@@ -24,7 +24,7 @@ namespace gga
             if (empty())
                 return result;
             
-            bool processed[size];
+			std::vector<bool> processed(size);
             for (size_t u = 0; u < size; u++)
                 processed[u] = false;
             
