@@ -325,32 +325,18 @@ namespace gga
                setPixel (xo-svx,yo+svy,line.Color); // current point of vector
                while (--kl >= 0)
                {
-                  int ssx = 0;
-                  int ssy = 0;
                   if (s >= 0)
                   {
                      if (swap)
-                     {
                          xo+= sx;
-                         ssx = sx;
-                     }
                      else
-                     {
                          yo+= sy;
-                         ssy = sy;
-                     }
                      s-= incr2;
                   }
                   if (swap)
-                  {
                       yo += sy;
-                      ssy = sy;
-                  }
                   else
-                  {
                       xo+= sx;
-                      ssx = sx;
-                  }
                   s += incr1;
                   setPixel (xo+svx,yo-svy,line.Color); // current point of vector
                   setPixel (xo-svx,yo+svy,line.Color); // current point of vector
@@ -413,34 +399,19 @@ namespace gga
     
                while (--kl >= 0)
                {
-                  int ssx = 0;
-                  int ssy = 0;
                   if (s >= 0)
                   {
                      if (swap)
-                     {
                          xo+= sx;
-                         ssx = sx;
-                     }
                      else
-                     {
                          yo+= sy;
-                         ssy = sy;
-                     }
                      s-= incr2;
                   }
                   if (swap)
-                  {
                       yo += sy;
-                      ssy = sy;
-                  }
                   else
-                  {
                       xo+= sx;
-                      ssx = sx;
-                  }
                   s += incr1;
-
 
                   points.push_back(Point(xo+svx,yo-svy)); // current point of vector
                   points.push_back(Point(xo-svx,yo+svy)); // current point of vector
