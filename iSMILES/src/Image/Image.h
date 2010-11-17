@@ -74,24 +74,29 @@ namespace gga
         }
 
    private:
-        inline void setEdges (int xc, int yc, int x, int y, size_t mask, Points &points)
+        inline void PutClipPoint(int x, int y, Points &points)
+        {
+            points.push_back(Point((x < 0)?0:x, (y < 0)?0:y));
+        }
+
+       inline void setEdges (int xc, int yc, int x, int y, size_t mask, Points &points)
         {
             if(mask&1)
-                points.push_back(Point(xc+x, yc+y));
+                PutClipPoint(xc+x, yc+y, points);
             if(mask&2)
-                points.push_back(Point(xc+y, yc+x));
+                PutClipPoint(xc+y, yc+x, points);
             if(mask&4)
-                points.push_back(Point(xc+y, yc-x));
+                PutClipPoint(xc+y, yc-x, points);
             if(mask&8)
-                points.push_back(Point(xc+x, yc-y));
+                PutClipPoint(xc+x, yc-y, points);
             if(mask&16)
-                points.push_back(Point(xc-x, yc-y));
+                PutClipPoint(xc-x, yc-y, points);
             if(mask&32)
-                points.push_back(Point(xc-y, yc-x));
+                PutClipPoint(xc-y, yc-x, points);
             if(mask&64)
-                points.push_back(Point(xc-y, yc+x));
+                PutClipPoint(xc-y, yc+x, points);
             if(mask&128)
-                points.push_back(Point(xc-x, yc+y));
+                PutClipPoint(xc-x, yc+y, points);
         }
 
         inline void setEdgeCircle(size_t xo, size_t yo, size_t xe, size_t ye, size_t dx, size_t dy, size_t swap, size_t radius, int *sx, int *sy, Points &points)
@@ -180,11 +185,6 @@ namespace gga
         inline void drawLine(size_t xo, size_t yo, size_t xend, size_t yend, const LineDefinition& line = LineDefinition(INK,1))
         {
             //Bresenham's line draw algorithm
-          //     if(line.Width < 2)
-          //     { // fast draw
-          //          drawHairline( xo, yo, xend, yend, line);
-          //          return;
-          //     }
             int  dx, dy, s, sx, sy, kl, swap, incr1, incr2, svx, svy;
             Points points;
             sy = 1;
@@ -228,8 +228,8 @@ namespace gga
             incr2 = dx<<1;                // second constant of scalar recalculation
                                         // use when s >= 0
             setEdgeCircle(xo,yo,xend,yend, dx, dy, swap, line.Width/2, &svx, &svy, points);
-            points.push_back(Point((int)xo+svx, (int)yo-svy));
-            points.push_back(Point((int)xo-svx, (int)yo+svy));
+            PutClipPoint((int)xo+svx, (int)yo-svy, points);
+            PutClipPoint((int)xo-svx, (int)yo+svy, points);
             
             while (--kl >= 0)
             {
@@ -247,8 +247,8 @@ namespace gga
                     xo+= sx;
                 s += incr1;
 
-                points.push_back(Point((int)xo+svx,(int)yo-svy)); // current point of vector
-                points.push_back(Point((int)xo-svx,(int)yo+svy)); // current point of vector
+                PutClipPoint((int)xo+svx,(int)yo-svy, points); // current point of vector
+                PutClipPoint((int)xo-svx,(int)yo+svy, points); // current point of vector
             }
 
             std::sort(points.begin(), points.end());
