@@ -5,7 +5,9 @@
 
 using namespace std;
 using namespace gga;
-char cmd[256];
+char filename[256];
+
+static char cmd[256];
 
 int main(int argc, char* argv[])
 {
@@ -39,6 +41,24 @@ int main(int argc, char* argv[])
 //        return 0;
     }
 */
+
+    {
+        if(!jpg.load(argv[1], &img))
+        {
+            if(!png.load(argv[1], &img))
+                return -1;
+        }
+        strcpy(filename, argv[1]);
+        ImageFilter flt(img);
+        flt.prepareImageForVectorization();
+        png.save(string(argv[1])+".out.png", img);
+        std::vector<size_t> whistogram;
+        gga::Coord w = flt.computeLineWidthHistogram(&whistogram);
+        printf("Line Width = %d\n", (int)w);
+return 0;
+    }
+
+
     {
 //prepareImageForVectorization:
         if(!jpg.load(argv[1], &img))
@@ -73,11 +93,13 @@ int main(int argc, char* argv[])
             }
         }
         bg = getBackgroundValue(img);
-        stretchImageHistogram(&img, minColor, maxColor);
+        
+        stretchImageHistogram(&img, 16+0*minColor, maxColor);
         png.save(string(argv[1])+".out30_stretched.png", img);
             for(size_t v = 32; v < histogram.size() && histogram[v] < maxh; v++)
                 printf("%3d: %d %s\n", v, histogram[v], v==bg ? "------------ BACKGROUND CutOff -------------" : "");
             printf("bg=%d (%d) minColor=%d maxColor=%d\n", bg, getBackgroundValue(img), minColor, maxColor);
+
         blurImage(&img, 5);
         png.save(string(argv[1])+".out40_stretched-blur.png", img);
 
@@ -88,28 +110,19 @@ int main(int argc, char* argv[])
         r=32;   //21
         clearCorners (img, r);
         png.save(string(argv[1])+".out60_cleared-corners.png", img);
+
         eraseSmallDirts (img, 4);
         png.save(string(argv[1])+".out61_cleared-dirts.png", img);
+        
         cropImageToPicture(img);
         png.save(string(argv[1])+".out99_cropped.png", img);
+
 //scanf("%s", cmd);
 //        return 0;
     }
 
-    {
-        if(!jpg.load(argv[1], &img))
-        {
-            if(!png.load(argv[1], &img))
-                return -1;
-        }
-        ImageFilter flt(img);
-        flt.prepareImageForVectorization();
-        png.save(string(argv[1])+".out.png", img);
-        std::vector<size_t> whistogram;
-        gga::Coord w = flt.computeLineWidthHistogram(&whistogram);
-        printf("Width = %d\n", (int)w);
-        return 0;
-    }
+//scanf("%s", cmd);
+return 0;
 /*
     {
         if(!png.load(argv[1], &img))

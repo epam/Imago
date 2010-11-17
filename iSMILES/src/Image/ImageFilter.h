@@ -1,5 +1,6 @@
 #pragma once
 #include <vector>
+#include <algorithm>
 #include "Image.h"
 
 namespace gga
@@ -65,7 +66,8 @@ namespace gga
              for(size_t ix = 0; ix < nx; ix++) // average area
              {
                 int dw = std::max(0, int((r+1)*(r+1) - ix*ix + iy*iy));
-                px += img->getPixel(x+ix, y+iy).Value * dw;
+                if(0!=dw)
+                    px += img->getPixel(x+ix, y+iy).Value * dw;
                 weight += dw;
              }
             px /= weight;   // px /= nx * ny;
@@ -187,16 +189,16 @@ namespace gga
     static inline void clearCorners (Image& img, size_t r)
     {
         for (size_t y = 0; y < img.getHeight(); y++)    // left top corner
-            if(0 == clearSolidLine (img, 0, img.getWidth()-1, y, r))
+            if(0 == clearSolidLine (img, 0, img.getWidth()/4, y, r))
                 break;
         for (size_t y = img.getHeight()-1; y > 0; y--)    // left bottom corner
-            if(0 == clearSolidLine (img, 0, img.getWidth()-1, y, r))
+            if(0 == clearSolidLine (img, 0, img.getWidth()/4, y, r))
                 break;
         for (size_t y = 0; y < img.getHeight(); y++)    // right top corner
-            if(0 == clearSolidLine (img, img.getWidth()-1, 0, y, r))
+            if(0 == clearSolidLine (img, img.getWidth()/4, 0, y, r))
                 break;
         for (size_t y = img.getHeight()-1; y > 0; y--)    // right bottom  corner
-            if(0 == clearSolidLine (img, img.getWidth()-1, 0, y, r))
+            if(0 == clearSolidLine (img, img.getWidth()/4, 0, y, r))
                 break;
     }
 
@@ -206,19 +208,73 @@ namespace gga
         for (size_t y = 0; y < img.getHeight(); y++)
          for(size_t x = 0; x < img.getWidth() ; x++)
          {
-            size_t len = 0, hmax = 0;
             if(!img.getPixel(x, y).isBackground())
             {
+                size_t len = 0, hmax = 0, rmax=0;
+
                 for(size_t i = 0; i <= r && x + i < img.getWidth() && ! img.getPixel(x+i, y).isBackground(); i++)
                 {
                     len++;
                     size_t h = 0;
                     for(size_t j = 0; j <= r && y + j < img.getHeight() && ! img.getPixel(x+i, y+j).isBackground(); j++)
                         h++;
+                    for(size_t j = 1; j <= r && y - j >= 0 && ! img.getPixel(x+i, y-j).isBackground(); j++)
+                        h++;
                     if(h > hmax)
                         hmax = h;
                 }
-                if(hmax <= r && len <= r)
+                for(size_t i = 1; i <= r && x - i >= 0 && ! img.getPixel(x-i, y).isBackground(); i++)
+                {
+                    len++;
+                    size_t h = 0;
+                    for(size_t j = 0; j <= r && y + j < img.getHeight() && ! img.getPixel(x-i, y+j).isBackground(); j++)
+                        h++;
+                    for(size_t j = 1; j <= r && y - j >= 0 && ! img.getPixel(x-i, y-j).isBackground(); j++)
+                        h++;
+                    if(h > hmax)
+                        hmax = h;
+                }
+                // *
+                if(hmax <= r && len <= r)   // compute max distance by outer contour
+                {
+                    int xi = x, yj = y;
+                    while (rmax <= r && abs(xi - (int)x) <= (int)r &&  abs(yj - (int)y) <= (int)r &&  xi < (int)img.getWidth () && yj < (int)img.getHeight())
+                    {
+                       if(!img.getPixel(xi, yj+1).isBackground())
+                        {
+                            yj++;
+                            if(xi >= 1 && !img.getPixel(xi-1, yj).isBackground())
+                                xi--;
+                        }
+                        else if(yj >= 1 && !img.getPixel(xi, yj-1).isBackground())
+                        {
+                            yj--;
+                            if(xi >= 1 && !img.getPixel(xi-1, yj).isBackground())
+                                xi--;
+                        }
+                        else if(!img.getPixel(xi+1, yj).isBackground())
+                        {
+                            xi++;
+                            if(yj >= 1 && !img.getPixel(xi, yj-1).isBackground())
+                                yj--;
+                        }
+                        else if(xi >= 1 && !img.getPixel(xi-1, yj).isBackground())
+                        {
+                            xi--;
+                            if(!img.getPixel(xi, yj+1).isBackground())
+                                yj++;
+                        }
+                        if (xi < 0)
+                            xi = 0;
+                        if (yj < 0)
+                            yj = 0;
+
+                        if(size_t(((int)x-xi)*((int)x-xi) + ((int)y-yj)*((int)y-yj)) > r*r)
+                            rmax = 2*r;
+                    }
+                }
+                // * /
+                if(rmax <= r && hmax <= r && len <= r)
                 {
                     for(size_t i = 0; i <= r && x < img.getWidth() && ! img.getPixel(x, y).isBackground(); i++, x++)
                     {
@@ -297,12 +353,14 @@ namespace gga
         double UnsharpMaskRadius;
         double UnsharpMaskAmount;
         double UnsharpMaskThreshold;
+        double UnsharpMaskThreshold2;   //after stretch histogram
+        size_t  CropBorder;
         size_t  RadiusBlur;
         size_t  VignettingHoleDistance;
         size_t  SmallDirtSize;
     public:
-        inline ImageFilterParameters() : UnsharpMaskRadius(64), UnsharpMaskAmount(7), UnsharpMaskThreshold(3)
-                                        , RadiusBlur(4), VignettingHoleDistance(31), SmallDirtSize(4) {}
+        inline ImageFilterParameters() : UnsharpMaskRadius(64), UnsharpMaskAmount(7), UnsharpMaskThreshold(3), UnsharpMaskThreshold2(130)
+                                       , CropBorder(8), RadiusBlur(4), VignettingHoleDistance(31), SmallDirtSize(4) {}
     };
 
     class ImageFilter
@@ -314,84 +372,19 @@ namespace gga
         inline ImageFilter(gga::Image& img) : Image(img)
         {
             // compute optimal default parameters based on image resiolution
-            Parameters.UnsharpMaskRadius = std::min(85, int(std::min(Image.getWidth(), Image.getHeight())/4));
+            Parameters.UnsharpMaskRadius = std::min(120, int(std::min(Image.getWidth(), Image.getHeight())/4));
             Parameters.UnsharpMaskAmount = 7.;
             Parameters.UnsharpMaskThreshold = 72;
-            Parameters.RadiusBlur = 6;
-            Parameters.SmallDirtSize = 5;
-            Parameters.VignettingHoleDistance = 31;
+            Parameters.UnsharpMaskThreshold2= 130;
+            Parameters.CropBorder   = 8;
+            Parameters.RadiusBlur   = 5;
+            Parameters.SmallDirtSize= 6;//2;   //4
+            Parameters.VignettingHoleDistance = std::min(32, (int)Image.getWidth()/8);
 
         }
 
-        inline void prepareImageForVectorization()
-        {
-            if(IT_BW == Image.getType())  // not photo image
-                return;
-
-            unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount, (int)Parameters.UnsharpMaskThreshold);
-
-            if(0 != Parameters.RadiusBlur)
-                blurImage(&Image, Parameters.RadiusBlur);
-
-            std::vector<size_t> histogram;
-            makeHistogram (Image, &histogram);
-            size_t maxColor = 0, maxN = 0;
-            size_t minColor = 0, minN =-1;
-            for(size_t i = 0; i < histogram.size(); i++)
-            {
-                if(histogram[i] >= maxN)
-                {
-                    maxColor = i;
-                    maxN = histogram[i];
-                }
-                if(histogram[i] < minN)
-                {
-                    minColor = i;
-                    minN = histogram[i];
-                }
-            }
-            stretchImageHistogram(&Image, minColor, maxColor);
-
-            if(0 != Parameters.RadiusBlur)
-                blurImage(&Image, Parameters.RadiusBlur);
-
-            convertGrayscaleToBlackWhite(Image, getBackgroundValue(Image));
-
-            if(0 != Parameters.VignettingHoleDistance)
-                clearCorners (Image, Parameters.VignettingHoleDistance);
-            if(0 != Parameters.SmallDirtSize)
-                eraseSmallDirts (Image, Parameters.SmallDirtSize);
-
-            cropImageToPicture(Image);
-        }
-
-        inline Coord computeLineWidthHistogram(std::vector<size_t>* histogram, size_t size = -1)
-        {
-            size_t maxFrequentWidth = 0, maxFrequentWidthNumber = 0;
-            if(-1==size)
-                size = Image.getWidth()/10;
-
-            histogram->resize(size);
-            memset(&(*histogram)[0], 0, histogram->size());
-            for (size_t y = 0; y < Image.getHeight(); y++)
-             for(size_t x = 0; x < Image.getWidth() ; x++)
-              if(!Image.getPixel(x, y).isBackground())
-            {
-                size_t w = 0;
-                for(; x < Image.getWidth() && !Image.getPixel(x, y).isBackground(); x++)
-                    w++;
-                if (w < histogram->size())
-                {
-                    size_t n = ++(*histogram)[w];
-                    if (maxFrequentWidthNumber < n)
-                    {
-                        maxFrequentWidthNumber = n;
-                        maxFrequentWidth       = w;
-                    }
-                }
-            }
-            return Coord(maxFrequentWidth);
-        }
+        void  prepareImageForVectorization();
+        Coord computeLineWidthHistogram   (std::vector<size_t>* histogram, size_t size = -1);
     };
 
 }

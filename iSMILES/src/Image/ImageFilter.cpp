@@ -2,12 +2,186 @@
 #include <algorithm>
 #include "ImageFilter.h"
 
+#define TEST
+#ifdef TEST
+    #include <stdio.h>   //test log
+    #include "FilePNG.h" //test log
+    #include "../Timer.h"//test log
+
+    static gga::FilePNG png;
+    extern char filename[];
+    static char file[64];
+#endif
+
 namespace gga
 {
+    // Gaussian blur matrix:  
+    //                          
+    //    1    2    1          
+    //    2    4    2          
+    //    1    2    1          
+    //                          
+    //////////////////////////////////////////////////  
+
+    void ImageFilter::prepareImageForVectorization()
+    {
+        if(IT_BW == Image.getType())  // not photo image
+            return;
+#ifdef TEST
+sprintf (file,"out/test-%s.flt-00_original.png", filename);
+png.save(file, Image);
+Timer tm, ttotal;
+double totalTime=0.;
+#endif
+
+        unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount, (int)Parameters.UnsharpMaskThreshold);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("unsharpMaskImage: %.4f sec. bg=%d\n", tm.getElapsedTime(), getBackgroundValue(Image));
+sprintf (file,"out/test-%s.flt-10_unsharp-mask.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+        std::vector<size_t> histogram;
+        makeHistogram (Image, &histogram);
+        size_t maxColor = histogram.size()-1, maxN = histogram[histogram.size()-1];
+        size_t minColor = 0, minN = histogram[0];
+        for(size_t i = 0; i < histogram.size(); i++)
+        {
+            if(histogram[i] >= maxN)
+            {
+                maxColor = i;
+                maxN = histogram[i];
+            }
+            if(histogram[i] <= minN && i < maxColor)
+            {
+                minColor = i;
+                minN = histogram[i];
+            }
+            else if(histogram[i] > 4*minN)
+                minN = 0;   // stop find first minimum
+        }
+        stretchImageHistogram(&Image, (size_t(16) > minColor ? minColor : size_t(16)), maxColor);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("stretchImageHistogram: %.4f sec. minColor=%d (%d) maxColor=%d\n", tm.getElapsedTime(), (size_t(16) > minColor ? minColor : size_t(16)), minColor, maxColor);
+sprintf (file,"out/test-%s.flt-30_stretched.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+        if(0 != Parameters.RadiusBlur)
+            blurImage(&Image, Parameters.RadiusBlur);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("blurImage: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-40_blur.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+        unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount, (int)Parameters.UnsharpMaskThreshold2);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("unsharpMaskImage: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-41_unsharp-mask-2.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+        Image.crop(Parameters.CropBorder, Parameters.CropBorder, Image.getWidth() - Parameters.CropBorder - 1, Image.getHeight() - Parameters.CropBorder -1);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("cropBorder: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-42_crop-frames.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+        convertGrayscaleToBlackWhite(Image, getBackgroundValue(Image));
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("convertGrayscaleToBlackWhite: %.4f sec. Background=%d\n", tm.getElapsedTime(), getBackgroundValue(Image));
+sprintf (file,"out/test-%s.flt-50_BW.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+        cropImageToPicture(Image);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("cropImageToPicture: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-51_croped.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+        if(0 != Parameters.VignettingHoleDistance)
+            clearCorners (Image, Parameters.VignettingHoleDistance);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("clearCorners: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-60_cleared-cornes.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+        if(0 != Parameters.SmallDirtSize)
+            eraseSmallDirts (Image, Parameters.SmallDirtSize);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("eraseSmallDirts: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-70_cleared-dirts.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+        cropImageToPicture(Image);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("cropImageToPicture: %.4f sec.\nTotalTime =  %.4f (with log %.4f) sec.\n", tm.getElapsedTime(), totalTime, ttotal.getElapsedTime());
+sprintf (file,"out/test-%s.flt-99_croped.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+    }
+
+
+    Coord ImageFilter::computeLineWidthHistogram(std::vector<size_t>* histogram, size_t size)
+    {
+        size_t maxFrequentWidth = 0, maxFrequentWidthNumber = 0;
+        if(-1==size)
+            size = Image.getWidth()/10;
+
+        histogram->resize(size);
+        memset(&(*histogram)[0], 0, histogram->size());
+        for (size_t y = 0; y < Image.getHeight(); y++)
+            for(size_t x = 0; x < Image.getWidth() ; x++)
+            if(!Image.getPixel(x, y).isBackground())
+        {
+            size_t w = 0;
+            for(; x < Image.getWidth() && !Image.getPixel(x, y).isBackground(); x++)
+                w++;
+            if (w < histogram->size())
+            {
+                size_t n = ++(*histogram)[w];
+                if (maxFrequentWidthNumber < n)
+                {
+                    maxFrequentWidthNumber = n;
+                    maxFrequentWidth       = w;
+                }
+            }
+        }
+        return Coord(maxFrequentWidth);
+    }
+
+//==============================================================================
+// UnsharpMask
+//==============================================================================
+
     static inline int ROUND (double x) { return (int) (x + 0.5);}
-// Square:
-#define SQR(x) ((x) * (x))
-//    static inline double SQR(double x) { return x*x;}
+    // Square:
+    #define SQR(x) ((x) * (x))  //    static inline double SQR(double x) { return x*x;}
 
     
     struct UnsharpMaskParams
@@ -28,10 +202,7 @@ namespace gga
         int           row;
         int           i, j;
 
-        /* This first block is the same as the optimized version --
-        * it is only used for very small pictures, so speed isn't a
-        * big concern.
-        */
+        // This first block is the same as the optimized version. it is only used for very small pictures, so speed isn't a big concern.
         if (cmatrix_length > len)
         {
             for (row = 0; row < len; row++)
@@ -70,10 +241,10 @@ namespace gga
         }
         else
         {
-            /* for the edge condition, we only use available info and scale to one */
+            // for the edge condition, we only use available info and scale to one
             for (row = 0; row < cmatrix_middle; row++)
             {
-                /* find scale factor */
+                // find scale factor
                 double scale = 0;
 
                 for (j = cmatrix_middle - row; j < cmatrix_length; j++)
@@ -97,7 +268,7 @@ namespace gga
                 }
             }
 
-            /* go through each pixel in each col */
+            // go through each pixel in each col
             for (; row < len - cmatrix_middle; row++)
             {
                 src_p = src + (row - cmatrix_middle) * bytes;
@@ -122,10 +293,10 @@ namespace gga
                 }
             }
 
-            /* for the edge condition, we only use available info and scale to one */
+            // for the edge condition, we only use available info and scale to one
             for (; row < len; row++)
             {
-                /* find scale factor */
+                // find scale factor
                 double scale = 0;
 
                 for (j = 0; j < len - row + cmatrix_middle; j++)
@@ -151,9 +322,7 @@ namespace gga
         }
     }
 
-    /* generates a 1-D convolution matrix to be used for each pass of
-     * a two-pass gaussian blur.  Returns the length of the matrix.
-     */
+    // generates a 1-D convolution matrix to be used for each pass of a two-pass gaussian blur.  Returns the length of the matrix.
     static int makeConvolveMatrix (double radius, double **cmatrix_p)
     {
       double *cmatrix;
@@ -177,7 +346,7 @@ namespace gga
       std_dev = radius;
       radius = std_dev * 2;
 
-      /* go out 'radius' in each direction */
+      // go out 'radius' in each direction
       matrix_length = (int)(2 * ceil (radius - 0.5) + 1);
       if (matrix_length <= 0)
         matrix_length = 1;
@@ -192,7 +361,7 @@ namespace gga
        *  The formula to integrate is e^-(x^2/2s^2).
        */
 
-      /* first we do the top (right) half of matrix */
+      // first we do the top (right) half of matrix
       for (i = matrix_length / 2 + 1; i < matrix_length; i++)
         {
           double base_x = i - (matrix_length / 2) - 0.5;
@@ -209,19 +378,19 @@ namespace gga
           cmatrix[i] = sum / 50;
         }
 
-      /* mirror the thing to the bottom half */
+      // mirror the thing to the bottom half
       for (i = 0; i <= matrix_length / 2; i++)
         cmatrix[i] = cmatrix[matrix_length - 1 - i];
 
-      /* find center val -- calculate an odd number of quanta to make it symmetric,
-       * even if the center point is weighted slightly higher than others. */
+      // find center val -- calculate an odd number of quanta to make it symmetric,
+      // even if the center point is weighted slightly higher than others.
       sum = 0;
       for (j = 0; j <= 50; j++)
         sum += exp (- SQR (- 0.5 + 0.02 * j) / (2 * SQR (std_dev)));
 
       cmatrix[matrix_length / 2] = sum / 51;
 
-      /* normalize the distribution by scaling the total sum to one */
+      // normalize the distribution by scaling the total sum to one
       sum = 0;
       for (i = 0; i < matrix_length; i++)
         sum += cmatrix[i];
@@ -232,12 +401,10 @@ namespace gga
       return matrix_length;
     }
 
-    /* ----------------------- gen_lookup_table ----------------------- */
-    /* generates a lookup table for every possible product of 0-255 and
-       each value in the convolution matrix.  The returned array is
-       indexed first by matrix position, then by input multiplicand (?)
-       value.
-    */
+    // ----------------------- gen_lookup_table -----------------------
+    // generates a lookup table for every possible product of 0-255 and
+    //   each value in the convolution matrix.  The returned array is
+    //   indexed first by matrix position, then by input multiplicand (?) value.
     static double* makeLookupTable (const double *cmatrix, int cmatrix_length)
     {
       double       *lookup_table   = new double [cmatrix_length * 256];
@@ -255,85 +422,85 @@ namespace gga
       return lookup_table;
     }
 
-/* Perform an unsharp mask on the region, given a source region, dest.
- * region, width and height of the regions, and corner coordinates of
- * a subregion to act upon.  Everything outside the subregion is unaffected.
- */
-static void unsharpRegion (const unsigned char* srcPR, unsigned char* destPR, int bytes,
-                            double radius, double amount, int threshold, int x1, int x2, int y1, int y2)
-{
-    int     width   = x2 - x1 + 1;
-    int     height  = y2 - y1 + 1;
-    double *cmatrix = 0;
-    int     cmatrix_length;
-    double *ctable  = 0;
-    int     row, col;
+    // Perform an unsharp mask on the region, given a source region, dest.
+    // region, width and height of the regions, and corner coordinates of
+    // a subregion to act upon.  Everything outside the subregion is unaffected.
+
+    static void unsharpRegion (const unsigned char* srcPR, unsigned char* destPR, int bytes,
+                                double radius, double amount, int threshold, int x1, int x2, int y1, int y2)
+    {
+        int     width   = x2 - x1 + 1;
+        int     height  = y2 - y1 + 1;
+        double *cmatrix = 0;
+        int     cmatrix_length;
+        double *ctable  = 0;
+        int     row, col;
  
-    // generate convolution matrix and make sure it's smaller than each dimension
-    cmatrix_length = makeConvolveMatrix (radius, &cmatrix);
+        // generate convolution matrix and make sure it's smaller than each dimension
+        cmatrix_length = makeConvolveMatrix (radius, &cmatrix);
 
-    // generate lookup table
-    ctable = makeLookupTable (cmatrix, cmatrix_length);
+        // generate lookup table
+        ctable = makeLookupTable (cmatrix, cmatrix_length);
 
-    //allocate buffers
-    unsigned char  *src  = new unsigned char [std::max (width, height)];
-    unsigned char  *dest = new unsigned char [std::max (width, height)];
+        //allocate buffers
+        unsigned char  *src  = new unsigned char [width > height ? width : height];
+        unsigned char  *dest = new unsigned char [width > height ? width : height];
 
-    // blur the rows
-    for (row = 0; row < height; row++)
-    {
-      memcpy(src, srcPR + x1 + (y1 + row) * width, width - x1);
-      blurLine (ctable, cmatrix, cmatrix_length, src, dest, width, bytes);
-      memcpy(destPR + x1 + (y1 + row) * width, dest , width - x1);
-    }
-
-    // blur the cols
-    for (col = 0; col < width; col++)
-    {
+        // blur the rows
         for (row = 0; row < height; row++)
-            src[row] = destPR[x1 + col + (y1 + row) * width];
-        blurLine (ctable, cmatrix, cmatrix_length, src, dest, height, bytes);
-        for (row = 0; row < height; row++)
-            destPR[x1 + col + (y1 + row) * width] = dest[row];
-    }
-
-    //merge the source and destination (which currently contains the blurred version) images
-    for (row = 0; row < height; row++)
-    {
-      const unsigned char *s = src;
-      unsigned char       *d = dest;
-      int          u, v;
-
-      // get source row
-      memcpy(src, srcPR + x1 + (y1 + row) * width, width - x1);
-      // get dest row
-      memcpy(dest, destPR + x1 + (y1 + row) * width, width - x1);
-
-      // combine both
-        for (u = 0; u < width; u++)
         {
-            for (v = 0; v < bytes; v++)
-            {
-                int value;
-                int diff = *s - *d;
-
-                /* do tresholding */
-                if (abs (2 * diff) < threshold)
-                diff = 0;
-
-                value = int(*s++ + amount * diff);
-                *d++ = value > 0 ? (value <= 255 ? value : 255) : 0;
-            }
+          memcpy(src, srcPR + x1 + (y1 + row) * width, width - x1);
+          blurLine (ctable, cmatrix, cmatrix_length, src, dest, width, bytes);
+          memcpy(destPR + x1 + (y1 + row) * width, dest , width - x1);
         }
-        memcpy(destPR + x1 + (y1 + row) * width, dest , width - x1);
+
+        // blur the cols
+        for (col = 0; col < width; col++)
+        {
+            for (row = 0; row < height; row++)
+                src[row] = destPR[x1 + col + (y1 + row) * width];
+            blurLine (ctable, cmatrix, cmatrix_length, src, dest, height, bytes);
+            for (row = 0; row < height; row++)
+                destPR[x1 + col + (y1 + row) * width] = dest[row];
+        }
+
+        //merge the source and destination (which currently contains the blurred version) images
+        for (row = 0; row < height; row++)
+        {
+          const unsigned char *s = src;
+          unsigned char       *d = dest;
+          int          u, v;
+
+          // get source row
+          memcpy(src, srcPR + x1 + (y1 + row) * width, width - x1);
+          // get dest row
+          memcpy(dest, destPR + x1 + (y1 + row) * width, width - x1);
+
+          // combine both
+            for (u = 0; u < width; u++)
+            {
+                for (v = 0; v < bytes; v++)
+                {
+                    int value;
+                    int diff = *s - *d;
+
+                    // do tresholding
+                    if (abs (2 * diff) < threshold)
+                    diff = 0;
+
+                    value = int(*s++ + amount * diff);
+                    *d++ = value > 0 ? (value <= 255 ? value : 255) : 0;
+                }
+            }
+            memcpy(destPR + x1 + (y1 + row) * width, dest , width - x1);
+        }
+
+      delete [] dest;
+      delete [] src;
+      delete [] ctable;
+      delete [] cmatrix;
     }
 
-  delete [] dest;
-  delete [] src;
-  delete [] ctable;
-  delete [] cmatrix;
-}
-//==============================================================================
 
     void unsharpMaskImage(Image* img, const double radius, const double sigma, const double amount,const int threshold)
     {
