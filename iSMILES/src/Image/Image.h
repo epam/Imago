@@ -421,20 +421,22 @@ namespace gga
                Points::const_iterator first = points.begin();
                for (Points::const_iterator it = points.begin(); it != points.end(); it++)
                {
-                   if(it->X + it->Y * Width < Height * Width)
-                   {
-                       if((it+1) == points.end())
-                       {
-                           memset(&Data[first->X + first->Y * Width], line.Color.Value, (it->X - first->X)+1);
-                           break;
-                       }
+				   Coord fx = (first->X < Width)?first->X:Width-1;
+				   Coord fy = (first->Y < Height)?first->Y:Height-1;
+				   Coord cx = (it->X < Width)?it->X:Width-1;
+				   Coord cy = (it->Y < Height)?it->Y:Height-1;
 
-                       if(first->Y != (it+1)->Y)
+                   if((it+1) == points.end())
+				   {
+                      memset(&Data[fx + fy* Width], line.Color.Value, cx - fx + 1);
+                      break;
+                   }
+
+                       if(fy != (it+1)->Y)
                        {
-                           memset(&Data[first->X + first->Y * Width], line.Color.Value, (it->X - first->X)+1);
+                           memset(&Data[fx + fy * Width], line.Color.Value, cx - fx + 1);
                            first = it+1;
                        }
-                   }
                }
         }  
 
