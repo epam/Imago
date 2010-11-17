@@ -12,6 +12,13 @@ namespace gga
         Coord X, Y;
     public:        
         inline Point(Coord x = 0, Coord y = 0) : X(x), Y(y)    {}
+        inline Point(int x, int y)
+        {
+            if(x < 0) X = 0;
+            else  X = (Coord)x;
+            if(y < 0) Y = 0;
+            else  Y = (Coord)y;
+        }
         inline bool operator == (const Point& second) const { return Y==second.Y && X==second.X;}
         inline bool operator <  (const Point& second) const { return Y<second.Y || Y==second.Y && X<second.X;}
         inline double distance(const Point& second = Point(0,0)) const { return sqrt((double)((Y-second.Y)*(Y-second.Y)+(X-second.X)*(X-second.X))); }
