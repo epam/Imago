@@ -342,102 +342,102 @@ namespace gga
                   setPixel (xo-svx,yo+svy,line.Color); // current point of vector
                }
         }  
-
+        
         inline void drawLine(size_t xo, size_t yo, size_t xend, size_t yend, const LineDefinition& line = LineDefinition(INK,1))
         {
-        //Bresenham's line draw algorithm
-        //    if(line.Width < 2)
-        //    { // fast draw
-        //        drawHairline( xo, yo, xend, yend, line);
-        //        return;
-        //    }
+            //Bresenham's line draw algorithm
+          //     if(line.Width < 2)
+          //     { // fast draw
+          //          drawHairline( xo, yo, xend, yend, line);
+          //          return;
+          //     }
             int  dx, dy, s, sx, sy, kl, swap, incr1, incr2, svx, svy;
             Points points;
+            sy = 1;
+                
+            if ((dy = yend-yo) < 0)
+            {
+                 int xt = xo;
+                 int yt = yo;
+                 xo = xend;
+                 yo = yend;
+                 xend = xt;
+                 yend = yt;
+                 dy = -dy;
+            }
+            else if (dy == 0) 
+                 --sy;
+                // calculation dx and steps
+            sx = 0;
+            if ((dx = xend-xo) < 0)
+            {
+                  dx = -dx;
+                  --sx;
+            }
+            else if (dx>0)
+                 ++sx;
 
-               sy = 1;
-               if ((dy = yend-yo) < 0)
-               {
-                   int xt = xo;
-                   int yt = yo;
-                   xo = xend;
-                   yo = yend;
-                   xend = xt;
-                   yend = yt;
-                   dy = -dy;
-               }
-               else if (dy == 0) 
-                   --sy;
-            // calculation dx and steps
-               sx = 0;
-               if ((dx = xend-xo) < 0)
-               {
-                    dx = -dx;
-                    --sx;
-               }
-               else if (dx>0)
-                   ++sx;
+          // calculate the slope
+            swap = 0;
+            if ((kl = dx) < (s = dy))
+            {
+                dx = s;
+                dy = kl;
+                kl = s;
+                ++swap;
+            }
+            
+            s = (incr1 = dy<<1) - dx;
+                                        // incr1 - constant of scalar recalculation
+                                        // if current s < 0  and
+                                        // s - initial difference
+            incr2 = dx<<1;                // second constant of scalar recalculation
+                                        // use when s >= 0
+            setEdgeCircle(xo,yo,xend,yend, dx, dy, swap, line.Width/2, &svx, &svy, points);
+            points.push_back(Point(xo+svx, yo-svy));
+            points.push_back(Point(xo-svx, yo+svy));
+            
+            while (--kl >= 0)
+            {
+                if (s >= 0)
+                {
+                    if (swap)
+                        xo+= sx;
+                    else
+                        yo+= sy;
+                    s-= incr2;
+                }
+                if (swap)
+                    yo += sy;
+                else
+                    xo+= sx;
+                s += incr1;
 
-            // calculate the slope
-               swap = 0;
-               if ((kl = dx) < (s = dy))
-               {
-                  dx = s;
-                  dy = kl;
-                  kl = s;
-                  ++swap;
-               }
+                points.push_back(Point(xo+svx,yo-svy)); // current point of vector
+                points.push_back(Point(xo-svx,yo+svy)); // current point of vector
+            }
 
-               s = (incr1 = dy<<1) - dx;
-                                    // incr1 - constant of scalar recalculation
-                                    // if current s < 0  and
-                                    // s - initial difference
-               incr2 = dx<<1;       // second constant of scalar recalculation
-                                    // use when s >= 0
-               setEdgeCircle(xo,yo,xend,yend, dx, dy, swap, line.Width/2, &svx, &svy, points);
-               points.push_back(Point(xo+svx, yo-svy));
-               points.push_back(Point(xo-svx, yo+svy));
-    
-               while (--kl >= 0)
-               {
-                  if (s >= 0)
-                  {
-                     if (swap)
-                         xo+= sx;
-                     else
-                         yo+= sy;
-                     s-= incr2;
-                  }
-                  if (swap)
-                      yo += sy;
-                  else
-                      xo+= sx;
-                  s += incr1;
+            std::sort(points.begin(), points.end());
+            Points::const_iterator first = points.begin();
 
-                  points.push_back(Point(xo+svx,yo-svy)); // current point of vector
-                  points.push_back(Point(xo-svx,yo+svy)); // current point of vector
-               }
+            for (Points::const_iterator it = points.begin(); it != points.end(); it++)
+            {
+                Coord fx = (first->X < Width)?first->X:Width-1;
+                Coord fy = (first->Y < Height)?first->Y:Height-1;
+                Coord cx = (it->X < Width)?it->X:Width-1;
+                Coord cy = (it->Y < Height)?it->Y:Height-1;
 
-               std::sort(points.begin(), points.end());
-               Points::const_iterator first = points.begin();
-               for (Points::const_iterator it = points.begin(); it != points.end(); it++)
-               {
-				   Coord fx = (first->X < Width)?first->X:Width-1;
-				   Coord fy = (first->Y < Height)?first->Y:Height-1;
-				   Coord cx = (it->X < Width)?it->X:Width-1;
-				   Coord cy = (it->Y < Height)?it->Y:Height-1;
-
-                   if((it+1) == points.end())
-				   {
-                      memset(&Data[fx + fy* Width], line.Color.Value, cx - fx + 1);
-                      break;
-                   }
-
-                       if(fy != (it+1)->Y)
-                       {
-                           memset(&Data[fx + fy * Width], line.Color.Value, cx - fx + 1);
-                           first = it+1;
-                       }
-               }
+                if((it+1) == points.end())
+                {
+                    memset(&Data[fx + fy* Width], line.Color.Value, cx - fx + 1);
+                    break;
+                }
+                if(fy != (it+1)->Y)
+                {
+                    memset(&Data[fx + fy * Width], line.Color.Value, cx - fx + 1);
+                    first = it+1;
+                }
+            }
         }  
 
         inline void drawHairline(size_t xo, size_t yo, size_t xend, size_t yend, const LineDefinition& line = LineDefinition(INK,1))
