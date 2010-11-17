@@ -50,6 +50,18 @@ int main(int argc, char* argv[])
         }
         strcpy(filename, argv[1]);
         ImageFilter flt(img);
+            // compute optimal default parameters based on image resiolution
+            flt.Parameters.UnsharpMaskRadius = std::min(120, int(std::min(img.getWidth(), img.getHeight())/2));
+            flt.Parameters.UnsharpMaskAmount    = 7.;
+            flt.Parameters.UnsharpMaskThreshold = 100;
+            flt.Parameters.UnsharpMaskAmount2   = 3.;
+            flt.Parameters.UnsharpMaskThreshold2= 150;
+            flt.Parameters.CropBorder   = 4;//8;
+            flt.Parameters.RadiusBlur   = 3;
+            flt.Parameters.RadiusBlur2  = 3;
+            flt.Parameters.SmallDirtSize= 1;//2;   //4
+            flt.Parameters.VignettingHoleDistance = std::min(32, (int)img.getWidth()/4);
+
         flt.prepareImageForVectorization();
         png.save(string(argv[1])+".out.png", img);
         std::vector<size_t> whistogram;
@@ -111,8 +123,8 @@ return 0;
         clearCorners (img, r);
         png.save(string(argv[1])+".out60_cleared-corners.png", img);
 
-        eraseSmallDirts (img, 4);
-        png.save(string(argv[1])+".out61_cleared-dirts.png", img);
+//        eraseSmallDirts (img, 4);
+//        png.save(string(argv[1])+".out61_cleared-dirts.png", img);
         
         cropImageToPicture(img);
         png.save(string(argv[1])+".out99_cropped.png", img);

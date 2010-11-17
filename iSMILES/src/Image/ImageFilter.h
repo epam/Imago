@@ -1,10 +1,55 @@
 #pragma once
+#include <math.h>
 #include <vector>
 #include <algorithm>
 #include "Image.h"
 
 namespace gga
 {
+    struct  ImageFilterParameters
+    {
+        double UnsharpMaskRadius;
+        double UnsharpMaskAmount;
+        double UnsharpMaskAmount2;
+        double UnsharpMaskThreshold;
+        double UnsharpMaskThreshold2;   //after stretch histogram
+        size_t  CropBorder;
+        size_t  RadiusBlur;
+        size_t  RadiusBlur2;
+        size_t  VignettingHoleDistance;
+        size_t  SmallDirtSize;
+    public:
+        inline ImageFilterParameters() : UnsharpMaskRadius(64), UnsharpMaskAmount(7), UnsharpMaskThreshold(3), UnsharpMaskThreshold2(130)
+                                       , CropBorder(8), RadiusBlur(4), VignettingHoleDistance(31), SmallDirtSize(4) {}
+    };
+
+    class ImageFilter
+    {
+        gga::Image& Image;
+    public:
+        ImageFilterParameters  Parameters;
+        inline ImageFilter(gga::Image& img) : Image(img)
+        {
+            // compute optimal default parameters based on image resiolution
+            Parameters.UnsharpMaskRadius = std::min(100, int(std::min(Image.getWidth(), Image.getHeight())/2));
+            Parameters.UnsharpMaskAmount = 7.;
+            Parameters.UnsharpMaskThreshold = 90;
+            Parameters.UnsharpMaskAmount2 = 7.;
+            Parameters.UnsharpMaskThreshold2= 130;
+            Parameters.CropBorder   = 8;
+            Parameters.RadiusBlur   = 2;
+            Parameters.RadiusBlur2  = 4;
+            Parameters.SmallDirtSize= 2;   //4
+            Parameters.VignettingHoleDistance = std::min(32, (int)Image.getWidth()/4);
+        }
+        void  prepareImageForVectorization();
+        Coord computeLineWidthHistogram   (std::vector<size_t>* histogram, size_t size = -1);
+    };
+
+//==============================================================================
+// Image processing routines
+//==============================================================================
+
     static inline size_t makeHistogram  (const Image& img, std::vector<size_t>* histogram)
     {
         size_t maxh = 0;
@@ -22,7 +67,7 @@ namespace gga
 
     static inline void stretchImageHistogram(Image* img, size_t minColor, size_t maxColor)
     {
-        size_t normalization = (255<<16)/(maxColor-minColor);
+        size_t normalization = (255<<16)/(maxColor-minColor+1);
         for (size_t y = 0; y < img->getHeight(); y++)
          for(size_t x = 0; x < img->getWidth() ; x++)
         {
@@ -65,8 +110,9 @@ namespace gga
             for (size_t iy = 0; iy < ny; iy++)
              for(size_t ix = 0; ix < nx; ix++) // average area
              {
-                int dw = std::max(0, int((r+1)*(r+1) - ix*ix + iy*iy));
-                if(0!=dw)
+                int dw = (int)r+1 - (int)sqrt(double(ix*ix + iy*iy));   //linear weight
+                //int dw = int((r+1)*(r+1) - ix*ix + iy*iy);            //very similar to Gaussian blur matrix, if r is small
+                if(dw > 0)
                     px += img->getPixel(x+ix, y+iy).Value * dw;
                 weight += dw;
              }
@@ -137,6 +183,7 @@ namespace gga
         {
             for(size_t x = xo; x <= xend; x++)
             {
+/*
                 bool clean;
                 do
                 {
@@ -156,12 +203,37 @@ namespace gga
                     else
                         return n;
                 } while(clean);
+*/
             }
         }
         else    // reverse direction
         {
             for(size_t x = xo; x >= xend; x--)
             {
+                if(img.getPixel(x, y).isBackground())   // hole or end of dark area
+                {
+                    size_t i;
+                    xo = x-1;
+                    for(i = 1; i <= r && x >= xend; i++, x--)
+                        if(!img.getPixel(x-i-1, y).isBackground())
+                            break;
+                    if(i<=r)
+                    {
+                        for(size_t xi = xo; xi >= x; xi--)  //clear
+                        {
+                            n++;
+                            img.setPixel(xi, y, BACKGROUND);
+                        }
+                    }
+                    else
+                        break;  //stop on big hole
+                }
+                else //clean solid area
+                {
+                    n++;
+                    img.setPixel(x, y, BACKGROUND);
+                }
+/*
                 bool clean;
                 do
                 {
@@ -181,6 +253,7 @@ namespace gga
                     else
                         return n;
                 } while(clean);
+*/
             }
         }
         return n;
@@ -188,104 +261,18 @@ namespace gga
 
     static inline void clearCorners (Image& img, size_t r)
     {
-        for (size_t y = 0; y < img.getHeight(); y++)    // left top corner
+        for (size_t y = 0; y < img.getHeight()/4; y++)    // left top corner
             if(0 == clearSolidLine (img, 0, img.getWidth()/4, y, r))
-                break;
-        for (size_t y = img.getHeight()-1; y > 0; y--)    // left bottom corner
+                ;//break;
+        for (size_t y = img.getHeight()-1; y > img.getHeight()/4; y--)    // left bottom corner
             if(0 == clearSolidLine (img, 0, img.getWidth()/4, y, r))
-                break;
-        for (size_t y = 0; y < img.getHeight(); y++)    // right top corner
-            if(0 == clearSolidLine (img, img.getWidth()/4, 0, y, r))
-                break;
-        for (size_t y = img.getHeight()-1; y > 0; y--)    // right bottom  corner
-            if(0 == clearSolidLine (img, img.getWidth()/4, 0, y, r))
-                break;
-    }
-
-
-    static inline void eraseSmallDirts (Image& img, size_t r)
-    {
-        for (size_t y = 0; y < img.getHeight(); y++)
-         for(size_t x = 0; x < img.getWidth() ; x++)
-         {
-            if(!img.getPixel(x, y).isBackground())
-            {
-                size_t len = 0, hmax = 0, rmax=0;
-
-                for(size_t i = 0; i <= r && x + i < img.getWidth() && ! img.getPixel(x+i, y).isBackground(); i++)
-                {
-                    len++;
-                    size_t h = 0;
-                    for(size_t j = 0; j <= r && y + j < img.getHeight() && ! img.getPixel(x+i, y+j).isBackground(); j++)
-                        h++;
-                    for(size_t j = 1; j <= r && y - j >= 0 && ! img.getPixel(x+i, y-j).isBackground(); j++)
-                        h++;
-                    if(h > hmax)
-                        hmax = h;
-                }
-                for(size_t i = 1; i <= r && x - i >= 0 && ! img.getPixel(x-i, y).isBackground(); i++)
-                {
-                    len++;
-                    size_t h = 0;
-                    for(size_t j = 0; j <= r && y + j < img.getHeight() && ! img.getPixel(x-i, y+j).isBackground(); j++)
-                        h++;
-                    for(size_t j = 1; j <= r && y - j >= 0 && ! img.getPixel(x-i, y-j).isBackground(); j++)
-                        h++;
-                    if(h > hmax)
-                        hmax = h;
-                }
-                // *
-                if(hmax <= r && len <= r)   // compute max distance by outer contour
-                {
-                    int xi = x, yj = y;
-                    while (rmax <= r && abs(xi - (int)x) <= (int)r &&  abs(yj - (int)y) <= (int)r &&  xi < (int)img.getWidth () && yj < (int)img.getHeight())
-                    {
-                       if(!img.getPixel(xi, yj+1).isBackground())
-                        {
-                            yj++;
-                            if(xi >= 1 && !img.getPixel(xi-1, yj).isBackground())
-                                xi--;
-                        }
-                        else if(yj >= 1 && !img.getPixel(xi, yj-1).isBackground())
-                        {
-                            yj--;
-                            if(xi >= 1 && !img.getPixel(xi-1, yj).isBackground())
-                                xi--;
-                        }
-                        else if(!img.getPixel(xi+1, yj).isBackground())
-                        {
-                            xi++;
-                            if(yj >= 1 && !img.getPixel(xi, yj-1).isBackground())
-                                yj--;
-                        }
-                        else if(xi >= 1 && !img.getPixel(xi-1, yj).isBackground())
-                        {
-                            xi--;
-                            if(!img.getPixel(xi, yj+1).isBackground())
-                                yj++;
-                        }
-                        if (xi < 0)
-                            xi = 0;
-                        if (yj < 0)
-                            yj = 0;
-
-                        if(size_t(((int)x-xi)*((int)x-xi) + ((int)y-yj)*((int)y-yj)) > r*r)
-                            rmax = 2*r;
-                    }
-                }
-                // * /
-                if(rmax <= r && hmax <= r && len <= r)
-                {
-                    for(size_t i = 0; i <= r && x < img.getWidth() && ! img.getPixel(x, y).isBackground(); i++, x++)
-                    {
-                        for(size_t j = 0; j <= r && y + j < img.getHeight() && ! img.getPixel(x, y+j).isBackground(); j++)
-                            img.setPixel(x, y+j, BACKGROUND);
-                    }
-                }
-                for(; x < img.getWidth() && ! img.getPixel(x, y).isBackground(); x++)   //skip big object
-                {}
-            }
-        }
+                ;//break;
+        for (size_t y = 0; y < img.getHeight()/4; y++)    // right top corner
+            if(0 == clearSolidLine (img, img.getWidth()-1, img.getWidth() - img.getWidth()/4, y, r))
+                ;//break;
+        for (size_t y = img.getHeight()-1; y > img.getHeight()/4; y--)    // right bottom  corner
+            if(0 == clearSolidLine (img, img.getWidth()-1, img.getWidth() - img.getWidth()/4, y, r))
+                ;//break;
     }
 
     static inline void cropImageToPicture(Image& img)
@@ -299,7 +286,7 @@ namespace gga
             for(size_t x = 0; x < img.getWidth(); x++)
             {
                 Pixel px = img.getPixel(x, y);
-                if(!px.isBackground())
+                if(px.Value < BACKGROUND/2)  //!px.isBackground())
                 {
                     includeLine = true;
                     if(x < xo)
@@ -330,14 +317,23 @@ namespace gga
             yend = tmp;
         }
 
+        // keep small white border
         if (xo >= 4)
             xo -= 4;
+        else 
+            xo = 0;
         if (yo >= 4)
             yo -= 4;
+        else 
+            yo = 0;
         if (xend <= img.getWidth()-1 - 4)
             xend += 4;
+        else 
+            xend = img.getWidth()-1;
         if (yend <= img.getHeight()-1 - 4)
             yend += 4;
+        else 
+            yend = img.getHeight()-1;
 
         img.crop(xo, yo, xend, yend);
     }
@@ -347,44 +343,5 @@ namespace gga
 
         //img.setSize(cx, cy, img.getType());
     }
-
-    struct  ImageFilterParameters
-    {
-        double UnsharpMaskRadius;
-        double UnsharpMaskAmount;
-        double UnsharpMaskThreshold;
-        double UnsharpMaskThreshold2;   //after stretch histogram
-        size_t  CropBorder;
-        size_t  RadiusBlur;
-        size_t  VignettingHoleDistance;
-        size_t  SmallDirtSize;
-    public:
-        inline ImageFilterParameters() : UnsharpMaskRadius(64), UnsharpMaskAmount(7), UnsharpMaskThreshold(3), UnsharpMaskThreshold2(130)
-                                       , CropBorder(8), RadiusBlur(4), VignettingHoleDistance(31), SmallDirtSize(4) {}
-    };
-
-    class ImageFilter
-    {
-        gga::Image& Image;
-        ImageFilterParameters  Parameters;
-    public:
-
-        inline ImageFilter(gga::Image& img) : Image(img)
-        {
-            // compute optimal default parameters based on image resiolution
-            Parameters.UnsharpMaskRadius = std::min(120, int(std::min(Image.getWidth(), Image.getHeight())/4));
-            Parameters.UnsharpMaskAmount = 7.;
-            Parameters.UnsharpMaskThreshold = 72;
-            Parameters.UnsharpMaskThreshold2= 130;
-            Parameters.CropBorder   = 8;
-            Parameters.RadiusBlur   = 5;
-            Parameters.SmallDirtSize= 6;//2;   //4
-            Parameters.VignettingHoleDistance = std::min(32, (int)Image.getWidth()/8);
-
-        }
-
-        void  prepareImageForVectorization();
-        Coord computeLineWidthHistogram   (std::vector<size_t>* histogram, size_t size = -1);
-    };
 
 }
