@@ -86,6 +86,7 @@
     <File Name="../../src/Image/Image.h"/>
     <File Name="../../src/Image/Triangle.h"/>
     <File Name="../../src/Image/Rectangle.h"/>
+    <File Name="../../src/Image/ImageFilter.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Vectorization">
     <File Name="../../src/Vectorization/ImageMap.cpp"/>
