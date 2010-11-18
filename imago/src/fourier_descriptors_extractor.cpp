@@ -29,9 +29,10 @@
 
 using namespace imago;
 
-void FourierDescriptorsExtractor::getDescriptors( const Segment *seg, int count )
+void FourierDescriptorsExtractor::getDescriptors( const Segment *seg, int count,
+                                                  std::vector<double> &d)
 {
-   std::vector<double> &_desc = seg->getFeatures().descriptors;
+   std::vector<double> &_desc = d;
       
    std::vector<Vec2d> poly;
 

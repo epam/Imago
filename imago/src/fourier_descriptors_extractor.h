@@ -26,7 +26,9 @@ namespace imago
    class FourierDescriptorsExtractor
    {
    public:
-      static void getDescriptors( const Segment *seg, int count );
+      //TODO: change Segment to Contour
+      static void getDescriptors( const Segment *seg, int count,
+                                  std::vector<double> &descriptors );
       
    private:
       static void _getContour( const Image &_img, IntDeque &cont );

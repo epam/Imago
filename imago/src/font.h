@@ -41,14 +41,14 @@ namespace imago
 
       ~Font();
 
-      void prepareSegment( Segment *seg ) const;
+      char findBest( const SymbolFeatures &features, int begin, int end,
+                     double *dist = 0 ) const;
 
-      char findBest( const std::vector<double> &descriptors, int begin, int end, double *dist = 0 ) const;
+      char findBest( const Segment *img, int begin, int end,
+                     double *dist = 0 ) const;
 
-      char findBest( const Segment *img, int begin, int end, double *dist = 0 ) const;
-      char findBest( Segment *img, int begin, int end, double *dist = 0 ) const;
-
-      char findBest( const Segment *img, const std::string &letters, double *dist = 0 ) const;
+      char findBest( const Segment *img, const std::string &letters,
+                     double *dist = 0 ) const;
 
       int findCapitalHeight( SegmentDeque &segments ) const;
    public:
@@ -63,8 +63,8 @@ namespace imago
       std::vector<FontItem> _symbols;
       std::vector<int> _mapping;
       int _count;
-
-      double _compare( int ind, const std::vector<double> &desc ) const;
+      
+      double _compare( int ind, const SymbolFeatures &features ) const;
       void _loadFromImage( const char *imgname );
       void _loadFromFile( const char *filename );
       void _loadArial();

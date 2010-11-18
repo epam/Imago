@@ -47,6 +47,7 @@ namespace imago
 
       SymbolFeatures &getFeatures() const;
       SymbolFeatures &getFeatures();
+      void initFeatures( int descriptorsCount ) const;
 
       ~Segment();
 

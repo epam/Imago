@@ -23,7 +23,7 @@
 using namespace imago;
 
 void Segmentator::_walkSegment( const Image &img, IntVector &visited,
-                                Segment *segment, int windowSize )
+                                Segment *segment, int windowSize, byte validColor )
 {
    IntDeque q;
    IntDeque segment_elements;  
@@ -66,7 +66,7 @@ void Segmentator::_walkSegment( const Image &img, IntVector &visited,
                if (visited[ind])
                   continue;
 
-               if (img.getByte(j, i) < 255)
+               if (img.getByte(j, i) == validColor)
                {
                   q.push_back(ind);
 
@@ -100,6 +100,9 @@ void Segmentator::_walkSegment( const Image &img, IntVector &visited,
       byte b = img.getByte(x, y);
       y -= y_min;
       x -= x_min;
+      //TODO: do something better
+      if (validColor == 255)
+         b = 0;
       segment->getByte(x, y) = b;
    }
 }

@@ -485,7 +485,7 @@ void testOCR()
 {
    try
    {
-      const char *filename = "/home/vsmolov/flamingo_test/iphone2.jpg.out.png";
+      const char *filename = "/home/vsmolov/flamingo_test/iphone5.jpg.out.png";
       qword sid = SessionManager::getInstance().allocSID();
       SessionManager::getInstance().setSID(sid);
       Image img;
@@ -505,7 +505,9 @@ void testOCR()
       {
          double d;
          char c = fnt.findBest(*it, 0, 26, &d);
-         printf("(%d, %d)   %c  %.5lf\n", (*it)->getX(), (*it)->getY(), c, d);
+         printf("(%d, %d)   %c  %.5lf  innerCcount = %d\n",
+                (*it)->getX(), (*it)->getY(), c, d,
+                (*it)->getFeatures().inner_contours_count);
       }
    }
    catch (Exception &e)
