@@ -16,7 +16,7 @@ namespace gga
         void setLineWidth(unsigned int value) { LineWidth = value; }
         
         /* average ink line width in pixels */
-        unsigned int getLineWitdth() const { return LineWidth; }
+        unsigned int getLineWidth() const { return LineWidth; }
 
         /* all coherent image parts with area less that constant will be ignored, pixels */
         unsigned int getMinimalLineLength() const { return 4 * LineWidth; }

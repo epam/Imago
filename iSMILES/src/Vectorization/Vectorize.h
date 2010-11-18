@@ -12,15 +12,16 @@ namespace gga
 	class Vectorize
 	{
 		const Image& SourceImage;
-		ImageMap   CurrentImageSplit;
-		std::vector<Contour*> OuterContours;
+		ImageMap   CurrentImageMap;
+		std::vector<Contour*> Contours;
+
 	public:
 		Vectorize(const Image& image);
 		~Vectorize();
 		
 		size_t getContoursCount() const;
 		const Contour& getContour(size_t index) const;
-		const ImageMap& getImageSplit() const;
+		const ImageMap& getImageMap() const;
 	};
 }
 

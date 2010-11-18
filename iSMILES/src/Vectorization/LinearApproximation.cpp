@@ -1,10 +1,13 @@
-#include <stdio.h>
 #include <algorithm>
 #include "LinearApproximation.h"
 #include "../Parameters.h"
 #include "../Histogram.h"
 
 #define DEBUG
+
+#ifdef DEBUG
+#include <stdio.h> // printf "log"
+#endif
 
 #define sqr(w)      ((w)*(w))
 #define sign(w)     (((w) < 0) ? -1.0 : ( ((w) > 0) ? 1.0 : 0.0))
@@ -90,7 +93,7 @@ namespace gga
             static int figure_num = 0;
             static int recurse_level = 0;
             if (recurse_level == 0)
-                printf("------- Figure %i -------\n", figure_num);            
+                printf("Figure %i\n", figure_num);            
             char prefix[128] = {0};
             for (size_t u = 0; u < recurse_level*3; u++)
             {

@@ -1,4 +1,5 @@
 #include "Draw.h"
+#include "../src/Parameters.h"
 
 namespace gga
 {
@@ -37,7 +38,7 @@ namespace gga
             result.setSize(b.getWidth(), b.getHeight(), IT_BW);
             result.drawImage(0, 0, PointsToImage(pts));
             
-            LineDefinition def = LineDefinition(127, 1);
+            LineDefinition def;// = LineDefinition(127, GlobalParams.getLineWidth());
             for (size_t u = 0; u < line.size() - 1; u++)
             {
                 result.drawLine(line[u].X - b.getLeft(), line[u].Y - b.getTop(), line[u+1].X - b.getLeft(), line[u+1].Y - b.getTop(), def);

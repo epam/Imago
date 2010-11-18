@@ -48,18 +48,22 @@ int main(int argc, char* argv[])
 	Timer t;
 	Vectorize vectorized(img);
 	printf("Parts: %i (Vectorize taken %f ms)\n", vectorized.getContoursCount(), 1000.0*t.getElapsedTime());
-
-	size_t parts = 0;
+    
+    
+    size_t parts = 0;
 	t.reset();
 	std::vector<std::string> files;
 	for (size_t u = 0; u < vectorized.getContoursCount(); u++)
 	{
 		const Contour& c = vectorized.getContour(u);
+
 		if (Bounds(c).getArea() >= GlobalParams.getMinimalConsistentArea())
 		{
+            printf("----------> Contour (idx %i) %p (inner for %p)\n", u, &c, c.getOuterContour());
+            
 			char filename[1024] = {0};
 						
-			LinearApproximation line(c);
+			LinearApproximation line(c);            
 			if (line.isGood())
             {
                 sprintf(filename, "temp_%i_line.png", parts);
