@@ -2,7 +2,7 @@
 #include <algorithm>
 #include "ImageFilter.h"
 
-#define TEST
+//#define TEST in compiler command line
 #ifdef TEST
     #include <stdio.h>   //test log
     #include "FilePNG.h" //test log
@@ -22,18 +22,67 @@ namespace gga
     //    1    2    1          
     //                          
     //////////////////////////////////////////////////  
+    static void eraseSmallDirts (Image& img, size_t r);
 
     void ImageFilter::prepareImageForVectorization()
     {
         if(IT_BW == Image.getType())  // not photo image
             return;
+        std::vector<size_t> histogram;
+
 #ifdef TEST
 sprintf (file,"out/test-%s.flt-00_original.png", filename);
 png.save(file, Image);
 Timer tm, ttotal;
 double totalTime=0.;
 #endif
+/*
+// BLUR
+        if(0 != Parameters.RadiusBlur)
+            blurImage(&Image, Parameters.RadiusBlur);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("blurImage: %.4f sec. bg=%d\n", tm.getElapsedTime(), getBackgroundValue(Image));
+sprintf (file,"out/test-%s.flt-05_blur.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+*/
+// STRETCH
+        {
+            makeHistogram (Image, &histogram);
+            size_t maxColor = histogram.size()-1, maxN = histogram[histogram.size()-1];
+            for(size_t i = 0; i < histogram.size(); i++)
+            {
+                if( i > 32 && histogram[i] >= maxN)
+                {
+                    maxColor = i;
+                    maxN = histogram[i];
+                }
+            }
+            maxColor -= 16;
+            stretchImageHistogram(&Image, 16, maxColor);
+    #ifdef TEST
+    totalTime += tm.getElapsedTime();
+    printf("stretchImageHistogram: %.4f sec. minColor=%d maxColor=%d\n", tm.getElapsedTime(), 16, maxColor);
+    sprintf (file,"out/test-%s.flt-06_stretched-1.png", filename);
+    png.save(file, Image);
+    tm.reset();
+    #endif
+        }
 
+// BLUR
+        if(0 != Parameters.RadiusBlur)
+            blurImage(&Image, Parameters.RadiusBlur);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("blurImage: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-09_blur.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+// UNSHARP MASK
         unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount, (int)Parameters.UnsharpMaskThreshold);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
@@ -43,13 +92,13 @@ png.save(file, Image);
 tm.reset();
 #endif
 
-        std::vector<size_t> histogram;
+/* // opt STRETCH 2
         makeHistogram (Image, &histogram);
         size_t maxColor = histogram.size()-1, maxN = histogram[histogram.size()-1];
         size_t minColor = 0, minN = histogram[0];
         for(size_t i = 0; i < histogram.size(); i++)
         {
-            if(histogram[i] >= maxN)
+            if( i > 32 && histogram[i] >= maxN)
             {
                 maxColor = i;
                 maxN = histogram[i];
@@ -70,53 +119,54 @@ sprintf (file,"out/test-%s.flt-30_stretched.png", filename);
 png.save(file, Image);
 tm.reset();
 #endif
-
-        if(0 != Parameters.RadiusBlur)
-            blurImage(&Image, Parameters.RadiusBlur);
+*/
+/*
+// BLUR 2
+        if(0 != Parameters.RadiusBlur2)
+            blurImage(&Image, Parameters.RadiusBlur2);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
 printf("blurImage: %.4f sec.\n", tm.getElapsedTime());
-sprintf (file,"out/test-%s.flt-40_blur.png", filename);
+sprintf (file,"out/test-%s.flt-40_blur-2.png", filename);
 png.save(file, Image);
 tm.reset();
 #endif
+*/
 
-        unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount, (int)Parameters.UnsharpMaskThreshold2);
-#ifdef TEST
-totalTime += tm.getElapsedTime();
-printf("unsharpMaskImage: %.4f sec.\n", tm.getElapsedTime());
-sprintf (file,"out/test-%s.flt-41_unsharp-mask-2.png", filename);
-png.save(file, Image);
-tm.reset();
-#endif
-
+// CROP BORDER AND IMAGE to Picture
         Image.crop(Parameters.CropBorder, Parameters.CropBorder, Image.getWidth() - Parameters.CropBorder - 1, Image.getHeight() - Parameters.CropBorder -1);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
 printf("cropBorder: %.4f sec.\n", tm.getElapsedTime());
-sprintf (file,"out/test-%s.flt-42_crop-frames.png", filename);
+sprintf (file,"out/test-%s.flt-42_crop-borders.png", filename);
 png.save(file, Image);
 tm.reset();
 #endif
 
-        convertGrayscaleToBlackWhite(Image, getBackgroundValue(Image));
+/*
+// UNSHARP MASK 2
+        if(0!=Parameters.UnsharpMaskAmount2)
+            unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount2, (int)Parameters.UnsharpMaskThreshold2);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
-printf("convertGrayscaleToBlackWhite: %.4f sec. Background=%d\n", tm.getElapsedTime(), getBackgroundValue(Image));
+printf("unsharpMaskImage: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-48_unsharp-mask-2.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+*/
+
+//-----------------------------------------------------  BLACK WHITE  ----------------------------------------------------
+//to BW
+        convertGrayscaleToBlackWhite(Image, 50/*getBackgroundValue(Image)*/);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("convertGrayscaleToBlackWhite: %.4f sec. Background=50 (%d)\n", tm.getElapsedTime(), getBackgroundValue(Image));
 sprintf (file,"out/test-%s.flt-50_BW.png", filename);
 png.save(file, Image);
 tm.reset();
 #endif
-
-        cropImageToPicture(Image);
-#ifdef TEST
-totalTime += tm.getElapsedTime();
-printf("cropImageToPicture: %.4f sec.\n", tm.getElapsedTime());
-sprintf (file,"out/test-%s.flt-51_croped.png", filename);
-png.save(file, Image);
-tm.reset();
-#endif
-
+//----------------------------------------------------- CLEAR PICTURE ----------------------------------------------------
         if(0 != Parameters.VignettingHoleDistance)
             clearCorners (Image, Parameters.VignettingHoleDistance);
 #ifdef TEST
@@ -146,6 +196,7 @@ tm.reset();
 #endif
     }
 
+//==============================================================================
 
     Coord ImageFilter::computeLineWidthHistogram(std::vector<size_t>* histogram, size_t size)
     {
@@ -176,20 +227,185 @@ tm.reset();
     }
 
 //==============================================================================
+
+        static void eraseSmallDirts (Image& img, size_t r)
+    {
+//        img.setPixel(2,2, Pixel(0));    //test
+
+        if( r > 2)  // WRONG IMPLEMENTATION for r > 2 !!!
+            r = 2;
+        for (size_t y = 0; y < img.getHeight(); y++)
+         for(size_t x = 0; x < img.getWidth() ; x++)
+         {
+            if(!img.getPixel(x, y).isBackground())
+            {
+                size_t len = 1, hmax = 1, rmax = 1;
+
+                for(size_t i = 1; i <= r && x + i < img.getWidth() && ! img.getPixel(x+i, y).isBackground(); i++)
+                {
+                    len++;
+                    size_t h = 0;
+                    for(size_t j = 0; j <= r && y + j < img.getHeight() && ! img.getPixel(x+i, y+j).isBackground(); j++)
+                        h++;
+                    for(size_t j = 1; j <= r && y - j >= 0 && ! img.getPixel(x+i, y-j).isBackground(); j++)
+                        h++;
+                    if(h > hmax)
+                        hmax = h;
+                }
+                if(len < r)
+                    for(size_t i = 1; i <= r && x - i >= 0 && ! img.getPixel(x-i, y).isBackground(); i++)   // NEVER !! already processed
+                    {
+                        len++;
+                        size_t h = 0;
+                        for(size_t j = 0; j <= r && y + j < img.getHeight() && ! img.getPixel(x-i, y+j).isBackground(); j++)
+                            h++;
+                        for(size_t j = 1; j <= r && y - j >= 0 && ! img.getPixel(x-i, y-j).isBackground(); j++)
+                            h++;
+                        if(h > hmax)
+                            hmax = h;
+                    }
+                if(len < r && hmax < r) // find \ line
+                {
+                    len = 0;
+                    bool stop = false;
+                    for(size_t i = 1; !stop && i <= r && x + i < img.getWidth() && y + i < img.getHeight(); i++)
+                    {
+                        stop = true;
+                        if(!img.getPixel(x+i, y+i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                        if(y>=i && !img.getPixel(x-i, y-i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                    }
+                }
+                if(len < r && hmax < r) // find / line
+                {
+                    len = 0;
+                    bool stop = false;
+                    for(size_t i = 1; !stop && i <= r && x + i < img.getWidth() && y + i < img.getHeight(); i++)
+                    {
+                        stop = true;
+                        if(x>=i && !img.getPixel(x-i, y+i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                        if(y>=i && !img.getPixel(x+i, y-i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                    }
+                }
+                if(len < r && hmax < r) // find < line
+                {
+                    len = 0;
+                    bool stop = false;
+                    for(size_t i = 1; !stop && i <= r && x + i < img.getWidth() && y + i < img.getHeight(); i++)
+                    {
+                        stop = true;
+                        if(!img.getPixel(x+i, y+i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                        if(y>=i && !img.getPixel(x+i, y-i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                    }
+                }
+                if(len < r && hmax < r) // find > line
+                {
+                    len = 0;
+                    bool stop = false;
+                    for(size_t i = 0; !stop && i <= r && x + i < img.getWidth() && y + i < img.getHeight(); i++)
+                    {
+                        stop = true;
+                        if(x>=i && !img.getPixel(x-i, y+i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                        if(x>=i && y>=i && !img.getPixel(x-i, y-i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                    }
+                }
+                /*
+                if(hmax <= r && len <= r)   // compute max distance by outer contour !!! WRONG IMPLEMENTATION for r > 2 !!!
+                {
+                    std::vector<bool> processed((r+1)*(r+1));
+                    memset(&processed[0], false, processed.size());
+                    int xi = x, yj = y;
+                    while (rmax <= r && abs(xi - (int)x) <= (int)r &&  abs(yj - (int)y) <= (int)r &&  xi < (int)img.getWidth () && yj < (int)img.getHeight())
+                    {
+                       if(!processed[] && !img.getPixel(xi, yj+1).isBackground())
+                        {
+                            yj++;
+                            if(xi >= 1 && !img.getPixel(xi-1, yj).isBackground())
+                                xi--;
+                        }
+                        else if(yj >= 1 && !img.getPixel(xi, yj-1).isBackground())
+                        {
+                            yj--;
+                            if(xi >= 1 && !img.getPixel(xi-1, yj).isBackground())
+                                xi--;
+                        }
+                        else if(!img.getPixel(xi+1, yj).isBackground())
+                        {
+                            xi++;
+                            if(yj >= 1 && !img.getPixel(xi, yj-1).isBackground())
+                                yj--;
+                        }
+                        else if(xi >= 1 && !img.getPixel(xi-1, yj).isBackground())
+                        {
+                            xi--;
+                            if(!img.getPixel(xi, yj+1).isBackground())
+                                yj++;
+                        }
+                        else
+                            break;
+                        if (xi < 0)
+                            xi = 0;
+                        if (yj < 0)
+                            yj = 0;
+
+                        if(size_t(((int)x-xi)*((int)x-xi) + ((int)y-yj)*((int)y-yj)) > r*r)
+                            rmax = 2*r;
+                    }
+                    rmax = size_t(((int)x-xi)*((int)x-xi) + ((int)y-yj)*((int)y-yj));
+                }
+                */
+                if(rmax <= r && hmax <= r && len <= r)
+                {
+                    for(size_t i = 0; i <= r && x < img.getWidth() && ! img.getPixel(x, y).isBackground(); i++, x++)
+                    {
+                        for(size_t j = 0; j <= r && y + j < img.getHeight() && ! img.getPixel(x, y+j).isBackground(); j++)
+                            img.setPixel(x, y+j, BACKGROUND);
+                    }
+                }
+                for(; x < img.getWidth() && ! img.getPixel(x, y).isBackground(); x++)   //skip big object
+                {}
+            }
+        }
+    }
+
+//==============================================================================
 // UnsharpMask
 //==============================================================================
 
     static inline int ROUND (double x) { return (int) (x + 0.5);}
     // Square:
     #define SQR(x) ((x) * (x))  //    static inline double SQR(double x) { return x*x;}
-
-    
-    struct UnsharpMaskParams
-    {
-      double  radius;
-      double  amount;
-      int     threshold;
-    };
 
     static void blurLine (const double* ctable, const double* cmatrix, const int cmatrix_length,
                         const unsigned char* src, unsigned char* dest, const int len, const int bytes)
