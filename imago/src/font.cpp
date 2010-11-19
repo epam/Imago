@@ -70,23 +70,19 @@ Font::~Font()
 {
 }
 
-#define FONT_INIT(ch)                             \
-   do                                             \
-   {                                              \
-      _symbols.push_back(FontItem());             \
-      FontItem *fi = &(_symbols[_symbols.size() - 1]);         \
-      const char *str = #ch;                      \
-      fi->sym = str[0];                           \
-      double *arr_ptr;                            \
-      if (strcmp(str, "plus") == 0)               \
-         fi->sym = '+';                           \
-      else if (strcmp(str, "minus") == 0)         \
-         fi->sym = '-';                           \
-      arr_ptr = descr_##ch;                       \
-      _mapping[fi->sym] = _symbols.size() - 1;    \
-      fi->features.descriptors.resize(2 * _count);\
-      for (int i = 0; i < _count * 2; i++)        \
-         fi->features.descriptors[i] = arr_ptr[i];\
+#define FONT_INIT(ch)                                 \
+   do                                                 \
+   {                                                  \
+      _symbols.push_back(FontItem());                 \
+      FontItem *fi = &(_symbols[_symbols.size() - 1]);\
+      const char *str = #ch;                          \
+      fi->sym = str[0];                               \
+      double *arr_ptr;                                \
+      arr_ptr = descr_##ch;                           \
+      _mapping[fi->sym] = _symbols.size() - 1;        \
+      fi->features.descriptors.resize(2 * _count);    \
+      for (int i = 0; i < _count * 2; i++)            \
+         fi->features.descriptors[i] = arr_ptr[i];    \
    } while (0);
 
 void Font::_loadArial()
@@ -121,14 +117,25 @@ void Font::_loadFromFile( const char *filename )
 
       _symbols.push_back(FontItem());
       FontItem *fi = &_symbols[_symbols.size() - 1];
-      fscanf(fin, "%c", &fi->sym);
+      fscanf(fin, "%c %d\n", &fi->sym, &fi->features.inner_contours_count);
+      printf("loading %c\n", fi->sym);
       _mapping[fi->sym] = _symbols.size() - 1;
       fi->features.descriptors.resize(2 * _count);
       for (int i = 0; i < 2 * _count; i++)
       {
-         fscanf(fin, " %lf", &fi->features.descriptors[i]);
+         fscanf(fin, "%lf ", &fi->features.descriptors[i]);
       }
       fscanf(fin, "\n");
+      fi->features.inner_descriptors.resize(fi->features.inner_contours_count);
+      for (int i = 0; i < fi->features.inner_contours_count; i++)
+      {
+         fi->features.inner_descriptors[i].resize(2 * _count);
+         for (int j = 0; j < 2 * _count; j++)
+         {
+            fscanf(fin, " %lf", &fi->features.inner_descriptors[i][j]);
+         }
+         fscanf(fin, "\n");
+      }
    }
    fclose(fin);
 }
@@ -279,10 +286,6 @@ void Font::_loadFromImage( const char *imgname )
          fi->sym = 'a' + (i - 26);
       else if (i < 62)
          fi->sym = '0' + (i - 52);
-      else if (i == 62)
-         fi->sym = '+';
-      else if (i == 63)
-         fi->sym = '-';
 
       _mapping[fi->sym] = _symbols.size() - 1;
    }

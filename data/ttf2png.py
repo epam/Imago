@@ -5,7 +5,7 @@ if len(sys.argv) != 3:
     print "Run script as", sys.argv[0], "<input.ttf> <output.png>"
     sys.exit(0);
 
-image = Image.new("RGB", (100, 4000))
+image = Image.new("RGB", (100, 5000))
 
 draw = ImageDraw.Draw(image)
 
@@ -28,6 +28,11 @@ for _ in range(0, 26):
     draw.text((10, y), c, font = font, fill = (0, 0, 0))
     c = chr(ord(c) + 1)
     y += space
+
+for c in range(0, 10):
+    draw.text((10, y), str(c), font = font, fill = (0, 0, 0))
+    y += space
+
 
 image.save(sys.argv[2])
 
