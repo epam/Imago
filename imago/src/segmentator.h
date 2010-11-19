@@ -29,8 +29,7 @@ namespace imago
    public:
       
       template<typename Container>
-      static void segmentate( const Image &img, Container &segments,
-                              int windowSize = 3 )
+      static void segmentate( const Image &img, Container &segments, int windowSize = 3, byte validColor = 0 )
       {
          int i, j;
          IntVector visited(img.getHeight() * img.getWidth(), 0);
@@ -41,7 +40,7 @@ namespace imago
          {
             for (j = 0; j < img.getWidth(); j++)
             {
-               if (img.getByte(j, i) < 255)
+               if (img.getByte(j, i) == validColor)
                {
                   if (visited[(i * img.getWidth() + j)] != 0)
                      continue;
@@ -50,7 +49,7 @@ namespace imago
                   segments.push_back(newImg);
                   newImg->getX() = j;
                   newImg->getY() = i;
-                  _walkSegment(img, visited, newImg, windowSize);
+                  _walkSegment(img, visited, newImg, windowSize, validColor);
                }
             }
          }
@@ -58,7 +57,7 @@ namespace imago
 
    private:
       static void _walkSegment( const Image &img, IntVector &visited,
-                                Segment *segment, int windowSize );
+                                Segment *segment, int windowSize, byte validColor );
    };
 }
 

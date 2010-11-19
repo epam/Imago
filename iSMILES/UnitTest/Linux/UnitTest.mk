@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=sic
-Date                   :=15.11.2010
+Date                   :=18.11.2010
 CodeLitePath           :="/home/sic/.codelite"
 LinkerName             :=g++
 ArchiveTool            :=ar rcus
@@ -48,7 +48,8 @@ LibPath                := "$(LibraryPathSwitch)."
 ## User defined environment variables
 ##
 CodeLiteDir:=/usr/share/codelite
-Objects=$(IntermediateDirectory)/UnitTest_main$(ObjectSuffix) $(IntermediateDirectory)/UnitTest_Draw$(ObjectSuffix) $(IntermediateDirectory)/Image_FilePNG$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_ImageMap$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Bounds$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_LinearApproximation$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_RangeArray$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Contour$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix) 
+Objects=$(IntermediateDirectory)/UnitTest_main$(ObjectSuffix) $(IntermediateDirectory)/UnitTest_Draw$(ObjectSuffix) $(IntermediateDirectory)/Image_FilePNG$(ObjectSuffix) $(IntermediateDirectory)/Image_ImageFilter$(ObjectSuffix) $(IntermediateDirectory)/Image_Image$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_ImageMap$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Bounds$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_LinearApproximation$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_RangeArray$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Contour$(ObjectSuffix) \
+	$(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) 
 
 ##
 ## Main Build Targets 
@@ -91,6 +92,22 @@ $(IntermediateDirectory)/Image_FilePNG$(DependSuffix): ../../src/Image/FilePNG.c
 
 $(IntermediateDirectory)/Image_FilePNG$(PreprocessSuffix): ../../src/Image/FilePNG.cpp
 	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Image_FilePNG$(PreprocessSuffix) "/home/sic/iSMILES/src/Image/FilePNG.cpp"
+
+$(IntermediateDirectory)/Image_ImageFilter$(ObjectSuffix): ../../src/Image/ImageFilter.cpp $(IntermediateDirectory)/Image_ImageFilter$(DependSuffix)
+	$(CompilerName) $(SourceSwitch) "/home/sic/iSMILES/src/Image/ImageFilter.cpp" $(CmpOptions) $(ObjectSwitch)$(IntermediateDirectory)/Image_ImageFilter$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Image_ImageFilter$(DependSuffix): ../../src/Image/ImageFilter.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) -MT$(IntermediateDirectory)/Image_ImageFilter$(ObjectSuffix) -MF$(IntermediateDirectory)/Image_ImageFilter$(DependSuffix) -MM "/home/sic/iSMILES/src/Image/ImageFilter.cpp"
+
+$(IntermediateDirectory)/Image_ImageFilter$(PreprocessSuffix): ../../src/Image/ImageFilter.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Image_ImageFilter$(PreprocessSuffix) "/home/sic/iSMILES/src/Image/ImageFilter.cpp"
+
+$(IntermediateDirectory)/Image_Image$(ObjectSuffix): ../../src/Image/Image.cpp $(IntermediateDirectory)/Image_Image$(DependSuffix)
+	$(CompilerName) $(SourceSwitch) "/home/sic/iSMILES/src/Image/Image.cpp" $(CmpOptions) $(ObjectSwitch)$(IntermediateDirectory)/Image_Image$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Image_Image$(DependSuffix): ../../src/Image/Image.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) -MT$(IntermediateDirectory)/Image_Image$(ObjectSuffix) -MF$(IntermediateDirectory)/Image_Image$(DependSuffix) -MM "/home/sic/iSMILES/src/Image/Image.cpp"
+
+$(IntermediateDirectory)/Image_Image$(PreprocessSuffix): ../../src/Image/Image.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Image_Image$(PreprocessSuffix) "/home/sic/iSMILES/src/Image/Image.cpp"
 
 $(IntermediateDirectory)/Vectorization_ImageMap$(ObjectSuffix): ../../src/Vectorization/ImageMap.cpp $(IntermediateDirectory)/Vectorization_ImageMap$(DependSuffix)
 	$(CompilerName) $(SourceSwitch) "/home/sic/iSMILES/src/Vectorization/ImageMap.cpp" $(CmpOptions) $(ObjectSwitch)$(IntermediateDirectory)/Vectorization_ImageMap$(ObjectSuffix) $(IncludePath)
@@ -140,6 +157,14 @@ $(IntermediateDirectory)/Vectorization_Vectorize$(DependSuffix): ../../src/Vecto
 $(IntermediateDirectory)/Vectorization_Vectorize$(PreprocessSuffix): ../../src/Vectorization/Vectorize.cpp
 	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Vectorization_Vectorize$(PreprocessSuffix) "/home/sic/iSMILES/src/Vectorization/Vectorize.cpp"
 
+$(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix): ../../src/Vectorization/TriangleRecognize.cpp $(IntermediateDirectory)/Vectorization_TriangleRecognize$(DependSuffix)
+	$(CompilerName) $(SourceSwitch) "/home/sic/iSMILES/src/Vectorization/TriangleRecognize.cpp" $(CmpOptions) $(ObjectSwitch)$(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Vectorization_TriangleRecognize$(DependSuffix): ../../src/Vectorization/TriangleRecognize.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) -MT$(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) -MF$(IntermediateDirectory)/Vectorization_TriangleRecognize$(DependSuffix) -MM "/home/sic/iSMILES/src/Vectorization/TriangleRecognize.cpp"
+
+$(IntermediateDirectory)/Vectorization_TriangleRecognize$(PreprocessSuffix): ../../src/Vectorization/TriangleRecognize.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(PreprocessSuffix) "/home/sic/iSMILES/src/Vectorization/TriangleRecognize.cpp"
+
 
 -include $(IntermediateDirectory)/*$(DependSuffix)
 ##
@@ -155,6 +180,12 @@ clean:
 	$(RM) $(IntermediateDirectory)/Image_FilePNG$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/Image_FilePNG$(DependSuffix)
 	$(RM) $(IntermediateDirectory)/Image_FilePNG$(PreprocessSuffix)
+	$(RM) $(IntermediateDirectory)/Image_ImageFilter$(ObjectSuffix)
+	$(RM) $(IntermediateDirectory)/Image_ImageFilter$(DependSuffix)
+	$(RM) $(IntermediateDirectory)/Image_ImageFilter$(PreprocessSuffix)
+	$(RM) $(IntermediateDirectory)/Image_Image$(ObjectSuffix)
+	$(RM) $(IntermediateDirectory)/Image_Image$(DependSuffix)
+	$(RM) $(IntermediateDirectory)/Image_Image$(PreprocessSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_ImageMap$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_ImageMap$(DependSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_ImageMap$(PreprocessSuffix)
@@ -173,6 +204,9 @@ clean:
 	$(RM) $(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_Vectorize$(DependSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_Vectorize$(PreprocessSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(DependSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(PreprocessSuffix)
 	$(RM) $(OutputFile)
 
 

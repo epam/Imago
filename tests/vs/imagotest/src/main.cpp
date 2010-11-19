@@ -457,7 +457,7 @@ void testContour()
       gauss.apply();
 
       Binarizer(img, getSettings()["BinarizationLvl"]).apply();
-LMARK;
+      LMARK;
       std::deque<Segment*> segs;
       std::deque<int> contour;
       LMARK;
@@ -479,6 +479,41 @@ LMARK;
    {
       puts(e.what());
    }   
+}
+
+void testOCR()
+{
+   try
+   {
+      const char *filename = "/home/vsmolov/flamingo_test/iphone5.jpg.out.png";
+      qword sid = SessionManager::getInstance().allocSID();
+      SessionManager::getInstance().setSID(sid);
+      Image img;
+      ImageUtils::loadImageFromFile(img, filename);
+      LPRINT(0, "Start");
+      // Convolver gauss(img);
+      // gauss.initGauss();
+      // gauss.apply();
+
+      Binarizer(img, getSettings()["BinarizationLvl"]).apply();
+      Font fnt(Font::ARIAL);
+      std::deque<Segment*> segs;
+      Segmentator::segmentate(img, segs);
+
+      for (std::deque<Segment*>::iterator it = segs.begin(),
+              end = segs.end(); it != end; ++it)
+      {
+         double d;
+         char c = fnt.findBest(*it, 0, 26, &d);
+         printf("(%d, %d)   %c  %.5lf  innerCcount = %d\n",
+                (*it)->getX(), (*it)->getY(), c, d,
+                (*it)->getFeatures().inner_contours_count);
+      }
+   }
+   catch (Exception &e)
+   {
+      puts(e.what());
+   }
 }
 
 int main(int argc, char **argv)
@@ -516,7 +551,8 @@ int main(int argc, char **argv)
    //num = readCL(argc, argv);
 
    //testContour();
-   testRecognizer(num);
+   //testRecognizer(num);
+   testOCR();
 
    return 0;
 }

@@ -21,4 +21,9 @@ namespace gga
 	{
 		return Data[p.Y*Width + p.X];
 	}
+    
+    bool ImageMap::isAssigned(const Point& p) const
+    {
+        return getAssignedSegment(p) != NULL;
+    }
 }

@@ -36,3 +36,4 @@ void Lock::unlock()
 {
    pthread_mutex_unlock(&os_lock);
 }
+

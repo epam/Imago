@@ -133,21 +133,15 @@ void Font::_loadFromFile( const char *filename )
    fclose(fin);
 }
 
-void Font::prepareSegment( Segment *seg ) const
-{
-   const std::vector<double> &desc = seg->getFeatures().descriptors;
-   if ((int)desc.size() / 2 < _count)
-      FourierDescriptorsExtractor::getDescriptors(seg, _count);
-}
-
-char Font::findBest( const std::vector<double> &descriptors, int begin, int end, double *dist ) const
+char Font::findBest( const SymbolFeatures &features, int begin, int end,
+                     double *dist ) const
 {
    char res = 0;
    double d, min_d = 1e10;
    
    for (int i = begin; i < end; i++)
    {
-      d = _compare(i, descriptors);
+      d = _compare(i, features);
 
       if (d < min_d)
       {
@@ -162,36 +156,26 @@ char Font::findBest( const std::vector<double> &descriptors, int begin, int end,
    return res;
 }
 
-char Font::findBest( Segment *img, int begin, int end, double *dist ) const
+char Font::findBest( const Segment *img, int begin, int end,
+                     double *dist ) const
 {
-   const std::vector<double> &desc = img->getFeatures().descriptors;
-   if ((int)desc.size() / 2 < _count)
-      FourierDescriptorsExtractor::getDescriptors(img, _count);
-   
-   return findBest(desc, begin, end, dist);
+   img->initFeatures(_count);
+   return findBest(img->getFeatures(), begin, end, dist);
 }
 
-
-char Font::findBest( const Segment *img, int begin, int end, double *dist ) const
-{ 
-   const std::vector<double> &desc = img->getFeatures().descriptors;
-
-   return findBest(desc, begin, end, dist);
-}
-
-char Font::findBest( const Segment *img, const std::string &letters, double *dist ) const
+char Font::findBest( const Segment *img, const std::string &letters,
+                     double *dist ) const
 {
    char res = 0;
    double d, min_d = 1e10;
    int ind;
-   const std::vector<double> &desc = img->getFeatures().descriptors;
-   if ((int)desc.size() / 2 < _count)
-      FourierDescriptorsExtractor::getDescriptors(img, _count);
+
+   img->initFeatures(_count);
    
    for (int i = 0; i < (int)letters.size(); i++)
    {
       ind = _mapping[letters[i]];
-      d = _compare(ind, desc);
+      d = _compare(ind, img->getFeatures());
 
       if (d < min_d)
       {
@@ -221,16 +205,13 @@ int Font::findCapitalHeight( SegmentDeque &segments ) const
 
    BOOST_FOREACH( Segment *seg, segments )
    {
-      std::vector<double> &desc = seg->getFeatures().descriptors;
-
-      if ((int)desc.size() / 2 < _count)
-         FourierDescriptorsExtractor::getDescriptors(seg, _count);
+      seg->initFeatures(_count);
       
       for (int i = 0; i < (int)_symbols.size(); i++)
       {
          if (_symbols[i].sym >= 'A' && _symbols[i].sym <= 'Z')
          {         
-            d = _compare(i, desc);
+            d = _compare(i, seg->getFeatures());
             seg_height = seg->getHeight();
             
             if (d < min_d && seg_height >= mean_height)
@@ -246,15 +227,15 @@ int Font::findCapitalHeight( SegmentDeque &segments ) const
    return cap_height;
 }
 
-double Font::_compare( int ind, const std::vector<double> &desc ) const
+double Font::_compare( int ind, const SymbolFeatures &features ) const
 {
    double d = 0;
    double a, b;
    double weight = 1;
-   for (int i = 0; i < (int)desc.size(); i++)
+   for (int i = 0; i < (int)features.descriptors.size(); i++)
    {
       a = _symbols[ind].features.descriptors[i];
-      b = desc[i];
+      b = features.descriptors[i];
 
       if ((i % 2))
          weight = 0.5;  //"Constants", not config maybe ?
@@ -289,11 +270,8 @@ void Font::_loadFromImage( const char *imgname )
 
       ++it;
 
-      std::vector<double> &desc = segment->getFeatures().descriptors;
-      if ((int)desc.size() / 2 < _count)
-         FourierDescriptorsExtractor::getDescriptors(segment, _count);
-   
-      fi->features.descriptors = desc;
+      segment->initFeatures(_count);   
+      fi->features = segment->getFeatures();
 
       if (i < 26) //"Constants", not config maybe ?
          fi->sym = 'A' + i;

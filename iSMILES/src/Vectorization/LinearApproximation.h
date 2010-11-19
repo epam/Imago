@@ -7,7 +7,7 @@ namespace gga
 {
 	class LinearApproximation
 	{		
-		bool Good;		
+		bool Good;
 		double StdDev;
         Polyline ResultLine;
 		RangeArray Ranges;

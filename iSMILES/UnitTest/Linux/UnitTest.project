@@ -86,6 +86,8 @@
     <File Name="../../src/Image/Image.h"/>
     <File Name="../../src/Image/Triangle.h"/>
     <File Name="../../src/Image/Rectangle.h"/>
+    <File Name="../../src/Image/ImageFilter.cpp"/>
+    <File Name="../../src/Image/Image.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Vectorization">
     <File Name="../../src/Vectorization/ImageMap.cpp"/>
@@ -101,6 +103,8 @@
     <File Name="../../src/Vectorization/Vectorize.cpp"/>
     <File Name="../../src/Vectorization/Line.h"/>
     <File Name="../../src/Vectorization/RangeArray.h"/>
+    <File Name="../../src/Vectorization/TriangleRecognize.h"/>
+    <File Name="../../src/Vectorization/TriangleRecognize.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Common">
     <File Name="../../src/Parameters.h"/>

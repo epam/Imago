@@ -2,20 +2,487 @@
 #include <algorithm>
 #include "ImageFilter.h"
 
+//#define TEST in compiler command line
+#ifdef TEST
+    #include <stdio.h>   //test log
+    #include "FilePNG.h" //test log
+    #include "../Timer.h"//test log
+
+    static gga::FilePNG png;
+    extern char filename[];
+    static char file[64];
+#endif
+
 namespace gga
 {
-    static inline int ROUND (double x) { return (int) (x + 0.5);}
-// Square:
-#define SQR(x) ((x) * (x))
-//    static inline double SQR(double x) { return x*x;}
+    // Gaussian blur matrix:  
+    //                          
+    //    1    2    1          
+    //    2    4    2          
+    //    1    2    1          
+    //                          
+    //////////////////////////////////////////////////  
+    void eraseSmallDirts (Image* img, size_t r);
 
-    
-    struct UnsharpMaskParams
+    void ImageFilter::prepareImageForVectorization()
     {
-      double  radius;
-      double  amount;
-      int     threshold;
-    };
+        if(IT_BW == Image.getType())  // not photo image
+            return;
+        std::vector<size_t> histogram;
+
+#ifdef TEST
+sprintf (file,"out/test-%s.flt-00_original.png", filename);
+png.save(file, Image);
+Timer tm, ttotal;
+double totalTime=0.;
+#endif
+
+// BLUR - remove noise
+        if(0 != Parameters.RadiusBlur1)
+        {
+            blurImage(&Image, Parameters.RadiusBlur1);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("blurImage: %.4f sec. bg=%d\n", tm.getElapsedTime(), getBackgroundValue(Image));
+sprintf (file,"out/test-%s.flt-05_blur-1.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+        }
+// STRETCH increase contrast
+        if(0 != Parameters.StretchImage)
+        {
+            makeHistogram (Image, &histogram);
+            size_t minColor = 0, maxColor = histogram.size()-1, maxN = histogram[histogram.size()-1];
+            for(size_t i = 0; i < histogram.size(); i++)
+            {
+                if( i > 32 && histogram[i] >= maxN)
+                {
+                    maxColor = i;
+                    maxN = histogram[i];
+                }
+                if( 0 == minColor && histogram[i] >= 100)   //first valuable dark color
+                    minColor = i;
+            }
+//            maxColor -= 16;
+            stretchImageHistogram(&Image, minColor, maxColor);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("stretchImageHistogram: %.4f sec. minColor=%d maxColor=%d\n", tm.getElapsedTime(), minColor, maxColor);
+sprintf (file,"out/test-%s.flt-06_stretched-1.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+        }
+
+//-----------------------------------------------------  SELECT OBJECTS  ----------------------------------------------------
+// BLUR AFTER STRETCH
+        if(0 != Parameters.RadiusBlur2)
+        {
+            blurImage(&Image, Parameters.RadiusBlur2);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("blurImage: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-08_blur-2.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+        }
+// CROP BORDER
+        if(0 != Parameters.CropBorder)
+        {
+            Image.crop(Parameters.CropBorder, Parameters.CropBorder, Image.getWidth() - Parameters.CropBorder - 1, Image.getHeight() - Parameters.CropBorder -1);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("cropBorder: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-09_crop-borders.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+        }
+
+// UNSHARP MASK
+        unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount, (int)Parameters.UnsharpMaskThreshold);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("unsharpMaskImage: %.4f sec. bg=%d\n", tm.getElapsedTime(), getBackgroundValue(Image));
+sprintf (file,"out/test-%s.flt-10_unsharp-mask.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+//-----------------------------------------------------  IMPROVE PICTURE ----------------------------------------------------
+/* // opt STRETCH 2 - no effect
+        makeHistogram (Image, &histogram);
+        size_t maxColor = histogram.size()-1, maxN = histogram[histogram.size()-1];
+        size_t minColor = 0, minN = histogram[0];
+        for(size_t i = 0; i < histogram.size(); i++)
+        {
+            if( i > 32 && histogram[i] >= maxN)
+            {
+                maxColor = i;
+                maxN = histogram[i];
+            }
+            if(histogram[i] <= minN && i < maxColor)
+            {
+                minColor = i;
+                minN = histogram[i];
+            }
+            else if(histogram[i] > 4*minN)
+                minN = 0;   // stop find first minimum
+        }
+        stretchImageHistogram(&Image, (size_t(16) > minColor ? minColor : size_t(16)), maxColor);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("stretchImageHistogram: %.4f sec. minColor=%d (%d) maxColor=%d\n", tm.getElapsedTime(), (size_t(16) > minColor ? minColor : size_t(16)), minColor, maxColor);
+sprintf (file,"out/test-%s.flt-30_stretched.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+
+// BLUR 2 we can lost very small details here and connect neighbour objects
+        if(0 != Parameters.RadiusBlur2)
+            blurImage(&Image, Parameters.RadiusBlur2);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("blurImage: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-40_blur-2.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+
+
+// UNSHARP MASK 2 we can lost very small details here
+        if(0!=Parameters.UnsharpMaskAmount2)
+            unsharpMaskImage(Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount2, (int)Parameters.UnsharpMaskThreshold2);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("unsharpMaskImage: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-48_unsharp-mask-2.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+*/
+
+//-----------------------------------------------------  BLACK WHITE  ----------------------------------------------------
+//to BW
+        convertGrayscaleToBlackWhite(&Image, 7/*getBackgroundValue(Image)*/);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("convertGrayscaleToBlackWhite: %.4f sec. Background>=7 (%d)\n", tm.getElapsedTime(), getBackgroundValue(Image));
+sprintf (file,"out/test-%s.flt-50_BW.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+//----------------------------------------------------- CLEAR PICTURE ----------------------------------------------------
+        if(0 != Parameters.VignettingHoleDistance)
+            clearCorners (&Image, Parameters.VignettingHoleDistance);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("clearCorners: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-60_cleared-cornes.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+        if(0 != Parameters.SmallDirtSize)
+            eraseSmallDirts (&Image, Parameters.SmallDirtSize);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("eraseSmallDirts: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-70_cleared-dirts.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
+        cropImageToPicture(&Image);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("cropImageToPicture: %.4f sec.\nTotalTime =  %.4f (with log %.4f) sec.\n", tm.getElapsedTime(), totalTime, ttotal.getElapsedTime());
+sprintf (file,"out/test-%s.flt-99_croped.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+    }
+
+//==============================================================================
+
+    Coord ImageFilter::computeLineWidthHistogram(std::vector<size_t>* histogram, size_t size)
+    {
+        size_t maxFrequentWidth = 0, maxFrequentWidthNumber = 0;
+        if(-1==size)
+            size = Image.getWidth()/10;
+
+        histogram->resize(size);
+        memset(&(*histogram)[0], 0, histogram->size());
+        for (size_t y = 0; y < Image.getHeight(); y++)
+            for(size_t x = 0; x < Image.getWidth() ; x++)
+            if(!Image.getPixel(x, y).isBackground())
+        {
+            size_t w = 0;
+            for(; x < Image.getWidth() && !Image.getPixel(x, y).isBackground(); x++)
+                w++;
+            if (w < histogram->size())
+            {
+                size_t n = ++(*histogram)[w];
+                if (maxFrequentWidthNumber < n)
+                {
+                    maxFrequentWidthNumber = n;
+                    maxFrequentWidth       = w;
+                }
+            }
+        }
+        return Coord(maxFrequentWidth);
+    }
+
+//==============================================================================
+
+    static inline int round(double x) { return int(x > 0. ? x + 0.5 : x - 0.5);}
+    
+    static inline int max4(int x1, int x2, int x3, int x4)
+    {
+        int maxx = x1;
+        if (maxx < x2)
+            maxx = x2;
+        if (maxx < x3)
+            maxx = x3;
+        if (maxx < x4)
+            maxx = x4;
+        return maxx;
+    }
+
+    static inline int min4(int x1, int x2, int x3, int x4)
+    {
+        int minx = x1;
+        if (minx > x2)
+            minx = x2;
+        if (minx > x3)
+            minx = x3;
+        if (minx > x4)
+            minx = x4;
+        return minx;
+    }
+
+    void rotateImage(const Image& img, double angle, Image* out)
+    {
+        const int xc = img.getWidth()/2, yc = img.getHeight()/2;     // center of source image
+        double sinAngle = sin(angle*3.14159265359/180.), cosAngle = cos(angle*3.14159265359/180.);
+        {
+            // compute new size
+            int x1 = round(cosAngle * (0 - xc)              - sinAngle * (0 - yc));
+            int x2 = round(cosAngle * (img.getWidth() - xc) - sinAngle * (0 - yc));
+            int x3 = round(cosAngle * (img.getWidth() - xc) - sinAngle * (img.getHeight() - yc));
+            int x4 = round(cosAngle * (0 - xc)              - sinAngle * (img.getHeight() - yc));
+
+            int y1 = round(sinAngle * (0 - xc)              + cosAngle * (0 - yc));
+            int y2 = round(sinAngle * (img.getWidth() - xc) + cosAngle * (0 - yc));
+            int y3 = round(sinAngle * (img.getWidth() - xc) + cosAngle * (img.getHeight() - yc));
+            int y4 = round(sinAngle * (0 - xc)              + cosAngle * (img.getHeight() - yc));
+
+            out->setSize(size_t(max4(x1, x2, x3, x4) - min4(x1, x2, x3, x4)+1), size_t(max4(y1, y2, y3, y4) - min4(y1, y2, y3, y4)+1), img.getType());
+            out->clear();
+        }
+        const size_t xc1 = out->getWidth()/2, yc1 = out->getHeight()/2; // center of output image
+
+        // roteate pixels
+        for (size_t y=0; y < img.getHeight(); y++)
+         for(size_t x=0; x < img.getWidth (); x++)
+        {
+            int xsrc = (int)x - xc, ysrc = (int)y - yc;
+            size_t x1, y1;
+            x1 = (size_t) (xc1 + round(cosAngle * xsrc - sinAngle * ysrc));
+            y1 = (size_t) (yc1 + round(sinAngle * xsrc + cosAngle * ysrc));
+            out->setPixel(x1, y1, img.getPixel(x, y));
+        }
+
+        if(IT_BW == out->getType())//black white image
+        {
+            blurImage(out, 2);
+            cropImageToPicture(out);
+            unsharpMaskImage(out, 50., 0., 9., 0);
+            convertGrayscaleToBlackWhite(out, 210);
+        }
+    }
+
+    void eraseSmallDirts (Image* img, size_t r)
+    {
+//        img.setPixel(2,2, Pixel(0));    //test
+
+        if( r > 2)  // WRONG IMPLEMENTATION for r >= 2 !!!
+            r = 2;
+        for (size_t y = 0; y < img->getHeight(); y++)
+         for(size_t x = 0; x < img->getWidth() ; x++)
+         {
+            if(!img->getPixel(x, y).isBackground())
+            {
+                size_t len = 1, hmax = 1, rmax = 1;
+
+                for(size_t i = 1; i <= r && x + i < img->getWidth() && ! img->getPixel(x+i, y).isBackground(); i++)
+                {
+                    len++;
+                    size_t h = 0;
+                    for(size_t j = 0; j <= r && y + j < img->getHeight() && ! img->getPixel(x+i, y+j).isBackground(); j++)
+                        h++;
+                    for(size_t j = 1; j <= r && y - j >= 0 && ! img->getPixel(x+i, y-j).isBackground(); j++)
+                        h++;
+                    if(h > hmax)
+                        hmax = h;
+                }
+                if(len < r)
+                    for(size_t i = 1; i <= r && x - i >= 0 && ! img->getPixel(x-i, y).isBackground(); i++)   // NEVER !! already processed
+                    {
+                        len++;
+                        size_t h = 0;
+                        for(size_t j = 0; j <= r && y + j < img->getHeight() && ! img->getPixel(x-i, y+j).isBackground(); j++)
+                            h++;
+                        for(size_t j = 1; j <= r && y - j >= 0 && ! img->getPixel(x-i, y-j).isBackground(); j++)
+                            h++;
+                        if(h > hmax)
+                            hmax = h;
+                    }
+                if(len < r && hmax < r) // find \ line
+                {
+                    len = 0;
+                    bool stop = false;
+                    for(size_t i = 1; !stop && i <= r && x + i < img->getWidth() && y + i < img->getHeight(); i++)
+                    {
+                        stop = true;
+                        if(!img->getPixel(x+i, y+i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                        if(y>=i && !img->getPixel(x-i, y-i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                    }
+                }
+                if(len < r && hmax < r) // find / line
+                {
+                    len = 0;
+                    bool stop = false;
+                    for(size_t i = 1; !stop && i <= r && x + i < img->getWidth() && y + i < img->getHeight(); i++)
+                    {
+                        stop = true;
+                        if(x>=i && !img->getPixel(x-i, y+i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                        if(y>=i && !img->getPixel(x+i, y-i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                    }
+                }
+                if(len < r && hmax < r) // find < line
+                {
+                    len = 0;
+                    bool stop = false;
+                    for(size_t i = 1; !stop && i <= r && x + i < img->getWidth() && y + i < img->getHeight(); i++)
+                    {
+                        stop = true;
+                        if(!img->getPixel(x+i, y+i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                        if(y>=i && !img->getPixel(x+i, y-i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                    }
+                }
+                if(len < r && hmax < r) // find > line
+                {
+                    len = 0;
+                    bool stop = false;
+                    for(size_t i = 0; !stop && i <= r && x + i < img->getWidth() && y + i < img->getHeight(); i++)
+                    {
+                        stop = true;
+                        if(x>=i && !img->getPixel(x-i, y+i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                        if(x>=i && y>=i && !img->getPixel(x-i, y-i).isBackground())
+                        {
+                            stop = false;
+                            len++;
+                        }
+                    }
+                }
+                /*
+                if(hmax <= r && len <= r)   // compute max distance by outer contour !!! WRONG IMPLEMENTATION for r > 2 !!!
+                {
+                    std::vector<bool> processed((r+1)*(r+1));
+                    memset(&processed[0], false, processed.size());
+                    int xi = x, yj = y;
+                    while (rmax <= r && abs(xi - (int)x) <= (int)r &&  abs(yj - (int)y) <= (int)r &&  xi < (int)img.getWidth () && yj < (int)img.getHeight())
+                    {
+                       if(!processed[] && !img.getPixel(xi, yj+1).isBackground())
+                        {
+                            yj++;
+                            if(xi >= 1 && !img.getPixel(xi-1, yj).isBackground())
+                                xi--;
+                        }
+                        else if(yj >= 1 && !img.getPixel(xi, yj-1).isBackground())
+                        {
+                            yj--;
+                            if(xi >= 1 && !img.getPixel(xi-1, yj).isBackground())
+                                xi--;
+                        }
+                        else if(!img.getPixel(xi+1, yj).isBackground())
+                        {
+                            xi++;
+                            if(yj >= 1 && !img.getPixel(xi, yj-1).isBackground())
+                                yj--;
+                        }
+                        else if(xi >= 1 && !img.getPixel(xi-1, yj).isBackground())
+                        {
+                            xi--;
+                            if(!img.getPixel(xi, yj+1).isBackground())
+                                yj++;
+                        }
+                        else
+                            break;
+                        if (xi < 0)
+                            xi = 0;
+                        if (yj < 0)
+                            yj = 0;
+
+                        if(size_t(((int)x-xi)*((int)x-xi) + ((int)y-yj)*((int)y-yj)) > r*r)
+                            rmax = 2*r;
+                    }
+                    rmax = size_t(((int)x-xi)*((int)x-xi) + ((int)y-yj)*((int)y-yj));
+                }
+                */
+                if(rmax <= r && hmax <= r && len <= r)
+                {
+                    for(size_t i = 0; i <= r && x < img->getWidth() && ! img->getPixel(x, y).isBackground(); i++, x++)
+                    {
+                        for(size_t j = 0; j <= r && y + j < img->getHeight() && ! img->getPixel(x, y+j).isBackground(); j++)
+                            img->setPixel(x, y+j, BACKGROUND);
+                    }
+                }
+                for(; x < img->getWidth() && ! img->getPixel(x, y).isBackground(); x++)   //skip big object
+                {}
+            }
+        }
+    }
+
+//==============================================================================
+// UnsharpMask
+//==============================================================================
+
+    static inline int ROUND (double x) { return (int) (x + 0.5);}
+    // Square:
+    #define SQR(x) ((x) * (x))  //    static inline double SQR(double x) { return x*x;}
 
     static void blurLine (const double* ctable, const double* cmatrix, const int cmatrix_length,
                         const unsigned char* src, unsigned char* dest, const int len, const int bytes)
@@ -28,10 +495,7 @@ namespace gga
         int           row;
         int           i, j;
 
-        /* This first block is the same as the optimized version --
-        * it is only used for very small pictures, so speed isn't a
-        * big concern.
-        */
+        // This first block is the same as the optimized version. it is only used for very small pictures, so speed isn't a big concern.
         if (cmatrix_length > len)
         {
             for (row = 0; row < len; row++)
@@ -70,10 +534,10 @@ namespace gga
         }
         else
         {
-            /* for the edge condition, we only use available info and scale to one */
+            // for the edge condition, we only use available info and scale to one
             for (row = 0; row < cmatrix_middle; row++)
             {
-                /* find scale factor */
+                // find scale factor
                 double scale = 0;
 
                 for (j = cmatrix_middle - row; j < cmatrix_length; j++)
@@ -97,7 +561,7 @@ namespace gga
                 }
             }
 
-            /* go through each pixel in each col */
+            // go through each pixel in each col
             for (; row < len - cmatrix_middle; row++)
             {
                 src_p = src + (row - cmatrix_middle) * bytes;
@@ -122,10 +586,10 @@ namespace gga
                 }
             }
 
-            /* for the edge condition, we only use available info and scale to one */
+            // for the edge condition, we only use available info and scale to one
             for (; row < len; row++)
             {
-                /* find scale factor */
+                // find scale factor
                 double scale = 0;
 
                 for (j = 0; j < len - row + cmatrix_middle; j++)
@@ -151,9 +615,7 @@ namespace gga
         }
     }
 
-    /* generates a 1-D convolution matrix to be used for each pass of
-     * a two-pass gaussian blur.  Returns the length of the matrix.
-     */
+    // generates a 1-D convolution matrix to be used for each pass of a two-pass gaussian blur.  Returns the length of the matrix.
     static int makeConvolveMatrix (double radius, double **cmatrix_p)
     {
       double *cmatrix;
@@ -177,7 +639,7 @@ namespace gga
       std_dev = radius;
       radius = std_dev * 2;
 
-      /* go out 'radius' in each direction */
+      // go out 'radius' in each direction
       matrix_length = (int)(2 * ceil (radius - 0.5) + 1);
       if (matrix_length <= 0)
         matrix_length = 1;
@@ -192,7 +654,7 @@ namespace gga
        *  The formula to integrate is e^-(x^2/2s^2).
        */
 
-      /* first we do the top (right) half of matrix */
+      // first we do the top (right) half of matrix
       for (i = matrix_length / 2 + 1; i < matrix_length; i++)
         {
           double base_x = i - (matrix_length / 2) - 0.5;
@@ -209,19 +671,19 @@ namespace gga
           cmatrix[i] = sum / 50;
         }
 
-      /* mirror the thing to the bottom half */
+      // mirror the thing to the bottom half
       for (i = 0; i <= matrix_length / 2; i++)
         cmatrix[i] = cmatrix[matrix_length - 1 - i];
 
-      /* find center val -- calculate an odd number of quanta to make it symmetric,
-       * even if the center point is weighted slightly higher than others. */
+      // find center val -- calculate an odd number of quanta to make it symmetric,
+      // even if the center point is weighted slightly higher than others.
       sum = 0;
       for (j = 0; j <= 50; j++)
         sum += exp (- SQR (- 0.5 + 0.02 * j) / (2 * SQR (std_dev)));
 
       cmatrix[matrix_length / 2] = sum / 51;
 
-      /* normalize the distribution by scaling the total sum to one */
+      // normalize the distribution by scaling the total sum to one
       sum = 0;
       for (i = 0; i < matrix_length; i++)
         sum += cmatrix[i];
@@ -232,12 +694,10 @@ namespace gga
       return matrix_length;
     }
 
-    /* ----------------------- gen_lookup_table ----------------------- */
-    /* generates a lookup table for every possible product of 0-255 and
-       each value in the convolution matrix.  The returned array is
-       indexed first by matrix position, then by input multiplicand (?)
-       value.
-    */
+    // ----------------------- gen_lookup_table -----------------------
+    // generates a lookup table for every possible product of 0-255 and
+    //   each value in the convolution matrix.  The returned array is
+    //   indexed first by matrix position, then by input multiplicand (?) value.
     static double* makeLookupTable (const double *cmatrix, int cmatrix_length)
     {
       double       *lookup_table   = new double [cmatrix_length * 256];
@@ -255,85 +715,85 @@ namespace gga
       return lookup_table;
     }
 
-/* Perform an unsharp mask on the region, given a source region, dest.
- * region, width and height of the regions, and corner coordinates of
- * a subregion to act upon.  Everything outside the subregion is unaffected.
- */
-static void unsharpRegion (const unsigned char* srcPR, unsigned char* destPR, int bytes,
-                            double radius, double amount, int threshold, int x1, int x2, int y1, int y2)
-{
-    int     width   = x2 - x1 + 1;
-    int     height  = y2 - y1 + 1;
-    double *cmatrix = 0;
-    int     cmatrix_length;
-    double *ctable  = 0;
-    int     row, col;
+    // Perform an unsharp mask on the region, given a source region, dest.
+    // region, width and height of the regions, and corner coordinates of
+    // a subregion to act upon.  Everything outside the subregion is unaffected.
+
+    static void unsharpRegion (const unsigned char* srcPR, unsigned char* destPR, int bytes,
+                                double radius, double amount, int threshold, int x1, int x2, int y1, int y2)
+    {
+        int     width   = x2 - x1 + 1;
+        int     height  = y2 - y1 + 1;
+        double *cmatrix = 0;
+        int     cmatrix_length;
+        double *ctable  = 0;
+        int     row, col;
  
-    // generate convolution matrix and make sure it's smaller than each dimension
-    cmatrix_length = makeConvolveMatrix (radius, &cmatrix);
+        // generate convolution matrix and make sure it's smaller than each dimension
+        cmatrix_length = makeConvolveMatrix (radius, &cmatrix);
 
-    // generate lookup table
-    ctable = makeLookupTable (cmatrix, cmatrix_length);
+        // generate lookup table
+        ctable = makeLookupTable (cmatrix, cmatrix_length);
 
-    //allocate buffers
-    unsigned char  *src  = new unsigned char [std::max (width, height)];
-    unsigned char  *dest = new unsigned char [std::max (width, height)];
+        //allocate buffers
+        unsigned char  *src  = new unsigned char [width > height ? width : height];
+        unsigned char  *dest = new unsigned char [width > height ? width : height];
 
-    // blur the rows
-    for (row = 0; row < height; row++)
-    {
-      memcpy(src, srcPR + x1 + (y1 + row) * width, width - x1);
-      blurLine (ctable, cmatrix, cmatrix_length, src, dest, width, bytes);
-      memcpy(destPR + x1 + (y1 + row) * width, dest , width - x1);
-    }
-
-    // blur the cols
-    for (col = 0; col < width; col++)
-    {
+        // blur the rows
         for (row = 0; row < height; row++)
-            src[row] = destPR[x1 + col + (y1 + row) * width];
-        blurLine (ctable, cmatrix, cmatrix_length, src, dest, height, bytes);
-        for (row = 0; row < height; row++)
-            destPR[x1 + col + (y1 + row) * width] = dest[row];
-    }
-
-    //merge the source and destination (which currently contains the blurred version) images
-    for (row = 0; row < height; row++)
-    {
-      const unsigned char *s = src;
-      unsigned char       *d = dest;
-      int          u, v;
-
-      // get source row
-      memcpy(src, srcPR + x1 + (y1 + row) * width, width - x1);
-      // get dest row
-      memcpy(dest, destPR + x1 + (y1 + row) * width, width - x1);
-
-      // combine both
-        for (u = 0; u < width; u++)
         {
-            for (v = 0; v < bytes; v++)
-            {
-                int value;
-                int diff = *s - *d;
-
-                /* do tresholding */
-                if (abs (2 * diff) < threshold)
-                diff = 0;
-
-                value = int(*s++ + amount * diff);
-                *d++ = value > 0 ? (value <= 255 ? value : 255) : 0;
-            }
+          memcpy(src, srcPR + x1 + (y1 + row) * width, width - x1);
+          blurLine (ctable, cmatrix, cmatrix_length, src, dest, width, bytes);
+          memcpy(destPR + x1 + (y1 + row) * width, dest , width - x1);
         }
-        memcpy(destPR + x1 + (y1 + row) * width, dest , width - x1);
+
+        // blur the cols
+        for (col = 0; col < width; col++)
+        {
+            for (row = 0; row < height; row++)
+                src[row] = destPR[x1 + col + (y1 + row) * width];
+            blurLine (ctable, cmatrix, cmatrix_length, src, dest, height, bytes);
+            for (row = 0; row < height; row++)
+                destPR[x1 + col + (y1 + row) * width] = dest[row];
+        }
+
+        //merge the source and destination (which currently contains the blurred version) images
+        for (row = 0; row < height; row++)
+        {
+          const unsigned char *s = src;
+          unsigned char       *d = dest;
+          int          u, v;
+
+          // get source row
+          memcpy(src, srcPR + x1 + (y1 + row) * width, width - x1);
+          // get dest row
+          memcpy(dest, destPR + x1 + (y1 + row) * width, width - x1);
+
+          // combine both
+            for (u = 0; u < width; u++)
+            {
+                for (v = 0; v < bytes; v++)
+                {
+                    int value;
+                    int diff = *s - *d;
+
+                    // do tresholding
+                    if (abs (2 * diff) < threshold)
+                    diff = 0;
+
+                    value = int(*s++ + amount * diff);
+                    *d++ = value > 0 ? (value <= 255 ? value : 255) : 0;
+                }
+            }
+            memcpy(destPR + x1 + (y1 + row) * width, dest , width - x1);
+        }
+
+      delete [] dest;
+      delete [] src;
+      delete [] ctable;
+      delete [] cmatrix;
     }
 
-  delete [] dest;
-  delete [] src;
-  delete [] ctable;
-  delete [] cmatrix;
-}
-//==============================================================================
 
     void unsharpMaskImage(Image* img, const double radius, const double sigma, const double amount,const int threshold)
     {

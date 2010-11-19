@@ -21,11 +21,32 @@ namespace imago
 {
     class SymbolFeatures
     {
+       friend class Segment;
     public:
-        std::vector<double> descriptors;
-        std::vector<double> lines;
-        bool recognizable;
-        SymbolFeatures() : recognizable(true) {};
+       bool recognizable;
+
+       std::vector<double> descriptors; //for outter contour
+       int inner_contours_count;
+       //descriptors for inner contours (ordered up -> down, left -> right)
+       std::vector<std::vector<double> > inner_descriptors;
+
+       SymbolFeatures()
+       {
+          recognizable = true;
+          inner_contours_count = 0;
+          init = false;
+       };
+       
+       SymbolFeatures( const SymbolFeatures &other )
+       {
+          descriptors = other.descriptors;
+          inner_contours_count = other.inner_contours_count;
+          inner_descriptors = other.inner_descriptors;
+          init = other.init;
+       }
+       bool isInit() { return init; }
+    private:
+       bool init;
     };
 }
 

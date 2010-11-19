@@ -192,21 +192,23 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring
 {
    int circle_count;
    Segment circle;
-
+   std::vector<double> circle_descriptors;
+   
    circle.init(100, 100);
    circle.fillWhite();
 
    ImageDrawUtils::putCircle(circle, 50, 50, 40, 0);
    circle.crop();
-
-   FourierDescriptorsExtractor::getDescriptors(&circle, 10);
+   
+   FourierDescriptorsExtractor::getDescriptors(&circle, 10, circle_descriptors);
    circle_count = _countBorderBlackPoints(circle);
 
    Image img;
 
    img.init(1000, 1000);
    img.fillWhite();
-   
+
+   std::vector<double> tmp_descriptors;
    for (SegmentDeque::iterator it = segments.begin(); it != segments.end();)
    {      
       if (absolute((*it)->getRatio() - 1.0) < 0.2)
@@ -224,7 +226,8 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring
          
          try 
          {
-            FourierDescriptorsExtractor::getDescriptors(&tmp, 5);
+            FourierDescriptorsExtractor::getDescriptors(&tmp, 5,
+                                                        tmp_descriptors);
          }
          catch (Exception &e)
          {
@@ -235,8 +238,8 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring
 
          for (int i = 0; i < (int)tmp.getFeatures().descriptors.size(); i++)
          {
-            double a = tmp.getFeatures().descriptors[i],
-                   b = circle.getFeatures().descriptors[i], weight;
+            double a = tmp_descriptors[i],
+                   b = circle_descriptors[i], weight;
 
             if ((i % 2))
                weight = 0.5;  

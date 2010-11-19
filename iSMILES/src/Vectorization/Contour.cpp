@@ -1,28 +1,74 @@
-#include <stdio.h>
-#include <algorithm>
 #include "Contour.h"
+#include "Bounds.h"
 
 namespace gga
 {
-	Contour::Contour()
+	Contour::Contour(const Image& img, ImageMap& map, const Point& start)
+    : SourceImage(img), CurrentImageMap(map), OuterContour(NULL)
 	{
-		RotatedAxis = false;
-	}
-	
-	Point Contour::findRightCorner(const Point& leftCorner) const
-	{
-		Point rightCorner = leftCorner;
-		Contour::const_iterator it = std::upper_bound(begin(), end(), leftCorner);
-		if (it != end())
+        bool doneSomething = true;
+        
+        // 1. construct contour
+        Point p = start;        
+		for (int iter = 0; doneSomething; iter++)
 		{
-			while ((it+1) != end() && (it+1)->Y == leftCorner.Y)
-				it++;
-			rightCorner = *it;
+			size_t count = size();
+			passDownLeft(p, iter % 2 == 1);
+            doneSomething = size() > count;
 		}
-		return rightCorner;
+        
+        // 2. now fill all map points related to contour
+        const Bounds b(*this);
+        do
+        {
+            doneSomething = false;            
+            for (p.X = b.getLeft(); p.X <= b.getRight(); p.X++)
+            {
+                for (p.Y = b.getTop(); p.Y < b.getBottom(); p.Y++)
+                {
+                    if (CurrentImageMap.getAssignedSegment(p) == this)
+                    {
+                        for (int dx = 0; dx <= 1; dx++)
+                        {
+                            for (int dy = -1; dy <= 1; dy++)
+                            {
+                                Point right = movePoint(p, dx, dy);
+                                if (SourceImage.isFilled(right) && !CurrentImageMap.isAssigned(right))
+                                {
+                                    CurrentImageMap.assignSegment(right, this);
+                                    doneSomething = true;
+                                }
+                            }                            
+                        }
+                    }
+                }
+            }
+        } while (doneSomething);
+        
+        // 3. find outer contour
+        {            
+            const Coord start_y = at(0).Y;
+            const Coord start_x = at(0).X;
+            for (Coord x1 = start_x; x1 > 0 && OuterContour == NULL; x1--)
+            {
+                const ISegment* seg1 = CurrentImageMap.getAssignedSegment(Point(x1, start_y));
+                if (seg1 != NULL && seg1 != this)
+                {
+                    for (Coord x2 = start_x + 1; x2 < SourceImage.getWidth(); x2++)
+                    {
+                        if (seg1 == CurrentImageMap.getAssignedSegment(Point(x2, start_y)))
+                        {
+                            OuterContour = static_cast<const Contour*>(seg1);
+                            break;
+                        }
+                    }
+                }                
+            }
+        }
 	}
 	
-	Point Contour::movePoint(const Point& src, int x, int y)
+
+	Point Contour::movePoint(const Point& src, int x, int y, bool RotatedAxis)
 	{
 		Point p = src;
 		if (RotatedAxis)
@@ -35,80 +81,60 @@ namespace gga
 		return p;
 	}
 	
-	Point Contour::commitPoint(const Point& p, const Image& img, ImageMap& split)
+	Point Contour::commitPoint(const Point& p)
 	{
-		if (split.getAssignedSegment(p) == NULL && img.isFilled(p))
+		if (!CurrentImageMap.isAssigned(p) && SourceImage.isFilled(p))
 		{
-			split.assignSegment(p, this);
+			CurrentImageMap.assignSegment(p, this);
 			push_back(p);
 		}
 		return p;
 	}
 
-	void Contour::passDownLeft(const Image& src, ImageMap& split, Point& p)
+	void Contour::passDownLeft(Point& p, bool RotatedAxis)
 	{
-		while (src.isInside(p))
+		while (SourceImage.isInside(p))
 		{
-			commitPoint(p, src, split);
+			commitPoint(p);
 
-			// (1) step one point down
-			p = movePoint(p, 0, 1);
+			// step one point down
+			p = movePoint(p, 0,1, RotatedAxis);
 
-			// (2) select one of neighbors which is filled, prefer left one...
-			Point left = movePoint(p, -1, 0);
-			if (src.isFilled(left))
+			// select one of neighbors which is filled, prefer left one...
+			Point left = movePoint(p, -1,0, RotatedAxis);
+			if (SourceImage.isFilled(left))
 			{
-				p = commitPoint(left, src, split);
+				p = commitPoint(left);
 				// ...and shift left as many as possible
-				while (src.isInside(p))
+				while (SourceImage.isInside(p))
 				{
-					Point left = movePoint(p, -1, 0);
-					if (!src.isFilled(left))
+					Point left = movePoint(p, -1,0, RotatedAxis);
+					if (!SourceImage.isFilled(left))
 						break; // no more left neighbors
 				
-					p = commitPoint(left, src, split);
+					p = commitPoint(left);
 				
-					Point up = movePoint(p, 0, -1);
-					if (src.isFilled(up))
+					Point up = movePoint(p, 0,-1, RotatedAxis);
+					if (SourceImage.isFilled(up))
 						return; // crossed inside area
 				}	
 			}
 			else
 			{
 				// selection still unfilled...
-				while (src.isInside(p) && src.getPixel(p).isBackground())
+				while (SourceImage.isInside(p) && !SourceImage.isFilled(p))
 				{
 					// ...shift right by connected points and test again
-					Point right = movePoint(p, 1,0);
-					Point rightUp = movePoint(right, 0,-1);
-					if (!src.isFilled(rightUp))
+					Point right = movePoint(p, 1,0, RotatedAxis);
+					Point rightUp = movePoint(right, 0,-1, RotatedAxis);
+					if (!SourceImage.isFilled(rightUp))
 						return; // no more bottom right neighbors
-					commitPoint(rightUp, src, split);
-					p = commitPoint(right, src, split);
+					commitPoint(rightUp);
+					p = commitPoint(right);
 				}
 			}
 		}
 	}
-	
-	void Contour::buildFromImagePart(const Image& src, ImageMap& split, const Point& start)
-	{
-		Point p = start;
-		for (int iter = 0; ; iter++)
-		{
-			size_t count = size();
-			passDownLeft(src, split, p);
-			if (size() > count)
-			{
-				// printf("[%i] Point (%i,%i), inverse: %i; added: %i\n",  iter++, p.X, p.Y, InvertedAxis, size() - count);
-			}
-			else
-			{
-				break;
-			}
-			RotatedAxis = !RotatedAxis;
-		}
-		
-		std::sort(begin(), end());
-	}		
 }
+
 

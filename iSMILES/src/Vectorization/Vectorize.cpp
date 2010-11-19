@@ -4,7 +4,7 @@ namespace gga
 {
 	Vectorize::Vectorize(const Image& image) 
 				: SourceImage(image), 
-				  CurrentImageSplit(image.getWidth(), image.getHeight())
+				  CurrentImageMap(image.getWidth(), image.getHeight())
 	{
 		// line-by-line scan to extract contours of objects
 		Point p(0,0);
@@ -12,20 +12,13 @@ namespace gga
 		{
 			for (p.X = 0; p.X < SourceImage.getWidth(); p.X++)
 			{
-				if (SourceImage.isFilled(p))
-				{
-					if (CurrentImageSplit.getAssignedSegment(p) == NULL)
-					{
-						Contour* c = new Contour();
-						// that pixel is unprocessed yet, so extract the contour starting from it
-						c->buildFromImagePart(SourceImage, CurrentImageSplit, p);
-						// add new contour
-						OuterContours.push_back(c);
-					}
-					// fixup 'X' scanrow to pass the previously processed contours
-					// (null-pointer exception here means that something went totally wrong)
-					p = CurrentImageSplit.getAssignedSegment(p)->findRightCorner(p);
-				}
+				if (SourceImage.isFilled(p) && !CurrentImageMap.isAssigned(p))
+                {
+                    // that pixel is unprocessed yet, so extract the contour starting from it
+                    Contour* c = new Contour(SourceImage, CurrentImageMap, p);
+                    // add new contour
+                    Contours.push_back(c);
+                }
 			} // for x
 		} //for y
 	}
@@ -33,21 +26,21 @@ namespace gga
 	Vectorize::~Vectorize()
 	{
 		for (size_t u = 0; u < getContoursCount(); u++)
-			delete OuterContours[u];
+			delete Contours[u];
 	}
 	
 	size_t Vectorize::getContoursCount() const
 	{
-		return OuterContours.size();
+		return Contours.size();
 	}
 	
 	const Contour& Vectorize::getContour(size_t index) const
 	{
-		return *OuterContours.at(index);
+		return *Contours.at(index);
 	}
 	
-	const ImageMap& Vectorize::getImageSplit() const
+	const ImageMap& Vectorize::getImageMap() const
 	{
-		return CurrentImageSplit;
+		return CurrentImageMap;
 	}
 }
