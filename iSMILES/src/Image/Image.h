@@ -61,11 +61,12 @@ namespace gga
                 memset(&Data[0], px.Value, Width*Height);
         }
 
-        inline void drawImage(size_t xo, size_t yo, const Image& img)
+        inline void drawImage(size_t xo, size_t yo, const Image& img, bool drawBackground = true)
         {
-            for (size_t y=yo; y <= yo + img.getHeight(); y++)
-             for(size_t x=xo; x <= xo + img.getWidth (); x++)
-                 setPixel(x, y, img.getPixel(x-xo, y-yo));
+            for(size_t y=yo; y <= yo + img.getHeight(); y++)
+                for(size_t x=xo; x <= xo + img.getWidth (); x++)
+                    if (drawBackground || !img.getPixel(x-xo, y-yo).isBackground())
+                        setPixel(x, y, img.getPixel(x-xo, y-yo));
         }
 
         inline void drawPoints(Points points, int xo = 0, int yo = 0, Pixel color = Pixel(INK))

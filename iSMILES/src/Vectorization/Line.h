@@ -29,7 +29,7 @@ namespace gga
         
         bool insertKnot(const Point& knot)
         {
-            // TODO: check that knot doesn't produce self-intersecting line
+            // TODO: check that knot doesn't produce self-intersecting line (not used yet)
             insert(end(), knot);
             return true;
         }

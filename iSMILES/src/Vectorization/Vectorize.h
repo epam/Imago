@@ -6,6 +6,7 @@
 #include "Contour.h"
 #include "RangeArray.h"
 #include "LinearApproximation.h"
+#include "TriangleRecognize.h"
 
 namespace gga
 {

@@ -49,7 +49,7 @@ LibPath                := "$(LibraryPathSwitch)."
 ##
 CodeLiteDir:=/usr/share/codelite
 Objects=$(IntermediateDirectory)/UnitTest_main$(ObjectSuffix) $(IntermediateDirectory)/UnitTest_Draw$(ObjectSuffix) $(IntermediateDirectory)/Image_FilePNG$(ObjectSuffix) $(IntermediateDirectory)/Image_ImageFilter$(ObjectSuffix) $(IntermediateDirectory)/Image_Image$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_ImageMap$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Bounds$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_LinearApproximation$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_RangeArray$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Contour$(ObjectSuffix) \
-	$(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix) 
+	$(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) 
 
 ##
 ## Main Build Targets 
@@ -157,6 +157,14 @@ $(IntermediateDirectory)/Vectorization_Vectorize$(DependSuffix): ../../src/Vecto
 $(IntermediateDirectory)/Vectorization_Vectorize$(PreprocessSuffix): ../../src/Vectorization/Vectorize.cpp
 	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Vectorization_Vectorize$(PreprocessSuffix) "/home/sic/iSMILES/src/Vectorization/Vectorize.cpp"
 
+$(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix): ../../src/Vectorization/TriangleRecognize.cpp $(IntermediateDirectory)/Vectorization_TriangleRecognize$(DependSuffix)
+	$(CompilerName) $(SourceSwitch) "/home/sic/iSMILES/src/Vectorization/TriangleRecognize.cpp" $(CmpOptions) $(ObjectSwitch)$(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Vectorization_TriangleRecognize$(DependSuffix): ../../src/Vectorization/TriangleRecognize.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) -MT$(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) -MF$(IntermediateDirectory)/Vectorization_TriangleRecognize$(DependSuffix) -MM "/home/sic/iSMILES/src/Vectorization/TriangleRecognize.cpp"
+
+$(IntermediateDirectory)/Vectorization_TriangleRecognize$(PreprocessSuffix): ../../src/Vectorization/TriangleRecognize.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(PreprocessSuffix) "/home/sic/iSMILES/src/Vectorization/TriangleRecognize.cpp"
+
 
 -include $(IntermediateDirectory)/*$(DependSuffix)
 ##
@@ -196,6 +204,9 @@ clean:
 	$(RM) $(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_Vectorize$(DependSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_Vectorize$(PreprocessSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(DependSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(PreprocessSuffix)
 	$(RM) $(OutputFile)
 
 
