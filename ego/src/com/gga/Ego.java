@@ -37,6 +37,9 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class Ego extends javax.swing.JFrame {
     /** Creates new form Main */
     public Ego() {
+
+        //Integer a[] = new Integer[1]{ new Integer(2) };
+
         initComponents();
         setVisible(true);
         setTitle("Ego");
@@ -901,7 +904,7 @@ public class Ego extends javax.swing.JFrame {
 
         //DEBUG
         //Uncomment this line if you want to run Ego from NetBeans
-        //jarDir = "../output/release/ego";
+        jarDir = "../output/release/ego";
         ///////
         imago = new Imago(jarDir + File.separator + "lib");
     }
