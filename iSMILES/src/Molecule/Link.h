@@ -17,9 +17,14 @@ namespace mol
         };
         enum    Direction
         {
-            LD_NONE,
-            LD_UP,
-            LD_DOWN,
+        // Planar bond:
+            LD_PLANAR,  // line
+        // Stereo bonds:
+            LD_UP,              // solid  triangle
+            LD_DOWN,            // dashed triangle
+            LD_UP_UNDIRECTED,   // solid  rectangle. exact direction is not specified.
+            LD_DOWN_UNDIRECTED, // dashed rectangle. exact direction is not specified.
+            LD_STEREO_BOND,     // wavy line /\/\/\/\/
         };
 
         Link::Type      Type;

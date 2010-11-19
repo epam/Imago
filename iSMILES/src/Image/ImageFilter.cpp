@@ -22,7 +22,7 @@ namespace gga
     //    1    2    1          
     //                          
     //////////////////////////////////////////////////  
-    static void eraseSmallDirts (Image& img, size_t r);
+    void eraseSmallDirts (Image* img, size_t r);
 
     void ImageFilter::prepareImageForVectorization()
     {
@@ -36,22 +36,24 @@ png.save(file, Image);
 Timer tm, ttotal;
 double totalTime=0.;
 #endif
-/*
-// BLUR
-        if(0 != Parameters.RadiusBlur)
-            blurImage(&Image, Parameters.RadiusBlur);
+
+// BLUR - remove noise
+        if(0 != Parameters.RadiusBlur1)
+        {
+            blurImage(&Image, Parameters.RadiusBlur1);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
 printf("blurImage: %.4f sec. bg=%d\n", tm.getElapsedTime(), getBackgroundValue(Image));
-sprintf (file,"out/test-%s.flt-05_blur.png", filename);
+sprintf (file,"out/test-%s.flt-05_blur-1.png", filename);
 png.save(file, Image);
 tm.reset();
 #endif
-*/
-// STRETCH
+        }
+// STRETCH increase contrast
+        if(0 != Parameters.StretchImage)
         {
             makeHistogram (Image, &histogram);
-            size_t maxColor = histogram.size()-1, maxN = histogram[histogram.size()-1];
+            size_t minColor = 0, maxColor = histogram.size()-1, maxN = histogram[histogram.size()-1];
             for(size_t i = 0; i < histogram.size(); i++)
             {
                 if( i > 32 && histogram[i] >= maxN)
@@ -59,28 +61,45 @@ tm.reset();
                     maxColor = i;
                     maxN = histogram[i];
                 }
+                if( 0 == minColor && histogram[i] >= 100)   //first valuable dark color
+                    minColor = i;
             }
-            maxColor -= 16;
-            stretchImageHistogram(&Image, 16, maxColor);
-    #ifdef TEST
-    totalTime += tm.getElapsedTime();
-    printf("stretchImageHistogram: %.4f sec. minColor=%d maxColor=%d\n", tm.getElapsedTime(), 16, maxColor);
-    sprintf (file,"out/test-%s.flt-06_stretched-1.png", filename);
-    png.save(file, Image);
-    tm.reset();
-    #endif
-        }
-
-// BLUR
-        if(0 != Parameters.RadiusBlur)
-            blurImage(&Image, Parameters.RadiusBlur);
+//            maxColor -= 16;
+            stretchImageHistogram(&Image, minColor, maxColor);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
-printf("blurImage: %.4f sec.\n", tm.getElapsedTime());
-sprintf (file,"out/test-%s.flt-09_blur.png", filename);
+printf("stretchImageHistogram: %.4f sec. minColor=%d maxColor=%d\n", tm.getElapsedTime(), minColor, maxColor);
+sprintf (file,"out/test-%s.flt-06_stretched-1.png", filename);
 png.save(file, Image);
 tm.reset();
 #endif
+        }
+
+//-----------------------------------------------------  SELECT OBJECTS  ----------------------------------------------------
+// BLUR AFTER STRETCH
+        if(0 != Parameters.RadiusBlur2)
+        {
+            blurImage(&Image, Parameters.RadiusBlur2);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("blurImage: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-08_blur-2.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+        }
+// CROP BORDER
+        if(0 != Parameters.CropBorder)
+        {
+            Image.crop(Parameters.CropBorder, Parameters.CropBorder, Image.getWidth() - Parameters.CropBorder - 1, Image.getHeight() - Parameters.CropBorder -1);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("cropBorder: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-09_crop-borders.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+        }
 
 // UNSHARP MASK
         unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount, (int)Parameters.UnsharpMaskThreshold);
@@ -92,7 +111,8 @@ png.save(file, Image);
 tm.reset();
 #endif
 
-/* // opt STRETCH 2
+//-----------------------------------------------------  IMPROVE PICTURE ----------------------------------------------------
+/* // opt STRETCH 2 - no effect
         makeHistogram (Image, &histogram);
         size_t maxColor = histogram.size()-1, maxN = histogram[histogram.size()-1];
         size_t minColor = 0, minN = histogram[0];
@@ -119,9 +139,9 @@ sprintf (file,"out/test-%s.flt-30_stretched.png", filename);
 png.save(file, Image);
 tm.reset();
 #endif
-*/
-/*
-// BLUR 2
+
+
+// BLUR 2 we can lost very small details here and connect neighbour objects
         if(0 != Parameters.RadiusBlur2)
             blurImage(&Image, Parameters.RadiusBlur2);
 #ifdef TEST
@@ -131,22 +151,12 @@ sprintf (file,"out/test-%s.flt-40_blur-2.png", filename);
 png.save(file, Image);
 tm.reset();
 #endif
-*/
 
-// CROP BORDER AND IMAGE to Picture
-        Image.crop(Parameters.CropBorder, Parameters.CropBorder, Image.getWidth() - Parameters.CropBorder - 1, Image.getHeight() - Parameters.CropBorder -1);
-#ifdef TEST
-totalTime += tm.getElapsedTime();
-printf("cropBorder: %.4f sec.\n", tm.getElapsedTime());
-sprintf (file,"out/test-%s.flt-42_crop-borders.png", filename);
-png.save(file, Image);
-tm.reset();
-#endif
 
-/*
-// UNSHARP MASK 2
+
+// UNSHARP MASK 2 we can lost very small details here
         if(0!=Parameters.UnsharpMaskAmount2)
-            unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount2, (int)Parameters.UnsharpMaskThreshold2);
+            unsharpMaskImage(Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount2, (int)Parameters.UnsharpMaskThreshold2);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
 printf("unsharpMaskImage: %.4f sec.\n", tm.getElapsedTime());
@@ -158,17 +168,17 @@ tm.reset();
 
 //-----------------------------------------------------  BLACK WHITE  ----------------------------------------------------
 //to BW
-        convertGrayscaleToBlackWhite(Image, 50/*getBackgroundValue(Image)*/);
+        convertGrayscaleToBlackWhite(&Image, 7/*getBackgroundValue(Image)*/);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
-printf("convertGrayscaleToBlackWhite: %.4f sec. Background=50 (%d)\n", tm.getElapsedTime(), getBackgroundValue(Image));
+printf("convertGrayscaleToBlackWhite: %.4f sec. Background>=7 (%d)\n", tm.getElapsedTime(), getBackgroundValue(Image));
 sprintf (file,"out/test-%s.flt-50_BW.png", filename);
 png.save(file, Image);
 tm.reset();
 #endif
 //----------------------------------------------------- CLEAR PICTURE ----------------------------------------------------
         if(0 != Parameters.VignettingHoleDistance)
-            clearCorners (Image, Parameters.VignettingHoleDistance);
+            clearCorners (&Image, Parameters.VignettingHoleDistance);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
 printf("clearCorners: %.4f sec.\n", tm.getElapsedTime());
@@ -177,7 +187,7 @@ png.save(file, Image);
 tm.reset();
 #endif
         if(0 != Parameters.SmallDirtSize)
-            eraseSmallDirts (Image, Parameters.SmallDirtSize);
+            eraseSmallDirts (&Image, Parameters.SmallDirtSize);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
 printf("eraseSmallDirts: %.4f sec.\n", tm.getElapsedTime());
@@ -186,7 +196,7 @@ png.save(file, Image);
 tm.reset();
 #endif
 
-        cropImageToPicture(Image);
+        cropImageToPicture(&Image);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
 printf("cropImageToPicture: %.4f sec.\nTotalTime =  %.4f (with log %.4f) sec.\n", tm.getElapsedTime(), totalTime, ttotal.getElapsedTime());
@@ -228,38 +238,105 @@ tm.reset();
 
 //==============================================================================
 
-        static void eraseSmallDirts (Image& img, size_t r)
+    static inline int round(double x) { return int(x > 0. ? x + 0.5 : x - 0.5);}
+    
+    static inline int max4(int x1, int x2, int x3, int x4)
+    {
+        int maxx = x1;
+        if (maxx < x2)
+            maxx = x2;
+        if (maxx < x3)
+            maxx = x3;
+        if (maxx < x4)
+            maxx = x4;
+        return maxx;
+    }
+
+    static inline int min4(int x1, int x2, int x3, int x4)
+    {
+        int minx = x1;
+        if (minx > x2)
+            minx = x2;
+        if (minx > x3)
+            minx = x3;
+        if (minx > x4)
+            minx = x4;
+        return minx;
+    }
+
+    void rotateImage(const Image& img, double angle, Image* out)
+    {
+        const int xc = img.getWidth()/2, yc = img.getHeight()/2;     // center of source image
+        double sinAngle = sin(angle*3.14159265359/180.), cosAngle = cos(angle*3.14159265359/180.);
+        {
+            // compute new size
+            int x1 = round(cosAngle * (0 - xc)              - sinAngle * (0 - yc));
+            int x2 = round(cosAngle * (img.getWidth() - xc) - sinAngle * (0 - yc));
+            int x3 = round(cosAngle * (img.getWidth() - xc) - sinAngle * (img.getHeight() - yc));
+            int x4 = round(cosAngle * (0 - xc)              - sinAngle * (img.getHeight() - yc));
+
+            int y1 = round(sinAngle * (0 - xc)              + cosAngle * (0 - yc));
+            int y2 = round(sinAngle * (img.getWidth() - xc) + cosAngle * (0 - yc));
+            int y3 = round(sinAngle * (img.getWidth() - xc) + cosAngle * (img.getHeight() - yc));
+            int y4 = round(sinAngle * (0 - xc)              + cosAngle * (img.getHeight() - yc));
+
+            out->setSize(size_t(max4(x1, x2, x3, x4) - min4(x1, x2, x3, x4)+1), size_t(max4(y1, y2, y3, y4) - min4(y1, y2, y3, y4)+1), img.getType());
+            out->clear();
+        }
+        const size_t xc1 = out->getWidth()/2, yc1 = out->getHeight()/2; // center of output image
+
+        // roteate pixels
+        for (size_t y=0; y < img.getHeight(); y++)
+         for(size_t x=0; x < img.getWidth (); x++)
+        {
+            int xsrc = (int)x - xc, ysrc = (int)y - yc;
+            size_t x1, y1;
+            x1 = (size_t) (xc1 + round(cosAngle * xsrc - sinAngle * ysrc));
+            y1 = (size_t) (yc1 + round(sinAngle * xsrc + cosAngle * ysrc));
+            out->setPixel(x1, y1, img.getPixel(x, y));
+        }
+
+        if(IT_BW == out->getType())//black white image
+        {
+            blurImage(out, 2);
+            cropImageToPicture(out);
+            unsharpMaskImage(out, 50., 0., 9., 0);
+            convertGrayscaleToBlackWhite(out, 210);
+        }
+    }
+
+    void eraseSmallDirts (Image* img, size_t r)
     {
 //        img.setPixel(2,2, Pixel(0));    //test
 
-        if( r > 2)  // WRONG IMPLEMENTATION for r > 2 !!!
+        if( r > 2)  // WRONG IMPLEMENTATION for r >= 2 !!!
             r = 2;
-        for (size_t y = 0; y < img.getHeight(); y++)
-         for(size_t x = 0; x < img.getWidth() ; x++)
+        for (size_t y = 0; y < img->getHeight(); y++)
+         for(size_t x = 0; x < img->getWidth() ; x++)
          {
-            if(!img.getPixel(x, y).isBackground())
+            if(!img->getPixel(x, y).isBackground())
             {
                 size_t len = 1, hmax = 1, rmax = 1;
 
-                for(size_t i = 1; i <= r && x + i < img.getWidth() && ! img.getPixel(x+i, y).isBackground(); i++)
+                for(size_t i = 1; i <= r && x + i < img->getWidth() && ! img->getPixel(x+i, y).isBackground(); i++)
                 {
                     len++;
                     size_t h = 0;
-                    for(size_t j = 0; j <= r && y + j < img.getHeight() && ! img.getPixel(x+i, y+j).isBackground(); j++)
+                    for(size_t j = 0; j <= r && y + j < img->getHeight() && ! img->getPixel(x+i, y+j).isBackground(); j++)
                         h++;
-                    for(size_t j = 1; j <= r && y - j >= 0 && ! img.getPixel(x+i, y-j).isBackground(); j++)
+                    for(size_t j = 1; j <= r && y - j >= 0 && ! img->getPixel(x+i, y-j).isBackground(); j++)
                         h++;
                     if(h > hmax)
                         hmax = h;
                 }
                 if(len < r)
-                    for(size_t i = 1; i <= r && x - i >= 0 && ! img.getPixel(x-i, y).isBackground(); i++)   // NEVER !! already processed
+                    for(size_t i = 1; i <= r && x - i >= 0 && ! img->getPixel(x-i, y).isBackground(); i++)   // NEVER !! already processed
                     {
                         len++;
                         size_t h = 0;
-                        for(size_t j = 0; j <= r && y + j < img.getHeight() && ! img.getPixel(x-i, y+j).isBackground(); j++)
+                        for(size_t j = 0; j <= r && y + j < img->getHeight() && ! img->getPixel(x-i, y+j).isBackground(); j++)
                             h++;
-                        for(size_t j = 1; j <= r && y - j >= 0 && ! img.getPixel(x-i, y-j).isBackground(); j++)
+                        for(size_t j = 1; j <= r && y - j >= 0 && ! img->getPixel(x-i, y-j).isBackground(); j++)
                             h++;
                         if(h > hmax)
                             hmax = h;
@@ -268,15 +345,15 @@ tm.reset();
                 {
                     len = 0;
                     bool stop = false;
-                    for(size_t i = 1; !stop && i <= r && x + i < img.getWidth() && y + i < img.getHeight(); i++)
+                    for(size_t i = 1; !stop && i <= r && x + i < img->getWidth() && y + i < img->getHeight(); i++)
                     {
                         stop = true;
-                        if(!img.getPixel(x+i, y+i).isBackground())
+                        if(!img->getPixel(x+i, y+i).isBackground())
                         {
                             stop = false;
                             len++;
                         }
-                        if(y>=i && !img.getPixel(x-i, y-i).isBackground())
+                        if(y>=i && !img->getPixel(x-i, y-i).isBackground())
                         {
                             stop = false;
                             len++;
@@ -287,15 +364,15 @@ tm.reset();
                 {
                     len = 0;
                     bool stop = false;
-                    for(size_t i = 1; !stop && i <= r && x + i < img.getWidth() && y + i < img.getHeight(); i++)
+                    for(size_t i = 1; !stop && i <= r && x + i < img->getWidth() && y + i < img->getHeight(); i++)
                     {
                         stop = true;
-                        if(x>=i && !img.getPixel(x-i, y+i).isBackground())
+                        if(x>=i && !img->getPixel(x-i, y+i).isBackground())
                         {
                             stop = false;
                             len++;
                         }
-                        if(y>=i && !img.getPixel(x+i, y-i).isBackground())
+                        if(y>=i && !img->getPixel(x+i, y-i).isBackground())
                         {
                             stop = false;
                             len++;
@@ -306,15 +383,15 @@ tm.reset();
                 {
                     len = 0;
                     bool stop = false;
-                    for(size_t i = 1; !stop && i <= r && x + i < img.getWidth() && y + i < img.getHeight(); i++)
+                    for(size_t i = 1; !stop && i <= r && x + i < img->getWidth() && y + i < img->getHeight(); i++)
                     {
                         stop = true;
-                        if(!img.getPixel(x+i, y+i).isBackground())
+                        if(!img->getPixel(x+i, y+i).isBackground())
                         {
                             stop = false;
                             len++;
                         }
-                        if(y>=i && !img.getPixel(x+i, y-i).isBackground())
+                        if(y>=i && !img->getPixel(x+i, y-i).isBackground())
                         {
                             stop = false;
                             len++;
@@ -325,15 +402,15 @@ tm.reset();
                 {
                     len = 0;
                     bool stop = false;
-                    for(size_t i = 0; !stop && i <= r && x + i < img.getWidth() && y + i < img.getHeight(); i++)
+                    for(size_t i = 0; !stop && i <= r && x + i < img->getWidth() && y + i < img->getHeight(); i++)
                     {
                         stop = true;
-                        if(x>=i && !img.getPixel(x-i, y+i).isBackground())
+                        if(x>=i && !img->getPixel(x-i, y+i).isBackground())
                         {
                             stop = false;
                             len++;
                         }
-                        if(x>=i && y>=i && !img.getPixel(x-i, y-i).isBackground())
+                        if(x>=i && y>=i && !img->getPixel(x-i, y-i).isBackground())
                         {
                             stop = false;
                             len++;
@@ -387,13 +464,13 @@ tm.reset();
                 */
                 if(rmax <= r && hmax <= r && len <= r)
                 {
-                    for(size_t i = 0; i <= r && x < img.getWidth() && ! img.getPixel(x, y).isBackground(); i++, x++)
+                    for(size_t i = 0; i <= r && x < img->getWidth() && ! img->getPixel(x, y).isBackground(); i++, x++)
                     {
-                        for(size_t j = 0; j <= r && y + j < img.getHeight() && ! img.getPixel(x, y+j).isBackground(); j++)
-                            img.setPixel(x, y+j, BACKGROUND);
+                        for(size_t j = 0; j <= r && y + j < img->getHeight() && ! img->getPixel(x, y+j).isBackground(); j++)
+                            img->setPixel(x, y+j, BACKGROUND);
                     }
                 }
-                for(; x < img.getWidth() && ! img.getPixel(x, y).isBackground(); x++)   //skip big object
+                for(; x < img->getWidth() && ! img->getPixel(x, y).isBackground(); x++)   //skip big object
                 {}
             }
         }

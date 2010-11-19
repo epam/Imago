@@ -23,7 +23,7 @@ namespace gga
         ImageType   Type;
         std::vector<Pixel> Data;
     public:
-         Image(){}
+         Image() : Width(0), Height(0), Type(IT_BW) {}
         ~Image(){}
         inline ImageType getType()const  { return Type  ;}
         inline size_t  getWidth ()const  { return Width ;}
@@ -57,7 +57,8 @@ namespace gga
         inline void clear()  { fill(Pixel(BACKGROUND));}
         inline void fill(Pixel px = Pixel(BACKGROUND))
         {
-            memset(&Data[0], px.Value, Width*Height);
+            if(!Data.empty())
+                memset(&Data[0], px.Value, Width*Height);
         }
 
         inline void drawImage(size_t xo, size_t yo, const Image& img)

@@ -14,12 +14,19 @@ int main(int argc, char* argv[])
     FileJPG jpg;
     FilePNG png;
     Image   img;
-/*
+
     {
         Image i;
         i.setSize(640, 480, IT_BW);
         i.clear();
 
+        i.drawLine(1, 0, 640-1, 480-2);
+        i.drawLine(0, 0, 640-1, 480-1);
+        i.drawLine(0, 1, 640-2, 480-1);
+
+        i.drawLine(100, 100, 100, 200, LineDefinition(72, 2));
+
+/*
         i.drawLine(7, 7, 7, 7);
         i.drawLine(-1, 700, 3, 70);
 
@@ -36,11 +43,23 @@ int main(int argc, char* argv[])
 
         i.drawCircle(320, 240, 20, LineDefinition(127, 3));
         i.drawCircle(320, 240, 200);
-
-        png.save(string("igraph-1.png"), i);
-//        return 0;
-    }
 */
+        png.save(string("igraph-1.png"), i);
+        Image rimg;
+        rotateImage(i, 2.5, &rimg);
+        png.save("igraph-1.rotated+2.5.png", rimg);
+        rotateImage(i, 25., &rimg);
+        png.save("igraph-1.rotated+25.png", rimg);
+        rotateImage(i, 75., &rimg);
+        png.save("igraph-1.rotated+75.png", rimg);
+        rotateImage(i, -30, &rimg);
+        png.save("igraph-1.rotated-30.png", rimg);
+        rotateImage(i, 260, &rimg);
+        png.save("igraph-1.rotated+260.png", rimg);
+//return 0;
+
+    }
+
 
     {
         if(!jpg.load(argv[1], &img))
@@ -51,22 +70,28 @@ int main(int argc, char* argv[])
         strcpy(filename, argv[1]);
         ImageFilter flt(img);
             // compute optimal default parameters based on image resiolution
+            flt.Parameters.StretchImage = true;
             flt.Parameters.UnsharpMaskRadius = std::min(120, int(std::min(img.getWidth(), img.getHeight())/2));
-            flt.Parameters.UnsharpMaskAmount    = 7.;
-            flt.Parameters.UnsharpMaskThreshold = 100;
-            flt.Parameters.UnsharpMaskAmount2   = 3.;
+            flt.Parameters.UnsharpMaskAmount    = 9.;
+            flt.Parameters.UnsharpMaskThreshold = 120;
+            flt.Parameters.UnsharpMaskAmount2   = 0.;//3.;
             flt.Parameters.UnsharpMaskThreshold2= 150;
-            flt.Parameters.CropBorder   = 4;//8;
-            flt.Parameters.RadiusBlur   = 3;
-            flt.Parameters.RadiusBlur2  = 3;
-            flt.Parameters.SmallDirtSize= 1;//2;   //4
-            flt.Parameters.VignettingHoleDistance = std::min(32, (int)img.getWidth()/4);
+            flt.Parameters.CropBorder   = 16;//0;
+            flt.Parameters.RadiusBlur1  = 4;
+            flt.Parameters.RadiusBlur2  = 4;// 5 - 4 - 3
+            flt.Parameters.SmallDirtSize= 1;//2;   // it's radius == size/2
+            flt.Parameters.VignettingHoleDistance = std::min(48, (int)img.getWidth()/8);
 
         flt.prepareImageForVectorization();
         png.save(string(argv[1])+".out.png", img);
         std::vector<size_t> whistogram;
         gga::Coord w = flt.computeLineWidthHistogram(&whistogram);
         printf("Line Width = %d\n", (int)w);
+
+        Image rimg;
+        rotateImage(img, 13.5, &rimg);
+        png.save(string(argv[1])+".out.rotated.png", rimg);
+
 return 0;
     }
 
@@ -116,17 +141,17 @@ return 0;
         png.save(string(argv[1])+".out40_stretched-blur.png", img);
 
         bg = getBackgroundValue(img);
-        convertGrayscaleToBlackWhite(img, bg);
+        convertGrayscaleToBlackWhite(&img, bg);
         png.save(string(argv[1])+".out50_BW.png", img);
 
         r=32;   //21
-        clearCorners (img, r);
+        clearCorners (&img, r);
         png.save(string(argv[1])+".out60_cleared-corners.png", img);
 
 //        eraseSmallDirts (img, 4);
 //        png.save(string(argv[1])+".out61_cleared-dirts.png", img);
         
-        cropImageToPicture(img);
+        cropImageToPicture(&img);
         png.save(string(argv[1])+".out99_cropped.png", img);
 
 //scanf("%s", cmd);

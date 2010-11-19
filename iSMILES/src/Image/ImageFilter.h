@@ -8,19 +8,20 @@ namespace gga
 {
     struct  ImageFilterParameters
     {
-        double UnsharpMaskRadius;
-        double UnsharpMaskAmount;
-        double UnsharpMaskAmount2;
-        double UnsharpMaskThreshold;
-        double UnsharpMaskThreshold2;   //after stretch histogram
+        bool    StretchImage;
+        double  UnsharpMaskRadius;
+        double  UnsharpMaskAmount;
+        double  UnsharpMaskAmount2;
+        double  UnsharpMaskThreshold;
+        double  UnsharpMaskThreshold2;   //after stretch histogram
         size_t  CropBorder;
-        size_t  RadiusBlur;
+        size_t  RadiusBlur1;
         size_t  RadiusBlur2;
         size_t  VignettingHoleDistance;
         size_t  SmallDirtSize;
     public:
-        inline ImageFilterParameters() : UnsharpMaskRadius(64), UnsharpMaskAmount(7), UnsharpMaskThreshold(3), UnsharpMaskThreshold2(130)
-                                       , CropBorder(8), RadiusBlur(4), VignettingHoleDistance(31), SmallDirtSize(4) {}
+        inline ImageFilterParameters() : StretchImage(true), UnsharpMaskRadius(64), UnsharpMaskAmount(7), UnsharpMaskThreshold(3), UnsharpMaskThreshold2(130)
+                                       , CropBorder(8), RadiusBlur1(4), VignettingHoleDistance(31), SmallDirtSize(4) {}
     };
 
     class ImageFilter
@@ -37,7 +38,7 @@ namespace gga
             Parameters.UnsharpMaskAmount2 = 7.;
             Parameters.UnsharpMaskThreshold2= 130;
             Parameters.CropBorder   = 8;
-            Parameters.RadiusBlur   = 2;
+            Parameters.RadiusBlur1  = 2;
             Parameters.RadiusBlur2  = 4;
             Parameters.SmallDirtSize= 2;   //4
             Parameters.VignettingHoleDistance = std::min(32, (int)Image.getWidth()/4);
@@ -110,13 +111,13 @@ namespace gga
             for (size_t iy = 0; iy < ny; iy++)
              for(size_t ix = 0; ix < nx; ix++) // average area
              {
-                int dw = (int)r+1 - (int)sqrt(double(ix*ix + iy*iy));   //linear weight
-                //int dw = int((r+1)*(r+1) - ix*ix + iy*iy);            //very similar to Gaussian blur matrix, if r is small
+                //int dw = (int)r+1 - (int)sqrt(double(ix*ix + iy*iy));   //linear weight
+                int dw = int((r+1)*(r+1) - ix*ix + iy*iy);            //very similar to Gaussian blur matrix, if r is small
                 if(dw > 0)
                     px += img->getPixel(x+ix, y+iy).Value * dw;
                 weight += dw;
              }
-            px /= weight;   // px /= nx * ny;
+            px /= weight;
             img->setPixel(x, y, Pixel(px));
         }
     }
@@ -165,24 +166,42 @@ namespace gga
         return 256/3;   //not found - return some middle value.
     }
 
-    static inline void convertGrayscaleToBlackWhite (Image& img, const Pixel level)
+    static inline void convertGrayscaleToBlackWhite (Image* img, const Pixel level)
     {
-        for (size_t y = 0; y < img.getHeight(); y++)
-         for(size_t x = 0; x < img.getWidth() ; x++)
+        for (size_t y = 0; y < img->getHeight(); y++)
+         for(size_t x = 0; x < img->getWidth() ; x++)
         {
-            Pixel px = img.getPixel(x, y);
+            Pixel px = img->getPixel(x, y);
             px.Value = (px.Value >= level.Value) ? BACKGROUND : INK;
-            img.setPixel(x, y, px);
+            img->setPixel(x, y, px);
         }
     }
 
-    static inline size_t clearSolidLine (Image& img, size_t xo, size_t xend, size_t y, size_t r)
+    static inline size_t clearSolidLine (Image* img, size_t xo, size_t xend, size_t y, size_t r)
     {
         size_t n = 0;
         if(xo <= xend)
         {
             for(size_t x = xo; x <= xend; x++)
             {
+                if(img->getPixel(x, y).isBackground())   // hole or end of dark area
+                {
+                    size_t i;
+                    for(i = 1; i <= r && x <= xend; i++, x++)
+                        if(!img->getPixel(x, y).isBackground())
+                        {
+                            n++;
+                            img->setPixel(x, y, BACKGROUND);
+                            break;
+                        }
+                    if(i > r)
+                        return n;  //stop on big hole
+                }
+                else //clean solid area
+                {
+                    n++;
+                    img->setPixel(x, y, BACKGROUND);
+                }
 /*
                 bool clean;
                 do
@@ -206,32 +225,27 @@ namespace gga
 */
             }
         }
-        else    // reverse direction
+        else    // reverse direction (from rigth to left
         {
             for(size_t x = xo; x >= xend; x--)
             {
-                if(img.getPixel(x, y).isBackground())   // hole or end of dark area
+                if(img->getPixel(x, y).isBackground())   // hole or end of dark area
                 {
                     size_t i;
-                    xo = x-1;
                     for(i = 1; i <= r && x >= xend; i++, x--)
-                        if(!img.getPixel(x-i-1, y).isBackground())
-                            break;
-                    if(i<=r)
-                    {
-                        for(size_t xi = xo; xi >= x; xi--)  //clear
+                        if(!img->getPixel(x, y).isBackground())
                         {
                             n++;
-                            img.setPixel(xi, y, BACKGROUND);
+                            img->setPixel(x, y, BACKGROUND);
+                            break;
                         }
-                    }
-                    else
-                        break;  //stop on big hole
+                    if(i > r)
+                        return n;  //stop on big hole
                 }
                 else //clean solid area
                 {
                     n++;
-                    img.setPixel(x, y, BACKGROUND);
+                    img->setPixel(x, y, BACKGROUND);
                 }
 /*
                 bool clean;
@@ -259,33 +273,33 @@ namespace gga
         return n;
     }
 
-    static inline void clearCorners (Image& img, size_t r)
+    static inline void clearCorners (Image* img, size_t r)
     {
-        for (size_t y = 0; y < img.getHeight()/4; y++)    // left top corner
-            if(0 == clearSolidLine (img, 0, img.getWidth()/4, y, r))
-                ;//break;
-        for (size_t y = img.getHeight()-1; y > img.getHeight()/4; y--)    // left bottom corner
-            if(0 == clearSolidLine (img, 0, img.getWidth()/4, y, r))
-                ;//break;
-        for (size_t y = 0; y < img.getHeight()/4; y++)    // right top corner
-            if(0 == clearSolidLine (img, img.getWidth()-1, img.getWidth() - img.getWidth()/4, y, r))
-                ;//break;
-        for (size_t y = img.getHeight()-1; y > img.getHeight()/4; y--)    // right bottom  corner
-            if(0 == clearSolidLine (img, img.getWidth()-1, img.getWidth() - img.getWidth()/4, y, r))
-                ;//break;
+        for (size_t y = 0; y < img->getHeight()/2; y++)                  // left top corner
+            if(0 == clearSolidLine (img, 0, img->getWidth()/2, y, r))
+                {}//break;
+        for (size_t y = img->getHeight()-1; y >= img->getHeight()/2; y--)  // left bottom corner
+            if(0 == clearSolidLine (img, 0, img->getWidth()/2, y, r))
+                {}//break;
+        for (size_t y = 0; y < img->getHeight()/2; y++)                  // right top corner
+            if(0 == clearSolidLine (img, img->getWidth()-1, img->getWidth() - img->getWidth()/2, y, r))
+                {}//break;
+        for (size_t y = img->getHeight()-1; y >= img->getHeight()/2; y--)  // right bottom  corner
+            if(0 == clearSolidLine (img, img->getWidth()-1, img->getWidth() - img->getWidth()/2, y, r))
+            {}//break;
     }
 
-    static inline void cropImageToPicture(Image& img)
+    static inline void cropImageToPicture(Image* img)
     {
         size_t xend=0, yend=0;
-        size_t xo=img.getWidth()-1, yo=img.getHeight()-1;
+        size_t xo=img->getWidth()-1, yo=img->getHeight()-1;
 
-        for (size_t y = 0; y < img.getHeight(); y++)
+        for (size_t y = 0; y < img->getHeight(); y++)
         {
             bool includeLine = false;
-            for(size_t x = 0; x < img.getWidth(); x++)
+            for(size_t x = 0; x < img->getWidth(); x++)
             {
-                Pixel px = img.getPixel(x, y);
+                Pixel px = img->getPixel(x, y);
                 if(px.Value < BACKGROUND/2)  //!px.isBackground())
                 {
                     includeLine = true;
@@ -326,22 +340,24 @@ namespace gga
             yo -= 4;
         else 
             yo = 0;
-        if (xend <= img.getWidth()-1 - 4)
+        if (xend <= img->getWidth()-1 - 4)
             xend += 4;
         else 
-            xend = img.getWidth()-1;
-        if (yend <= img.getHeight()-1 - 4)
+            xend = img->getWidth()-1;
+        if (yend <= img->getHeight()-1 - 4)
             yend += 4;
         else 
-            yend = img.getHeight()-1;
+            yend = img->getHeight()-1;
 
-        img.crop(xo, yo, xend, yend);
+        img->crop(xo, yo, xend, yend);
     }
 
-    static inline void resampleImageBiCubic(Image& img, size_t cx, size_t cy)
+    void rotateImage(const Image& img, double angle, Image* out);
+
+    static inline void resampleImageBiCubic(const Image& img, size_t cx, size_t cy, Image* out)
     {
 
-        //img.setSize(cx, cy, img.getType());
+        //out->setSize(cx, cy, img.getType());
     }
 
 }
