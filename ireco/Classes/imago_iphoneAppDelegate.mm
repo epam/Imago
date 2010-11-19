@@ -9,6 +9,9 @@
 #import "imago_iphoneAppDelegate.h"
 #import "RootViewController.h"
 #import "imago_c.h"
+#import "FileJPG.h"
+#import "FilePNG.h"
+#import "ImageFilter.h"
 
 
 @implementation imago_iphoneAppDelegate
@@ -25,8 +28,50 @@
     // Override point for customization after application launch.
     
     // Add the navigation controller's view to the window and display.
-    [window addSubview:navigationController.view];
+    //[window addSubview:navigationController.view];
+    [window addSubview:imageView];
     [window makeKeyAndVisible];
+
+   {
+      gga::FileJPG jpg;
+      gga::FilePNG png;
+      gga::Image   img;
+      
+      NSString *path = [[NSBundle mainBundle] pathForResource:@"photo10" ofType:@"jpg"];
+      
+      NSLog(@"Let's start\n");
+      
+      if(jpg.load([path cStringUsingEncoding:NSASCIIStringEncoding], &img))
+      {
+         gga::ImageFilter flt(img);
+         // compute optimal default parameters based on image resiolution
+         flt.Parameters.StretchImage = true;
+         flt.Parameters.UnsharpMaskRadius = std::min(120, int(std::min(img.getWidth(), img.getHeight())/2));
+         flt.Parameters.UnsharpMaskAmount    = 9.;
+         flt.Parameters.UnsharpMaskThreshold = 120;
+         flt.Parameters.UnsharpMaskAmount2   = 0.;//3.;
+         flt.Parameters.UnsharpMaskThreshold2= 150;
+         flt.Parameters.CropBorder   = 16;//0;
+         flt.Parameters.RadiusBlur1  = 4;
+         flt.Parameters.RadiusBlur2  = 4;// 5 - 4 - 3
+         flt.Parameters.SmallDirtSize= 1;//2;   // it's radius == size/2
+         flt.Parameters.VignettingHoleDistance = std::min(48, (int)img.getWidth()/8);
+         
+         flt.prepareImageForVectorization();
+         NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@".png"];
+         //png.save([resPath cStringUsingEncoding:NSASCIIStringEncoding], img);
+         std::vector<size_t> whistogram;
+         gga::Coord w = flt.computeLineWidthHistogram(&whistogram);
+         NSLog(@"Line Width = %d\n", (int)w);
+         
+         /*
+         UIImage *resImage = [UIImage imageWithContentsOfFile: resPath];
+         imageView.image = resImage;
+         [imageView sizeToFit];
+         */
+      }
+   }
+   
    
    /*
     NSString *path = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"_png"];
