@@ -37,7 +37,8 @@
 
 /* Imago library acts as a state machine.
  * You can use multiple Imago instances simultaneously, using the
- * 'session ID-s' (see below), or you can use just the default instance.
+ * 'session ID-s' (see below). It is obligatory to allocate at least one
+ * instance to get Imago library work properly.
  */
 
 /* Get the last error message.
@@ -48,7 +49,7 @@ CEXPORT const char *imagoGetLastError();
 /* Allocate an instance. All instances are independent, that is,
  * they have separate images, configurations settings, resulting
  * molfiles, and error messages.
- * If you do not allocate an instance, the default instance will be used.
+ * Using Imago library without allocation an instance will cause an error.
  */
 CEXPORT qword imagoAllocSessionId();
 
@@ -85,9 +86,11 @@ CEXPORT int imagoSetBinarizationLevel( const int level );
 CEXPORT int imagoLoadPngImageFromBuffer( const char *buf, const int buf_size );
 CEXPORT int imagoLoadPngImageFromFile( const char *FileName );
 
-CEXPORT int imagoLoadGreyscaleRawImage( const char *buf, const int width, const int height );
-
+/* PNG image saving function. */
 CEXPORT int imagoSavePngImageToFile( const char *FileName );
+
+/* Load raw grayscale image - byte array of length width*height. */
+CEXPORT int imagoLoadGreyscaleRawImage( const char *buf, const int width, const int height );
 
 /* Set the callback function for log printing. 
  * By default, log is printed to the standard output.
