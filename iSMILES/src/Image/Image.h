@@ -30,7 +30,11 @@ namespace gga
         inline size_t  getHeight()const  { return Height;}
         inline const Pixel* getPixels()const { return &Data[0];}    //for write image on disk
         inline Pixel*       getPixels()  { return &Data[0];}        //for filter image (unsharp mask)
-        inline void setSize (size_t width, size_t height, ImageType type)
+        inline void setType (ImageType type)
+        {
+            Type   = type;
+        }
+        inline void setSize (size_t width, size_t height, ImageType type = IT_GRAYSCALE)
         {
             Width  = width;
             Height = height;
@@ -52,6 +56,50 @@ namespace gga
             Height= cy;
             Data.resize(Width * Height);
         }
+
+        inline void resizeLinear(size_t n)
+        {
+            const size_t cx = Width / n;
+            for (size_t yn = 0, y = 0; y < Height; y += n, yn++)
+             for(size_t xn = 0, x = 0; x < Width ; x += n, xn++)
+             {
+                size_t px = 0;
+                for (size_t i = 0; i < n; i++)
+                 for(size_t j = 0; j < n; j++)
+                    px += getPixel(x+j, y+i).Value;
+                Data[xn + yn*cx] = Pixel(px/(n*n));
+             }
+            Width  = cx;
+            Height/= n;
+            Data.resize(Width * Height);
+        }
+
+        inline void resizeMaxContrast(size_t n, Pixel bg = Pixel(56))
+        {
+            const size_t cx = Width / n;
+            for (size_t yn = 0, y = 0; y < Height; y += n, yn++)
+             for(size_t xn = 0, x = 0; x < Width ; x += n, xn++)
+             {
+                size_t minColor = 255, maxColor = 0;
+                //size_t px = 0;
+                for (size_t i = 0; i < n; i++)
+                 for(size_t j = 0; j < n; j++)
+                 {
+                    size_t color = getPixel(x+j, y+i).Value;
+                    //px += color;
+                    if (minColor > color)
+                        minColor = color;
+                    if (maxColor < color)
+                        maxColor = color;
+                 }
+                //px /= n*n;
+                Data[xn + yn*cx] = Pixel(minColor < bg.Value ? minColor : maxColor);
+             }
+            Width  = cx;
+            Height/= n;
+            Data.resize(Width * Height);
+        }
+
 
         // DRAWING Graphical primitives
         inline void clear()  { fill(Pixel(BACKGROUND));}

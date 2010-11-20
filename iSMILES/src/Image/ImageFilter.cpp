@@ -37,6 +37,33 @@ Timer tm, ttotal;
 double totalTime=0.;
 #endif
 
+// RESIZE LARGE IMAGE
+    if(Image.getWidth() > 1296 || Image.getHeight() > 1296)
+    {
+        size_t n = (Image.getWidth() > Image.getHeight() ? Image.getWidth() : Image.getHeight()) / 1296;
+        if(n > 1)
+            Image.resizeLinear(n);
+            //Image.resizeMaxContrast(n)
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("Image.resizeLinear: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-01_resize-lin.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+    }
+
+// UNSHARP MASK 1 for very low contrast and unsharp images and camera shake effect
+        if(0!=Parameters.UnsharpMaskAmount)
+            unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount, (int)Parameters.UnsharpMaskThreshold);
+#ifdef TEST
+totalTime += tm.getElapsedTime();
+printf("unsharpMaskImage: %.4f sec.\n", tm.getElapsedTime());
+sprintf (file,"out/test-%s.flt-03_unsharp-mask-1.png", filename);
+png.save(file, Image);
+tm.reset();
+#endif
+
 // BLUR - remove noise
         if(0 != Parameters.RadiusBlur1)
         {
@@ -49,6 +76,7 @@ png.save(file, Image);
 tm.reset();
 #endif
         }
+
 // STRETCH increase contrast
         if(0 != Parameters.StretchImage)
         {
@@ -69,7 +97,7 @@ tm.reset();
 #ifdef TEST
 totalTime += tm.getElapsedTime();
 printf("stretchImageHistogram: %.4f sec. minColor=%d maxColor=%d\n", tm.getElapsedTime(), minColor, maxColor);
-sprintf (file,"out/test-%s.flt-06_stretched-1.png", filename);
+sprintf (file,"out/test-%s.flt-07_stretched-1.png", filename);
 png.save(file, Image);
 tm.reset();
 #endif
@@ -102,7 +130,8 @@ tm.reset();
         }
 
 // UNSHARP MASK
-        unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount, (int)Parameters.UnsharpMaskThreshold);
+        if(0!=Parameters.UnsharpMaskAmount2)
+            unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius2, 1., Parameters.UnsharpMaskAmount2, (int)Parameters.UnsharpMaskThreshold2);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
 printf("unsharpMaskImage: %.4f sec. bg=%d\n", tm.getElapsedTime(), getBackgroundValue(Image));

@@ -43,7 +43,7 @@ int main(int argc, char* argv[])
 
         i.drawCircle(320, 240, 20, LineDefinition(127, 3));
         i.drawCircle(320, 240, 200);
-*/
+
         png.save(string("igraph-1.png"), i);
         Image rimg;
         rotateImage(i, 2.5, &rimg);
@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
         rotateImage(i, 260, &rimg);
         png.save("igraph-1.rotated+260.png", rimg);
 //return 0;
-
+*/
     }
 
 
@@ -71,16 +71,17 @@ int main(int argc, char* argv[])
         ImageFilter flt(img);
             // compute optimal default parameters based on image resiolution
             flt.Parameters.StretchImage = true;
-            flt.Parameters.UnsharpMaskRadius = std::min(120, int(std::min(img.getWidth(), img.getHeight())/2));
-            flt.Parameters.UnsharpMaskAmount    = 9.;
-            flt.Parameters.UnsharpMaskThreshold = 120;
-            flt.Parameters.UnsharpMaskAmount2   = 0.;//3.;
-            flt.Parameters.UnsharpMaskThreshold2= 150;
-            flt.Parameters.CropBorder   = 16;//0;
+            flt.Parameters.UnsharpMaskRadius    = 7.;//7.;
+            flt.Parameters.UnsharpMaskAmount    = 2.;//2.;
+            flt.Parameters.UnsharpMaskThreshold = 0;
+            flt.Parameters.UnsharpMaskRadius2   = std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));  //120
+            flt.Parameters.UnsharpMaskAmount2   = 9.;
+            flt.Parameters.UnsharpMaskThreshold2= 120;
+            flt.Parameters.CropBorder   = 0;//16;
             flt.Parameters.RadiusBlur1  = 4;
             flt.Parameters.RadiusBlur2  = 4;// 5 - 4 - 3
             flt.Parameters.SmallDirtSize= 1;//2;   // it's radius == size/2
-            flt.Parameters.VignettingHoleDistance = std::min(48, (int)img.getWidth()/8);
+            flt.Parameters.VignettingHoleDistance = std::min(32, (int)img.getWidth()/8); //48
 
         flt.prepareImageForVectorization();
         png.save(string(argv[1])+".out.png", img);

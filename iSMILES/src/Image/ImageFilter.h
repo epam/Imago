@@ -11,16 +11,19 @@ namespace gga
         bool    StretchImage;
         double  UnsharpMaskRadius;
         double  UnsharpMaskAmount;
-        double  UnsharpMaskAmount2;
         double  UnsharpMaskThreshold;
-        double  UnsharpMaskThreshold2;   //after stretch histogram
+        double  UnsharpMaskRadius2;
+        double  UnsharpMaskAmount2;     // MUST BE 0.  UNUSED. after stretch histogram
+        double  UnsharpMaskThreshold2;  // UNUSED. after stretch histogram
         size_t  CropBorder;
         size_t  RadiusBlur1;
         size_t  RadiusBlur2;
         size_t  VignettingHoleDistance;
         size_t  SmallDirtSize;
     public:
-        inline ImageFilterParameters() : StretchImage(true), UnsharpMaskRadius(64), UnsharpMaskAmount(7), UnsharpMaskThreshold(3), UnsharpMaskThreshold2(130)
+        inline ImageFilterParameters() : StretchImage(true)
+                                       , UnsharpMaskRadius(5), UnsharpMaskAmount(2), UnsharpMaskThreshold(0)
+                                       , UnsharpMaskRadius2(90), UnsharpMaskAmount2(9), UnsharpMaskThreshold2(130)
                                        , CropBorder(8), RadiusBlur1(4), VignettingHoleDistance(31), SmallDirtSize(4) {}
     };
 
@@ -32,16 +35,31 @@ namespace gga
         inline ImageFilter(gga::Image& img) : Image(img)
         {
             // compute optimal default parameters based on image resiolution
+            /*
             Parameters.UnsharpMaskRadius = std::min(100, int(std::min(Image.getWidth(), Image.getHeight())/2));
             Parameters.UnsharpMaskAmount = 7.;
             Parameters.UnsharpMaskThreshold = 90;
-            Parameters.UnsharpMaskAmount2 = 7.;
-            Parameters.UnsharpMaskThreshold2= 130;
+            Parameters.UnsharpMaskAmount2   = 0.;//7.;  // UNUSED.
+            Parameters.UnsharpMaskThreshold2= 130;      // UNUSED.
             Parameters.CropBorder   = 8;
             Parameters.RadiusBlur1  = 2;
             Parameters.RadiusBlur2  = 4;
             Parameters.SmallDirtSize= 2;   //4
             Parameters.VignettingHoleDistance = std::min(32, (int)Image.getWidth()/4);
+            */
+
+            Parameters.StretchImage = true;
+            Parameters.UnsharpMaskRadius    = 5.; // 7
+            Parameters.UnsharpMaskAmount    = 2.5;// 2
+            Parameters.UnsharpMaskThreshold = 0;
+            Parameters.UnsharpMaskRadius    = std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));
+            Parameters.UnsharpMaskAmount2   = 0.;
+            Parameters.UnsharpMaskThreshold2= 130;
+            Parameters.CropBorder   = 0;//16;//0;
+            Parameters.RadiusBlur1  = 4;
+            Parameters.RadiusBlur2  = 4;// 5 - 4 - 3
+            Parameters.SmallDirtSize= 1;//2;   // it's radius == size/2
+            Parameters.VignettingHoleDistance = std::min(32, (int)img.getWidth()/8);
         }
         void  prepareImageForVectorization();
         Coord computeLineWidthHistogram   (std::vector<size_t>* histogram, size_t size = -1);
@@ -98,6 +116,11 @@ namespace gga
 
     static inline void blurImage(Image* img, size_t r)
     {
+        std::vector<int> w(r*r);
+            for (size_t iy = 0; iy < r; iy++)
+             for(size_t ix = 0; ix < r; ix++)
+                w[ix+r*iy] = int((r+1)*(r+1) - ix*ix + iy*iy); //very similar to Gaussian blur matrix, if r is small
+
         for (size_t y = 0; y < img->getHeight(); y++)
          for(size_t x = 0; x < img->getWidth() ; x++)
         {
@@ -111,8 +134,8 @@ namespace gga
             for (size_t iy = 0; iy < ny; iy++)
              for(size_t ix = 0; ix < nx; ix++) // average area
              {
-                //int dw = (int)r+1 - (int)sqrt(double(ix*ix + iy*iy));   //linear weight
-                int dw = int((r+1)*(r+1) - ix*ix + iy*iy);            //very similar to Gaussian blur matrix, if r is small
+                //int dw = (int)r+1 - (int)sqrt(double(ix*ix + iy*iy));  //linear weight
+                int dw = w[ix+r*iy];//int((r+1)*(r+1) - ix*ix + iy*iy);  // a bit faster          //very similar to Gaussian blur matrix, if r is small
                 if(dw > 0)
                     px += img->getPixel(x+ix, y+iy).Value * dw;
                 weight += dw;
@@ -175,6 +198,7 @@ namespace gga
             px.Value = (px.Value >= level.Value) ? BACKGROUND : INK;
             img->setPixel(x, y, px);
         }
+         img->setType(IT_BW);
     }
 
     static inline size_t clearSolidLine (Image* img, size_t xo, size_t xend, size_t y, size_t r)
