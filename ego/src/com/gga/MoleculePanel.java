@@ -16,6 +16,8 @@ package com.gga;
 
 import com.gga.indigo.*;
 import java.awt.Image;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.UnsupportedFlavorException;
 import java.awt.event.ComponentEvent;
 import java.awt.event.ComponentListener;
 import java.io.ByteArrayInputStream;
@@ -31,17 +33,17 @@ import javax.swing.JPanel;
 
 import java.awt.Toolkit;
 import java.awt.datatransfer.Clipboard;
-import java.awt.datatransfer.StringSelection;
+import java.awt.datatransfer.SystemFlavorMap;
 import java.awt.datatransfer.Transferable;
 
 public class MoleculePanel extends JPanel {
-
+    
     public MoleculePanel() {
 
         molPicture = new ImagePanel();
         settingsText = new JLabel();
         yesButton = new JButton("Yes");
-        
+
         indigo = new Indigo(Ego.jarDir + File.separator + "lib");
         indigo_renderer = new IndigoRenderer(indigo);
         indigo.setOption("render-output-format", "png");
@@ -147,14 +149,29 @@ public class MoleculePanel extends JPanel {
     }
     
     public void copyToClipboard() {
+
         Clipboard systemClipboard =
         Toolkit.getDefaultToolkit().getSystemClipboard();
-		
-        Transferable transferableText =
-                new StringSelection(mol);
-        systemClipboard.setContents(
-                transferableText,
-                null);
+
+        Transferable a = systemClipboard.getContents(null);
+
+        Transferable transferableMolecule = new MoleculeSelection(mol);
+
+        try {
+            systemClipboard.setContents(transferableMolecule, null);
+        }
+        catch (Exception e) {
+            System.out.print(e.getMessage());
+        }
+
+        a = systemClipboard.getContents(null);
+
+        //try {
+            
+        //}
+        //catch (Exception e){
+          //  System.out.println(e.getMessage());
+        //}
     }
 
     private ImagePanel molPicture;
