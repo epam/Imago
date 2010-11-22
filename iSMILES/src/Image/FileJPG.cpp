@@ -108,6 +108,7 @@ namespace gga
             jpeg_set_colorspace(&cinfo, JCS_GRAYSCALE);
             jpeg_start_compress(&cinfo, 1);
 
+//TBD:
 
             jpeg_finish_compress (&cinfo);
             jpeg_destroy_compress(&cinfo);

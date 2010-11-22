@@ -71,8 +71,8 @@ int main(int argc, char* argv[])
         ImageFilter flt(img);
             // compute optimal default parameters based on image resiolution
             flt.Parameters.StretchImage = true;
-            flt.Parameters.UnsharpMaskRadius    = 7.;//7.;
-            flt.Parameters.UnsharpMaskAmount    = 2.;//2.;
+            flt.Parameters.UnsharpMaskRadius    = 6. ;//7.;
+            flt.Parameters.UnsharpMaskAmount    = 2.5;//2.;
             flt.Parameters.UnsharpMaskThreshold = 0;
             flt.Parameters.UnsharpMaskRadius2   = std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));  //120
             flt.Parameters.UnsharpMaskAmount2   = 9.;
