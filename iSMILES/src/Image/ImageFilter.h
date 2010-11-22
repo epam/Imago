@@ -22,9 +22,9 @@ namespace gga
         size_t  SmallDirtSize;
     public:
         inline ImageFilterParameters() : StretchImage(true)
-                                       , UnsharpMaskRadius(5), UnsharpMaskAmount(2), UnsharpMaskThreshold(0)
-                                       , UnsharpMaskRadius2(90), UnsharpMaskAmount2(9), UnsharpMaskThreshold2(130)
-                                       , CropBorder(8), RadiusBlur1(4), VignettingHoleDistance(31), SmallDirtSize(4) {}
+                                       , UnsharpMaskRadius(6), UnsharpMaskAmount(2.5), UnsharpMaskThreshold(0)
+                                       , UnsharpMaskRadius2(100), UnsharpMaskAmount2(9), UnsharpMaskThreshold2(100)
+                                       , CropBorder(0), RadiusBlur1(4), RadiusBlur2(4), VignettingHoleDistance(32), SmallDirtSize(1) {}
     };
 
     class ImageFilter
@@ -34,7 +34,7 @@ namespace gga
         ImageFilterParameters  Parameters;
         inline ImageFilter(gga::Image& img) : Image(img)
         {
-            // compute optimal default parameters based on image resiolution
+            // compute optimal default parameters based on image resolution
             /*
             Parameters.UnsharpMaskRadius = std::min(100, int(std::min(Image.getWidth(), Image.getHeight())/2));
             Parameters.UnsharpMaskAmount = 7.;
@@ -49,17 +49,17 @@ namespace gga
             */
 
             Parameters.StretchImage = true;
-            Parameters.UnsharpMaskRadius    = 5.; // 7
+            Parameters.UnsharpMaskRadius    = 6.; // 7
             Parameters.UnsharpMaskAmount    = 2.5;// 2
             Parameters.UnsharpMaskThreshold = 0;
-            Parameters.UnsharpMaskRadius    = std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));
-            Parameters.UnsharpMaskAmount2   = 0.;
-            Parameters.UnsharpMaskThreshold2= 130;
+            Parameters.UnsharpMaskRadius2   = std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));
+            Parameters.UnsharpMaskAmount2   = 9.;
+            Parameters.UnsharpMaskThreshold2= 120;
             Parameters.CropBorder   = 0;//16;//0;
             Parameters.RadiusBlur1  = 4;
             Parameters.RadiusBlur2  = 4;// 5 - 4 - 3
             Parameters.SmallDirtSize= 1;//2;   // it's radius == size/2
-            Parameters.VignettingHoleDistance = std::min(32, (int)img.getWidth()/8);
+            Parameters.VignettingHoleDistance = std::min(32, (int)img.getWidth()/8);    //48
         }
         void  prepareImageForVectorization();
         Coord computeLineWidthHistogram   (std::vector<size_t>* histogram, size_t size = -1);

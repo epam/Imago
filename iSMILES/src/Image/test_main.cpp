@@ -69,20 +69,21 @@ int main(int argc, char* argv[])
         }
         strcpy(filename, argv[1]);
         ImageFilter flt(img);
-            // compute optimal default parameters based on image resiolution
+/*
+            // compute optimal default parameters based on image resolution
             flt.Parameters.StretchImage = true;
             flt.Parameters.UnsharpMaskRadius    = 6. ;//7.;
             flt.Parameters.UnsharpMaskAmount    = 2.5;//2.;
             flt.Parameters.UnsharpMaskThreshold = 0;
             flt.Parameters.UnsharpMaskRadius2   = std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));  //120
             flt.Parameters.UnsharpMaskAmount2   = 9.;
-            flt.Parameters.UnsharpMaskThreshold2= 120;
+            flt.Parameters.UnsharpMaskThreshold2= 100;//120;
             flt.Parameters.CropBorder   = 0;//16;
             flt.Parameters.RadiusBlur1  = 4;
             flt.Parameters.RadiusBlur2  = 4;// 5 - 4 - 3
             flt.Parameters.SmallDirtSize= 1;//2;   // it's radius == size/2
             flt.Parameters.VignettingHoleDistance = std::min(32, (int)img.getWidth()/8); //48
-
+*/
         flt.prepareImageForVectorization();
         png.save(string(argv[1])+".out.png", img);
         std::vector<size_t> whistogram;
@@ -97,11 +98,12 @@ int main(int argc, char* argv[])
         png.save(&buff, rimg);
         printf("PNG saved into memoory buffer %d bytes", buff.size());
 
+/*
         jpg.save(string(argv[1])+".out-40.jpg", img, 40);
         jpg.save(string(argv[1])+".out-60.jpg", img, 60);
         jpg.save(string(argv[1])+".out-80.jpg", img, 80);
         jpg.save(string(argv[1])+".out.jpg",img);
-
+*/
 return 0;
     }
 
