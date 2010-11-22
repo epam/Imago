@@ -95,20 +95,29 @@ namespace gga
         return true;
     }
 
-    bool FileJPG::save(const std::string& path, const Image& img)
+    bool FileJPG::save(const std::string& path, const Image& img, int quality)
     {
         FILE* f = fopen(path.c_str(), "wb");
         if(0==f)
             return false;
         struct jpeg_compress_struct cinfo;
-//        struct jpeg_error_mgr       jerr;
+        struct jpeg_error_mgr       jerr;
+        cinfo.err = jpeg_std_error(&jerr);
         try
         {
-            jpeg_set_defaults  (&cinfo);
-            jpeg_set_colorspace(&cinfo, JCS_GRAYSCALE);
+            jpeg_create_compress(&cinfo);
+            jpeg_stdio_dest     (&cinfo, f);
+            cinfo.image_width  = img.getWidth ();
+            cinfo.image_height = img.getHeight();
+            cinfo.input_components = 1;
+            cinfo.in_color_space = JCS_GRAYSCALE;
+            jpeg_set_defaults(&cinfo);
+            jpeg_set_quality (&cinfo, quality, 1);//FALSE);
             jpeg_start_compress(&cinfo, 1);
 
-//TBD:
+            JSAMPROW scanline = (JSAMPROW)img.getPixels();
+            while(1==jpeg_write_scanlines(&cinfo, &scanline, 1))
+                scanline += img.getWidth();
 
             jpeg_finish_compress (&cinfo);
             jpeg_destroy_compress(&cinfo);

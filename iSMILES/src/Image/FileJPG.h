@@ -10,7 +10,7 @@ namespace gga
         FileJPG();
         ~FileJPG();
         bool load(const std::string& path, Image* img);
-        bool save(const std::string& path, const Image& img);
+        bool save(const std::string& path, const Image& img, int quality = 100);
     };
 }
 

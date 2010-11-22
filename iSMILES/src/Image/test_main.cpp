@@ -92,6 +92,15 @@ int main(int argc, char* argv[])
         Image rimg;
         rotateImage(img, 13.5, &rimg);
         png.save(string(argv[1])+".out.rotated.png", rimg);
+        
+        std::vector<unsigned char> buff;
+        png.save(&buff, rimg);
+        printf("PNG saved into memoory buffer %d bytes", buff.size());
+
+        jpg.save(string(argv[1])+".out-40.jpg", img, 40);
+        jpg.save(string(argv[1])+".out-60.jpg", img, 60);
+        jpg.save(string(argv[1])+".out-80.jpg", img, 80);
+        jpg.save(string(argv[1])+".out.jpg",img);
 
 return 0;
     }
