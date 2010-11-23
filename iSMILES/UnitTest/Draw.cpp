@@ -22,14 +22,10 @@ namespace gga
         {
             return PointsToImage(src.toPoints());
         }
-
-        Image LineToImage(const LinearApproximation& src)
+        
+        Image LineToImage(const Polyline& line)
         {
-            if (!src.isGood())
-                return RangeArrayToImage(src.getRange());
-                
-            Points pts = src.getRange().toPoints();
-            Polyline line = src.getLine();
+            Points pts;
             for (size_t u = 0; u < line.size(); u++) // add line points to range points
                 pts.push_back(line[u]);
             
@@ -42,10 +38,28 @@ namespace gga
             {
                 result.drawLine(line[u].X - b.getLeft(), line[u].Y - b.getTop(), line[u+1].X - b.getLeft(), line[u+1].Y - b.getTop(), def);
             }
+            
+            return result;
+        }
 
-            result.drawImage(0, 0, PointsToImage(pts), false);
+        Image LineAprxToImage(const LinearApproximation& src)
+        {
+            if (!src.isGood())
+                return RangeArrayToImage(src.getRange());
+
+            Image result = LineToImage(src.getLine());
+            result.drawImage(0, 0, PointsToImage(src.getRange().toPoints()), false);
 
             return result;
+        }
+        
+        Image TriangleToImage(const Triangle& src)
+        {
+            Polyline p(Line(src.Vertex[0], src.Vertex[0]));
+            p.insertKnot(src.Vertex[1]);
+            p.insertKnot(src.Vertex[2]);
+            // somewhat like line-loop
+            return LineToImage(p);
         }
     }
 }

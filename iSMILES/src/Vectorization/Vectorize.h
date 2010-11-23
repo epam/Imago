@@ -6,23 +6,34 @@
 #include "Contour.h"
 #include "RangeArray.h"
 #include "LinearApproximation.h"
+#include "VertexRegroup.h"
 #include "TriangleRecognize.h"
 
 namespace gga
 {
+    typedef std::vector<Triangle> Triangles;
+    typedef std::vector<Contour*> PContours;
+    
 	class Vectorize
 	{
 		const Image& SourceImage;
-		ImageMap   CurrentImageMap;
-		std::vector<Contour*> Contours;
+		ImageMap   Imagemap;
+        PContours Contours;
+        
+    private:
+        Triangles RecTriangles;
+        Polylines RecLines;   
+        PContours RecOther;
 
 	public:
 		Vectorize(const Image& image);
 		~Vectorize();
-		
-		size_t getContoursCount() const;
-		const Contour& getContour(size_t index) const;
-		const ImageMap& getImageMap() const;
+
+        const  ImageMap& getImageMap() const { return Imagemap; }
+        
+        const Triangles& getTriangles() const { return RecTriangles; }
+        const Polylines& getLines() const { return RecLines; }
+        const PContours& getOtherContours() const { return RecOther; }
 	};
 }
 

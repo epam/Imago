@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=sic
-Date                   :=18.11.2010
+Date                   :=23.11.2010
 CodeLitePath           :="/home/sic/.codelite"
 LinkerName             :=g++
 ArchiveTool            :=ar rcus
@@ -49,7 +49,7 @@ LibPath                := "$(LibraryPathSwitch)."
 ##
 CodeLiteDir:=/usr/share/codelite
 Objects=$(IntermediateDirectory)/UnitTest_main$(ObjectSuffix) $(IntermediateDirectory)/UnitTest_Draw$(ObjectSuffix) $(IntermediateDirectory)/Image_FilePNG$(ObjectSuffix) $(IntermediateDirectory)/Image_ImageFilter$(ObjectSuffix) $(IntermediateDirectory)/Image_Image$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_ImageMap$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Bounds$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_LinearApproximation$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_RangeArray$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Contour$(ObjectSuffix) \
-	$(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) 
+	$(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_VertexRegroup$(ObjectSuffix) 
 
 ##
 ## Main Build Targets 
@@ -165,6 +165,14 @@ $(IntermediateDirectory)/Vectorization_TriangleRecognize$(DependSuffix): ../../s
 $(IntermediateDirectory)/Vectorization_TriangleRecognize$(PreprocessSuffix): ../../src/Vectorization/TriangleRecognize.cpp
 	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(PreprocessSuffix) "/home/sic/iSMILES/src/Vectorization/TriangleRecognize.cpp"
 
+$(IntermediateDirectory)/Vectorization_VertexRegroup$(ObjectSuffix): ../../src/Vectorization/VertexRegroup.cpp $(IntermediateDirectory)/Vectorization_VertexRegroup$(DependSuffix)
+	$(CompilerName) $(SourceSwitch) "/home/sic/iSMILES/src/Vectorization/VertexRegroup.cpp" $(CmpOptions) $(ObjectSwitch)$(IntermediateDirectory)/Vectorization_VertexRegroup$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Vectorization_VertexRegroup$(DependSuffix): ../../src/Vectorization/VertexRegroup.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) -MT$(IntermediateDirectory)/Vectorization_VertexRegroup$(ObjectSuffix) -MF$(IntermediateDirectory)/Vectorization_VertexRegroup$(DependSuffix) -MM "/home/sic/iSMILES/src/Vectorization/VertexRegroup.cpp"
+
+$(IntermediateDirectory)/Vectorization_VertexRegroup$(PreprocessSuffix): ../../src/Vectorization/VertexRegroup.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Vectorization_VertexRegroup$(PreprocessSuffix) "/home/sic/iSMILES/src/Vectorization/VertexRegroup.cpp"
+
 
 -include $(IntermediateDirectory)/*$(DependSuffix)
 ##
@@ -207,6 +215,9 @@ clean:
 	$(RM) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(DependSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(PreprocessSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_VertexRegroup$(ObjectSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_VertexRegroup$(DependSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_VertexRegroup$(PreprocessSuffix)
 	$(RM) $(OutputFile)
 
 

@@ -1,46 +1,71 @@
 #include "Vectorize.h"
+#include "../Parameters.h"
 
 namespace gga
 {
 	Vectorize::Vectorize(const Image& image) 
 				: SourceImage(image), 
-				  CurrentImageMap(image.getWidth(), image.getHeight())
+				  Imagemap(image.getWidth(), image.getHeight())
 	{
-		// line-by-line scan to extract contours of objects
+		// step 1. line-by-line scan to extract contours of objects
 		Point p(0,0);
 		for (p.Y = 0; p.Y < SourceImage.getHeight(); p.Y++)
 		{
 			for (p.X = 0; p.X < SourceImage.getWidth(); p.X++)
 			{
-				if (SourceImage.isFilled(p) && !CurrentImageMap.isAssigned(p))
+				if (SourceImage.isFilled(p) && !Imagemap.isAssigned(p))
                 {
                     // that pixel is unprocessed yet, so extract the contour starting from it
-                    Contour* c = new Contour(SourceImage, CurrentImageMap, p);
+                    Contour* c = new Contour(SourceImage, Imagemap, p);
                     // add new contour
                     Contours.push_back(c);
                 }
 			} // for x
 		} //for y
+        
+        // step 2. extract consistent parts only
+        for (size_t u = 0; u < Contours.size(); u++)
+        {
+            if (Bounds(*Contours[u]).getArea() >= GlobalParams.getMinimalConsistentArea())
+                RecOther.push_back(Contours[u]);
+        }
+        
+        // step 3. extract lines
+        for (size_t u = 0; u < RecOther.size(); )
+        {
+            LinearApproximation line(*RecOther[u]);
+            if (line.isGood())
+            {
+                RecLines.push_back(line.getLine());
+                RecOther.erase(RecOther.begin() + u);
+            }
+            else
+                u++;
+        }
+        
+        // step 4. regroup lines
+        VertexRegroup regroup(RecLines);
+        RecLines = regroup.getResult();
+        
+        // step 5. extract triangles
+        for (size_t u = 0; u < RecLines.size(); )
+        {
+            TriangleRecognition triangle(RecLines[u], Imagemap);
+            if (triangle.isGood())
+            {
+                RecTriangles.push_back(triangle.getTriangle());
+                RecLines.erase(RecLines.begin() + u);
+            }
+            else
+                u++;
+        }        
+        // that's all.
 	}
 	
 	Vectorize::~Vectorize()
 	{
-		for (size_t u = 0; u < getContoursCount(); u++)
+		for (size_t u = 0; u < Contours.size(); u++)
 			delete Contours[u];
 	}
-	
-	size_t Vectorize::getContoursCount() const
-	{
-		return Contours.size();
-	}
-	
-	const Contour& Vectorize::getContour(size_t index) const
-	{
-		return *Contours.at(index);
-	}
-	
-	const ImageMap& Vectorize::getImageMap() const
-	{
-		return CurrentImageMap;
-	}
 }
+
