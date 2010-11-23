@@ -154,8 +154,8 @@ void Segment::initFeatures( int descriptorsCount ) const
    int i = 0;
    BOOST_FOREACH(Segment * &seg, segments)
    {
-      FileOutput fout("output/seg_%d.png", i++);
-      PngSaver(fout).saveImage(*seg);
+//      FileOutput fout("output/seg_%d.png", i++);
+//      PngSaver(fout).saveImage(*seg);
       
       x = seg->getX(), y = seg->getY();
       w = seg->getWidth(), h = seg->getHeight();

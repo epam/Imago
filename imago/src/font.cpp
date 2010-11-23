@@ -14,6 +14,7 @@
 
 #include <cstring>
 #include <cmath>
+#include <cfloat>
 #include <deque>
 #include <vector>
 
@@ -118,7 +119,6 @@ void Font::_loadFromFile( const char *filename )
       _symbols.push_back(FontItem());
       FontItem *fi = &_symbols[_symbols.size() - 1];
       fscanf(fin, "%c %d\n", &fi->sym, &fi->features.inner_contours_count);
-      printf("loading %c\n", fi->sym);
       _mapping[fi->sym] = _symbols.size() - 1;
       fi->features.descriptors.resize(2 * _count);
       for (int i = 0; i < 2 * _count; i++)
@@ -144,7 +144,7 @@ char Font::findBest( const SymbolFeatures &features, int begin, int end,
                      double *dist ) const
 {
    char res = 0;
-   double d, min_d = 1e10;
+   double d, min_d = DBL_MAX;
    
    for (int i = begin; i < end; i++)
    {
@@ -234,26 +234,47 @@ int Font::findCapitalHeight( SegmentDeque &segments ) const
    return cap_height;
 }
 
-double Font::_compare( int ind, const SymbolFeatures &features ) const
+double Font::_compareDescriptors( const std::vector<double> &d1,
+                                  const std::vector<double> &d2 )
 {
+   int s = (int)std::min(d1.size(), d2.size());
    double d = 0;
-   double a, b;
+   double r;
    double weight = 1;
-   for (int i = 0; i < (int)features.descriptors.size(); i++)
+   
+   for (int i = 0; i < s; i++)
    {
-      a = _symbols[ind].features.descriptors[i];
-      b = features.descriptors[i];
+      r = d1[i] - d2[i];
 
-      if ((i % 2))
-         weight = 0.5;  //"Constants", not config maybe ?
+      if (i % 2)
+         weight = 0.5;
       else
          weight = 1.5;
-      d += weight * (a - b) * (a - b);
+      
+      d += weight * r * r;
    }
 
-   d = sqrt(d);
-
    return d;
+}
+
+double Font::_compare( int ind, const SymbolFeatures &features ) const
+{
+   double d ;
+   
+   d = _compareDescriptors(_symbols[ind].features.descriptors,
+                           features.descriptors);
+
+   if (_symbols[ind].features.inner_contours_count < 0)
+      return sqrt(d);
+   
+   if (_symbols[ind].features.inner_contours_count !=
+       features.inner_contours_count)
+      return DBL_MAX;
+
+   for (int i = 0; i < _symbols[ind].features.inner_contours_count; i++)
+      d += _compareDescriptors(_symbols[ind].features.inner_descriptors[i],
+                               features.inner_descriptors[i]);
+   return sqrt(d);
 }
    
 void Font::_loadFromImage( const char *imgname )
@@ -267,7 +288,7 @@ void Font::_loadFromImage( const char *imgname )
    _mapping.resize(255);
    SegmentDeque::iterator it = segments.begin();
    for (int i = 0; i < (int)segments.size() - 2; i++)
-   {
+   {      
       if (i == 34 || i == 35)
          ++it;
 
