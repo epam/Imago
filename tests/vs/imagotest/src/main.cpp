@@ -280,13 +280,13 @@ void testContour()
    }   
 }
 
-void testOCR()
+void testOCR( const char *name )
 {
    try
    {
       const char *filename;
-      //filename = "/home/vsmolov/flamingo_test/iphone5.jpg.out.png";
-      filename = "../../../data/fonts/png/TidyHand.png";
+      filename = name?name:"/home/vsmolov/flamingo_test/iphone2.jpg.out.png";
+      //filename = "../../../data/fonts/png/MarkerSD_it.png";
       qword sid = SessionManager::getInstance().allocSID();
       SessionManager::getInstance().setSID(sid);
       Image img;
@@ -297,7 +297,7 @@ void testOCR()
       // gauss.apply();
 
       Binarizer(img, getSettings()["BinarizationLvl"]).apply();
-      Font fnt("../../../data/fonts/TidyHand.font", 25);
+      Font fnt("../../../data/fonts/MarkerSD.font", 25);
       std::deque<Segment*> segs;
       Segmentator::segmentate(img, segs);
 
@@ -306,16 +306,16 @@ void testOCR()
               end = segs.end(); it != end; ++it, ++i)
       {
          double d;
-         char c;
-         if (i < 26)
-            c = fnt.findBest(*it, 0, 26, &d);
-         else if (i < 52 + 2)
-            c = fnt.findBest(*it, 26, 52, &d);
-         else
-            c = fnt.findBest(*it, 52, 62, &d);
+         char c_s, c_b, c_d;
+//         if (i < 26)
+            c_s = fnt.findBest(*it, 0, 26, &d);
+//         else if (i < 52 + 2)
+            c_b = fnt.findBest(*it, 26, 52, &d);
+//         else
+            c_d = fnt.findBest(*it, 52, 62, &d);
          printf("i = %d  ", i);
-         printf("(%d, %d)   %c  %.5lf  innerCcount = %d  h = %d\n",
-                (*it)->getX(), (*it)->getY(), c, d,
+         printf("(%d, %d)   %c %c %c  %.5lf  innerCcount = %d  h = %d\n",
+                (*it)->getX(), (*it)->getY(), c_s, c_b, c_d, d,
                 (*it)->getFeatures().inner_contours_count, (*it)->getHeight());
       }
    }
@@ -325,13 +325,16 @@ void testOCR()
    }
 }
 
-void makeFont()
+void makeFont( const char *name )
 {
   try
   {
+     char buf[1024] = {0};
      int count = 25;
-     Font fnt("../../../data/fonts/png/TidyHand.png", count);
-     FileOutput fout("../../../data/fonts/TidyHand.font");
+     sprintf(buf, "../../../data/fonts/png/%s.png", name);
+     Font fnt(buf, count);
+     sprintf(buf, "../../../data/fonts/%s.font", name);
+     FileOutput fout(buf);
      fout.printf("%d\n", count);
 
      for (int i = 0; i < (int)fnt._symbols.size(); i++)
@@ -393,7 +396,7 @@ int main(int argc, char **argv)
 
    //testContour();
    //testRecognizer(num);
-   testOCR();
-   //makeFont();
+   testOCR(argv[1]);
+   //makeFont(argv[1]);
    return 0;
 }

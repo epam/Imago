@@ -65,6 +65,8 @@ namespace imago
       int _count;
       
       double _compare( int ind, const SymbolFeatures &features ) const;
+      static double _compareDescriptors( const std::vector<double> &d1,
+                                         const std::vector<double> &d2 );
       void _loadFromImage( const char *imgname );
       void _loadFromFile( const char *filename );
       void _loadArial();
