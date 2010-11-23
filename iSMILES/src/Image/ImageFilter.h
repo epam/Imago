@@ -8,6 +8,7 @@ namespace gga
 {
     struct  ImageFilterParameters
     {
+        size_t  ImageSize;
         bool    StretchImage;
         double  UnsharpMaskRadius;
         double  UnsharpMaskAmount;
@@ -21,10 +22,10 @@ namespace gga
         size_t  VignettingHoleDistance;
         size_t  SmallDirtSize;
     public:
-        inline ImageFilterParameters() : StretchImage(true)
-                                       , UnsharpMaskRadius(6), UnsharpMaskAmount(2.5), UnsharpMaskThreshold(0)
+        inline ImageFilterParameters() : ImageSize(-1), StretchImage(true)
+                                       , UnsharpMaskRadius(7), UnsharpMaskAmount(2.1), UnsharpMaskThreshold(0)
                                        , UnsharpMaskRadius2(100), UnsharpMaskAmount2(9), UnsharpMaskThreshold2(100)
-                                       , CropBorder(0), RadiusBlur1(4), RadiusBlur2(4), VignettingHoleDistance(32), SmallDirtSize(1) {}
+                                       , CropBorder(0), RadiusBlur1(4), RadiusBlur2(4), VignettingHoleDistance(24), SmallDirtSize(7) {}
     };
 
     class ImageFilter
@@ -34,32 +35,24 @@ namespace gga
         ImageFilterParameters  Parameters;
         inline ImageFilter(gga::Image& img) : Image(img)
         {
-            // compute optimal default parameters based on image resolution
-            /*
-            Parameters.UnsharpMaskRadius = std::min(100, int(std::min(Image.getWidth(), Image.getHeight())/2));
-            Parameters.UnsharpMaskAmount = 7.;
-            Parameters.UnsharpMaskThreshold = 90;
-            Parameters.UnsharpMaskAmount2   = 0.;//7.;  // UNUSED.
-            Parameters.UnsharpMaskThreshold2= 130;      // UNUSED.
-            Parameters.CropBorder   = 8;
-            Parameters.RadiusBlur1  = 2;
-            Parameters.RadiusBlur2  = 4;
-            Parameters.SmallDirtSize= 2;   //4
-            Parameters.VignettingHoleDistance = std::min(32, (int)Image.getWidth()/4);
-            */
+            Parameters.ImageSize = 864 +36; // 5Mpx: 2592/3 = 864  OR  2592/2 = 1296
+            size_t size =  std::max(img.getWidth(), img.getHeight());
+            if (size / Parameters.ImageSize > 1)
+                size = size / int(size / Parameters.ImageSize);
 
+            // compute optimal default parameters based on image resolution
             Parameters.StretchImage = true;
-            Parameters.UnsharpMaskRadius    = 6.; // 7
-            Parameters.UnsharpMaskAmount    = 2.5;// 2
+            Parameters.UnsharpMaskRadius    = size / 185.; // 7
+            Parameters.UnsharpMaskAmount    = 2.1; // 2 - 2.3
             Parameters.UnsharpMaskThreshold = 0;
-            Parameters.UnsharpMaskRadius2   = std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));
+            Parameters.UnsharpMaskRadius2   = 100; //std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));
             Parameters.UnsharpMaskAmount2   = 9.;
-            Parameters.UnsharpMaskThreshold2= 120;
-            Parameters.CropBorder   = 0;//16;//0;
-            Parameters.RadiusBlur1  = 4;
-            Parameters.RadiusBlur2  = 4;// 5 - 4 - 3
-            Parameters.SmallDirtSize= 1;//2;   // it's radius == size/2
-            Parameters.VignettingHoleDistance = std::min(32, (int)img.getWidth()/8);    //48
+            Parameters.UnsharpMaskThreshold2= 100;
+            Parameters.CropBorder   = 0;//16;
+            Parameters.RadiusBlur1  = int(size / 324. + 0.5);  // 3-4;
+            Parameters.RadiusBlur2  = Parameters.RadiusBlur1;  // 4;
+            Parameters.SmallDirtSize= int(size / 185. + 0.5);  // 5-7;   // it's radius == size/2
+            Parameters.VignettingHoleDistance = std::min(int(size / 54. + 0.5), (int)size/8);    // 24, 32-48
         }
         void  prepareImageForVectorization();
         Coord computeLineWidthHistogram   (std::vector<size_t>* histogram, size_t size = -1);
@@ -313,6 +306,8 @@ namespace gga
             {}//break;
     }
 
+    void eraseSmallDirts (Image* img, size_t r);
+
     static inline void cropImageToPicture(Image* img)
     {
         size_t xend=0, yend=0;
@@ -378,10 +373,9 @@ namespace gga
 
     void rotateImage(const Image& img, double angle, Image* out);
 
-    static inline void resampleImageBiCubic(const Image& img, size_t cx, size_t cy, Image* out)
-    {
-
-        //out->setSize(cx, cy, img.getType());
-    }
+//    static inline void resampleImageBiCubic(const Image& img, size_t cx, size_t cy, Image* out)
+//    {
+//        //out->setSize(cx, cy, img.getType());
+//    }
 
 }

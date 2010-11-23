@@ -72,8 +72,8 @@ int main(int argc, char* argv[])
 /*
             // compute optimal default parameters based on image resolution
             flt.Parameters.StretchImage = true;
-            flt.Parameters.UnsharpMaskRadius    = 6. ;//7.;
-            flt.Parameters.UnsharpMaskAmount    = 2.5;//2.;
+            flt.Parameters.UnsharpMaskRadius    = 7.;
+            flt.Parameters.UnsharpMaskAmount    = 2.;
             flt.Parameters.UnsharpMaskThreshold = 0;
             flt.Parameters.UnsharpMaskRadius2   = std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));  //120
             flt.Parameters.UnsharpMaskAmount2   = 9.;
@@ -91,12 +91,12 @@ int main(int argc, char* argv[])
         printf("Line Width = %d\n", (int)w);
 
         Image rimg;
-        rotateImage(img, 13.5, &rimg);
-        png.save(string(argv[1])+".out.rotated.png", rimg);
+//        rotateImage(img, 13.5, &rimg);
+//        png.save(string(argv[1])+".out.rotated.png", rimg);
         
         std::vector<unsigned char> buff;
-        png.save(&buff, rimg);
-        printf("PNG saved into memoory buffer %d bytes", buff.size());
+        png.save(&buff, img);
+        printf("PNG saved into memory buffer %d bytes", buff.size());
 
 /*
         jpg.save(string(argv[1])+".out-40.jpg", img, 40);
