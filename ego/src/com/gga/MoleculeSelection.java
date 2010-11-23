@@ -14,8 +14,6 @@ import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.io.StringReader;
-
 
 /**
  * A Transferable which implements the capability required
@@ -37,37 +35,41 @@ public class MoleculeSelection implements Transferable, ClipboardOwner {
             else if (os.indexOf("mac") >= 0)
                 registerNativeNames("swsC");
             
-            molecule = new String();
+            molecule_mol = new String();
+            molecule_mol = mol;
+
+            molecule_mdlct = new String();
 
             ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
             int i = 0;
-            for(int j = 0; j < mol.length(); j++)
-            {
+            for (int j = 0; j < mol.length(); j++) {
                 char c = mol.charAt(j);
-                if(c != '\n' && c != '\r')
+                
+                if (c != '\n' && c != '\r')
                     continue;
+                
                 bytearrayoutputstream.write(j - i);
 
                 for (int l = i; l < j; l++)
                     bytearrayoutputstream.write(mol.charAt(l));
 
                 if (j < mol.length() - 1) {
-                    
                     char c1 = mol.charAt(j + 1);
+
                     if ((c1 == '\n' || c1 == '\r') && c1 != c)
                         j++;
                 }
                 i = j + 1;
             }
 
-            if(i < mol.length()) {
+            if (i < mol.length()) {
                 bytearrayoutputstream.write(mol.length() - i);
 
-                for(int k = i; k < mol.length(); k++)
+                for (int k = i; k < mol.length(); k++)
                     bytearrayoutputstream.write(mol.charAt(k));
             }
 
-            molecule = bytearrayoutputstream.toString();
+            molecule_mdlct = bytearrayoutputstream.toString();
         }
 
         public final void registerNativeNames( String name ) {
@@ -99,10 +101,10 @@ public class MoleculeSelection implements Transferable, ClipboardOwner {
         public Object getTransferData(DataFlavor flavor)
                 throws UnsupportedFlavorException, IOException {
             if (flavor.equals(data_flavor[0])) {
-                return molecule;
+                return molecule_mol;
             }
             else {
-                return new ByteArrayInputStream(molecule.getBytes());
+                return new ByteArrayInputStream(molecule_mdlct.getBytes());
             }
 	} 
 
@@ -110,8 +112,8 @@ public class MoleculeSelection implements Transferable, ClipboardOwner {
         public void lostOwnership(Clipboard clipboard, Transferable contents) {
             //throw new UnsupportedOperationException("Not supported yet.");
         }
-
-        private String molecule;
+        
+        private String molecule_mol, molecule_mdlct;
         private DataFlavor data_flavor[] =
                new DataFlavor[]{ DataFlavor.stringFlavor };
 

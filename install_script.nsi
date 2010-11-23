@@ -1,4 +1,6 @@
 
+BrandingText "GGA Software Services LLC"
+
 !define PRODUCT_NAME "Imago Toolkit"
 !define PRODUCT_VERSION "1.0 Release Candidate"
 !define PRODUCT_PUBLISHER "GGA Software Services LLC"
@@ -13,19 +15,62 @@
 SetCompressor lzma
 
 !include "MUI.nsh"
+!include "MUI_EXTRAPAGES.nsh"
 !include "x64.nsh"
+!include "nsDialogs.nsh"
 
 !define MUI_ABORTWARNING
-!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\modern-install.ico"
-!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\modern-uninstall.ico"
+!define MUI_ICON "${NSISDIR}\Contrib\Graphics\Icons\orange-install.ico"
+!define MUI_UNICON "${NSISDIR}\Contrib\Graphics\Icons\orange-uninstall.ico"
+
+LangString PAGE_TITLE ${LANG_ENGLISH} "Installing prerequisites"
+LangString PAGE_SUBTITLE ${LANG_ENGLISH} "Please read following information to get things works properly"
+
+Var Dialog
+Var Text
+
+Function nsDialogsPage
+        nsDialogs::Create 1018
+	Pop $Dialog
+
+	${If} $Dialog == error
+		Abort
+	${EndIf}
+
+	${NSD_CreateLabel} 0 13u 100% -13u "Type something here... http://www.google.ru"
+	Pop $Text
+
+	!insertmacro MUI_HEADER_TEXT $(PAGE_TITLE) $(PAGE_SUBTITLE)
+
+	nsDialogs::Show
+FunctionEnd
 
 !insertmacro MUI_PAGE_WELCOME
+;Page custom nsDialogsPage
+
 !insertmacro MUI_PAGE_LICENSE "LICENSE.GPL"
+!insertmacro MUI_PAGE_README "readme.txt"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
 !insertmacro MUI_PAGE_FINISH
+
 !insertmacro MUI_UNPAGE_INSTFILES
+
 !insertmacro MUI_LANGUAGE "English"
+
+${ReadmeLanguage} "${LANG_ENGLISH}" \
+          "Read Me" \
+          "Please review the following important information." \
+          "About $(^name):" \
+          "$\n  Click on scrollbar arrows or press Page Down to review the entire text."
+
+  ;Set up uninstall lang strings for 1st lang
+${Un.ReadmeLanguage} "${LANG_ENGLISH}" \
+          "Read Me" \
+          "Please review the following important Uninstall information." \
+          "About $(^name) Uninstall:" \
+          "$\n  Click on scrollbar arrows or press Page Down to review the entire text."
+
 !insertmacro MUI_RESERVEFILE_INSTALLOPTIONS
 
 Name "${PRODUCT_NAME} ${PRODUCT_VERSION}"
@@ -41,6 +86,16 @@ Function .onInit
   ${Else}
         StrCpy $INSTDIR "$PROGRAMFILES\Imago Toolkit"
   ${EndIf}
+  
+   !insertmacro MUI_LANGDLL_DISPLAY
+
+ ;InitPluginsDir
+; MessageBox MB_OK "Transparency/Fading"
+ ;       File /oname=$PLUGINSDIR\splash.bmp "C:\Stuff\mgga.bmp"
+  ;      advsplash::show 1000 600 400 0xFFFFFF $PLUGINSDIR\splash
+ 
+;  advsplash::show 2000 0 0 0x1856B1 C:\Stuff\mgga
+
 FunctionEnd
 
 Function WriteToFile
@@ -137,7 +192,6 @@ Section -Post
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "URLInfoAbout" "${PRODUCT_WEB_SITE}"
   WriteRegStr ${PRODUCT_UNINST_ROOT_KEY} "${PRODUCT_UNINST_KEY}" "Publisher" "${PRODUCT_PUBLISHER}"
 SectionEnd
-
 
 Function un.onUninstSuccess
   HideWindow
