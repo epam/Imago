@@ -904,7 +904,7 @@ public class Ego extends javax.swing.JFrame {
 
         //DEBUG
         //Uncomment this line if you want to run Ego from NetBeans
-        jarDir = "../output/release/ego";
+        //jarDir = "../output/release/ego";
         ///////
         imago = new Imago(jarDir + File.separator + "lib");
     }

@@ -16,40 +16,28 @@ import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.StringReader;
 
+
 /**
- *
- * @author fzentsev
+ * A Transferable which implements the capability required
+ * to transfer a Molecule (in MDL MolFile format) in Windows clipboard.
  */
 public class MoleculeSelection implements Transferable, ClipboardOwner {
-
-        private String molecule;
-        private DataFlavor data_flavor[] = 
-               new DataFlavor[]{ DataFlavor.stringFlavor };
-
-        private static DataFlavor extra_flavor;
-
+        
         public MoleculeSelection(String mol) {
 
-            try
-            {
+            try {
                 extra_flavor = new DataFlavor("chemical/x-mdl-molfile");
             }
             catch(ClassNotFoundException classnotfoundexception) { }
-            
-            registerNativeNames("MDL_MOL");
+
+            String os = System.getProperty("os.name").toLowerCase();
+
+            if (os.indexOf("win") >= 0)
+                registerNativeNames("MDLCT");
+            else if (os.indexOf("mac") >= 0)
+                registerNativeNames("swsC");
             
             molecule = new String();
-            /*String S[] = mol.split("\n");
-
-            StringBuilder st = new StringBuilder(molecule);
-            for (String s : S) {
-                if (s.length() != 0) {
-                    st.append(s.length());
-                    st.append(s);
-                }
-            }
-
-            molecule = st.toString();*/
 
             ByteArrayOutputStream bytearrayoutputstream = new ByteArrayOutputStream();
             int i = 0;
@@ -59,20 +47,20 @@ public class MoleculeSelection implements Transferable, ClipboardOwner {
                 if(c != '\n' && c != '\r')
                     continue;
                 bytearrayoutputstream.write(j - i);
-                for(int l = i; l < j; l++)
+
+                for (int l = i; l < j; l++)
                     bytearrayoutputstream.write(mol.charAt(l));
 
-                if(j < mol.length() - 1)
-                {
+                if (j < mol.length() - 1) {
+                    
                     char c1 = mol.charAt(j + 1);
-                    if((c1 == '\n' || c1 == '\r') && c1 != c)
+                    if ((c1 == '\n' || c1 == '\r') && c1 != c)
                         j++;
                 }
                 i = j + 1;
             }
 
-            if(i < mol.length())
-            {
+            if(i < mol.length()) {
                 bytearrayoutputstream.write(mol.length() - i);
 
                 for(int k = i; k < mol.length(); k++)
@@ -82,8 +70,7 @@ public class MoleculeSelection implements Transferable, ClipboardOwner {
             molecule = bytearrayoutputstream.toString();
         }
 
-        public void registerNativeNames( String name ) {
-
+        public final void registerNativeNames( String name ) {
             SystemFlavorMap systemflavormap = (SystemFlavorMap)SystemFlavorMap.getDefaultFlavorMap();
             
             systemflavormap.addUnencodedNativeForFlavor(extra_flavor, name);
@@ -111,7 +98,7 @@ public class MoleculeSelection implements Transferable, ClipboardOwner {
         @Override
         public Object getTransferData(DataFlavor flavor)
                 throws UnsupportedFlavorException, IOException {
-            if (flavor.equals(DataFlavor.stringFlavor)) {
+            if (flavor.equals(data_flavor[0])) {
                 return molecule;
             }
             else {
@@ -123,4 +110,10 @@ public class MoleculeSelection implements Transferable, ClipboardOwner {
         public void lostOwnership(Clipboard clipboard, Transferable contents) {
             //throw new UnsupportedOperationException("Not supported yet.");
         }
+
+        private String molecule;
+        private DataFlavor data_flavor[] =
+               new DataFlavor[]{ DataFlavor.stringFlavor };
+
+        private DataFlavor extra_flavor;
     }
