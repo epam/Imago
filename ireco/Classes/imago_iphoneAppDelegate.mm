@@ -51,14 +51,14 @@
       NSData *rawImage = UIImageJPEGRepresentation(image, 0.8f);
       
       NSLog(@"Filtering...\n");
-      //std::vector<unsigned char> jpgImage((unsigned char *)[rawImage bytes], (unsigned char *)[rawImage bytes] + [rawImage length]);
+      std::vector<unsigned char> jpgImage((unsigned char *)[rawImage bytes], (unsigned char *)[rawImage bytes] + [rawImage length]);
 
-      NSString *resPath2 = [[path stringByDeletingPathExtension] stringByAppendingString:@".res.jpg"];
-      [rawImage writeToFile: resPath2 atomically: NO];
+      //NSString *resPath2 = [[path stringByDeletingPathExtension] stringByAppendingString:@".res.jpg"];
+      //[rawImage writeToFile: resPath2 atomically: NO];
       
-      //if(jpg.load(jpgImage, &img))
+      if(jpg.load(jpgImage, &img))
       //if(jpg.load([path cStringUsingEncoding:NSASCIIStringEncoding], &img))
-      if(jpg.load([resPath2 cStringUsingEncoding:NSASCIIStringEncoding], &img))
+      //if(jpg.load([resPath2 cStringUsingEncoding:NSASCIIStringEncoding], &img))
       {
          gga::ImageFilter flt(img);
          /**/
@@ -79,10 +79,10 @@
          
          flt.prepareImageForVectorization();
          
-         NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@".png"];
+         //NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@".png"];
          std::vector<unsigned char> resPng;
          png.save(&resPng, img);
-         png.save([resPath cStringUsingEncoding:NSASCIIStringEncoding] , img);
+         //png.save([resPath cStringUsingEncoding:NSASCIIStringEncoding] , img);
          //NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@".out.jpg"];
          //jpg.save([resPath cStringUsingEncoding:NSASCIIStringEncoding] , img);
          
