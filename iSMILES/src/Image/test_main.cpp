@@ -96,7 +96,7 @@ int main(int argc, char* argv[])
         
         std::vector<unsigned char> buff;
         png.save(&buff, img);
-        printf("PNG saved into memory buffer %d bytes", buff.size());
+        printf("PNG saved into memory buffer %d bytes\n\n", buff.size());
 
 /*
         jpg.save(string(argv[1])+".out-40.jpg", img, 40);

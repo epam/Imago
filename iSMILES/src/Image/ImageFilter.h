@@ -10,12 +10,12 @@ namespace gga
     {
         size_t  ImageSize;
         bool    StretchImage;
-        double  UnsharpMaskRadius;
-        double  UnsharpMaskAmount;
-        double  UnsharpMaskThreshold;
-        double  UnsharpMaskRadius2;
-        double  UnsharpMaskAmount2;     // MUST BE 0.  UNUSED. after stretch histogram
-        double  UnsharpMaskThreshold2;  // UNUSED. after stretch histogram
+        float  UnsharpMaskRadius;
+        float  UnsharpMaskAmount;
+        float  UnsharpMaskThreshold;
+        float  UnsharpMaskRadius2;
+        float  UnsharpMaskAmount2;     // MUST BE 0.  UNUSED. after stretch histogram
+        float  UnsharpMaskThreshold2;  // UNUSED. after stretch histogram
         size_t  CropBorder;
         size_t  RadiusBlur1;
         size_t  RadiusBlur2;
@@ -23,7 +23,7 @@ namespace gga
         size_t  SmallDirtSize;
     public:
         inline ImageFilterParameters() : ImageSize(-1), StretchImage(true)
-                                       , UnsharpMaskRadius(7), UnsharpMaskAmount(2.1), UnsharpMaskThreshold(0)
+                                       , UnsharpMaskRadius(7), UnsharpMaskAmount((float)2.1), UnsharpMaskThreshold(0)
                                        , UnsharpMaskRadius2(100), UnsharpMaskAmount2(9), UnsharpMaskThreshold2(100)
                                        , CropBorder(0), RadiusBlur1(4), RadiusBlur2(4), VignettingHoleDistance(24), SmallDirtSize(7) {}
     };
@@ -42,17 +42,17 @@ namespace gga
 
             // compute optimal default parameters based on image resolution
             Parameters.StretchImage = true;
-            Parameters.UnsharpMaskRadius    = size / 185.; // 7
-            Parameters.UnsharpMaskAmount    = 2.1; // 2 - 2.3
+            Parameters.UnsharpMaskRadius    = (float)size / (float)185.f; // 7
+            Parameters.UnsharpMaskAmount    = (float)2.1f; // 2 - 2.3
             Parameters.UnsharpMaskThreshold = 0;
-            Parameters.UnsharpMaskRadius2   = 100; //std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));
-            Parameters.UnsharpMaskAmount2   = 9.;
+            Parameters.UnsharpMaskRadius2   = (float)100.f; //std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));
+            Parameters.UnsharpMaskAmount2   = (float)9.f;
             Parameters.UnsharpMaskThreshold2= 100;
             Parameters.CropBorder   = 0;//16;
-            Parameters.RadiusBlur1  = int(size / 324. + 0.5);  // 3-4;
+            Parameters.RadiusBlur1  = int(size / (float)324.f + (float)0.5f);  // 3-4;
             Parameters.RadiusBlur2  = Parameters.RadiusBlur1;  // 4;
-            Parameters.SmallDirtSize= int(size / 185. + 0.5);  // 5-7;   // it's radius == size/2
-            Parameters.VignettingHoleDistance = std::min(int(size / 54. + 0.5), (int)size/8);    // 24, 32-48
+            Parameters.SmallDirtSize= int(size / (float)185.f + (float)0.5f);  // 5-7;   // it's radius == size/2
+            Parameters.VignettingHoleDistance = std::min(int(size / (float)54.f + (float)0.5f), (int)size/8);    // 24, 32-48
         }
         void  prepareImageForVectorization();
         Coord computeLineWidthHistogram   (std::vector<size_t>* histogram, size_t size = -1);
@@ -127,7 +127,7 @@ namespace gga
             for (size_t iy = 0; iy < ny; iy++)
              for(size_t ix = 0; ix < nx; ix++) // average area
              {
-                //int dw = (int)r+1 - (int)sqrt(double(ix*ix + iy*iy));  //linear weight
+                //int dw = (int)r+1 - (int)sqrt(float(ix*ix + iy*iy));  //linear weight
                 int dw = w[ix+r*iy];//int((r+1)*(r+1) - ix*ix + iy*iy);  // a bit faster          //very similar to Gaussian blur matrix, if r is small
                 if(dw > 0)
                     px += img->getPixel(x+ix, y+iy).Value * dw;
@@ -159,7 +159,7 @@ namespace gga
 %    o exception: return any errors or warnings in this structure.
 %
 */
-    void unsharpMaskImage(Image* img, const double radius, const double sigma, const double amount,const int threshold);
+    void unsharpMaskImage(Image* img, const float radius, const float sigma, const float amount,const int threshold);
 
     static inline size_t getBackgroundValue(const Image& img)
     {
@@ -371,7 +371,7 @@ namespace gga
         img->crop(xo, yo, xend, yend);
     }
 
-    void rotateImage(const Image& img, double angle, Image* out);
+    void rotateImage(const Image& img, float angle, Image* out);
 
 //    static inline void resampleImageBiCubic(const Image& img, size_t cx, size_t cy, Image* out)
 //    {
