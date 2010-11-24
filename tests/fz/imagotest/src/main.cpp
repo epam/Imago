@@ -42,7 +42,9 @@ void testRecognize( char *input )
       RecognitionSettings &rs = getSettings();
 
 //#ifdef _DEBUG
-      rs["DebugSession"] = false;
+      rs["DebugSession"] = true;
+      rs["ParLinesEps"] = 0.45;
+      rs["AddVertexEps"] = 0.6;
 //#endif /* _DEBUG */
 
       Image img;
@@ -96,8 +98,7 @@ void testRNG( const char *input )
 
       typedef boost::graph_traits<segments_graph::SegmentsGraph>::edge_descriptor Edge;
 
-      std::vector <Edge> 
-         spanning_tree;
+      std::vector<Edge> spanning_tree;
 
       segments_graph::SegmentsGraph rng_mst;
 
@@ -120,24 +121,13 @@ void testRNG( const char *input )
          boost::put(boost::vertex_pos, rng_mst, v2, positions_rng[v2]);
       }
 
-      positions_rngmst = positions_rng;
-
-      //BGL_FORALL_VERTICES(v, rng, segments_graph::SegmentsGraph)
-
-      
-
-
-      /*boost::property_map<EuclideanGraph, boost::edge_component_t>::type 
-         component = get(edge_component, rng);
-
-      int num_comps = biconnected_components(rng, component);*/
-
-
       ImageDrawUtils::putGraph(img, rng);
-      //ImageDrawUtils::putGraph(img, rng);
-
-
       ImageUtils::saveImageToFile(img, "output/rng.png"); 
+
+      img.fillWhite();
+
+      ImageDrawUtils::putGraph(img, rng_mst);
+      ImageUtils::saveImageToFile(img, "output/rng_mst.png");
 
       SessionManager::getInstance().releaseSID(id);
    }
@@ -170,7 +160,8 @@ void testAdaptiveBinarization( char *input )
 int main( void )
 {
    //testRNG("../../../data/mol_images/image13.png");
-   testRecognize("../../../data/mol_images/asdf2.png"); 
+   //testRecognize("../../../data/mol_images/from-iphone/filtered/iphone2.jpg.out.png"); 
+   testRecognize("../../../data/release_examples/3.png"); 
    system("start marvinsketch result.mol");
 
    //vs: IMAGE1.PNG

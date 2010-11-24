@@ -233,8 +233,6 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       TIME(wbe.singleUpFetch(mol), "Fetching single-up bonds");
 
-      //TODO: recognizeLabels in Molecule? Really?
-      
       if (!layer_symbols.empty())
       {
          LMARK;
