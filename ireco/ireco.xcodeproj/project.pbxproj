@@ -493,6 +493,7 @@
 				INFOPLIST_FILE = "imago_iphone-Info.plist";
 				LIBRARY_SEARCH_PATHS = "$(inherited)";
 				PRODUCT_NAME = "imago-iphone";
+				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
