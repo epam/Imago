@@ -296,7 +296,7 @@ void testOCR( const char *name )
       // gauss.initGauss();
       // gauss.apply();
 
-      Binarizer(img, getSettings()["BinarizationLvl"]).apply();
+      // Binarizer(img, getSettings()["BinarizationLvl"]).apply();
       Font fnt("../../../data/fonts/MarkerSD.font", 25);
       std::deque<Segment*> segs;
       Segmentator::segmentate(img, segs);

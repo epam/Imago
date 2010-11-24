@@ -82,6 +82,7 @@ Font::~Font()
       arr_ptr = descr_##ch;                           \
       _mapping[fi->sym] = _symbols.size() - 1;        \
       fi->features.descriptors.resize(2 * _count);    \
+      fi->features.inner_contours_count = -1;         \
       for (int i = 0; i < _count * 2; i++)            \
          fi->features.descriptors[i] = arr_ptr[i];    \
    } while (0);
