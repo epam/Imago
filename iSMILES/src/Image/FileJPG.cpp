@@ -340,6 +340,7 @@ namespace gga
         out->resize(image_size);
         out->reserve(image_size);
 		memcpy((void *)&(*out)[0], dest_image, image_size);
+		free(dest_image);
         return true;
     }
 
