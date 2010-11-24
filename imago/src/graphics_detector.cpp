@@ -236,7 +236,7 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring
 
          double diff = 0;
 
-         for (int i = 0; i < (int)tmp.getFeatures().descriptors.size(); i++)
+         for (int i = 0; i < (int)tmp_descriptors.size(); i++)
          {
             double a = tmp_descriptors[i],
                    b = circle_descriptors[i], weight;
