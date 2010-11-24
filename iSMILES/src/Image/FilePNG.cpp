@@ -201,8 +201,8 @@ namespace gga
     static void saveDataToBuffer(png_structp png_def, png_bytep data, png_size_t size )
     {
         std::vector<unsigned char>* buf = (std::vector<unsigned char>*) ((Writer*)png_get_progressive_ptr(png_def))->Parameter;
-        void* out = &(*buf)[buf->size()];
         buf->resize(buf->size() + size);
+        void* out = &(*buf)[buf->size() - size];
         memcpy(out, data, size);
     }
 

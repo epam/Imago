@@ -22,7 +22,6 @@ namespace gga
     //    1    2    1          
     //                          
     //////////////////////////////////////////////////  
-    void eraseSmallDirts (Image* img, size_t r);
 
     void ImageFilter::prepareImageForVectorization()
     {
@@ -38,9 +37,9 @@ double totalTime=0.;
 #endif
 
 // RESIZE LARGE IMAGE
-    if(Image.getWidth() > 1296 || Image.getHeight() > 1296)
+    if(Image.getWidth()/Parameters.ImageSize > 1 || Image.getHeight()/Parameters.ImageSize > 1)     // iphone: 2592 (5Mpx) or 1296 
     {
-        size_t n = (Image.getWidth() > Image.getHeight() ? Image.getWidth() : Image.getHeight()) / 1296;
+        size_t n = (Image.getWidth() > Image.getHeight() ? Image.getWidth() : Image.getHeight()) / Parameters.ImageSize;
         if(n > 1)
             Image.resizeLinear(n);
             //Image.resizeMaxContrast(n)
@@ -197,14 +196,17 @@ tm.reset();
 
 //-----------------------------------------------------  BLACK WHITE  ----------------------------------------------------
 //to BW
-        convertGrayscaleToBlackWhite(&Image, 7/*getBackgroundValue(Image)*/);
+    {
+        unsigned char bg = 32;//getBackgroundValue(Image);
+        convertGrayscaleToBlackWhite(&Image, bg);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
-printf("convertGrayscaleToBlackWhite: %.4f sec. Background>=7 (%d)\n", tm.getElapsedTime(), getBackgroundValue(Image));
+printf("convertGrayscaleToBlackWhite: %.4f sec. Background >= %d (%d)\n", tm.getElapsedTime(), (int)bg, getBackgroundValue(Image));
 sprintf (file,"out/test-%s.flt-50_BW.png", filename);
 png.save(file, Image);
 tm.reset();
 #endif
+    }
 //----------------------------------------------------- CLEAR PICTURE ----------------------------------------------------
         if(0 != Parameters.VignettingHoleDistance)
             clearCorners (&Image, Parameters.VignettingHoleDistance);
@@ -334,7 +336,47 @@ tm.reset();
         }
     }
 
-    void eraseSmallDirts (Image* img, size_t r)
+    void eraseSmallDirts (Image* img, size_t radius)
+    {
+        for (size_t y = 0; y < img->getHeight(); y++)
+         for(size_t x = 0; x < img->getWidth() ; x++)
+         {
+            if(!img->getPixel(x, y).isBackground())        // check outer border
+             for(int r=1; r<=(int)radius; r++)
+            {
+                bool big = false;
+                for(int i = -r; i <= r && !big; i++)
+                {
+                    if(!img->getPixel(x+i, y-r).isBackground()) // top border
+                        big = true;
+                    if(!img->getPixel(x+i, y+r).isBackground()) // bottom border
+                        big = true;
+                }
+                for(int i = -r; i <= r && !big; i++)
+                {
+                    if(!img->getPixel(x-r, y+i).isBackground()) // left border
+                        big = true;
+                    if(!img->getPixel(x+r, y+i).isBackground()) // right border
+                        big = true;
+                }
+
+                if(!big)
+                {
+                    for(int i = -r; i <= r && x + i < img->getWidth(); i++)
+                    {
+                        for(int j = -r; j <= r && y + j < img->getHeight(); j++)
+                            img->setPixel(x+i, y+j, BACKGROUND);
+                    }
+                    x += r;
+                    r = 2*radius;   //stop current pixel processing
+                }
+            }
+        }
+    }
+
+//==============================================================================
+/*
+    void eraseSmallDirts1 (Image* img, size_t r)
     {
 //        img.setPixel(2,2, Pixel(0));    //test
 
@@ -446,7 +488,7 @@ tm.reset();
                         }
                     }
                 }
-                /*
+                / *
                 if(hmax <= r && len <= r)   // compute max distance by outer contour !!! WRONG IMPLEMENTATION for r > 2 !!!
                 {
                     std::vector<bool> processed((r+1)*(r+1));
@@ -490,7 +532,7 @@ tm.reset();
                     }
                     rmax = size_t(((int)x-xi)*((int)x-xi) + ((int)y-yj)*((int)y-yj));
                 }
-                */
+                * /
                 if(rmax <= r && hmax <= r && len <= r)
                 {
                     for(size_t i = 0; i <= r && x < img->getWidth() && ! img->getPixel(x, y).isBackground(); i++, x++)
@@ -504,6 +546,7 @@ tm.reset();
             }
         }
     }
+*/
 
 //==============================================================================
 // UnsharpMask

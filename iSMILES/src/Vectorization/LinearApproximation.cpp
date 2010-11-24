@@ -3,7 +3,7 @@
 #include "../Parameters.h"
 #include "../Histogram.h"
 
-#define DEBUG
+#define NO_DEBUG
 
 #ifdef DEBUG
 #include <stdio.h> // printf "log"

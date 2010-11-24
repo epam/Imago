@@ -8,7 +8,9 @@ namespace gga
     {
         Image PointsToImage(const Points& src);
         Image RangeArrayToImage(const RangeArray& src);
-        Image LineToImage(const LinearApproximation& src);
+        Image LineToImage(const Polyline& src);
+        Image LineAprxToImage(const LinearApproximation& src);
+        Image TriangleToImage(const Triangle& src);
     }
 }
 
