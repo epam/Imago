@@ -65,7 +65,7 @@
          if(jpg.load([path cStringUsingEncoding:NSASCIIStringEncoding], &img))
          //if(jpg.load([resPath2 cStringUsingEncoding:NSASCIIStringEncoding], &img))
          {
-            //NSLog(@"Resizing...\n");
+            NSLog(@"Resizing...\n");
             img.resizeLinear(3);
             NSLog(@"Filtering...\n");
             gga::ImageFilter flt(img);
@@ -88,16 +88,16 @@
             
             flt.prepareImageForVectorization();
             
-            NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@".png"];
-            std::vector<unsigned char> resPng;
-            png.save(&resPng, img);
-            png.save([resPath cStringUsingEncoding:NSASCIIStringEncoding] , img);
-            //NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@".out.jpg"];
-            //jpg.save([resPath cStringUsingEncoding:NSASCIIStringEncoding] , img);
-            
             std::vector<size_t> whistogram;
             gga::Coord w = flt.computeLineWidthHistogram(&whistogram);
             NSLog(@"Line Width = %d\n", (int)w);
+            
+            //NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@".png"];
+            std::vector<unsigned char> resPng;
+            png.save(&resPng, img);
+            //png.save([resPath cStringUsingEncoding:NSASCIIStringEncoding] , img);
+            //NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@".out.jpg"];
+            //jpg.save([resPath cStringUsingEncoding:NSASCIIStringEncoding] , img);
             
             UIImage *resImage = [UIImage imageWithData: [NSData dataWithBytes: (void *)&resPng[0] length: resPng.size()]];
             //UIImage *resImage = [UIImage imageWithContentsOfFile: resPath];
