@@ -40,10 +40,16 @@ void Skeleton::setInitialAvgBondLength( double avg_length )
    RecognitionSettings &rs = getSettings();
 
    _avg_bond_length = avg_length;
-   if (_avg_bond_length < 60)
-      rs.set("AddVertexEps", 0.11 * _avg_bond_length);
+
+   double mult = 0.1;
+   if (_avg_bond_length < 20)
+      mult = 0.2;
+   else if (_avg_bond_length < 60)
+      mult = 0.11;
    else
-      rs.set("AddVertexEps", 0.155 * _avg_bond_length);
+      mult = 0.155;
+   
+   rs.set("AddVertexEps", mult * _avg_bond_length);
    _addVertexEps = rs["AddVertexEps"];
 }
 
