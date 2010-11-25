@@ -1,12 +1,9 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imagotest", "imagotest.vcproj", "{9B17E413-9088-46BF-9281-09185F632173}"
-	ProjectSection(ProjectDependencies) = postProject
-		{30EA88F8-AEE5-4FE9-ACE0-75DDA5F8A458} = {30EA88F8-AEE5-4FE9-ACE0-75DDA5F8A458}
-	EndProjectSection
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imagotest", "imagotest.vcxproj", "{9B17E413-9088-46BF-9281-09185F632173}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imago_lib", "..\..\..\imago\imago_lib.vcproj", "{30EA88F8-AEE5-4FE9-ACE0-75DDA5F8A458}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "imago_lib", "..\..\..\imago\imago_lib.vcxproj", "{30EA88F8-AEE5-4FE9-ACE0-75DDA5F8A458}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

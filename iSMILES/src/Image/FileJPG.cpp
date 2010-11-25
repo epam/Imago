@@ -136,9 +136,12 @@ namespace gga
 		jpx.cinfo.src = (struct jpeg_source_mgr *) &jpx.src;
 		
 		/*read header*/
-		do {
+		do 
+        {
 			i = jpeg_read_header(&jpx.cinfo, TRUE);
-		} while (i == JPEG_HEADER_TABLES_ONLY);
+		}
+        while (i == JPEG_HEADER_TABLES_ONLY);
+
 		/*we're supposed to have the full image in the buffer, wrong stream*/
 		if (i == JPEG_SUSPENDED) {
 			jpeg_destroy_decompress(&jpx.cinfo);
@@ -150,14 +153,11 @@ namespace gga
 		stride = width * jpx.cinfo.num_components;
 
 		switch (jpx.cinfo.num_components) {
-		case 1:
-			pixel_format = JCS_GRAYSCALE;
+		case 1:     pixel_format = JCS_GRAYSCALE;
 			break;
-		case 3:
-			pixel_format = JCS_RGB;
+		case 3:     pixel_format = JCS_RGB;
 			break;
-		default:
-			jpeg_destroy_decompress(&jpx.cinfo);
+		default:    jpeg_destroy_decompress(&jpx.cinfo);
 			return false;
 		}
 		
@@ -165,11 +165,13 @@ namespace gga
 		/*decode*/
 		jpx.cinfo.do_fancy_upsampling = FALSE;
 		jpx.cinfo.do_block_smoothing = FALSE;
-		if (!jpeg_start_decompress(&jpx.cinfo)) {
+		if (!jpeg_start_decompress(&jpx.cinfo))
+        {
 			jpeg_destroy_decompress(&jpx.cinfo);
 			return false;
 		}
-		if (jpx.cinfo.rec_outbuf_height>JPEG_MAX_SCAN_BLOCK_HEIGHT) {
+		if (jpx.cinfo.rec_outbuf_height>JPEG_MAX_SCAN_BLOCK_HEIGHT)
+        {
 			jpeg_destroy_decompress(&jpx.cinfo);
 			return false;
 		}
@@ -330,16 +332,14 @@ namespace gga
  
 	bool FileJPG::save(std::vector<unsigned char>* out, const Image& img, int quality)
     {
-		unsigned char *dest_image = NULL;
-		unsigned long image_size = 0;
-        if(0==out)
-        {
+		unsigned char *dest_image = 0;
+		unsigned long  image_size = 0;
+
+        put_jpeg_grey_memory(&dest_image, &image_size, (unsigned char *)img.getPixels(), img.getWidth(), img.getHeight(), quality);
+        if(0==out || 0==image_size)
             return false;
-        }
-		put_jpeg_grey_memory(&dest_image,&image_size, (unsigned char *)img.getPixels(), img.getWidth(), img.getHeight(), quality);
         out->resize(image_size);
-        out->reserve(image_size);
-		memcpy((void *)&(*out)[0], dest_image, image_size);
+        memcpy(&out->front(), dest_image, image_size);
 		free(dest_image);
         return true;
     }

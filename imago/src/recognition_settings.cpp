@@ -78,5 +78,4 @@ RecognitionSettings::Parameter & imago::RecognitionSettings::operator[]( const s
 
 RecognitionSettings::~RecognitionSettings()
 {
-   int b = 0;
 }

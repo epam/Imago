@@ -230,9 +230,12 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				DSTROOT = /tmp/ismiles.dst;
+				GCC_FAST_MATH = YES;
 				GCC_MODEL_TUNING = G5;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = ismiles_Prefix.pch;
+				GCC_THUMB_SUPPORT = NO;
 				INSTALL_PATH = /usr/local/lib;
 				PRODUCT_NAME = ismiles;
 			};

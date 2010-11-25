@@ -38,62 +38,72 @@
       gga::FilePNG png;
       gga::Image   img;
       
-      NSString *path = [[NSBundle mainBundle] pathForResource:@"photo15" ofType:@"jpg"];
-      
       NSLog(@"Let's start\n");
       
-      NSLog(@"Resizing...\n");
-      CGRect rect = CGRectMake(0.0, 0.0, 592.0, 782.0);
-      UIGraphicsBeginImageContext(rect.size);
-      [[UIImage imageWithContentsOfFile: path] drawInRect:rect];
-      UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
-      UIGraphicsEndImageContext();
-      NSData *rawImage = UIImageJPEGRepresentation(image, 0.8f);
-      
-      NSLog(@"Filtering...\n");
-      std::vector<unsigned char> jpgImage((unsigned char *)[rawImage bytes], (unsigned char *)[rawImage bytes] + [rawImage length]);
-
-      //NSString *resPath2 = [[path stringByDeletingPathExtension] stringByAppendingString:@".res.jpg"];
-      //[rawImage writeToFile: resPath2 atomically: NO];
-      
-      if(jpg.load(jpgImage, &img))
-      //if(jpg.load([path cStringUsingEncoding:NSASCIIStringEncoding], &img))
-      //if(jpg.load([resPath2 cStringUsingEncoding:NSASCIIStringEncoding], &img))
+      for (int i = 1; i < 17; i++)
       {
-         gga::ImageFilter flt(img);
-         /**/
-         // compute optimal default parameters based on image resiolution
-         flt.Parameters.StretchImage = true;
-         flt.Parameters.UnsharpMaskRadius    = 6. ;//7.;
-         flt.Parameters.UnsharpMaskAmount    = 2.5;//2.;
-         flt.Parameters.UnsharpMaskThreshold = 0;
-         flt.Parameters.UnsharpMaskRadius2   = std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));  //120
-         flt.Parameters.UnsharpMaskAmount2   = 9.;
-         flt.Parameters.UnsharpMaskThreshold2= 120;
-         flt.Parameters.CropBorder   = 0;//16;
-         flt.Parameters.RadiusBlur1  = 4;
-         flt.Parameters.RadiusBlur2  = 4;// 5 - 4 - 3
-         flt.Parameters.SmallDirtSize= 1;//2;   // it's radius == size/2
-         flt.Parameters.VignettingHoleDistance = std::min(32, (int)img.getWidth()/8); //48
-         /* */
+         NSString *path = [[NSBundle mainBundle] pathForResource:[NSString stringWithFormat: @"photo%i", i] ofType:@"jpg"];
          
-         flt.prepareImageForVectorization();
+         NSLog(@"photo%i\n", i);
          
-         //NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@".png"];
-         std::vector<unsigned char> resPng;
-         png.save(&resPng, img);
-         //png.save([resPath cStringUsingEncoding:NSASCIIStringEncoding] , img);
-         //NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@".out.jpg"];
-         //jpg.save([resPath cStringUsingEncoding:NSASCIIStringEncoding] , img);
+         /*
+         CGRect rect = CGRectMake(0.0, 0.0, 645.0, 864.0);
+         UIGraphicsBeginImageContext(rect.size);
+         [[UIImage imageWithContentsOfFile: path] drawInRect:rect];
+         UIImage *image = UIGraphicsGetImageFromCurrentImageContext();
+         UIGraphicsEndImageContext();
+         NSData *rawImage = UIImageJPEGRepresentation(image, 0.8f);
          
-         std::vector<size_t> whistogram;
-         gga::Coord w = flt.computeLineWidthHistogram(&whistogram);
-         NSLog(@"Line Width = %d\n", (int)w);
+         NSLog(@"Filtering...\n");
+         std::vector<unsigned char> jpgImage((unsigned char *)[rawImage bytes], (unsigned char *)[rawImage bytes] + [rawImage length]);
+          */
+
+         //NSString *resPath2 = [[path stringByDeletingPathExtension] stringByAppendingString:@".res.jpg"];
+         //[rawImage writeToFile: resPath2 atomically: NO];
          
-         UIImage *resImage = [UIImage imageWithData: [NSData dataWithBytes: (void *)&resPng[0] length: resPng.size()]];
-         //UIImage *resImage = [UIImage imageWithContentsOfFile: resPath];
-         imageView.image = resImage;
-         [imageView sizeToFit];
+         //if(jpg.load(jpgImage, &img))
+         if(jpg.load([path cStringUsingEncoding:NSASCIIStringEncoding], &img))
+         //if(jpg.load([resPath2 cStringUsingEncoding:NSASCIIStringEncoding], &img))
+         {
+            //NSLog(@"Resizing...\n");
+            img.resizeLinear(3);
+            NSLog(@"Filtering...\n");
+            gga::ImageFilter flt(img);
+            /** /
+            // compute optimal default parameters based on image resiolution
+            flt.Parameters.StretchImage = true;
+            flt.Parameters.UnsharpMaskRadius    = 6. ;//7.;
+            flt.Parameters.UnsharpMaskAmount    = 2.5;//2.;
+            flt.Parameters.UnsharpMaskThreshold = 0;
+            flt.Parameters.UnsharpMaskRadius2   = std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));  //120
+            flt.Parameters.UnsharpMaskAmount2   = 9.;
+            flt.Parameters.UnsharpMaskThreshold2= 120;
+            flt.Parameters.CropBorder   = 0;//16;
+            flt.Parameters.RadiusBlur1  = 4;
+            flt.Parameters.RadiusBlur2  = 4;// 5 - 4 - 3
+            flt.Parameters.SmallDirtSize= 1;//2;   // it's radius == size/2
+            flt.Parameters.VignettingHoleDistance = std::min(32, (int)img.getWidth()/8); //48
+            /* */
+            flt.Parameters.UnsharpMaskRadius2   = 30;//60;
+            
+            flt.prepareImageForVectorization();
+            
+            NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@".png"];
+            std::vector<unsigned char> resPng;
+            png.save(&resPng, img);
+            png.save([resPath cStringUsingEncoding:NSASCIIStringEncoding] , img);
+            //NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@".out.jpg"];
+            //jpg.save([resPath cStringUsingEncoding:NSASCIIStringEncoding] , img);
+            
+            std::vector<size_t> whistogram;
+            gga::Coord w = flt.computeLineWidthHistogram(&whistogram);
+            NSLog(@"Line Width = %d\n", (int)w);
+            
+            UIImage *resImage = [UIImage imageWithData: [NSData dataWithBytes: (void *)&resPng[0] length: resPng.size()]];
+            //UIImage *resImage = [UIImage imageWithContentsOfFile: resPath];
+            imageView.image = resImage;
+            [imageView sizeToFit];
+         }
       }
    }
    
