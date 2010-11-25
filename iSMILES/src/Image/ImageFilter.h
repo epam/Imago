@@ -35,7 +35,7 @@ namespace gga
         ImageFilterParameters  Parameters;
         inline ImageFilter(gga::Image& img) : Image(img)
         {
-            Parameters.ImageSize = 864 +36; // 5Mpx: 2592/3 = 864  OR  2592/2 = 1296
+            Parameters.ImageSize = 864;// +36; // 5Mpx: 2592/3 = 864  OR  2592/2 = 1296
             size_t size =  std::max(img.getWidth(), img.getHeight());
             if (size / Parameters.ImageSize > 1)
                 size = size / int(size / Parameters.ImageSize);
@@ -45,7 +45,7 @@ namespace gga
             Parameters.UnsharpMaskRadius    = (float)size / (float)185.f; // 7
             Parameters.UnsharpMaskAmount    = (float)2.1f; // 2 - 2.3
             Parameters.UnsharpMaskThreshold = 0;
-            Parameters.UnsharpMaskRadius2   = (float)100.f; //std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));
+            Parameters.UnsharpMaskRadius2   = (float)40.f;//100.f; //std::min(100, int(std::min(img.getWidth(), img.getHeight())/2));
             Parameters.UnsharpMaskAmount2   = (float)9.f;
             Parameters.UnsharpMaskThreshold2= 100;
             Parameters.CropBorder   = 0;//16;
