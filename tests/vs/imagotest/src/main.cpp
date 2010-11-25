@@ -211,7 +211,7 @@ void testRecognizer(int num)
       //filename = "/media/usr/Zentsev/for_demo/firstly/1347f/5_noblur_200.png";
       //filename = "/media/usr/Zentsev/porphyrin-sample-v02ch07/6.png";
       //filename = "../../../tests/autotester/results2/43794.png";
-      //filename = "../../../tests/autotester/results/28.png";
+      filename = "../../../data/release_examples/4.png";
       //filename = "/home/vsmolov/flamingo_test/US07314705-20080101-C00010.png";
       //filename = "../../../../../flamingo_test/t.png";
       //filename = "~/flamingo_test/800.png";
@@ -395,8 +395,8 @@ int main(int argc, char **argv)
    //num = readCL(argc, argv);
 
    //testContour();
-   //testRecognizer(num);
-   testOCR(argv[1]);
+   testRecognizer(num);
+   //testOCR(argv[1]);
    //makeFont(argv[1]);
    return 0;
 }

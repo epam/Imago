@@ -149,8 +149,8 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       if (ind == 0)
       {
          throw NullPointerException();
-      }		
-      
+      }
+
       Image _img;
       _img.copy(*ind);
 
@@ -197,11 +197,11 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          ImageUtils::saveImageToFile(graphics, "output/graphics.png");
       }
 
-      LMARK;      
+      LMARK;
       if (!layer_symbols.empty())
       {
          TIME(_selectFont(layer_symbols), "Selecting font");
-         
+
          LabelCombiner lc(layer_symbols, layer_graphics,
                           rs["CapitalHeight"], *_fnt);
          lc.extractLabels(mol.getLabels());

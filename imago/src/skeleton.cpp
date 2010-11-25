@@ -40,7 +40,10 @@ void Skeleton::setInitialAvgBondLength( double avg_length )
    RecognitionSettings &rs = getSettings();
 
    _avg_bond_length = avg_length;
-   rs.set("AddVertexEps", 0.155 * _avg_bond_length);
+   if (_avg_bond_length < 60)
+      rs.set("AddVertexEps", 0.11 * _avg_bond_length);
+   else
+      rs.set("AddVertexEps", 0.155 * _avg_bond_length);
    _addVertexEps = rs["AddVertexEps"];
 }
 
@@ -444,11 +447,12 @@ void Skeleton::_joinVertices()
    double _addEps = getSettings().get("AddVertexEps");
    BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
    {
+      Vec2d v_pos = pos[v];
       for (int i = 0; i < (int)nearVertices.size(); i++)
       {
          for (int j = 0; j < (int)nearVertices[i].size(); j++)
          {
-            if (Vec2d::distance(pos[v], pos[nearVertices[i][j]]) < _addEps)
+            if (Vec2d::distance(v_pos, pos[nearVertices[i][j]]) < _addEps)
             {
                join_ind.push_back(i);
                break;
@@ -508,10 +512,6 @@ void Skeleton::modifyGraph()
    
    _joinVertices();
 
-   _repairBroken();
-   
-   recalcAvgBondLength();
-   
    // if (getSettings()["DebugSession"])
    // {
    //    Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
@@ -519,7 +519,11 @@ void Skeleton::modifyGraph()
    //    ImageDrawUtils::putGraph(img, _g);
    //    ImageUtils::saveImageToFile(img, "output/ggg1.png");
    // }
-
+   
+   _repairBroken();
+   
+   recalcAvgBondLength();
+   
    _findMultiple();
 
    //if (rs["DebugSession"])
