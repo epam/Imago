@@ -57,10 +57,10 @@ bool ImageUtils::testVertHorLine( Segment &img, int &angle )
 
 bool ImageUtils::testSlashLine( Segment &img, double *angle, double eps )
 {
-   const double SLASH_LINE_DENSITY = 0.56;
+   const double SLASH_LINE_DENSITY = 0.51;
    double density, thetha, r;
 
-//   ImageUtils::saveImageToFile(img, "output/origin.png");
+   //ImageUtils::saveImageToFile(img, "output/origin.png");
 
    Image tmp;   
 
@@ -70,9 +70,9 @@ bool ImageUtils::testSlashLine( Segment &img, double *angle, double eps )
    thetha = PI_2 + atan2((double)img.getHeight(), (double)img.getWidth());
    r = 0;
    density = tmp.density();
-   ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
+   ImageDrawUtils::putLine(tmp, thetha, r, eps, 200);
    density = tmp.density() / density;
-  // ImageUtils::saveImageToFile(tmp, "output/origin_orient1.png");
+   ImageUtils::saveImageToFile(tmp, "output/origin_orient1.png");
 
    if (density < SLASH_LINE_DENSITY)
    {

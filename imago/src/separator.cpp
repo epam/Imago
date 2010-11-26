@@ -77,10 +77,13 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
       {
          int mark;
 
+         if (rs["DebugSession"])
+            ImageUtils::saveImageToFile(*s, "output/tmp.png");
+
          if (s->getHeight() >= cap_height - sym_height_err && 
              s->getHeight() <= cap_height + sym_height_err) 
             if (s->getRatio() > adequate_ratio_max)
-               if (ImageUtils::testSlashLine(*s, 0, 1))
+               if (ImageUtils::testSlashLine(*s, 0, 3.2)) //TODO: To rs immediately. Original is 1.0
                   mark = SEP_BOND;
                else
                   mark = SEP_SPECIAL;
@@ -92,7 +95,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
                      mark = SEP_SUSPICIOUS;
                      
                else
-                  if (ImageUtils::testSlashLine(*s, 0, 1.3)) 
+                  if (ImageUtils::testSlashLine(*s, 0, 7.0)) //TODO: To rs immediately. Original is 1.3 
                      mark = SEP_BOND;
                   else 
                      mark = SEP_SYMBOL;
@@ -161,6 +164,8 @@ int Separator::_estimateCapHeight()
       heights.push_back(s->getHeight());
 
    int seg_ver_eps = rs["SegmentVerEps"];
+
+
 
    for (int i = 0; i != (int)heights.size();)
    {
@@ -259,12 +264,14 @@ bool Separator::_checkSequence( IntPair &checking, IntPair &symbols_graphics, do
    //TODO: consider to be dirty hack
    if (checking.second - checking.first == 1)
    {
-      if (_segs[checking.first]->getDensity() < 0.3)
+      if (_segs[checking.first]->getDensity() < 0.2)
       {
-         symbols_graphics.first = 0;
-         symbols_graphics.second = 1;
+         symbols_graphics.first = 1;
+         symbols_graphics.second = 0;
 
-         return false;
+         density += _segs[checking.first]->getDensity();
+
+         return true;
       }
    }
 
