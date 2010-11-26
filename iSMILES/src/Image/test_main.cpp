@@ -84,6 +84,8 @@ int main(int argc, char* argv[])
             flt.Parameters.SmallDirtSize= 1;//2;   // it's radius == size/2
             flt.Parameters.VignettingHoleDistance = std::min(32, (int)img.getWidth()/8); //48
 */
+        //USM TEST: flt.Parameters.UnsharpMaskRadius2 = 200;
+
         flt.prepareImageForVectorization();
         png.save(string(argv[1])+".out.png", img);
         std::vector<size_t> whistogram;

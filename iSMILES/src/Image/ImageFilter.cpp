@@ -45,7 +45,7 @@ double totalTime=0.;
             //Image.resizeMaxContrast(n)
 #ifdef TEST
 totalTime += tm.getElapsedTime();
-printf("Image.resizeLinear: %.4f sec.\n", tm.getElapsedTime());
+printf("Image.resizeLinear: %.4f sec. n=%d, W=%d, H=%d\n", tm.getElapsedTime(), n, Image.getWidth(), Image.getHeight());
 sprintf (file,"out/test-%s.flt-01_resize-lin.png", filename);
 png.save(file, Image);
 tm.reset();
@@ -57,7 +57,7 @@ tm.reset();
             unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius, 1., Parameters.UnsharpMaskAmount, (int)Parameters.UnsharpMaskThreshold);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
-printf("unsharpMaskImage: %.4f sec.\n", tm.getElapsedTime());
+printf("unsharpMaskImage: %.4f sec. R=%f\n", tm.getElapsedTime(), Parameters.UnsharpMaskRadius);
 sprintf (file,"out/test-%s.flt-03_unsharp-mask-1.png", filename);
 png.save(file, Image);
 tm.reset();
@@ -69,7 +69,7 @@ tm.reset();
             blurImage(&Image, Parameters.RadiusBlur1);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
-printf("blurImage: %.4f sec. bg=%d\n", tm.getElapsedTime(), getBackgroundValue(Image));
+printf("blurImage: %.4f sec. R=%d, bg=%d\n", tm.getElapsedTime(), Parameters.RadiusBlur1, getBackgroundValue(Image));
 sprintf (file,"out/test-%s.flt-05_blur-1.png", filename);
 png.save(file, Image);
 tm.reset();
@@ -109,7 +109,7 @@ tm.reset();
             blurImage(&Image, Parameters.RadiusBlur2);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
-printf("blurImage: %.4f sec.\n", tm.getElapsedTime());
+printf("blurImage: %.4f sec. R=%d\n", tm.getElapsedTime(), Parameters.RadiusBlur2);
 sprintf (file,"out/test-%s.flt-08_blur-2.png", filename);
 png.save(file, Image);
 tm.reset();
@@ -133,7 +133,7 @@ tm.reset();
             unsharpMaskImage(&Image, Parameters.UnsharpMaskRadius2, 1., Parameters.UnsharpMaskAmount2, (int)Parameters.UnsharpMaskThreshold2);
 #ifdef TEST
 totalTime += tm.getElapsedTime();
-printf("unsharpMaskImage: %.4f sec. bg=%d\n", tm.getElapsedTime(), getBackgroundValue(Image));
+printf("unsharpMaskImage: %.4f sec. R=%f bg=%d\n", tm.getElapsedTime(), Parameters.UnsharpMaskRadius2, getBackgroundValue(Image));
 sprintf (file,"out/test-%s.flt-10_unsharp-mask.png", filename);
 png.save(file, Image);
 tm.reset();
@@ -551,16 +551,46 @@ tm.reset();
 //==============================================================================
 // UnsharpMask
 //==============================================================================
+/*
+    typedef float real;
+    static inline int   real2int    (real  x)   { return int  (x);}
+    static inline real  int2real    (int   x)   { return real (x);}
+    static inline float real2float  (real  x)   { return float(x);}
+    static inline real  float2real  (float x)   { return real (x);}
+    static inline int ROUND (real x) { return (int) (x + 0.5f);}
+*/
+/* // 64 bit
+    typedef signed long long int real;
+    static const int FPOINT_BITS = 24;          //20;
+    static const int FPOINT_HALF = 0x7FFFFF;     //0x7FFFF;     // == 0.5
+    static const float FPOINT_ONE  = 16777216.f;  //1048576.f;   // == 1.
+*/
+    typedef unsigned int real;
+    static const int FPOINT_BITS = 20;          // mantissa (fractional part)
+    static const int FPOINT_HALF = 0x7FFFF;     // == 0.5
+    static const float FPOINT_ONE= 1048576.f;   // == 1.
 
-    static inline int ROUND (float x) { return (int) (x + (float)0.5f);}
+    static inline int   real2int    (real  x)   { return int(x >> FPOINT_BITS);}
+    static inline real  int2real    (int   x)   { return     x << FPOINT_BITS;}
+    static inline float real2float  (real  x)   { return float(x) / FPOINT_ONE;}
+    static inline real  float2real  (float x)   { return real(FPOINT_ONE * x);}
+    static inline unsigned char DIVIDE (real x, real y) { return int(((x<<1)/y+1)>>1);}
+    static inline unsigned char ROUND  (real x) { return real2int(x + FPOINT_HALF);}
+
+//    static inline int   real2int    (real  x)   { return x / 200000;}
+//    static inline real  int2real    (int   x)   { return x * 200000;}
+//    static inline float real2float  (real  x)   { return (float)x / 200000.f;}
+//    static inline real  float2real  (float x)   { return int(200000.f * x);}
+//    static inline int ROUND (real x) { return real2int(x + 100000);}//FPOINT_HALF);} // x >= 0
+
     // Square:
-    #define SQR(x) ((x) * (x))  //    static inline float SQR(float x) { return x*x;}
+    #define SQR(x) ((x) * (x))  //    static inline real SQR(real x) { return x*x;}
 
-    static void blurLine (const float* ctable, const float* cmatrix, const int cmatrix_length,
+    static void blurLine (const real* ctable, const real* cmatrix, const int cmatrix_length,
                         const unsigned char* src, unsigned char* dest, const int len, const int bytes)
     {
-        const float *cmatrix_p;
-        const float *ctable_p;
+        const real *cmatrix_p;
+        const real *ctable_p;
         const unsigned char  *src_p;
         const unsigned char  *src_p1;
         const int     cmatrix_middle = cmatrix_length / 2;
@@ -573,7 +603,7 @@ tm.reset();
             for (row = 0; row < len; row++)
             {
                 /* find the scale factor */
-                float scale = 0;
+                real scale = 0;
 
                 for (j = 0; j < len; j++)
                 {
@@ -587,7 +617,7 @@ tm.reset();
 
                 for (i = 0; i < bytes; i++)
                 {
-                    float sum = 0;
+                    real sum = 0;
 
                     src_p1 = src_p++;
 
@@ -600,7 +630,7 @@ tm.reset();
                         src_p1 += bytes;
                     }
 
-                    *dest++ = (unsigned char) ROUND (sum / scale);
+                    *dest++ = DIVIDE (sum , scale);
                 }
             }
         }
@@ -610,16 +640,16 @@ tm.reset();
             for (row = 0; row < cmatrix_middle; row++)
             {
                 // find scale factor
-                float scale = 0;
+                real scale = 0;
 
                 for (j = cmatrix_middle - row; j < cmatrix_length; j++)
-                scale += cmatrix[j];
+                    scale += cmatrix[j];
 
                 src_p = src;
 
                 for (i = 0; i < bytes; i++)
                 {
-                    float sum = 0;
+                    real sum = 0;
 
                     src_p1 = src_p++;
 
@@ -629,7 +659,7 @@ tm.reset();
                         src_p1 += bytes;
                     }
 
-                    *dest++ = (unsigned char) ROUND (sum / scale);
+                    *dest++ = DIVIDE (sum , scale);
                 }
             }
 
@@ -640,7 +670,7 @@ tm.reset();
 
                 for (i = 0; i < bytes; i++)
                 {
-                    float sum = 0;
+                    real sum = 0;
 
                     cmatrix_p = cmatrix;
                     src_p1 = src_p;
@@ -654,7 +684,7 @@ tm.reset();
                     }
 
                     src_p++;
-                    *dest++ = (unsigned char) ROUND (sum);
+                    *dest++ = ROUND (sum);
                 }
             }
 
@@ -662,7 +692,7 @@ tm.reset();
             for (; row < len; row++)
             {
                 // find scale factor
-                float scale = 0;
+                real scale = 0;
 
                 for (j = 0; j < len - row + cmatrix_middle; j++)
                 scale += cmatrix[j];
@@ -671,7 +701,7 @@ tm.reset();
 
                 for (i = 0; i < bytes; i++)
                 {
-                    float sum = 0;
+                    real sum = 0;
 
                     src_p1 = src_p++;
 
@@ -681,20 +711,20 @@ tm.reset();
                         src_p1 += bytes;
                     }
 
-                    *dest++ = (unsigned char) ROUND (sum / scale);
+                    *dest++ = DIVIDE (sum, scale);
                 }
             }
         }
     }
 
     // generates a 1-D convolution matrix to be used for each pass of a two-pass gaussian blur.  Returns the length of the matrix.
-    static int makeConvolveMatrix (float radius, float **cmatrix_p)
+    static int makeConvolveMatrix (float radius, real **cmatrix_p)
     {
-      float *cmatrix;
+      real  *cmatrix;
       float  std_dev;
       float  sum;
-      int     matrix_length;
-      int     i, j;
+      int    matrix_length;
+      int    i, j;
 
       /* we want to generate a matrix that goes out a certain radius
        * from the center, so we have to go out ceil(rad-0.5) pixels,
@@ -706,17 +736,17 @@ tm.reset();
        * the standard deviation, and the radius of effect is the
        * standard deviation * 2.  It's a little confusing.
        */
-      radius = fabs (radius) + (float)1.0;
+      radius = fabs (radius) + 1.f;
 
       std_dev = radius;
       radius = std_dev * 2;
 
       // go out 'radius' in each direction
-      matrix_length = (int)(2 * ceil (radius - (float)0.5f) + 1);
+      matrix_length = (int)(2 * ceil(radius - 0.5f) + 1);
       if (matrix_length <= 0)
         matrix_length = 1;
 
-      *cmatrix_p = new float[matrix_length];
+      *cmatrix_p = new real[matrix_length];
       cmatrix = *cmatrix_p;
 
       /*  Now we fill the matrix by doing a numeric integration approximation
@@ -729,18 +759,18 @@ tm.reset();
       // first we do the top (right) half of matrix
       for (i = matrix_length / 2 + 1; i < matrix_length; i++)
         {
-          float base_x = i - (matrix_length / 2) - (float)0.5;
+          float base_x = i - (matrix_length / 2) - 0.5f;
 
-          sum = 0;
+          sum = 0.f;
           for (j = 1; j <= 50; j++)
             {
-              float r = base_x + (float)0.02f * j;
+              float r = base_x + (real)0.02f * j;
 
               if (r <= radius)
-                sum += exp (- SQR (r) / (2 * SQR (std_dev)));
+                sum += exp(float (- SQR (r) / (2 * SQR (std_dev))));
             }
 
-          cmatrix[i] = sum / 50;
+          cmatrix[i] = float2real(sum / 50);
         }
 
       // mirror the thing to the bottom half
@@ -749,19 +779,19 @@ tm.reset();
 
       // find center val -- calculate an odd number of quanta to make it symmetric,
       // even if the center point is weighted slightly higher than others.
-      sum = 0;
+      sum = 0.f;
       for (j = 0; j <= 50; j++)
-        sum += exp (- SQR (- (float)0.5f + (float)0.02f * j) / (2 * SQR (std_dev)));
+        sum += exp(float (- SQR (- 0.5f + 0.02f * j) / (2 * SQR (std_dev))));
 
-      cmatrix[matrix_length / 2] = sum / 51;
+      cmatrix[matrix_length / 2] = float2real(sum / 51);
 
       // normalize the distribution by scaling the total sum to one
-      sum = 0;
+      sum = 0.f;
       for (i = 0; i < matrix_length; i++)
-        sum += cmatrix[i];
+        sum += real2float(cmatrix[i]);
 
       for (i = 0; i < matrix_length; i++)
-        cmatrix[i] = cmatrix[i] / sum;
+        cmatrix[i] = float2real(real2float(cmatrix[i]) / sum);
 
       return matrix_length;
     }
@@ -770,16 +800,16 @@ tm.reset();
     // generates a lookup table for every possible product of 0-255 and
     //   each value in the convolution matrix.  The returned array is
     //   indexed first by matrix position, then by input multiplicand (?) value.
-    static float* makeLookupTable (const float *cmatrix, int cmatrix_length)
+    static real* makeLookupTable (const real *cmatrix, int cmatrix_length)
     {
-      float       *lookup_table   = new float [cmatrix_length * 256];
-      float       *lookup_table_p = lookup_table;
-      const float *cmatrix_p      = cmatrix;
+      real       *lookup_table   = new real [cmatrix_length * 256];
+      real       *lookup_table_p = lookup_table;
+      const real *cmatrix_p      = cmatrix;
 
       for (int i = 0; i < cmatrix_length; i++)
         {
           for (int j = 0; j < 256; j++)
-            *(lookup_table_p++) = *cmatrix_p * (float) j;
+            *(lookup_table_p++) = *cmatrix_p * j;
 
           cmatrix_p++;
         }
@@ -792,13 +822,13 @@ tm.reset();
     // a subregion to act upon.  Everything outside the subregion is unaffected.
 
     static void unsharpRegion (const unsigned char* srcPR, unsigned char* destPR, int bytes,
-                                float radius, float amount, int threshold, int x1, int x2, int y1, int y2)
+                               float radius, float amount, int threshold, int x1, int x2, int y1, int y2)
     {
         int     width   = x2 - x1 + 1;
         int     height  = y2 - y1 + 1;
-        float *cmatrix = 0;
+        real    *cmatrix = 0;
         int     cmatrix_length;
-        float *ctable  = 0;
+        real    *ctable  = 0;
         int     row, col;
  
         // generate convolution matrix and make sure it's smaller than each dimension
