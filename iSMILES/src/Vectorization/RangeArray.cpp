@@ -3,55 +3,55 @@
 
 namespace gga
 {
-	RangeArray::RangeArray(const Points& src)
-	{
-		Bounds b(src);
+    RangeArray::RangeArray(const Points& src)
+    {
+        Bounds b(src);
 
-		Left = b.getLeft();
-		Top = b.getTop();		
+        Left = b.getLeft();
+        Top = b.getTop();       
 
-		size_t w, h;
-		if (b.getHeight() >= b.getWidth())
-		{
-			h = b.getHeight();
-			w = b.getWidth();
-			InvertedAxis = false;
-		}
-		else
-		{
-			h = b.getWidth();
-			w = b.getHeight();
-			InvertedAxis = true;		
-		}
-		// now h > w.
-		
-		resize(h);
-		// fill default values:
-		for (size_t u = 0; u < size(); u++)
-		{
-			at(u).L = w;
-			at(u).R = 0;
-		}
-		
-		for (Points::const_iterator it = src.begin(); it != src.end(); it++)
-		{
-			Coord i_w = it->X - Left;
-			Coord i_h = it->Y - Top;
-			
-			if (InvertedAxis)
-			{
-				Coord t = i_w;
-				i_w = i_h;
-				i_h = t;
-			}
-			// now max(i_h) > max(i_w).
-			
-			if (i_w < at(i_h).L)
-				at(i_h).L = i_w;
-			if (i_w > at(i_h).R)
-				at(i_h).R = i_w;
-		}
-	}
+        size_t w, h;
+        if (b.getHeight() >= b.getWidth())
+        {
+            h = b.getHeight();
+            w = b.getWidth();
+            InvertedAxis = false;
+        }
+        else
+        {
+            h = b.getWidth();
+            w = b.getHeight();
+            InvertedAxis = true;        
+        }
+        // now h > w.
+        
+        resize(h);
+        // fill default values:
+        for (size_t u = 0; u < size(); u++)
+        {
+            at(u).L = w;
+            at(u).R = 0;
+        }
+        
+        for (Points::const_iterator it = src.begin(); it != src.end(); it++)
+        {
+            Coord i_w = it->X - Left;
+            Coord i_h = it->Y - Top;
+            
+            if (InvertedAxis)
+            {
+                Coord t = i_w;
+                i_w = i_h;
+                i_h = t;
+            }
+            // now max(i_h) > max(i_w).
+            
+            if (i_w < at(i_h).L)
+                at(i_h).L = i_w;
+            if (i_w > at(i_h).R)
+                at(i_h).R = i_w;
+        }
+    }
     
     Point RangeArray::coordToPoint(Coord x, Coord y) const
     {

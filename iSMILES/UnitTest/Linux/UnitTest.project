@@ -107,6 +107,8 @@
     <File Name="../../src/Vectorization/TriangleRecognize.cpp"/>
     <File Name="../../src/Vectorization/VertexRegroup.h"/>
     <File Name="../../src/Vectorization/VertexRegroup.cpp"/>
+    <File Name="../../src/Vectorization/SegmentParams.h"/>
+    <File Name="../../src/Vectorization/SegmentParams.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Common">
     <File Name="../../src/Parameters.h"/>

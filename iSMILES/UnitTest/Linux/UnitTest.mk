@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=sic
-Date                   :=23.11.2010
+Date                   :=25.11.2010
 CodeLitePath           :="/home/sic/.codelite"
 LinkerName             :=g++
 ArchiveTool            :=ar rcus
@@ -49,7 +49,7 @@ LibPath                := "$(LibraryPathSwitch)."
 ##
 CodeLiteDir:=/usr/share/codelite
 Objects=$(IntermediateDirectory)/UnitTest_main$(ObjectSuffix) $(IntermediateDirectory)/UnitTest_Draw$(ObjectSuffix) $(IntermediateDirectory)/Image_FilePNG$(ObjectSuffix) $(IntermediateDirectory)/Image_ImageFilter$(ObjectSuffix) $(IntermediateDirectory)/Image_Image$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_ImageMap$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Bounds$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_LinearApproximation$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_RangeArray$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Contour$(ObjectSuffix) \
-	$(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_VertexRegroup$(ObjectSuffix) 
+	$(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_VertexRegroup$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_SegmentParams$(ObjectSuffix) 
 
 ##
 ## Main Build Targets 
@@ -173,6 +173,14 @@ $(IntermediateDirectory)/Vectorization_VertexRegroup$(DependSuffix): ../../src/V
 $(IntermediateDirectory)/Vectorization_VertexRegroup$(PreprocessSuffix): ../../src/Vectorization/VertexRegroup.cpp
 	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Vectorization_VertexRegroup$(PreprocessSuffix) "/home/sic/iSMILES/src/Vectorization/VertexRegroup.cpp"
 
+$(IntermediateDirectory)/Vectorization_SegmentParams$(ObjectSuffix): ../../src/Vectorization/SegmentParams.cpp $(IntermediateDirectory)/Vectorization_SegmentParams$(DependSuffix)
+	$(CompilerName) $(SourceSwitch) "/home/sic/iSMILES/src/Vectorization/SegmentParams.cpp" $(CmpOptions) $(ObjectSwitch)$(IntermediateDirectory)/Vectorization_SegmentParams$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Vectorization_SegmentParams$(DependSuffix): ../../src/Vectorization/SegmentParams.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) -MT$(IntermediateDirectory)/Vectorization_SegmentParams$(ObjectSuffix) -MF$(IntermediateDirectory)/Vectorization_SegmentParams$(DependSuffix) -MM "/home/sic/iSMILES/src/Vectorization/SegmentParams.cpp"
+
+$(IntermediateDirectory)/Vectorization_SegmentParams$(PreprocessSuffix): ../../src/Vectorization/SegmentParams.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Vectorization_SegmentParams$(PreprocessSuffix) "/home/sic/iSMILES/src/Vectorization/SegmentParams.cpp"
+
 
 -include $(IntermediateDirectory)/*$(DependSuffix)
 ##
@@ -218,6 +226,9 @@ clean:
 	$(RM) $(IntermediateDirectory)/Vectorization_VertexRegroup$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_VertexRegroup$(DependSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_VertexRegroup$(PreprocessSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_SegmentParams$(ObjectSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_SegmentParams$(DependSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_SegmentParams$(PreprocessSuffix)
 	$(RM) $(OutputFile)
 
 

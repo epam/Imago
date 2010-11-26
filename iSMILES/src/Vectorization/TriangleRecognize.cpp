@@ -2,7 +2,7 @@
 
 namespace gga
 {
-    TriangleRecognition::TriangleRecognition(const Polyline& line, const ImageMap& img_map)
+    TriangleRecognize::TriangleRecognize(const Polyline& line, const ImageMap& img_map)
     : Good(false), Filled(false), Deviation(0.0)
     {
         if (line.size() == 3)

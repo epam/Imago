@@ -1,5 +1,7 @@
 #pragma once
 
+#define DEBUG
+
 namespace gga
 {
     class Parameters
@@ -15,10 +17,10 @@ namespace gga
         /* update line width value */
         void setLineWidth(unsigned int value) { LineWidth = value; }
         
-        /* average ink line width in pixels */
+        /* average ink line width, pixels */
         unsigned int getLineWidth() const { return LineWidth; }
 
-        /* all coherent image parts with area less that constant will be ignored, pixels */
+        /* minimal consistent line length, pixels */
         unsigned int getMinimalLineLength() const { return 4 * LineWidth; }
 
         /* all coherent image parts with area less that constant will be ignored, pixels^2 */

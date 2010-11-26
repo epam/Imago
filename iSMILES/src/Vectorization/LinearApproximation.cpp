@@ -2,9 +2,6 @@
 #include "LinearApproximation.h"
 #include "../Parameters.h"
 #include "../Histogram.h"
-
-#define NO_DEBUG
-
 #ifdef DEBUG
 #include <stdio.h> // printf "log"
 #endif
@@ -16,25 +13,25 @@
 
 namespace gga
 {
-	LinearApproximation::LinearApproximation(const RangeArray& ranges)
-	: Good(false), StdDev(0.0), Ranges(ranges)
-	{        
+    LinearApproximation::LinearApproximation(const RangeArray& ranges)
+    : Good(false), StdDev(0.0), Ranges(ranges)
+    {        
         /* calculate df(f) values histogram */
         Histogram<size_t, double> hist;
-		for (size_t y = 0; y < Ranges.size(); y++)
-		{
+        for (size_t y = 0; y < Ranges.size(); y++)
+        {
             RangeArray::const_iterator it = Ranges.begin() + y;
-			RangeArray::const_iterator it2 = it;
+            RangeArray::const_iterator it2 = it;
             unsigned int step = GlobalParams.getLinearApproximationStep();
-			for (size_t u = 0; it2 != Ranges.end() && u < step; u++)
-				it2++;
-				
-			if (it2 == Ranges.end())
-				break;
-			
-			double coef = (double)(it2->mid() - it->mid()) / (double)step;
+            for (size_t u = 0; it2 != Ranges.end() && u < step; u++)
+                it2++;
+                
+            if (it2 == Ranges.end())
+                break;
+            
+            double coef = (double)(it2->mid() - it->mid()) / (double)step;
             hist.add(y, coef);
-		}
+        }
         
         if (hist.empty())
             return;
@@ -105,9 +102,13 @@ namespace gga
         #endif
 
         
-        { /* create default result */ 
-            int last = Ranges.size()-1;
-            ResultLine = Line(Ranges.coordToPoint(Shift, 0), Ranges.coordToPoint(Shift + Coef*last, last));        
+        { /* construct default result line */ 
+            int first = 0, last = Ranges.size()-1;
+            while (Shift + Coef*first < 0)
+                first++;
+            while (Shift + Coef*last < 0 && last > first)
+                last--;                
+            ResultLine = Line(Ranges.coordToPoint(Shift + Coef*first, first), Ranges.coordToPoint(Shift + Coef*last, last));        
         }
 
         Histogram<size_t, double> hist_d2;
@@ -194,5 +195,5 @@ namespace gga
             if (recurse_level == 0)
                 figure_num++;
         #endif
-	}
+    }
 }

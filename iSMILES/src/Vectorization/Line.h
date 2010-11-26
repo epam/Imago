@@ -34,4 +34,6 @@ namespace gga
             return true;
         }
     };
+    
+    typedef std::vector<Polyline> Polylines;
 }

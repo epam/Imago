@@ -3,19 +3,19 @@
 
 namespace gga
 {
-	Contour::Contour(const Image& img, ImageMap& map, const Point& start)
+    Contour::Contour(const Image& img, ImageMap& map, const Point& start)
     : SourceImage(img), CurrentImageMap(map), OuterContour(NULL)
-	{
+    {
         bool doneSomething = true;
         
         // 1. construct contour
         Point p = start;        
-		for (int iter = 0; doneSomething; iter++)
-		{
-			size_t count = size();
-			passDownLeft(p, iter % 2 == 1);
+        for (int iter = 0; doneSomething; iter++)
+        {
+            size_t count = size();
+            passDownLeft(p, iter % 2 == 1);
             doneSomething = size() > count;
-		}
+        }
         
         // 2. now fill all map points related to contour
         const Bounds b(*this);
@@ -65,76 +65,76 @@ namespace gga
                 }                
             }
         }
-	}
-	
+    }
+    
 
-	Point Contour::movePoint(const Point& src, int x, int y, bool RotatedAxis)
-	{
-		Point p = src;
-		if (RotatedAxis)
-		{
-			x = -x;
-			y = -y;
-		}
-		p.X += x;
-		p.Y += y;
-		return p;
-	}
-	
-	Point Contour::commitPoint(const Point& p)
-	{
-		if (!CurrentImageMap.isAssigned(p) && SourceImage.isFilled(p))
-		{
-			CurrentImageMap.assignSegment(p, this);
-			push_back(p);
-		}
-		return p;
-	}
+    Point Contour::movePoint(const Point& src, int x, int y, bool RotatedAxis)
+    {
+        Point p = src;
+        if (RotatedAxis)
+        {
+            x = -x;
+            y = -y;
+        }
+        p.X += x;
+        p.Y += y;
+        return p;
+    }
+    
+    Point Contour::commitPoint(const Point& p)
+    {
+        if (!CurrentImageMap.isAssigned(p) && SourceImage.isFilled(p))
+        {
+            CurrentImageMap.assignSegment(p, this);
+            push_back(p);
+        }
+        return p;
+    }
 
-	void Contour::passDownLeft(Point& p, bool RotatedAxis)
-	{
-		while (SourceImage.isInside(p))
-		{
-			commitPoint(p);
+    void Contour::passDownLeft(Point& p, bool RotatedAxis)
+    {
+        while (SourceImage.isInside(p))
+        {
+            commitPoint(p);
 
-			// step one point down
-			p = movePoint(p, 0,1, RotatedAxis);
+            // step one point down
+            p = movePoint(p, 0,1, RotatedAxis);
 
-			// select one of neighbors which is filled, prefer left one...
-			Point left = movePoint(p, -1,0, RotatedAxis);
-			if (SourceImage.isFilled(left))
-			{
-				p = commitPoint(left);
-				// ...and shift left as many as possible
-				while (SourceImage.isInside(p))
-				{
-					Point left = movePoint(p, -1,0, RotatedAxis);
-					if (!SourceImage.isFilled(left))
-						break; // no more left neighbors
-				
-					p = commitPoint(left);
-				
-					Point up = movePoint(p, 0,-1, RotatedAxis);
-					if (SourceImage.isFilled(up))
-						return; // crossed inside area
-				}	
-			}
-			else
-			{
-				// selection still unfilled...
-				while (SourceImage.isInside(p) && !SourceImage.isFilled(p))
-				{
-					// ...shift right by connected points and test again
-					Point right = movePoint(p, 1,0, RotatedAxis);
-					Point rightUp = movePoint(right, 0,-1, RotatedAxis);
-					if (!SourceImage.isFilled(rightUp))
-						return; // no more bottom right neighbors
-					commitPoint(rightUp);
-					p = commitPoint(right);
-				}
-			}
-		}
-	}
+            // select one of neighbors which is filled, prefer left one...
+            Point left = movePoint(p, -1,0, RotatedAxis);
+            if (SourceImage.isFilled(left))
+            {
+                p = commitPoint(left);
+                // ...and shift left as many as possible
+                while (SourceImage.isInside(p))
+                {
+                    Point left = movePoint(p, -1,0, RotatedAxis);
+                    if (!SourceImage.isFilled(left))
+                        break; // no more left neighbors
+                
+                    p = commitPoint(left);
+                
+                    Point up = movePoint(p, 0,-1, RotatedAxis);
+                    if (SourceImage.isFilled(up))
+                        return; // crossed inside area
+                }   
+            }
+            else
+            {
+                // selection still unfilled...
+                while (SourceImage.isInside(p) && !SourceImage.isFilled(p))
+                {
+                    // ...shift right by connected points and test again
+                    Point right = movePoint(p, 1,0, RotatedAxis);
+                    Point rightUp = movePoint(right, 0,-1, RotatedAxis);
+                    if (!SourceImage.isFilled(rightUp))
+                        return; // no more bottom right neighbors
+                    commitPoint(rightUp);
+                    p = commitPoint(right);
+                }
+            }
+        }
+    }
 }
 
 

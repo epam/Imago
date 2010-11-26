@@ -24,7 +24,7 @@ namespace gga
             if (empty())
                 return result;
             
-			std::vector<bool> processed(size);
+            std::vector<bool> processed(size);
             for (size_t u = 0; u < size; u++)
                 processed[u] = false;
             
@@ -109,10 +109,10 @@ namespace gga
             return result;
         }
         
-        /* add value /v/ for index /i/ */
-        void add(index_t i, value_t v)
+        /* add value for specified index */
+        void add(index_t index, value_t value)
         {
-            Data[v].push_back(i);
+            Data[value].push_back(index);
         }
         
         /* real average value */

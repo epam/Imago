@@ -6,7 +6,7 @@
 
 namespace gga
 {
-    class TriangleRecognition
+    class TriangleRecognize
     {
         bool Good;
         bool Filled;
@@ -14,7 +14,7 @@ namespace gga
         Triangle Result;
       
     public:
-        TriangleRecognition(const Polyline& line, const ImageMap& img_map);
+        TriangleRecognize(const Polyline& line, const ImageMap& img_map);
         
         bool isGood() const { return Good; }
         bool isFilled() const { return Filled; }

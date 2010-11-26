@@ -1,27 +1,31 @@
 #include "Vectorize.h"
 #include "../Parameters.h"
+#include "SegmentParams.h"
+#ifdef DEBUG
+#include <stdio.h> // printf "log"
+#endif
 
 namespace gga
 {
-	Vectorize::Vectorize(const Image& image) 
-				: SourceImage(image), 
-				  Imagemap(image.getWidth(), image.getHeight())
-	{
-		// step 1. line-by-line scan to extract contours of objects
-		Point p(0,0);
-		for (p.Y = 0; p.Y < SourceImage.getHeight(); p.Y++)
-		{
-			for (p.X = 0; p.X < SourceImage.getWidth(); p.X++)
-			{
-				if (SourceImage.isFilled(p) && !Imagemap.isAssigned(p))
+    Vectorize::Vectorize(const Image& image) 
+                : SourceImage(image), 
+                  Imagemap(image.getWidth(), image.getHeight())
+    {
+        // step 1. line-by-line scan to extract contours of objects
+        Point p(0,0);
+        for (p.Y = 0; p.Y < SourceImage.getHeight(); p.Y++)
+        {
+            for (p.X = 0; p.X < SourceImage.getWidth(); p.X++)
+            {
+                if (SourceImage.isFilled(p) && !Imagemap.isAssigned(p))
                 {
                     // that pixel is unprocessed yet, so extract the contour starting from it
                     Contour* c = new Contour(SourceImage, Imagemap, p);
                     // add new contour
                     Contours.push_back(c);
                 }
-			} // for x
-		} //for y
+            } // for x
+        } //for y
         
         // step 2. extract consistent parts only
         for (size_t u = 0; u < Contours.size(); u++)
@@ -43,14 +47,21 @@ namespace gga
                 u++;
         }
         
-        // step 4. regroup lines
+        // step 4.1. extract some segment params
+        SegmentParams segParams(RecLines);
+        #ifdef DEBUG
+            printf("[i] Average line length: %ipx; Image rotation required: %i*\n", 
+                segParams.getAverageLineLength(), segParams.getCompensationAngle());
+        #endif
+        
+        // step 4.2. regroup lines
         VertexRegroup regroup(RecLines);
         RecLines = regroup.getResult();
         
         // step 5. extract triangles
         for (size_t u = 0; u < RecLines.size(); )
         {
-            TriangleRecognition triangle(RecLines[u], Imagemap);
+            TriangleRecognize triangle(RecLines[u], Imagemap);
             if (triangle.isGood())
             {
                 RecTriangles.push_back(triangle.getTriangle());
@@ -60,12 +71,12 @@ namespace gga
                 u++;
         }        
         // that's all.
-	}
-	
-	Vectorize::~Vectorize()
-	{
-		for (size_t u = 0; u < Contours.size(); u++)
-			delete Contours[u];
-	}
+    }
+    
+    Vectorize::~Vectorize()
+    {
+        for (size_t u = 0; u < Contours.size(); u++)
+            delete Contours[u];
+    }
 }
 
