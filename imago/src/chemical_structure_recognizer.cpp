@@ -123,51 +123,16 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       TIME(_processFilter(), "Image processing");
 
-      //Super segmentation is evil
-      TIME(Segmentator::segmentate(_origImage, segments, rs["SuperSegWndSize"]),
-         "Super segmentation"); 
+      //Notice, that there is no supersegmentation procedure
+      Image &_img = _origImage;
 
-      if (segments.empty())
-      {
-         LPRINT(0, "Image is empty");
-         return;
-      }
-
-      int max = 0;
-      Segment *ind = 0;
-
-      BOOST_FOREACH( Segment *s, segments )
-      {
-         if (s->getWidth() * s->getHeight() > max)
-         {
-            max = s->getWidth() * s->getHeight();
-            ind = s;
-         }
-      }
-
-      //Paranoia
-      if (ind == 0)
-      {
-         throw NullPointerException();
-      }
-
-      Image _img;
-      _img.copy(*ind);
-
-      //TODO: Totally debug!!!
       rs.set("imgHeight", _img.getHeight());
       rs.set("imgWidth", _img.getWidth());
-      //
 
       if (rs["DebugSession"])
       {
          ImageUtils::saveImageToFile(_img, "output/real_img.png");
       }
-
-      //TODO: Other segments should be processed
-      BOOST_FOREACH( Segment *s, segments )
-         delete s;
-      segments.clear();
 
       TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
 
@@ -175,6 +140,8 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       TIME(wbe.singleDownFetch(mol), "Fetching single-down bonds");
 
       Separator sep(segments, _img);
+      rs.set("SymHeightErr", 42);      
+      rs.set("MaxSymRatio", 1.4);      
       TIME(sep.firstSeparation(layer_symbols, layer_graphics), 
          "Symbols/Graphics elements separation");
       LPRINT(0, "Symbols: %i, Graphics: %i", layer_symbols.size(), 
@@ -251,9 +218,9 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       LPRINT(0, "Compound recognized with #%i config", (int)rs["CfgNumber"] + 1);
 
-      BOOST_FOREACH( Segment *s, layer_symbols)
+      BOOST_FOREACH( Segment *s, layer_symbols )
          delete s;
-      BOOST_FOREACH( Segment *s, layer_graphics)
+      BOOST_FOREACH( Segment *s, layer_graphics )
          delete s;
 
       LPRINT(1, "Recognition finished");
