@@ -3,6 +3,7 @@
 #include <vector>
 #include <list>
 
+#include "skeleton.h"
 #include "molecule.h"
 #include "vec2d.h"
 #include "algebra.h"
@@ -29,6 +30,7 @@
 #include "molfile_saver.h"
 #include "session_manager.h"
 #include "current_session.h"
+#include "graphics_detector.h"
 
 using namespace imago;
 
@@ -360,6 +362,70 @@ void makeFont( const char *name )
   }
 }
 
+void testVectorization( const char *name )
+{
+   try
+   {
+      const char *filename;
+      filename = name?name:"../../../../flamingo_test/sep/1.png";
+      qword sid = SessionManager::getInstance().allocSID();
+      SessionManager::getInstance().setSID(sid);
+
+      getSettings()["DebugSession"] = true;
+      
+      Image img;
+      ImageUtils::loadImageFromFile(img, filename);
+      LPRINT(0, "Start");
+
+      Points lsegments;
+      LMARK;
+      GraphicsDetector gd;
+      gd.detect(img, lsegments);
+      LPRINT(1, "Vectorization");
+      
+      Image img2;
+      img2.emptyCopy(img);
+      img2.fillWhite();
+      double avg_size = 0;
+      for (int i = 0; i < (int)lsegments.size() / 2; i++)
+      {
+         const Vec2d &p1 = lsegments[2 * i];
+         const Vec2d &p2 = lsegments[2 * i + 1];
+
+         ImageDrawUtils::putLineSegment(img2, p1, p2, 0);
+         avg_size += Vec2d::distance(p1, p2);
+      }
+
+      avg_size /= (lsegments.size() / 2);
+      
+      LMARK;
+      Skeleton graph;
+      graph.setInitialAvgBondLength(avg_size);
+
+      for (int i = 0; i < (int)lsegments.size() / 2; i++)
+      {
+         const Vec2d &p1 = lsegments[2 * i];
+         const Vec2d &p2 = lsegments[2 * i + 1];
+         
+         graph.addBond(p1, p2);
+      }
+
+      TIME(graph.modifyGraph(), "ololo");
+      
+      LPRINT(1, "Other");
+
+      
+      ImageUtils::saveImageToFile(img2, "output/vect.png");
+      img2.fillWhite();
+      ImageDrawUtils::putGraph(img2, graph.getGraph());
+      ImageUtils::saveImageToFile(img2, "output/vect2.png");
+   }
+   catch (Exception &e)
+   {
+      puts(e.what());
+   }
+}
+
 int main(int argc, char **argv)
 {
    //graphTest();
@@ -395,8 +461,9 @@ int main(int argc, char **argv)
    //num = readCL(argc, argv);
 
    //testContour();
-   testRecognizer(num);
+   //testRecognizer(num);
    //testOCR(argv[1]);
    //makeFont(argv[1]);
+   testVectorization(argv[1]);
    return 0;
 }

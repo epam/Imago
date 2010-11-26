@@ -275,7 +275,7 @@ void GraphicsDetector::detect( const Image &img, Points &lsegments )
    tmp.copy(img);
 
    ThinFilter2 tf2(tmp);
-   tf2.apply();
+   TIME(tf2.apply(), "Thinning");
    _decorner(tmp);
 
    Segmentator::segmentate(tmp, segs);

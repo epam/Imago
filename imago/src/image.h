@@ -51,6 +51,7 @@ namespace imago
       const byte &getByte( int i, int j ) const;
       const byte &operator[]( int i ) const;
       byte &operator[]( int i );
+      byte *getData() { return _data; }
 
       //Copy
       void copy( const Image &other );
