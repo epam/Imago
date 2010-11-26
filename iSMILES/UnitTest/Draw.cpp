@@ -31,12 +31,19 @@ namespace gga
             
             Bounds b(pts);
             Image result;
-            result.setSize(b.getWidth(), b.getHeight(), IT_BW);
             
             LineDefinition def = LineDefinition(127, GlobalParams.getLineWidth());
+            
+            result.setSize(b.getWidth() + def.Width * 2, b.getHeight() + def.Width * 2, IT_BW);
+            
+            
             for (size_t u = 0; u < line.size() - 1; u++)
             {
-                result.drawLine(line[u].X - b.getLeft(), line[u].Y - b.getTop(), line[u+1].X - b.getLeft(), line[u+1].Y - b.getTop(), def);
+                result.drawLine(line[u].X - b.getLeft() + def.Width, 
+                                line[u].Y - b.getTop() + def.Width, 
+                                line[u+1].X - b.getLeft() + def.Width, 
+                                line[u+1].Y - b.getTop() + def.Width, 
+                                def);
             }
             
             return result;
