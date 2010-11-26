@@ -13,7 +13,7 @@
  ***************************************************************************/
 
 /**
- * @file morphology_filter.h
+ * @file thin_filter2.h
  *
  * @brief   Declares the thinning filter class
  */
@@ -28,7 +28,6 @@ namespace imago
    class ThinFilter2 : public Filter
    {
    public:
-
       ThinFilter2( Image &I );
       void apply();
       ~ThinFilter2();
@@ -37,6 +36,9 @@ namespace imago
       ThinFilter2( const ThinFilter2& );
       byte get( int x, int y );
       void set( int x, int y, byte val );
+      int width, height;
+      byte *data;
+      std::vector<byte *> scanlines;
    };
 }
 
