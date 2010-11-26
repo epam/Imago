@@ -106,6 +106,9 @@ void PngLoader::loadImage( Image &I )
    if (png_get_valid(png, info, PNG_INFO_tRNS))
       png_set_tRNS_to_alpha(png);
 
+   //if (bit_depth == 16)
+     
+
    /*
    png_color_16 my_background;
    my_background.red = my_background.green = my_background.blue = 255;
@@ -141,6 +144,13 @@ void PngLoader::loadImage( Image &I )
          {
             r = g = b = data[i][j];
             I.getByte(j, i) = (byte)(0.299f * r + 0.114f * b + 0.587f * g);
+         }
+         else if (info->pixel_depth == 16)
+         {
+            int color = 
+               (((data[i][2 * j] << 8) | data[i][2 * j + 1]) / (double)((1 << 16) - 1)) * 255.0;
+
+            I.getByte(j, i) = (byte)(color);
          }
          else if (info->pixel_depth == 24)
          {
