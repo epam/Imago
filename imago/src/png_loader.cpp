@@ -86,11 +86,11 @@ void PngLoader::loadImage( Image &I )
       throw Exception("Error creating png info struct");
    }
 
-   if (setjmp(png_jmpbuf(png)))
+ /*  if (setjmp(png_jmpbuf(png)))
    {
       png_destroy_read_struct(&png, &info, &end_info);
       throw Exception("Png error");
-   }
+   }*/
 
    png_set_read_fn(png, &_scan, _reader);
 

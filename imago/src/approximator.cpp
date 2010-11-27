@@ -31,15 +31,16 @@ void Approximator::apply( const Points &input,Points &output )
    output.clear();
 
    _prepare(input, sample);
-/*
-   for (int i = 0; i < (int)sample.size(); i++)
+
+/*   for (int i = 0; i < (int)sample.size(); i++)
    {
       output.push_back(input[sample[i]]);
    }
    output.push_back(input.back());
 
    return;
-*/ 
+printf("wow");*/
+ 
    lines.resize(sample.size() - 1);
    for (int i = 0; i < (int)sample.size() - 1; i++)
    {
