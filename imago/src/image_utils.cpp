@@ -70,7 +70,7 @@ bool ImageUtils::testSlashLine( Segment &img, double *angle, double eps )
    thetha = PI_2 + atan2((double)img.getHeight(), (double)img.getWidth());
    r = 0;
    density = tmp.density();
-   ImageDrawUtils::putLine(tmp, thetha, r, eps, 200);
+   ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
    density = tmp.density() / density;
    //ImageUtils::saveImageToFile(tmp, "output/origin_orient1.png");
 

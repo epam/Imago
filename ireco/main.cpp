@@ -13,6 +13,7 @@
 #include "../iSMILES/src/Image/Image.h"
 #include "../iSMILES/src/Image/ImageFilter.h"
 #include "../iSMILES/src/Image/Point.h"
+#include "../iSMILES/src/Image/FileJPG.h"
 
 #undef LMARK 
 #undef LPRINT 
@@ -22,25 +23,15 @@
 #define LPRINT imago::getLog().print
 #define TIME(a, msg) do { LMARK; a; LPRINT(1, msg); } while(0);
 
-void processImage( imago::Image &img )
+void convert( gga::Image &a, imago::Image &b )
 {
-   gga::Image img1;
-   
-   img1.setSize(img.getWidth(), img.getHeight());
+   b.init(a.getWidth(), a.getHeight());
+   b.fillWhite();
 
-   for (int i = 0; i < img.getWidth(); i++)
-      for (int j = 0; j < img.getHeight(); j++)
+   for (int i = 0; i < b.getWidth(); i++)
+      for (int j = 0; j < b.getHeight(); j++)
       {
-         img1.setPixel(i, j, gga::Pixel(img.getByte(i, j)));
-      }
-
-   gga::ImageFilter flt(img1); 
-   flt.prepareImageForVectorization();
-
-   for (int i = 0; i < img.getWidth(); i++)
-      for (int j = 0; j < img.getHeight(); j++)
-      {
-         img.getByte(i, j) = img1.getPixel(i, j).Value;
+         b.getByte(i, j) = a.getPixel(i, j).Value;
       }
 }
 
@@ -54,18 +45,28 @@ void recognize( char *Filename )
       rs.set("DebugSession", false);
 
       imago::Image img;
-      imago::ImageUtils::loadImageFromFile(img, Filename);
-      TIME(processImage(img), "iSMILES processing");
+
+      //Load JPG image in iSMILES image structure
+      gga::Image original_img;
+      gga::FileJPG().load(Filename, &original_img);
+
+      //Process image using iSMILES
+      gga::ImageFilter flt(original_img);
+      TIME(flt.prepareImageForVectorization(), "iSMILES processing");
+
+      //Back to imago Image type
+      convert(original_img, img);
 
       if (rs["DebugSession"])
       {
          imago::ImageUtils::saveImageToFile(img, "output/process_result.png");
       }
 
+      //Recognize molecule
       imago::Molecule mol;
-
       imago::ChemicalStructureRecognizer().image2mol(img, mol);
 
+      //Save result
       imago::FileOutput fo("result.mol");
       imago::MolfileSaver ma(fo);
       TIME(ma.saveMolecule(mol), "Saving molecule");
