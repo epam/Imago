@@ -58,11 +58,11 @@ void PngSaver::saveImage( const Image &_img )
       throw Exception("Error creating png info struct");
    }
 
-   if (setjmp(png_jmpbuf(png)))
+/*   if (setjmp(png_jmpbuf(png)))
    {
       png_destroy_write_struct(&png, &info);
       throw Exception("Png error");
-   }  
+   }  */
 
    int w = _img.getWidth(), h = _img.getHeight();
 

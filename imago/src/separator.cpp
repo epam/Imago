@@ -268,7 +268,6 @@ bool Separator::_checkSequence( IntPair &checking, IntPair &symbols_graphics, do
       {
          symbols_graphics.first = 1;
          symbols_graphics.second = 0;
-
          density += _segs[checking.first]->getDensity();
 
          return true;
