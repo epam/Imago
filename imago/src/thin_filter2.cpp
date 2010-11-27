@@ -12,6 +12,8 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
+#include <vector>
+
 #include "thin_filter2.h"
 #include "image.h"
 
@@ -19,6 +21,12 @@ using namespace imago;
 
 ThinFilter2::ThinFilter2( Image &I ) : Filter(I)
 {
+   width = _img.getWidth();
+   height = _img.getHeight();
+   data = _img.getData();
+   scanlines.resize(height);
+   for (int i = 0; i < height; i++)
+      scanlines[i] = data + i * width;
 }
 
 void ThinFilter2::apply()
@@ -66,15 +74,15 @@ void ThinFilter2::apply()
    int p, q;
    int it = 0;
    
-   byte *qb;
+   std::vector<byte> qb;
    int m;
 
-   xsize = _img.getWidth() + 20;
-   ysize = _img.getHeight() + 20;
+   xsize = width + 20;
+   ysize = height + 20;
 
    _img.invert();
 
-   qb = new byte[xsize];
+   qb.resize(xsize);
    qb[xsize - 1] = 0;
 
    while (count && it < 20)
@@ -85,7 +93,6 @@ void ThinFilter2::apply()
       
       for (i = 0; i < 4; i++)
       {
-
          m = masks[i];
 
          p = get(0, 0) != 0;
@@ -134,24 +141,26 @@ void ThinFilter2::apply()
    }
 
    _img.invert();
-   
-   delete[] qb;
 }
 
-byte ThinFilter2::get( int x, int y )
-{  
-   if (x - 10 < 0 || y - 10 < 0 || x - 10 >= _img.getWidth() || y - 10 >= _img.getHeight())
+inline byte ThinFilter2::get( int x, int y )
+{
+   x -= 10;
+   y -= 10;
+   if (x < 0 || y < 0 || x >= width || y >= height)
       return 0;
 
-   return _img.getByte(x - 10, y - 10);
+   return scanlines[y][x];
 }
 
-void ThinFilter2::set( int x, int y, byte val )
+inline void ThinFilter2::set( int x, int y, byte val )
 {
-   if (x - 10 < 0 || y - 10 < 0 || x - 10 >= _img.getWidth() || y - 10 >= _img.getHeight())
+   x -= 10;
+   y -= 10;
+   if (x < 0 || y < 0 || x >= width || y >= height)
       return;
-   
-   _img.getByte(x - 10, y - 10) = val;
+
+   scanlines[y][x] = val;
 }
 
 ThinFilter2::~ThinFilter2()

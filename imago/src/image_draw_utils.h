@@ -49,8 +49,8 @@ namespace imago
            }
            BGL_FORALL_EDGES_T(e, g, EuclideanGraph)
            {
-              Vec2d b_pos = positions[source(e, g)],
-                    e_pos = positions[target(e, g)];
+              Vec2d b_pos = positions[boost::source(e, g)],
+                    e_pos = positions[boost::target(e, g)];
               ImageDrawUtils::putLineSegment(img, b_pos, e_pos, 100);
            }
         }

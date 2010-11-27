@@ -12,7 +12,6 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
-
 #include <windows.h>
 
 #include "thread_local_ptr.h"

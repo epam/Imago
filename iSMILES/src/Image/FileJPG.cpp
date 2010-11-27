@@ -4,7 +4,7 @@
 extern "C"
 {
     #define HAVE_PROTOTYPES
-    #include "../../../libjpeg/jpeglib.h"
+    #include "jpeglib.h"
 }
 #include "FileJPG.h"
 
@@ -78,7 +78,9 @@ namespace gga
 
 		jpeg_set_quality(&cjpeg, quality, TRUE);
 		cjpeg.dct_method = JDCT_FASTEST;
-		jpeg_mem_dest(&cjpeg, dest_image, image_size);  // data written to mem
+		
+      //TODO: What is it? Compile error?.. Why?
+      //jpeg_mem_dest(&cjpeg, dest_image, image_size);  // data written to mem
 
 		jpeg_start_compress (&cjpeg, TRUE);
 

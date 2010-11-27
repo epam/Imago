@@ -72,7 +72,7 @@ bool ImageUtils::testSlashLine( Segment &img, double *angle, double eps )
    density = tmp.density();
    ImageDrawUtils::putLine(tmp, thetha, r, eps, 200);
    density = tmp.density() / density;
-   ImageUtils::saveImageToFile(tmp, "output/origin_orient1.png");
+   //ImageUtils::saveImageToFile(tmp, "output/origin_orient1.png");
 
    if (density < SLASH_LINE_DENSITY)
    {

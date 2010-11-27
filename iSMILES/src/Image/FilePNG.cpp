@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <stdexcept>
-#include "../../../libpng/png.h"
+#include "png.h"
 #include "FilePNG.h"
 
 namespace gga
