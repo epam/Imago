@@ -21,16 +21,16 @@ namespace gga
                     // that pixel is unprocessed yet, so extract the contour starting from it
                     Contour* c = new Contour(SourceImage, Imagemap, p);
                     // add new contour
-                    Contours.push_back(c);
+                    AllContours.push_back(c);
                 }
             } // for x
         } //for y
         
         // step 2. extract consistent parts only
-        for (size_t u = 0; u < Contours.size(); u++)
+        for (size_t u = 0; u < AllContours.size(); u++)
         {
-            if (Bounds(*Contours[u]).getArea() >= GlobalParams.getMinimalConsistentArea())
-                RecOther.push_back(Contours[u]);
+            if (Bounds(*AllContours[u]).getArea() >= GlobalParams.getMinimalConsistentArea())
+                RecOther.push_back(AllContours[u]);
         }
         
         // step 3. extract lines
@@ -67,8 +67,8 @@ namespace gga
     
     Vectorize::~Vectorize()
     {
-        for (size_t u = 0; u < Contours.size(); u++)
-            delete Contours[u];
+        for (size_t u = 0; u < AllContours.size(); u++)
+            delete AllContours[u];
     }
 }
 

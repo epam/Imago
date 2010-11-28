@@ -5,6 +5,7 @@ namespace gga
 {
     class SegmentParams
     {
+        const Polylines& Source;
         size_t AverageLineLength;
         int Rotation;
 
@@ -17,5 +18,9 @@ namespace gga
         
         /* rotate image to returned Grad amount to make vertical/horizontal lines real vertical/horizontal */
         int getCompensationAngle() const { return Rotation; }
+        
+    private:
+        void calcLength();
+        void calcAngle();
     };
 }
