@@ -36,7 +36,10 @@ namespace gga
         // step 3. extract lines
         for (size_t u = 0; u < RecOther.size(); )
         {
-            LinearApproximation line(*RecOther[u]);
+            Contour c = *RecOther[u];
+            // TODO: split contour /c/
+            
+            LinearApproximation line(c);
             if (line.isGood())
             {
                 RecLines.push_back(line.getLine());

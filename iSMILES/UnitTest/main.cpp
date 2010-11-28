@@ -38,9 +38,11 @@ class Tester
         
         void PrepareImage(ImageFilter& flt)
         {
+            Timer timer;
             flt.prepareImageForVectorization();
+            printf("PrepareImageForVectorization taken %f ms\n", 1000.0*timer.getElapsedTime());
             printf("Image cleared '%s': %ix%i pixels\n", ImagePath.c_str(), Image.getWidth(), Image.getHeight());
-            FilePNG().save(std::string(ImagePath) + ".clear.png", Image);            
+            Save("clear", Image);
         }
         
         bool LoadImage()
@@ -83,11 +85,11 @@ class Tester
             SegmentParams segParams(lines);
             int angle = -segParams.getRotationAngle();
             printf("Average line length: %ipx; Image rotation required: %i*\n", segParams.getAverageLineLength(), angle);
-            if ( fabs(angle) > 5 ) // 5* is minimal rotation that will make better
+            if ( fabs(angle) > GlobalParams.getMinimalAllowedRotationAngle() )
             {
                 gga::Image rotated;
                 rotateImage(Image, angle, &rotated);
-                FilePNG().save(std::string(ImagePath) + ".rotate.png", rotated);
+                Save("rotate", rotated);
                 Image = rotated;
             }
         }
@@ -119,7 +121,7 @@ class Tester
 
 int main(int argc, char* argv[])
 {
-    std::string ImagePath = (argc > 1) ? argv[1] : "../../Data/Sample0.png";
+    std::string ImagePath = (argc > 1) ? argv[1] : "../../Data/Sample3_.png";
     
     Tester imgTester(ImagePath);
 

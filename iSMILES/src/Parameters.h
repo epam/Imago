@@ -11,7 +11,10 @@ namespace gga
         Parameters() { setLineWidth(4); }
 
         /* call the prepareImageForVectorization() method? */
-        bool isClearImageRequired() const { return false; }
+        bool isClearImageRequired() const { return true; }
+        
+        /* Minimal allowed rotation angle on rotation correction for text recognize */
+        int getMinimalAllowedRotationAngle() const { return 5; }
 
         // ---------------------- line & area sizes ---------------------- //
         /* update the line width value */
