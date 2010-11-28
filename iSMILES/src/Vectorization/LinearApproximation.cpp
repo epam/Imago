@@ -6,6 +6,8 @@
 #include <stdio.h> // printf "log"
 #endif
 
+// ALL MAGIC CONSTANTS MOVED TO PARAMETERS.H
+
 #define sqr(w)      ((w)*(w))
 #define sign(w)     (((w) < 0) ? -1.0 : ( ((w) > 0) ? 1.0 : 0.0))
 #define min(a,b)    (((a) < (b)) ? (a) : (b))
@@ -45,19 +47,48 @@ namespace gga
             double d = 1.0;
             /* calculate and correct StdDev */
             do {
-                double dev_minus, dev_plus;
+                double dev_minus = 0.0, dev_plus = 0.0;
                 for (int p = -1; p <= 1; p++)
                 {
                     double sqrL = 0.0, sqrR = 0.0;
+                    double maxdL = 0.0, maxdR = 0.0;
+                    int maxuL = 0, maxuR = 0;
+                    bool first = true;
                     for (size_t u = 0; u < Ranges.size(); u++)
                     {
-                        sqrL += sqr( ((Coef+d*p)*u + Shift) - Ranges[u].L );
-                        sqrR += sqr( ((Coef+d*p)*u + Shift) - Ranges[u].R );
+                        double X = (Coef+d*p)*u + Shift;
+                        
+                        double dL = fabs ( X - Ranges[u].L );
+                        if (dL > maxdL)
+                        {
+                            maxdL = dL;
+                            maxuL = u;
+                        }
+                        sqrL += sqr( dL );
+
+                        double dR = fabs ( X - Ranges[u].R );
+                        if (dR > maxdR)
+                        {
+                            maxdR = dR;
+                            maxuR = u;
+                        }                            
+                        sqrR += sqr( dR );
                     }
                     double dev = (sqrt(sqrL) + sqrt(sqrR)) / (Ranges.size() * 2.0);
+                    
                     if (p == -1) dev_minus = dev;
                     else if (p == 1) dev_plus = dev;
                     else /* p == 0 */ StdDev = dev;
+
+                    #ifdef DEBUG
+                        if (iter == 1 && p == 0 && fabs(d) <= 0.0001 * 2)
+                        {
+                            printf("L: %f (%i); %i..%i..%i  |  R: %f (%i); %i..%i..%i \n", 
+                                maxdL, maxuL, Ranges[maxuL].L, (int)((Coef+d)*maxuL + Shift), Ranges[maxuL].R,
+                                maxdR, maxuR, Ranges[maxuR].L, (int)((Coef+d)*maxuR + Shift), Ranges[maxuR].R);                            
+                        }
+                    #endif
+                    
                 }
                 /* select which is better */
                 if (dev_minus < StdDev || dev_plus < StdDev)
@@ -134,21 +165,21 @@ namespace gga
 
             if (it != Indexes.end())
             {
-                int second_gr_idx = *it;
+                int second_gr_idx = *it + 20; // TODO: !!!
                 int total = Ranges.size();
                 
                 #ifdef DEBUG
                     printf("%sFirst group [%i..%i]:\n", prefix, 0, second_gr_idx-1);
                 #endif
                 
-                RangeArray rng1 = Ranges.head(second_gr_idx);
+                RangeArray rng1(Ranges, 0, second_gr_idx);
                 LinearApproximation lin1(rng1); // will be good
                 
                 #ifdef DEBUG
                     printf("%sSecond group [%i..%i]:\n", prefix, second_gr_idx, total);
                 #endif
                 
-                RangeArray rng2 = Ranges.tail(second_gr_idx);
+                RangeArray rng2(Ranges, second_gr_idx);
                 LinearApproximation lin2(rng2); // have to be better than current
                 
                 // TODO: average is not better function for std.dev. comparison

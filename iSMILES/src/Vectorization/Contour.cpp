@@ -1,6 +1,8 @@
 #include "Contour.h"
 #include "Bounds.h"
 
+// NO MAGIC CONSTANTS/PARAMETERS HERE.
+
 namespace gga
 {
     Contour::Contour(const Image& img, ImageMap& map, const Point& start)

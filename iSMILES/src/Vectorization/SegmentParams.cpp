@@ -6,6 +6,8 @@
 #include <stdio.h> // printf "log"
 #endif
 
+// NO MAGIC CONSTANTS/PARAMETERS HERE.
+
 namespace gga
 {
     int SegmentParams::getAngle(const Line& line)
@@ -14,7 +16,7 @@ namespace gga
         double X = line.getEnd().X - line.getBegin().X;
 
         double result = 0.0;
-        if (fabs(Y) < 0.0001)
+        if (fabs(Y) < 0.0001 /* eps */)
             result = (X > 0.0) ? 90.0 : -90.0;
         else
             result = atan(X/Y) / (2*M_PI) * 360.0;

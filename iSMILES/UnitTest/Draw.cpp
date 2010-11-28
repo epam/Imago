@@ -62,10 +62,14 @@ namespace gga
         
         Image TriangleToImage(const Triangle& src)
         {
-            Polyline p(Line(src.Vertex[0], src.Vertex[0]));
-            p.insertKnot(src.Vertex[1]);
-            p.insertKnot(src.Vertex[2]);
-            // somewhat like line-loop
+            Polyline p;
+            
+            // produce somewhat like line-loop:
+            p.push_back(src.Vertex[0]);
+            p.push_back(src.Vertex[1]);
+            p.push_back(src.Vertex[2]);
+            p.push_back(src.Vertex[0]);
+            
             return LineToImage(p);
         }
     }

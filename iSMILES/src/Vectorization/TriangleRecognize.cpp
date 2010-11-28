@@ -1,11 +1,15 @@
 #include "TriangleRecognize.h"
+#include "../Parameters.h"
+
+// ALL MAGIC CONSTANTS MOVED TO PARAMETERS.H
 
 namespace gga
 {
     TriangleRecognize::TriangleRecognize(const Polyline& line, const ImageMap& img_map)
     : Good(false), Filled(false), Deviation(0.0)
     {
-        if (line.size() == 3)
+        // TODO: check that condition.
+        if (line.size() == 4 && line[0].distance(line[3]) < GlobalParams.getMaxTriangleBreakDistance())
         {
             Result = Triangle(line[0], line[1], line[2]);
             if (Result.getSideLength(0) < Result.getSideLength(1) + Result.getSideLength(2) &&

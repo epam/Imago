@@ -69,7 +69,7 @@ namespace gga
             }
             else
                 u++;
-        }        
+        }
         // that's all.
     }
     

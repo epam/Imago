@@ -26,7 +26,7 @@ int main(int argc, char* argv[])
     Image img;
     bool automaticMode = false;
     
-    const char* ImagePath = "../../Data/Sample0.png";
+    const char* ImagePath = "../../Data/Sample2.png";
     if(argc > 1)
     {
         ImagePath = argv[1];

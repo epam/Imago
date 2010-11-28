@@ -9,20 +9,19 @@ namespace gga
         inline Coord mid() const { return (L+R)/2; }
     };
     
-    class RangeArray : public std::vector<Range>
+    typedef std::vector<Range> RangeArrayBase;
+    
+    class RangeArray : public RangeArrayBase
     {       
     private:
         Coord Left, Top;
         bool InvertedAxis;
                 
     public:
+        RangeArray(const RangeArray& src, int from, int to = -1);
         RangeArray(const Points& src);
         
         Point coordToPoint(Coord x, Coord y) const;
         Points toPoints() const;
-        
-        // TODO: those methods have bad performance and ugly implementation
-        RangeArray head(size_t splitPoint) const;
-        RangeArray tail(size_t splitPoint) const;
     };
 }
