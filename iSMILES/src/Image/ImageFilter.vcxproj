@@ -167,6 +167,10 @@
     <ClCompile Include="..\..\..\zlib\trees.c" />
     <ClCompile Include="..\..\..\zlib\uncompr.c" />
     <ClCompile Include="..\..\..\zlib\zutil.c" />
+    <ClCompile Include="..\CharacterRecognition\BrokenCharacterVerifier_UorO.cpp" />
+    <ClCompile Include="..\Vectorization\Bounds.cpp" />
+    <ClCompile Include="..\Vectorization\Contour.cpp" />
+    <ClCompile Include="..\Vectorization\ImageMap.cpp" />
     <ClCompile Include="FileJPG.cpp" />
     <ClCompile Include="FilePNG.cpp" />
     <ClCompile Include="Image.cpp" />
@@ -202,6 +206,7 @@
     <ClInclude Include="..\..\..\zlib\zconf.h" />
     <ClInclude Include="..\..\..\zlib\zlib.h" />
     <ClInclude Include="..\..\..\zlib\zutil.h" />
+    <ClInclude Include="..\CharacterRecognition\BrokenCharacterVerifier.h" />
     <ClInclude Include="FileJPG.h" />
     <ClInclude Include="FilePNG.h" />
     <ClInclude Include="ImageFilter.h" />
