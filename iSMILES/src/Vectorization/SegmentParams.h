@@ -17,7 +17,7 @@ namespace gga
         size_t getAverageLineLength() const { return AverageLineLength; }
         
         /* rotate image to returned Grad amount to make vertical/horizontal lines real vertical/horizontal */
-        int getCompensationAngle() const { return Rotation; }
+        int getRotationAngle() const { return Rotation; }
         
     private:
         void calcLength();

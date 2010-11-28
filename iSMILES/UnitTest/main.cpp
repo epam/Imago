@@ -81,12 +81,13 @@ class Tester
         void RotateImage0(const Polylines& lines)
         {
             SegmentParams segParams(lines);
-            int angle = segParams.getCompensationAngle();
+            int angle = -segParams.getRotationAngle();
             printf("Average line length: %ipx; Image rotation required: %i*\n", segParams.getAverageLineLength(), angle);
             if ( fabs(angle) > 5 ) // 5* is minimal rotation that will make better
             {
                 gga::Image rotated;
                 rotateImage(Image, angle, &rotated);
+                FilePNG().save(std::string(ImagePath) + ".rotate.png", rotated);
                 Image = rotated;
             }
         }
