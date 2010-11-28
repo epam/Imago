@@ -23,7 +23,7 @@ namespace gga
         Polyline getLine() const { return ResultLine; }
         
     private:
-        static const double eps = 0.0001;
+        static const double eps;
         
         HistType calculateHistogram();
         double optimizeCoef(double& Coef, const double Shift);  // returns std.dev 

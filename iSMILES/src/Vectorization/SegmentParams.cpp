@@ -19,7 +19,7 @@ namespace gga
         if (Y == 0)
             result = (X > 0) ? 90 : -90;
         else
-            result = atan((double)X / (double)Y) / (2*M_PI) * 360.0;
+            result = atan((double)X / (double)Y) / (2*3.14159) * 360.0;
 
         return result;
     }

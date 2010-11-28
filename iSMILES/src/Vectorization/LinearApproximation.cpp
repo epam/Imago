@@ -9,6 +9,8 @@
 
 namespace gga
 {    
+	const double LinearApproximation::eps = 0.0001;
+
     #ifdef DEBUG
         static int figure_num = 0;
         static int recurse_level = 0;
