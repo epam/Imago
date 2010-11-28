@@ -85,7 +85,7 @@ class Tester
             SegmentParams segParams(lines);
             int angle = -segParams.getRotationAngle();
             printf("Average line length: %ipx; Image rotation required: %i*\n", segParams.getAverageLineLength(), angle);
-            if ( fabs(angle) > GlobalParams.getMinimalAllowedRotationAngle() )
+            if ( fabs((double)angle) > GlobalParams.getMinimalAllowedRotationAngle() )
             {
                 gga::Image rotated;
                 rotateImage(Image, angle, &rotated);
