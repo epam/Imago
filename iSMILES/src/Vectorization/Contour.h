@@ -25,7 +25,12 @@ namespace gga
         // returns outer contour for that one or NULL
         const Contour* getOuterContour() const { return OuterContour; }
         
-    private:        
+    private:
+        // high-level private methods
+        void constructContour(const Point& start);
+        void fillRelatedImageMap();
+        void findOuterObject();
+        
         // private methods for contour pass implementation only
         void passDownLeft(Point& p, bool RotatedAxis = false);
         Point movePoint(const Point& src, int x, int y, bool RotatedAxis = false);

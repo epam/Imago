@@ -36,6 +36,9 @@ namespace gga
         
         /* maximal distance between first and last triangle segment endpoints, pixels */
         unsigned int getMaxTriangleBreakDistance() const { return 5 * LineWidth; }
+        
+        /* minimal ratio longer/smaller side for determine triangle is up-side link */
+        double getTriangleSideRatio() const { return 1.5; }
     };
     
     static Parameters GlobalParams;

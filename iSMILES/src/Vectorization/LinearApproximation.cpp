@@ -79,16 +79,6 @@ namespace gga
                     if (p == -1) dev_minus = dev;
                     else if (p == 1) dev_plus = dev;
                     else /* p == 0 */ StdDev = dev;
-
-                    #ifdef DEBUG
-                        if (iter == 1 && p == 0 && fabs(d) <= 0.0001 * 2)
-                        {
-                            printf("L: %f (%i); %i..%i..%i  |  R: %f (%i); %i..%i..%i \n", 
-                                maxdL, maxuL, Ranges[maxuL].L, (int)((Coef+d)*maxuL + Shift), Ranges[maxuL].R,
-                                maxdR, maxuR, Ranges[maxuR].L, (int)((Coef+d)*maxuR + Shift), Ranges[maxuR].R);                            
-                        }
-                    #endif
-                    
                 }
                 /* select which is better */
                 if (dev_minus < StdDev || dev_plus < StdDev)
@@ -101,8 +91,9 @@ namespace gga
                 d /= 2.0;
             } while (fabs(d) > 0.0001);
             
+            /* correct Shift value */
             if (iter == 1)
-            { /* correct Shift value */
+            { 
                 double d = 0.0;        
                 do {
                     double avgL = 0.0, avgR = 0.0;
@@ -131,9 +122,9 @@ namespace gga
             recurse_level++;
             printf("%sDev: %f, Coef: %f, Shift: %f\n", prefix, StdDev, Coef, Shift);
         #endif
-
         
-        { /* construct default result line */ 
+        /* construct default result line */ 
+        { 
             int first = 0, last = Ranges.size()-1;
             while (Shift + Coef*first < 0)
                 first++;
@@ -143,7 +134,8 @@ namespace gga
         }
 
         Histogram<size_t, double> hist_d2;
-        { /* cluster analysis for df(f) */
+        /* cluster analysis for df(f) */
+        { 
             double delta = hist.range() / GlobalParams.getTargetGroupsCount() + 0.0001 /*eps*/;
             hist_d2 = hist.regroup(delta).onlyRepresentative();
         }
@@ -165,7 +157,7 @@ namespace gga
 
             if (it != Indexes.end())
             {
-                int second_gr_idx = *it + 20; // TODO: !!!
+                int second_gr_idx = *it; // TODO: !!!
                 int total = Ranges.size();
                 
                 #ifdef DEBUG
@@ -212,10 +204,10 @@ namespace gga
                     
                     ResultLine.clear();
                     for (size_t v = 0; v < out1.size(); v++)
-                        ResultLine.insertKnot(out1[v]);
+                        ResultLine.push_back(out1[v]);
                     
                     for (size_t v = 1; v < out2.size(); v++)
-                        ResultLine.insertKnot(out2[v]);
+                        ResultLine.push_back(out2[v]);
                 }
             }
         }

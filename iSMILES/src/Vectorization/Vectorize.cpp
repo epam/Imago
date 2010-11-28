@@ -1,6 +1,5 @@
 #include "Vectorize.h"
 #include "../Parameters.h"
-#include "SegmentParams.h"
 #ifdef DEBUG
 #include <stdio.h> // printf "log"
 #endif
@@ -46,15 +45,8 @@ namespace gga
             else
                 u++;
         }
-        
-        // step 4.1. extract some segment params
-        SegmentParams segParams(RecLines);
-        #ifdef DEBUG
-            printf("[i] Average line length: %ipx; Image rotation required: %i*\n", 
-                segParams.getAverageLineLength(), segParams.getCompensationAngle());
-        #endif
-        
-        // step 4.2. regroup lines
+
+        // step 4. regroup lines
         VertexRegroup regroup(RecLines);
         RecLines = regroup.getResult();
         

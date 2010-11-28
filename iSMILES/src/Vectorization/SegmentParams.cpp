@@ -20,12 +20,7 @@ namespace gga
             result = (X > 0.0) ? 90.0 : -90.0;
         else
             result = atan(X/Y) / (2*M_PI) * 360.0;
-                
-        #ifdef DEBUG
-            printf("Angle for (%i,%i)-(%i,%i) is %f\n",
-                line.getBegin().X, line.getBegin().Y, line.getEnd().X, line.getEnd().Y, result);
-        #endif        
-        
+
         return result;
     }
     

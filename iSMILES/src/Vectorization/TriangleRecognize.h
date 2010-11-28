@@ -10,7 +10,6 @@ namespace gga
     {
         bool Good;
         bool Filled;
-        double Deviation;
         Triangle Result;
       
     public:
