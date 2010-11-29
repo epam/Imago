@@ -3,6 +3,9 @@
 #include "FilePNG.h"
 #include "ImageFilter.h"
 
+#include "../Vectorization/Contour.h"
+#include "../CharacterRecognition/BrokenCharacterVerifier.h"
+
 using namespace std;
 using namespace gga;
 char filename[256];
@@ -106,6 +109,19 @@ int main(int argc, char* argv[])
         jpg.save(string(argv[1])+".out-80.jpg", img, 80);
         jpg.save(string(argv[1])+".out.jpg",img);
 */
+
+        for (size_t y = 0; y < img.getHeight(); y++)
+         for(size_t x = 0; x < img.getWidth() ; x++)
+            if( ! img.getPixel(x,y).isBackground())
+            {
+                gga::ImageMap imap(img.getWidth(), img.getHeight());
+                gga::Contour contour(img, imap, Point(x,y));
+                char result;
+                bool res = isUorO(contour, 2*w, &result);
+                printf("isUorO: %s '%c'\n\n", res?"ok":"fail", result);
+                return 0;
+            }
+        
 return 0;
     }
 
