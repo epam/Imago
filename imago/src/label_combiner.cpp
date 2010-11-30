@@ -14,6 +14,7 @@
 
 #include <algorithm>
 #include <vector>
+#include <cfloat>
 
 #include "boost/foreach.hpp"
 //#include "boost/bind.hpp"
@@ -22,7 +23,8 @@
 #include "label_combiner.h"
 #include "recognition_settings.h"
 #include "current_session.h"
-#include "font.h"
+//#include "font.h"
+#include "character_recognizer.h"
 #include "rng_builder.h"
 #include "segments_graph.h"
 #include "image_utils.h"
@@ -35,9 +37,10 @@ using namespace imago;
 
 LabelCombiner::LabelCombiner( SegmentDeque &symbols_layer,
                               SegmentDeque &other_layer, int cap_height,
-                              const Font &fnt ) : _symbols_layer(symbols_layer),
-                                                 _fnt(fnt),
-                                                 _cap_height(cap_height)
+                              const CharacterRecognizer &cr ) :
+   _symbols_layer(symbols_layer),
+   _cr(cr),
+   _cap_height(cap_height)
 {
    RecognitionSettings &rs = getSettings();
    setParameters((double)rs["CapHeightErr"], (double)rs["MaxSymRatio"],
@@ -46,7 +49,7 @@ LabelCombiner::LabelCombiner( SegmentDeque &symbols_layer,
    _imgWidth = rs["imgWidth"];
    _imgHeight = rs["imgHeight"];
 
-   _cap_height = _fnt.findCapitalHeight(symbols_layer);
+   _cap_height = _findCapitalHeight();
    rs["CapitalHeight"] = _cap_height;
    _cap_height_error = (double)rs["CapHeightErr"];
    _space = _cap_height >> 1;
@@ -64,6 +67,27 @@ void LabelCombiner::setParameters( double capHeightError, double maxSymRatio,
    _cap_height_error = capHeightError;
    _maxSymRatio = maxSymRatio;
    _minSymRatio = minSymRatio;
+}
+
+int LabelCombiner::_findCapitalHeight()
+{
+   //TODO: If it belongs here then rewrite
+   int mean_height = 0, seg_height, cap_height;
+   BOOST_FOREACH(Segment *seg, _symbols_layer)
+      mean_height += seg->getHeight();
+   mean_height /= _symbols_layer.size();
+
+   double d, min_d = DBL_MAX;
+   BOOST_FOREACH(Segment *seg, _symbols_layer)
+   {
+      char c = _cr.recognize(*seg, CharacterRecognizer::upper, &d);
+      seg_height = seg->getHeight();
+
+      if (d < min_d && seg_height >= mean_height)
+         min_d = d, cap_height = seg_height;
+   }
+
+   return cap_height;
 }
 
 void LabelCombiner::_fetchSymbols( SegmentDeque &layer )

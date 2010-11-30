@@ -21,13 +21,13 @@ namespace imago
 {
    struct Superatom;
    class Segment;
-   class Font;
+   class CharacterRecognizer;
    struct Label;
 
    class LabelLogic
    {
    public:
-      LabelLogic( const Font &fnt, double capHeightError );
+      LabelLogic( const CharacterRecognizer &cr, double capHeightError );
       ~LabelLogic();
 
       void setSuperatom( Superatom *satom );
@@ -37,7 +37,7 @@ namespace imago
 
    private:
       int _cap_height;
-      const Font &_fnt;
+      const CharacterRecognizer &_cr;
       const double cap_height_error;
       Superatom *_satom;
       Atom *_cur_atom;

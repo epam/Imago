@@ -30,7 +30,7 @@
 #include "molfile_saver.h"
 #include "session_manager.h"
 #include "current_session.h"
-#include "graphics_detector.h"
+#include "character_recognizer.h"
 
 using namespace imago;
 
@@ -213,7 +213,7 @@ void testRecognizer(int num)
       //filename = "/media/usr/Zentsev/for_demo/firstly/1347f/5_noblur_200.png";
       //filename = "/media/usr/Zentsev/porphyrin-sample-v02ch07/6.png";
       //filename = "../../../tests/autotester/results2/43794.png";
-      filename = "../../../data/release_examples/4.png";
+      //filename = "../../../data/release_examples/4.png";
       //filename = "/home/vsmolov/flamingo_test/US07314705-20080101-C00010.png";
       //filename = "../../../../../flamingo_test/t.png";
       //filename = "~/flamingo_test/800.png";
@@ -327,32 +327,51 @@ void testOCR( const char *name )
    }
 }
 
-void makeFont( const char *name )
+void makeFont( )
 {
   try
   {
-     char buf[1024] = {0};
-     int count = 25;
-     sprintf(buf, "../../../data/fonts/png/%s.png", name);
-     Font fnt(buf, count);
-     sprintf(buf, "../../../data/fonts/%s.font", name);
-     FileOutput fout(buf);
-     fout.printf("%d\n", count);
+     const int fonts_count = 8;
+     char font_names[fonts_count][1024] = {"../../../data/fonts/png/arial2.png",
+                                           "../../../data/fonts/png/serif.png",
+                                           "../../../data/fonts/png/arial_bold.png",
+                                           "../../../data/fonts/png/Writing_Stuff.png",
+                                           "../../../data/fonts/png/MarkerSD.png",
+                                           "../../../data/fonts/png/desyrel.png",
+                                           "../../../data/fonts/png/all_hail_julia.png",
+                                           "../../../data/fonts/png/sunshine.png"};
+     int count = 11;
+     std::vector<Font *> fonts(fonts_count);
+     for (int i = 0; i < fonts_count; i++)
+        fonts[i]= new Font(font_names[i], count);
+     
+     FileOutput fout("../../../data/fonts/TEST.font");
+     fout.printf("%d %d %d\n", count, fonts_count, 62);
 
-     for (int i = 0; i < (int)fnt._symbols.size(); i++)
+     for (int i = 0; i < fonts_count; i++)
+        printf("%d\n", fonts[i]->_symbols.size());
+
+
+     for (int i = 0; i < 62; i++)
      {
-        Font::FontItem &fi = fnt._symbols[i];
-        fout.printf("%c %d\n", fi.sym, fi.features.inner_contours_count);
-        for (int i = 0; i < (int)fi.features.descriptors.size(); i++)
-           fout.printf("%.15lf ", fi.features.descriptors[i]);
-        fout.writeCR();
-        for (int i = 0; i < fi.features.inner_contours_count; i++)
+        Font::FontItem *fi = &fonts[0]->_symbols[i];
+        fout.printf("%c\n", fi->sym);
+        for (int k = 0; k < fonts_count; k++)
         {
-           for (int j = 0; j < (int)fi.features.inner_descriptors[i].size(); j++)
-           {
-              fout.printf("%.15lf ", fi.features.inner_descriptors[i][j]);
-           }
+           fi = &fonts[k]->_symbols[i];
+           fout.printf("%d\n", fi->features.inner_contours_count);
+           for (int i = 0; i < (int)fi->features.descriptors.size(); i++)
+              fout.printf("%.15lf ", fi->features.descriptors[i]);
            fout.writeCR();
+           for (int i = 0; i < fi->features.inner_contours_count; i++)
+           {
+              for (int j = 0; j < (int)fi->features.inner_descriptors[i].size();
+                   j++)
+              {
+                 fout.printf("%.15lf ", fi->features.inner_descriptors[i][j]);
+              }
+              fout.writeCR();
+           }
         }
      }
   }
@@ -362,69 +381,52 @@ void makeFont( const char *name )
   }
 }
 
-void testVectorization( const char *name )
+void testOCR2( const char *name )
 {
    try
    {
-      const char *filename;
-      filename = name?name:"../../../../flamingo_test/sep/1.png";
       qword sid = SessionManager::getInstance().allocSID();
       SessionManager::getInstance().setSID(sid);
-
-      getSettings()["DebugSession"] = true;
-      
       Image img;
+
+      CharacterRecognizer cr(3); //, "../../../data/fonts/TEST.font");
+
+      const char *filename;
+      filename = name?name:"../../../../flamingo_test/sym/n/IMG_0052.JPG.out.png";
       ImageUtils::loadImageFromFile(img, filename);
       LPRINT(0, "Start");
+      // Convolver gauss(img);
+      // gauss.initGauss();
+      // gauss.apply();
 
-      Points lsegments;
-      LMARK;
-      GraphicsDetector gd;
-      gd.detect(img, lsegments);
-      LPRINT(1, "Vectorization");
-      
-      Image img2;
-      img2.emptyCopy(img);
-      img2.fillWhite();
-      double avg_size = 0;
-      for (int i = 0; i < (int)lsegments.size() / 2; i++)
+      Binarizer(img, getSettings()["BinarizationLvl"]).apply();
+      std::deque<Segment*> segs;
+      Segmentator::segmentate(img, segs);
+
+      int i = 0; //for font files
+      for (std::deque<Segment*>::iterator it = segs.begin(),
+              end = segs.end(); it != end; ++it, ++i)
       {
-         const Vec2d &p1 = lsegments[2 * i];
-         const Vec2d &p2 = lsegments[2 * i + 1];
-
-         ImageDrawUtils::putLineSegment(img2, p1, p2, 0);
-         avg_size += Vec2d::distance(p1, p2);
+         double d;
+         char c_s, c_b, c_d;
+         c_s = cr.recognize(**it, CharacterRecognizer::upper, &d);
+         c_b = cr.recognize(**it, CharacterRecognizer::lower, &d);
+         c_d = cr.recognize(**it, CharacterRecognizer::digits, &d);
+         printf("i = %d  ", i);
+         printf("(%d, %d)   %c %c %c  %.5lf  innerCcount = %d  h = %d\n",
+                (*it)->getX(), (*it)->getY(), c_s, c_b, c_d, d,
+                (*it)->getFeatures().inner_contours_count, (*it)->getHeight());
       }
-
-      avg_size /= (lsegments.size() / 2);
       
-      LMARK;
-      Skeleton graph;
-      graph.setInitialAvgBondLength(avg_size);
-
-      for (int i = 0; i < (int)lsegments.size() / 2; i++)
-      {
-         const Vec2d &p1 = lsegments[2 * i];
-         const Vec2d &p2 = lsegments[2 * i + 1];
-         
-         graph.addBond(p1, p2);
-      }
-
-      TIME(graph.modifyGraph(), "ololo");
+      // Binarizer(img, getSettings()["BinarizationLvl"]).apply();
       
-      LPRINT(1, "Other");
-
-      
-      ImageUtils::saveImageToFile(img2, "output/vect.png");
-      img2.fillWhite();
-      ImageDrawUtils::putGraph(img2, graph.getGraph());
-      ImageUtils::saveImageToFile(img2, "output/vect2.png");
    }
    catch (Exception &e)
    {
       puts(e.what());
    }
 }
+
 
 int main(int argc, char **argv)
 {
@@ -457,13 +459,13 @@ int main(int argc, char **argv)
    //238 bond dissapears
    //305 missed triple and double bonds
    //142
-   int num = 144; //103; //267; //27; //249; //197; //29; //181; //301; //27; //150; //101; //209; //301; //326; //334; //336; //250;//349; //145;//226;//339; //262;
+   int num = 103; //144; //103; //267; //27; //249; //197; //29; //181; //301; //27; //150; //101; //209; //301; //326; //334; //336; //250;//349; //145;//226;//339; //262;
    //num = readCL(argc, argv);
 
    //testContour();
    //testRecognizer(num);
    //testOCR(argv[1]);
-   //makeFont(argv[1]);
-   testVectorization(argv[1]);
+   //makeFont();
+   //testOCR2(argv[1]);
    return 0;
 }

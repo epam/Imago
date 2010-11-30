@@ -17,13 +17,13 @@
 
 #include "boost/shared_ptr.hpp"
 
-#include "image.h" 
+#include "image.h"
+#include "character_recognizer.h"
 #include "stl_fwd.h"
 
 namespace imago
 {
    class Molecule;
-   class Font;
    class Segment;
    
    class ChemicalStructureRecognizer
@@ -39,11 +39,10 @@ namespace imago
       ~ChemicalStructureRecognizer();
 
    private:
-      boost::shared_ptr<Font> _fnt;
+      CharacterRecognizer _cr;
       Image _origImage;
       
       void _processFilter();
-      void _selectFont( const SegmentDeque &layer );
 
       ChemicalStructureRecognizer( const ChemicalStructureRecognizer &csr );
    };

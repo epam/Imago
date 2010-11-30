@@ -24,6 +24,7 @@ namespace imago
 {
    class Segment;
    class Font;
+   class CharacterRecognizer;
 
    struct Label
    {
@@ -48,14 +49,14 @@ namespace imago
    {
    public:
       LabelCombiner( SegmentDeque &symbols_layer, SegmentDeque &other_layer,
-                     int cap_height, const Font &fnt );
+                     int cap_height, const CharacterRecognizer &cr );
       ~LabelCombiner();
       void extractLabels( std::deque<Label> &labels );
       void setParameters( double capHeightError, double maxSymRatio,
                           double minSymRatio );
    private:
       SegmentDeque &_symbols_layer;
-      const Font &_fnt;
+      const CharacterRecognizer &_cr;
       int _cap_height;
       int _space;
 
@@ -68,6 +69,8 @@ namespace imago
 
       static bool _segmentsCompareX( const Segment* const &a,
                                      const Segment* const &b );
+
+      int _findCapitalHeight();
       //DEBUG vars
       int _imgHeight, _imgWidth;
       //
