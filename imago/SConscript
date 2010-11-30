@@ -44,6 +44,7 @@ src/multiple_bond_checker.cpp
 src/segments_graph.cpp
 src/skeleton.cpp
 src/rectangle.cpp
+src/character_recognizer.cpp
 """.split()
 
 source_files = filter(lambda x: not x.startswith('#'), source_files)
