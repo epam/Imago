@@ -10,9 +10,7 @@ namespace gga
             Image result;
             Bounds b(src);
             result.setSize(b.getWidth() + border * 2, b.getHeight() + border * 2, IT_BW);
-            for (size_t x = 0; x < result.getWidth(); x++)
-                for (size_t y = 0; y < result.getHeight(); y++)
-                    result.setPixel(x,y, BACKGROUND);
+            result.clear();
             for (Points::const_iterator it = src.begin(); it != src.end(); it++)
                 result.setPixel(it->X-b.getLeft() + border, it->Y-b.getTop() + border, INK);
             return result;
