@@ -17,10 +17,10 @@ namespace imago
       CharacterRecognizer( int k, const std::string &filename );
 
       char recognize( const SymbolFeatures &features,
-                      const std::string &candidates, double *err = 0);
+                      const std::string &candidates, double *err = 0) const;
 
       char recognize( const Segment &seg, const std::string &candidates,
-                      double *err = 0);
+                      double *err = 0) const;
       ~CharacterRecognizer();
    private:
       void _loadBuiltIn();

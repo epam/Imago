@@ -71,7 +71,7 @@ double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
 
 char CharacterRecognizer::recognize( const Segment &seg,
                                      const std::string &candidates,
-                                     double *dist )
+                                     double *dist ) const
 {
    seg.initFeatures(_count);
    return recognize(seg.getFeatures(), candidates, dist);
@@ -79,7 +79,7 @@ char CharacterRecognizer::recognize( const Segment &seg,
 
 char CharacterRecognizer::recognize( const SymbolFeatures &features,
                                      const std::string &candidates,
-                                     double *dist )
+                                     double *dist ) const
 {
    double d;
 
@@ -89,7 +89,7 @@ char CharacterRecognizer::recognize( const SymbolFeatures &features,
    BOOST_FOREACH( char c, candidates )
    {
       int ind = _mapping[c];
-      SymbolClass &cls = _classes[ind];
+      const SymbolClass &cls = _classes[ind];
       for (int i = 0; i < (int)cls.shapes.size(); i++)
       {
          d = _compareFeatures(features, cls.shapes[i]);

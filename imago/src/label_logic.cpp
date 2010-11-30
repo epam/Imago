@@ -17,15 +17,15 @@
 
 #include "label_logic.h"
 #include "segment.h"
-#include "font.h"
+#include "character_recognizer.h"
 #include "label_combiner.h"
 #include "image_utils.h"
 #include "current_session.h"
 
 using namespace imago;
 
-LabelLogic::LabelLogic( const Font &fnt, double capHeightError ) :
-   _fnt(fnt),
+LabelLogic::LabelLogic( const CharacterRecognizer &cr, double capHeightError ) :
+_cr(cr),
    cap_height_error(capHeightError) //0.82 0.877 0.78
 {
    _cap_height = (int)getSettings()["CapitalHeight"];
@@ -135,7 +135,7 @@ void LabelLogic::process( Segment *seg, int line_y )
       _predict(seg, letters);
       char sym;
       if (seg->getFeatures().recognizable)
-         sym = _fnt.findBest(seg, letters);
+         sym = _cr.recognize(*seg, letters);
       else
          sym = '?';
 
@@ -188,13 +188,14 @@ void LabelLogic::process( Segment *seg, int line_y )
       int bottom = seg->getY() + seg->getHeight();
       int med = bottom - 0.5 * seg->getHeight();
       //small letter
-      if (bottom >= (line_y - sameLineEps * _cap_height) && bottom <= (line_y + sameLineEps * _cap_height))
+      if (bottom >= (line_y - sameLineEps * _cap_height) &&
+          bottom <= (line_y + sameLineEps * _cap_height))
       {
          if (was_letter)
          {
             _predict(seg, letters);
             if (seg->getFeatures().recognizable)
-               _cur_atom->label_second = _fnt.findBest(seg, letters);
+               _cur_atom->label_second = _cr.recognize(*seg, letters);
             else
                _cur_atom->label_second = '?';
          }
@@ -219,7 +220,8 @@ void LabelLogic::process( Segment *seg, int line_y )
          if (_cur_atom->label_first == 0)
          {
             if (seg->getFeatures().recognizable)
-               index_val = _fnt.findBest(seg, 53, 62) - '0';
+               index_val = _cr.recognize(*seg,
+                                         CharacterRecognizer::digits) - '0';
             else
                index_val = 0;
             _cur_atom->isotope = _cur_atom->isotope * 10 + index_val;
@@ -245,7 +247,7 @@ void LabelLogic::process( Segment *seg, int line_y )
                   letters = "0123456789";
 
                if (seg->getFeatures().recognizable)
-                  tmp = _fnt.findBest(seg, letters);
+                  tmp = _cr.recognize(*seg, letters);
                else
                   tmp = 0; //TODO: what to do if charge is unrecognizable
             }
@@ -276,7 +278,7 @@ void LabelLogic::process( Segment *seg, int line_y )
             throw LabelException("Unexpected symbol position");
 
          if (seg->getFeatures().recognizable)
-            index_val = _fnt.findBest(seg, 53, 62) - '0';
+            index_val = _cr.recognize(*seg, CharacterRecognizer::digits) - '0';
          else
             index_val = 0;
          _cur_atom->count = _cur_atom->count * 10 + index_val;
@@ -316,12 +318,13 @@ void LabelLogic::recognizeLabel( Label& label )
    if (sa.atoms.size() == 2)
    {
       if (sa.atoms[0].label_first == 'H' && sa.atoms[0].label_second == 0 &&
-         sa.atoms[0].charge == 0 && sa.atoms[0].isotope == 0)
+          sa.atoms[0].charge == 0 && sa.atoms[0].isotope == 0)
       {
          sa.atoms.erase(sa.atoms.begin());
       }
-      else if (sa.atoms[1].label_first == 'H' && sa.atoms[1].label_second == 0 &&
-         sa.atoms[1].charge == 0 && sa.atoms[1].isotope == 0)
+      else if (sa.atoms[1].label_first == 'H' &&
+               sa.atoms[1].label_second == 0 &&
+               sa.atoms[1].charge == 0 && sa.atoms[1].isotope == 0)
       {
          sa.atoms.erase(sa.atoms.end() - 1);
       }

@@ -46,42 +46,42 @@
 
 using namespace imago;
 
-ChemicalStructureRecognizer::ChemicalStructureRecognizer()
+ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr(3)
 {
 }
 
-void ChemicalStructureRecognizer::_selectFont( const SegmentDeque &layer )
-{
-   boost::shared_ptr<Font> serif(new Font(Font::SERIF));
-   boost::shared_ptr<Font> arial(new Font(Font::ARIAL));
+// void ChemicalStructureRecognizer::_selectFont( const SegmentDeque &layer )
+// {
+//    boost::shared_ptr<Font> serif(new Font(Font::SERIF));
+//    boost::shared_ptr<Font> arial(new Font(Font::ARIAL));
 
-   double dist_a = 0, dist_s = 0;
-   double tmp;
+//    double dist_a = 0, dist_s = 0;
+//    double tmp;
 
-   for (SegmentDeque::const_iterator it = layer.begin();
-        it != layer.end(); ++it)
-   {
-      double w = (*it)->getWidth();
-      double h = (*it)->getHeight();
+//    for (SegmentDeque::const_iterator it = layer.begin();
+//         it != layer.end(); ++it)
+//    {
+//       double w = (*it)->getWidth();
+//       double h = (*it)->getHeight();
 
-      if (w / h > 1.15) //"Constants"
-         continue;
+//       if (w / h > 1.15) //"Constants"
+//          continue;
 
-      serif->findBest(*it, 0, 26, &tmp); //"Constants"
-      dist_s += tmp;
+//       serif->findBest(*it, 0, 26, &tmp); //"Constants"
+//       dist_s += tmp;
 
-      arial->findBest(*it, 0, 26, &tmp); //"Constants"
-      dist_a += tmp;
-   }
-   if (dist_a < dist_s)
-   {
-      _fnt = arial;
-   }
-   else
-   {
-      _fnt = serif;
-   }
-}
+//       arial->findBest(*it, 0, 26, &tmp); //"Constants"
+//       dist_a += tmp;
+//    }
+//    if (dist_a < dist_s)
+//    {
+//       _fnt = arial;
+//    }
+//    else
+//    {
+//       _fnt = serif;
+//    }
+// }
 
 void ChemicalStructureRecognizer::_processFilter()
 {
@@ -200,10 +200,8 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       LMARK;
       if (!layer_symbols.empty())
       {
-         TIME(_selectFont(layer_symbols), "Selecting font");
-
          LabelCombiner lc(layer_symbols, layer_graphics,
-                          rs["CapitalHeight"], *_fnt);
+                          rs["CapitalHeight"], _cr);
          lc.extractLabels(mol.getLabels());
 
          if (rs["DebugSession"])
@@ -236,7 +234,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       if (!layer_symbols.empty())
       {
          LMARK;
-         LabelLogic ll(*_fnt, getSettings()["CapHeightErr"]);
+         LabelLogic ll(_cr, getSettings()["CapHeightErr"]);
          BOOST_FOREACH(Label &l, mol.getLabels())
             ll.recognizeLabel(l);
 
