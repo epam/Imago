@@ -42,6 +42,9 @@ namespace gga
         
         /* minimal ratio longer/smaller side for determine triangle is up-side link */
         double getTriangleSideRatio() const { return 1.5; }
+        
+        /* maximal std.dev. value for lines */
+        double getDeviationThreshold() const { return 0.4; }
     };
     
     Parameters& getGlobalParams();

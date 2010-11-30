@@ -216,7 +216,7 @@ namespace gga
             checkSplit(splitStart);            
         }
         
-        Good = StdDev < 1.0;
+        Good = StdDev < getGlobalParams().getDeviationThreshold();
                 
         #ifdef DEBUG
             recurse_level--;
