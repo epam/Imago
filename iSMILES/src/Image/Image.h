@@ -74,6 +74,26 @@ namespace gga
             Data.resize(Width * Height);
         }
 
+        inline void DiscretizeLinear(size_t n)
+        {
+            const size_t cx = Width / n;
+            for (size_t yn = 0, y = 0; y < Height; y += n, yn++)
+             for(size_t xn = 0, x = 0; x < Width ; x += n, xn++)
+             {
+                bool px = false;
+                for (size_t i = 0; i < n; i++)
+                 for(size_t j = 0; j < n; j++)
+                    px |= getPixel(x+j, y+i).isInk();
+				if(px)
+					Data[xn + yn*cx] = Pixel(INK);
+				else
+					Data[xn + yn*cx] = Pixel(BACKGROUND);
+             }
+            Width  = cx;
+            Height/= n;
+            Data.resize(Width * Height);
+        }
+
         inline void resizeMaxContrast(size_t n, Pixel bg = Pixel(56))
         {
             const size_t cx = Width / n;
