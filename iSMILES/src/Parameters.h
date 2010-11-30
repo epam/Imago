@@ -44,7 +44,7 @@ namespace gga
         double getTriangleSideRatio() const { return 1.5; }
     };
     
-    static Parameters GlobalParams;
+    Parameters& getGlobalParams();
 }
 
 

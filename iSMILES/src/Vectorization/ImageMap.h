@@ -11,7 +11,7 @@ namespace gga
     
     class ImageMap
     {
-        size_t Width;
+        size_t Width, Height;
         std::vector<const ISegment*> Data;
 
     public:
@@ -25,6 +25,10 @@ namespace gga
         
         // returns getAssignedSegment != NULL
         bool isAssigned(const Point& p) const;
+        
+        size_t getWidth() const { return Width; }
+        
+        size_t getHeight() const { return Height; }
     };
 }
 

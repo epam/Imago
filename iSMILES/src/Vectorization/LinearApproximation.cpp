@@ -34,7 +34,7 @@ namespace gga
         {
             RangeArray::const_iterator it = Ranges.begin() + y;
             RangeArray::const_iterator it2 = it;
-            unsigned int step = GlobalParams.getLinearApproximationStep();
+            unsigned int step = getGlobalParams().getLinearApproximationStep();
             for (size_t u = 0; it2 != Ranges.end() && u < step; u++)
                 it2++;
                 
@@ -132,7 +132,7 @@ namespace gga
             std::vector<size_t> indexes;
             hist.getGroup(u, value_temp, indexes);            
             size_t start = *(std::min_element(indexes.begin(), indexes.end()));
-            if (start > GlobalParams.getMinimalLineLength())                 
+            if (start > getGlobalParams().getMinimalLineLength())                 
                 result = start;
         }
 
@@ -203,7 +203,7 @@ namespace gga
         ResultLine = constructDefaultResult(Coef, Shift);
         
         /* cluster analysis for df(f) */
-        double delta = Hist_df.getRange() / GlobalParams.getTargetGroupsCount() + eps;
+        double delta = Hist_df.getRange() / getGlobalParams().getTargetGroupsCount() + eps;
         HistType hist_d2 = Hist_df.regroup(delta).getOnlyRepresentative();
 
         #ifdef DEBUG

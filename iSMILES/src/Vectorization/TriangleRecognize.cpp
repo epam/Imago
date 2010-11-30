@@ -7,7 +7,7 @@ namespace gga
     : Good(false), Filled(false)
     {
         // check polyline can be triangle
-        if (line.size() == 4 && line[0].distance(line[3]) < GlobalParams.getMaxTriangleBreakDistance())
+        if (line.size() == 4 && line[0].distance(line[3]) < getGlobalParams().getMaxTriangleBreakDistance())
         {
             Result = Triangle(line[0], line[1], line[2]);
             
@@ -23,7 +23,7 @@ namespace gga
                         size_t v2 = (p + 2) % 3;
                         
                         // check it is sharp enogh
-                        double r = GlobalParams.getTriangleSideRatio();
+                        double r = getGlobalParams().getTriangleSideRatio();
                         if ( r * Result.getSideLength(v0) < Result.getSideLength(v1) &&
                              r * Result.getSideLength(v0) < Result.getSideLength(v2) &&
                              r * fabs(Result.getSideLength(v1) - Result.getSideLength(v2)) < Result.getSideLength(v0) )

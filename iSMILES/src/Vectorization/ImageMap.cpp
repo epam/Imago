@@ -2,7 +2,8 @@
 
 namespace gga
 {
-    ImageMap::ImageMap(size_t width, size_t height) : Width(width)
+    ImageMap::ImageMap(size_t width, size_t height)
+    : Width(width), Height(height)
     {
         const size_t items = width*height;
         Data.resize(items);

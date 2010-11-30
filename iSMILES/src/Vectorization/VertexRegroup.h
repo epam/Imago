@@ -2,12 +2,12 @@
 #include <vector>
 #include "Line.h"
 
-
 namespace gga
 {
     class VertexRegroup
     {
         Polylines Result;
+
     public:
         VertexRegroup(const Polylines src);
         
