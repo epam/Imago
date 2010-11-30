@@ -20,6 +20,7 @@
 @synthesize window;
 @synthesize navigationController;
 
+void recognize( const char *Filename, const char *output );
 
 #pragma mark -
 #pragma mark Application lifecycle
@@ -40,11 +41,11 @@
       
       NSLog(@"Let's start\n");
       
-      for (int i = 1; i < 17; i++)
+      for (int i = 1; i < 18; i++)
       {
-         NSString *path = [[NSBundle mainBundle] pathForResource:[NSString stringWithFormat: @"photo%i", i] ofType:@"jpg"];
+         NSString *path = [[NSBundle mainBundle] pathForResource:[NSString stringWithFormat: @"photo%02i", i] ofType:@"jpg"];
          
-         NSLog(@"photo%i\n", i);
+         NSLog(@"photo%02i\n", i);
          
          /*
          CGRect rect = CGRectMake(0.0, 0.0, 645.0, 864.0);
@@ -58,9 +59,12 @@
          std::vector<unsigned char> jpgImage((unsigned char *)[rawImage bytes], (unsigned char *)[rawImage bytes] + [rawImage length]);
           */
 
-         //NSString *resPath2 = [[path stringByDeletingPathExtension] stringByAppendingString:@".res.jpg"];
+         NSString *resPath2 = [[path stringByDeletingPathExtension] stringByAppendingString:@".png"];
          //[rawImage writeToFile: resPath2 atomically: NO];
          
+         recognize([path cStringUsingEncoding:NSASCIIStringEncoding], [resPath2 cStringUsingEncoding:NSASCIIStringEncoding]);
+         
+#if 0
          //if(jpg.load(jpgImage, &img))
          if(jpg.load([path cStringUsingEncoding:NSASCIIStringEncoding], &img))
          //if(jpg.load([resPath2 cStringUsingEncoding:NSASCIIStringEncoding], &img))
@@ -104,6 +108,7 @@
             imageView.image = resImage;
             [imageView sizeToFit];
          }
+#endif
       }
    }
    
