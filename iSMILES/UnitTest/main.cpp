@@ -20,7 +20,7 @@ class Tester
     std::vector<std::string> Files;
     
     private:
-        void Save(std::string type, const gga::Image& data)
+        void saveImage(std::string type, const gga::Image& data)
         {
             char filename[1024] = {0};
             sprintf(filename, "temp_%i_%s.png", Files.size(), type.c_str());
@@ -28,24 +28,24 @@ class Tester
             Files.push_back(filename);    
         }
         
-        void SetupLineWidth(ImageFilter& flt)
+        void setupLineWidth(ImageFilter& flt)
         {
             std::vector<size_t> w_histogram;
             Coord w = flt.computeLineWidthHistogram(&w_histogram);
             printf("Line width = %d\n", (int)w);
-            GlobalParams.setLineWidth(w);
+            getGlobalParams().setLineWidth(w);
         }
         
-        void PrepareImage(ImageFilter& flt)
+        void prepareImage(ImageFilter& flt)
         {
             Timer timer;
             flt.prepareImageForVectorization();
             printf("PrepareImageForVectorization taken %f ms\n", 1000.0*timer.getElapsedTime());
             printf("Image cleared '%s': %ix%i pixels\n", ImagePath.c_str(), Image.getWidth(), Image.getHeight());
-            Save("clear", Image);
+            saveImage("clear", Image);
         }
         
-        bool LoadImage()
+        bool loadImage()
         {
             if(FilePNG().load(ImagePath, &Image))
             {
@@ -59,7 +59,7 @@ class Tester
             }
         }
         
-        Polylines VectorizeTest()
+        Polylines vectorizeTest()
         {
             Timer timer;
             Vectorize vectorized(Image);
@@ -67,29 +67,31 @@ class Tester
             timer.reset();  
             
             for (Triangles::const_iterator it = vectorized.getTriangles().begin(); it != vectorized.getTriangles().end(); it++)
-                Save("triangle", Draw::TriangleToImage(*it));
+                saveImage("triangle", Draw::TriangleToImage(*it));
             
+            gga::Image lined = Image;
             for (Polylines::const_iterator it = vectorized.getLines().begin(); it != vectorized.getLines().end(); it++)
-                Save("line", Draw::LineToImage(*it));
+                Draw::LineToImage(*it, lined);
+            saveImage("lined", lined);
 
             for (PContours::const_iterator it = vectorized.getOtherContours().begin(); it != vectorized.getOtherContours().end(); it++)
-                 Save("other", Draw::PointsToImage(*(*it)));
+                saveImage("other", Draw::PointsToImage(*(*it)));
 
             printf("Total: %i consistent parts (Save taken %f ms)\n", Files.size(), 1000.0*timer.getElapsedTime());            
             
             return vectorized.getLines();
         }
         
-        void RotateImage0(const Polylines& lines)
+        void normalizeImageRotation(const Polylines& lines)
         {
             SegmentParams segParams(lines);
             int angle = -segParams.getRotationAngle();
             printf("Average line length: %ipx; Image rotation required: %i*\n", segParams.getAverageLineLength(), angle);
-            if ( fabs((double)angle) > GlobalParams.getMinimalAllowedRotationAngle() )
+            if ( fabs((double)angle) > getGlobalParams().getMinimalAllowedRotationAngle() )
             {
                 gga::Image rotated;
                 rotateImage(Image, angle, &rotated);
-                Save("rotate", rotated);
+                saveImage("rotate", rotated);
                 Image = rotated;
             }
         }
@@ -98,18 +100,18 @@ class Tester
         Tester(std::string path)
         {
             ImagePath = path;
-            if (LoadImage())
+            if (loadImage())
             {            
                 ImageFilter flt(Image); 
-                if (GlobalParams.isClearImageRequired())
-                    PrepareImage(flt);
-                SetupLineWidth(flt);
-                const Polylines& lines = VectorizeTest();
-                RotateImage0(lines);
+                if (getGlobalParams().isClearImageRequired())
+                    prepareImage(flt);
+                setupLineWidth(flt);
+                const Polylines& lines = vectorizeTest();
+                normalizeImageRotation(lines);
             }
         }
         
-        void DeleteFiles()
+        void deleteFiles()
         {
             for (size_t u = 0; u < Files.size(); u++)
                 remove(Files[u].c_str());
@@ -121,7 +123,7 @@ class Tester
 
 int main(int argc, char* argv[])
 {
-    std::string ImagePath = (argc > 1) ? argv[1] : "../../Data/Sample3_.png";
+    std::string ImagePath = (argc > 1) ? argv[1] : "../../Data/Sample3.png";
     
     Tester imgTester(ImagePath);
 
@@ -130,7 +132,7 @@ int main(int argc, char* argv[])
         printf("Press [ENTER] to delete temporary files and close application.\n");
         char buf[80];
         scanf("%c", buf);
-        imgTester.DeleteFiles();
+        imgTester.deleteFiles();
     }
     
     return 0;

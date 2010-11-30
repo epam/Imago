@@ -9,10 +9,8 @@ namespace gga
         inline Coord mid() const { return (L+R)/2; }
     };
     
-    typedef std::vector<Range> RangeArrayBase;
-    
-    class RangeArray : public RangeArrayBase
-    {       
+    class RangeArray : public std::vector<Range>
+    {
     private:
         Coord Left, Top;
         bool InvertedAxis;

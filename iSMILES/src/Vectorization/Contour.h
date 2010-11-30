@@ -13,6 +13,7 @@ namespace gga
         const Image& SourceImage;
         ImageMap& CurrentImageMap;
         const Contour* OuterContour;
+        std::vector<size_t> WayChangeIndexes;
         
     public:
         /* here we assume that image is coherent in any of 8 ways,
@@ -25,6 +26,8 @@ namespace gga
         // returns outer contour for that one or NULL
         const Contour* getOuterContour() const { return OuterContour; }
         
+        const std::vector<size_t> getWayChanges() const { return WayChangeIndexes; }
+        
     private:
         // high-level private methods
         void constructContour(const Point& start);
@@ -36,5 +39,7 @@ namespace gga
         Point movePoint(const Point& src, int x, int y, bool RotatedAxis = false);
         Point commitPoint(const Point& p);
     };
+    
+    typedef std::vector<Contour*> PContours;
 }
 

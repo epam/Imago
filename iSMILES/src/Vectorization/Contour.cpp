@@ -9,9 +9,10 @@ namespace gga
         Point p = start;
         for (int iter = 0; doneSomething; iter++)
         {
-            size_t count = size();
+            size_t count = size();            
             passDownLeft(p, iter % 2 == 1);
             doneSomething = size() > count;
+            WayChangeIndexes.push_back(size());
         }        
     }
     
@@ -49,6 +50,9 @@ namespace gga
     
     void Contour::findOuterObject()
     {
+        if (empty())
+            return;
+            
         const Coord start_y = at(0).Y;
         const Coord start_x = at(0).X;
         for (Coord x1 = start_x; x1 > 0 && OuterContour == NULL; x1--)

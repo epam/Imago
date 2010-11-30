@@ -4,23 +4,32 @@
 namespace gga
 {
     namespace Draw
-    {
-        Image PointsToImage(const Points& src)
+    {        
+        Image PointsToImage(const Points& src, int border)
         {
             Image result;
             Bounds b(src);
-            result.setSize(b.getWidth(), b.getHeight(), IT_BW);
+            result.setSize(b.getWidth() + border * 2, b.getHeight() + border * 2, IT_BW);
             for (size_t x = 0; x < result.getWidth(); x++)
                 for (size_t y = 0; y < result.getHeight(); y++)
                     result.setPixel(x,y, BACKGROUND);
             for (Points::const_iterator it = src.begin(); it != src.end(); it++)
-                result.setPixel(it->X-b.getLeft(), it->Y-b.getTop(), INK);
+                result.setPixel(it->X-b.getLeft() + border, it->Y-b.getTop() + border, INK);
             return result;
-        }
-        
+        }        
+
         Image RangeArrayToImage(const RangeArray& src)
         {
             return PointsToImage(src.toPoints());
+        }
+        
+        void LineToImage(const Polyline& src, Image& image)
+        {
+            LineDefinition def = LineDefinition(127, getGlobalParams().getLineWidth() / 3);
+            for (size_t u = 0; u < src.size() - 1; u++)
+            {
+                image.drawLine(src[u].X, src[u].Y, src[u+1].X, src[u+1].Y, def);
+            }
         }
         
         Image LineToImage(const Polyline& line)
@@ -32,10 +41,8 @@ namespace gga
             Bounds b(pts);
             Image result;
             
-            LineDefinition def = LineDefinition(127, GlobalParams.getLineWidth());
-            
-            result.setSize(b.getWidth() + def.Width * 2, b.getHeight() + def.Width * 2, IT_BW);
-            
+            LineDefinition def = LineDefinition(127, getGlobalParams().getLineWidth());
+            result.setSize(b.getWidth() + def.Width * 2, b.getHeight() + def.Width * 2, IT_BW);            
             
             for (size_t u = 0; u < line.size() - 1; u++)
             {

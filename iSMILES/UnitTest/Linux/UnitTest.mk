@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=sic
-Date                   :=26.11.2010
+Date                   :=29.11.2010
 CodeLitePath           :="/home/sic/.codelite"
 LinkerName             :=g++
 ArchiveTool            :=ar rcus
@@ -49,7 +49,7 @@ LibPath                := "$(LibraryPathSwitch)."
 ##
 CodeLiteDir:=/usr/share/codelite
 Objects=$(IntermediateDirectory)/UnitTest_main$(ObjectSuffix) $(IntermediateDirectory)/UnitTest_Draw$(ObjectSuffix) $(IntermediateDirectory)/Image_FilePNG$(ObjectSuffix) $(IntermediateDirectory)/Image_ImageFilter$(ObjectSuffix) $(IntermediateDirectory)/Image_Image$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_ImageMap$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Bounds$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_LinearApproximation$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_RangeArray$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Contour$(ObjectSuffix) \
-	$(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_VertexRegroup$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_SegmentParams$(ObjectSuffix) 
+	$(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_VertexRegroup$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_SegmentParams$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_ContourSplit$(ObjectSuffix) $(IntermediateDirectory)/src_Parameters$(ObjectSuffix) 
 
 ##
 ## Main Build Targets 
@@ -181,6 +181,22 @@ $(IntermediateDirectory)/Vectorization_SegmentParams$(DependSuffix): ../../src/V
 $(IntermediateDirectory)/Vectorization_SegmentParams$(PreprocessSuffix): ../../src/Vectorization/SegmentParams.cpp
 	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Vectorization_SegmentParams$(PreprocessSuffix) "/home/sic/iSMILES/src/Vectorization/SegmentParams.cpp"
 
+$(IntermediateDirectory)/Vectorization_ContourSplit$(ObjectSuffix): ../../src/Vectorization/ContourSplit.cpp $(IntermediateDirectory)/Vectorization_ContourSplit$(DependSuffix)
+	$(CompilerName) $(SourceSwitch) "/home/sic/iSMILES/src/Vectorization/ContourSplit.cpp" $(CmpOptions) $(ObjectSwitch)$(IntermediateDirectory)/Vectorization_ContourSplit$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Vectorization_ContourSplit$(DependSuffix): ../../src/Vectorization/ContourSplit.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) -MT$(IntermediateDirectory)/Vectorization_ContourSplit$(ObjectSuffix) -MF$(IntermediateDirectory)/Vectorization_ContourSplit$(DependSuffix) -MM "/home/sic/iSMILES/src/Vectorization/ContourSplit.cpp"
+
+$(IntermediateDirectory)/Vectorization_ContourSplit$(PreprocessSuffix): ../../src/Vectorization/ContourSplit.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Vectorization_ContourSplit$(PreprocessSuffix) "/home/sic/iSMILES/src/Vectorization/ContourSplit.cpp"
+
+$(IntermediateDirectory)/src_Parameters$(ObjectSuffix): ../../src/Parameters.cpp $(IntermediateDirectory)/src_Parameters$(DependSuffix)
+	$(CompilerName) $(SourceSwitch) "/home/sic/iSMILES/src/Parameters.cpp" $(CmpOptions) $(ObjectSwitch)$(IntermediateDirectory)/src_Parameters$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/src_Parameters$(DependSuffix): ../../src/Parameters.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) -MT$(IntermediateDirectory)/src_Parameters$(ObjectSuffix) -MF$(IntermediateDirectory)/src_Parameters$(DependSuffix) -MM "/home/sic/iSMILES/src/Parameters.cpp"
+
+$(IntermediateDirectory)/src_Parameters$(PreprocessSuffix): ../../src/Parameters.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/src_Parameters$(PreprocessSuffix) "/home/sic/iSMILES/src/Parameters.cpp"
+
 
 -include $(IntermediateDirectory)/*$(DependSuffix)
 ##
@@ -229,6 +245,12 @@ clean:
 	$(RM) $(IntermediateDirectory)/Vectorization_SegmentParams$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_SegmentParams$(DependSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_SegmentParams$(PreprocessSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_ContourSplit$(ObjectSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_ContourSplit$(DependSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_ContourSplit$(PreprocessSuffix)
+	$(RM) $(IntermediateDirectory)/src_Parameters$(ObjectSuffix)
+	$(RM) $(IntermediateDirectory)/src_Parameters$(DependSuffix)
+	$(RM) $(IntermediateDirectory)/src_Parameters$(PreprocessSuffix)
 	$(RM) $(OutputFile)
 
 

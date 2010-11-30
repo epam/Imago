@@ -11,13 +11,10 @@
 
 namespace gga
 {
-    typedef std::vector<Triangle> Triangles;
-    typedef std::vector<Contour*> PContours;
-    
     class Vectorize
     {
         const Image& SourceImage;
-        ImageMap   Imagemap;
+        ImageMap  Map;
         PContours AllContours;        
         Triangles RecTriangles;
         Polylines RecLines;   
@@ -25,13 +22,20 @@ namespace gga
 
     public:
         Vectorize(const Image& image);
-        ~Vectorize();
+        virtual ~Vectorize();
 
-        const  ImageMap& getImageMap() const { return Imagemap; }
+        const  ImageMap& getImageMap() const { return Map; }
         
         const Triangles& getTriangles() const { return RecTriangles; }
         const Polylines& getLines() const { return RecLines; }
         const PContours& getOtherContours() const { return RecOther; }
+        
+    private:
+        void getContours();
+        void extractConsistent();
+        void recognizeLines();
+        void regroupLines();
+        void extractTriangles();
     };
 }
 

@@ -1,7 +1,6 @@
 #pragma once
 #include "../Image/Triangle.h"
 #include "Line.h"
-#include "Contour.h"
 #include "ImageMap.h"
 
 namespace gga

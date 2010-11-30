@@ -5,7 +5,6 @@ namespace gga
 {
     class SegmentParams
     {
-        const Polylines& Source;
         size_t AverageLineLength;
         int Rotation;
 
@@ -20,7 +19,7 @@ namespace gga
         int getRotationAngle() const { return Rotation; }
         
     private:
-        void calcLength();
-        void calcAngle();
+        void calcLength(const Polylines& Source);
+        void calcAngle(const Polylines& Source);
     };
 }

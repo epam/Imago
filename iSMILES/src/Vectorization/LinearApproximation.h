@@ -1,5 +1,4 @@
 #pragma once
-#include "Contour.h"
 #include "RangeArray.h"
 #include "Line.h"
 #include "../Histogram.h"

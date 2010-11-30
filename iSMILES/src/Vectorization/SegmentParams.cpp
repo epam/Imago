@@ -24,7 +24,7 @@ namespace gga
         return result;
     }
     
-    void SegmentParams::calcLength()
+    void SegmentParams::calcLength(const Polylines& Source)
     {
         double sumLength = 0.0;
         size_t count = 0;
@@ -45,7 +45,7 @@ namespace gga
         }        
     }
     
-    void SegmentParams::calcAngle()
+    void SegmentParams::calcAngle(const Polylines& Source)
     {
         for (size_t maxAngleDelta = 5; maxAngleDelta < 45; maxAngleDelta+=5)
         {
@@ -92,9 +92,9 @@ namespace gga
     }
     
     SegmentParams::SegmentParams(const Polylines& src)
-    : Source(src), AverageLineLength(0), Rotation(0)
+    : AverageLineLength(0), Rotation(0)
     {   
-        calcLength();
-        calcAngle();
+        calcLength(src);
+        calcAngle(src);
     }
 }
