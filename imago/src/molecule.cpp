@@ -56,7 +56,7 @@ Skeleton::SkeletonGraph & Molecule::getSkeleton()
    return _g;
 }
 
-void Molecule::mapLabels()
+void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
 {
    double space = 0.45 * bondLength(); //changed in "handwriting"
    std::vector<Skeleton::Vertex> nearest;
@@ -92,7 +92,10 @@ void Molecule::mapLabels()
 
       int s = nearest.size();
       if (s == 0)
+      {
+         unmapped_labels.push_back(l);
          continue;
+      }
 
       if (s == 1)
       {

@@ -42,7 +42,7 @@ namespace imago
 
       void aromatize( Points &p );
 
-      void mapLabels();
+      void mapLabels( std::deque<Label> &unmapped_labels );
 
       void clear();
 

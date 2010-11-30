@@ -17,6 +17,7 @@
 
 #include "vec2d.h"
 #include "stl_fwd.h"
+#include "label_combiner.h"
 
 namespace imago
 {
@@ -28,12 +29,15 @@ namespace imago
    
    class Segment;
    class Image;
+   class Molecule;
 
    class GraphicsDetector
    {
    public:
       GraphicsDetector();
       void extractRingsCenters( SegmentDeque &segments, Points &ring_centers );
+      void analyzeUnmappedLabels( std::deque<Label> &unmapped_labels, 
+         Points &ring_centers );
       void detect( const Image &img, Points &lsegments );
       ~GraphicsDetector();
    private:

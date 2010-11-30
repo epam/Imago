@@ -192,9 +192,10 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       Points ringCenters;
 
-      TIME(GraphicsDetector().extractRingsCenters(layer_graphics, ringCenters), "Extracting aromatic rings");
+      TIME(GraphicsDetector().extractRingsCenters(layer_graphics, ringCenters), 
+         "Extracting aromatic rings");
 
-      LPRINT(0, "Found %i rings", ringCenters.size());
+      
 
       TIME(GraphExtractor::extract(layer_graphics, mol), 
          "Extracting molecular graph");
@@ -205,12 +206,16 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       {
          LMARK;
          LabelLogic ll(_cr, getSettings()["CapHeightErr"]);
+         std::deque<Label> unmapped_labels;
          BOOST_FOREACH(Label &l, mol.getLabels())
             ll.recognizeLabel(l);
 
          LPRINT(1, "Label recognizing");
          
-         mol.mapLabels();
+         mol.mapLabels(unmapped_labels);
+
+         GraphicsDetector().analyzeUnmappedLabels(unmapped_labels, ringCenters);
+         LPRINT(0, "Found %i rings", ringCenters.size());
       }
 
       mol.aromatize(ringCenters);

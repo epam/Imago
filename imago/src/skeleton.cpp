@@ -42,12 +42,16 @@ void Skeleton::setInitialAvgBondLength( double avg_length )
    _avg_bond_length = avg_length;
 
    double mult = 0.1;
+
+   //TODO: Stupid temporary fix. We should think about it carefully.
    if (_avg_bond_length < 20)
       mult = 0.2;
-   else if (_avg_bond_length < 60)
-      mult = 0.11;
+   else if (_avg_bond_length < 85)
+      mult = 0.3;
+   else if (_avg_bond_length < 100)
+      mult = 0.2; //TODO: handwriting
    else
-      mult = 0.31; //TODO: handwriting
+      mult = 0.3; //TODO: handwriting
 
    rs.set("AddVertexEps", mult * _avg_bond_length);
    _addVertexEps = rs["AddVertexEps"];

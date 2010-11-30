@@ -28,6 +28,7 @@
 #include "image_draw_utils.h"
 #include "convolver.h"
 #include "binarizer.h"
+#include "molecule.h"
 #include "fourier_descriptors_extractor.h"
 #include "recognition_settings.h"
 #include "font.h"
@@ -267,6 +268,21 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring
    }
 }
 
+
+void GraphicsDetector::analyzeUnmappedLabels( std::deque<Label> &unmapped_labels, 
+                                             Points &ring_centers )
+{
+   BOOST_FOREACH( Label &l, unmapped_labels )
+   {
+      //TODO: More convenient criteria here
+      //      like 'No O inside convex polygon'
+      if (l.satom.atoms[0].label_first == 'O')
+      {
+         ring_centers.push_back(l.symbols[0]->getCenter());
+      }
+   }
+}
+
 void GraphicsDetector::detect( const Image &img, Points &lsegments )
 {
    SegmentDeque segs;
@@ -294,4 +310,3 @@ void GraphicsDetector::detect( const Image &img, Points &lsegments )
    }
    segs.clear();
 }
-

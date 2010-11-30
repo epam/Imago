@@ -24,7 +24,7 @@ MultipleBondChecker::MultipleBondChecker( Skeleton &s ) : _s(s), _g(_s.getGraph(
    if (_avgBondLength > 125)
       _multiBondErr = 0.175;
    else if (_avgBondLength > 85)
-      _multiBondErr = 0.3;
+      _multiBondErr = 0.4;
    else
       _multiBondErr = 0.41; //TODO: handwriting, original: 0.4
    _parLinesEps = getSettings()["ParLinesEps"];
