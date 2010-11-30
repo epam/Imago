@@ -43,11 +43,7 @@ void testRecognize( char *input )
 
       RecognitionSettings &rs = getSettings();
 
-//#ifdef _DEBUG
       rs["DebugSession"] = true;
-      rs["ParLinesEps"] = 0.45;
-      rs["AddVertexEps"] = 0.6;
-//#endif /* _DEBUG */
 
       Image img;
       Molecule mol;
@@ -272,213 +268,206 @@ void _selectFont( const SegmentDeque &layer, boost::shared_ptr<Font> &_fnt )
 }
 
 
-void testHandWrittenRecogntion( char *Filename )
-{
-   try 
-   {
-      Image _origImage;
-      qword id = SessionManager::getInstance().allocSID();
-      SessionManager::getInstance().setSID(id);
-
-      ImageUtils::loadImageFromFile(_origImage, Filename);
-
-      boost::shared_ptr<Font> _fnt;
-
-      Molecule mol;
-
-      getLog().reset();
-      mol.clear();
-
-      SegmentDeque layer_symbols, layer_graphics, segments;
-      RecognitionSettings &rs = getSettings(); 
-
-#ifdef _DEBUG
-   rs["DebugSession"] = true;
-#else
-   rs["DebugSession"] = false;
-#endif
-
-
-      LMARK;
-      LPRINT(0 , "Let the recognition begin");
-
-      TIME(_processFilter(_origImage), "Image processing");
-
-      /*rs["SuperSegWndSize"] = 60;
-
-      //Super segmentation is evil
-      TIME(Segmentator::segmentate(_origImage, segments, rs["SuperSegWndSize"]),
-         "Super segmentation"); 
-
-      if (segments.empty())
-      {
-         LPRINT(0, "Image is empty");
-         return;
-      }
-
-      int max = 0;
-      Segment *ind = 0;
-
-      BOOST_FOREACH( Segment *s, segments )
-      {
-         if (s->getWidth() * s->getHeight() > max)
-         {
-            max = s->getWidth() * s->getHeight();
-            ind = s;
-         }
-      }
-
-      //Paranoia
-      if (ind == 0)
-      {
-         throw NullPointerException();
-      }*/
-
-      Image _img;
-      _img.copy(_origImage);
-
-      //TODO: Totally debug!!!
-      rs.set("imgHeight", _img.getHeight());
-      rs.set("imgWidth", _img.getWidth());
-      //
-
-      if (rs["DebugSession"])
-      {
-         ImageUtils::saveImageToFile(_img, "output/real_img.png");
-      }
-
-      //TODO: Other segments should be processed
-      BOOST_FOREACH( Segment *s, segments )
-         delete s;
-      segments.clear();
-
-      TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
-
-      //WedgeBondExtractor wbe(segments, _img); 
-      //TIME(wbe.singleDownFetch(mol), "Fetching single-down bonds");
-
-      Separator sep(segments, _img);
-      rs.set("SymHeightErr", 42);      
-      rs.set("MaxSymRatio", 1.4);      
-      TIME(sep.firstSeparation(layer_symbols, layer_graphics), 
-         "Symbols/Graphics elements separation");
-      LPRINT(0, "Symbols: %i, Graphics: %i", layer_symbols.size(), 
-         layer_graphics.size());
-
-      Image symbols, graphics;
-
-      symbols.emptyCopy(_img);
-      graphics.emptyCopy(_img);
-
-      BOOST_FOREACH( Segment *s, layer_symbols )
-         ImageUtils::putSegment(symbols, *s, true);
-
-      BOOST_FOREACH( Segment *s, layer_graphics )
-         ImageUtils::putSegment(graphics, *s, true);
-
-      ImageUtils::saveImageToFile(symbols, (std::string(Filename) + std::string("letters.png")).c_str());
-      ImageUtils::saveImageToFile(graphics, (std::string(Filename) + std::string("graphics.png")).c_str());
-
-      if (rs["DebugSession"])
-    
-      {
-         Image symbols, graphics;
-
-         symbols.emptyCopy(_img);
-         graphics.emptyCopy(_img);
-
-         BOOST_FOREACH( Segment *s, layer_symbols )
-            ImageUtils::putSegment(symbols, *s, true);
-
-         BOOST_FOREACH( Segment *s, layer_graphics )
-            ImageUtils::putSegment(graphics, *s, true);
-
-         ImageUtils::saveImageToFile(symbols, "output/letters.png");
-         ImageUtils::saveImageToFile(graphics, "output/graphics.png");
-      }
-
-      LMARK;
-      if (!layer_symbols.empty())
-      {
-         TIME(_selectFont(layer_symbols, _fnt), "Selecting font");
-
-         LabelCombiner lc(layer_symbols, layer_graphics,
-            rs["CapitalHeight"], *_fnt);
-         lc.extractLabels(mol.getLabels());
-
-         if (rs["DebugSession"])
-         {
-            Image symbols;
-            symbols.emptyCopy(_img);
-            BOOST_FOREACH( Segment *s, layer_symbols )
-               ImageUtils::putSegment(symbols, *s, true);
-            ImageUtils::saveImageToFile(symbols, "output/letters2.png");
-         }
-
-         LPRINT(1, "Found %d superatoms", mol.getLabels().size());
-      }
-      else
-      {
-         LPRINT(1, "No symbols found in image");
-      }
-      
-      /*
-
-      Points ringCenters;
-
-      TIME(GraphicsDetector().extractRingsCenters(layer_graphics, ringCenters), "Extracting aromatic rings");
-
-      LPRINT(0, "Found %i rings", ringCenters.size());
-
-      TIME(GraphExtractor::extract(layer_graphics, mol), 
-         "Extracting molecular graph");
-
-      TIME(wbe.singleUpFetch(mol), "Fetching single-up bonds");
-
-      if (!layer_symbols.empty())
-      {
-         LMARK;
-         LabelLogic ll(*_fnt, getSettings()["CapHeightErr"]);
-         BOOST_FOREACH(Label &l, mol.getLabels())
-            ll.recognizeLabel(l);
-
-         LPRINT(1, "Label recognizing");
-
-         mol.mapLabels();
-      }
-
-      mol.aromatize(ringCenters);
-
-      TIME(wbe.fixStereoCenters(mol), "Fixing stereo bonds directions");
-
-      LPRINT(0, "Compound recognized with #%i config", (int)rs["CfgNumber"] + 1);*/
-
-      BOOST_FOREACH( Segment *s, layer_symbols)
-         delete s;
-      BOOST_FOREACH( Segment *s, layer_graphics)
-         delete s;
-
-      LPRINT(1, "Recognition finished");
-
-
-
-      SessionManager::getInstance().releaseSID(id);
-   }
-   catch (Exception &e)
-   {
-      puts(e.what());
-   }
-}
+//void testHandWrittenRecogntion( char *Filename )
+//{
+//   try 
+//   {
+//      Image _origImage;
+//      qword id = SessionManager::getInstance().allocSID();
+//      SessionManager::getInstance().setSID(id);
+//
+//      ImageUtils::loadImageFromFile(_origImage, Filename);
+//
+//      boost::shared_ptr<Font> _fnt;
+//
+//      Molecule mol;
+//
+//      getLog().reset();
+//      mol.clear();
+//
+//      SegmentDeque layer_symbols, layer_graphics, segments;
+//      RecognitionSettings &rs = getSettings(); 
+//
+//#ifdef _DEBUG
+//   rs["DebugSession"] = true;
+//#else
+//   rs["DebugSession"] = false;
+//#endif
+//
+//
+//      LMARK;
+//      LPRINT(0 , "Let the recognition begin");
+//
+//      TIME(_processFilter(_origImage), "Image processing");
+//
+//      /*rs["SuperSegWndSize"] = 60;
+//
+//      //Super segmentation is evil
+//      TIME(Segmentator::segmentate(_origImage, segments, rs["SuperSegWndSize"]),
+//         "Super segmentation"); 
+//
+//      if (segments.empty())
+//      {
+//         LPRINT(0, "Image is empty");
+//         return;
+//      }
+//
+//      int max = 0;
+//      Segment *ind = 0;
+//
+//      BOOST_FOREACH( Segment *s, segments )
+//      {
+//         if (s->getWidth() * s->getHeight() > max)
+//         {
+//            max = s->getWidth() * s->getHeight();
+//            ind = s;
+//         }
+//      }
+//
+//      //Paranoia
+//      if (ind == 0)
+//      {
+//         throw NullPointerException();
+//      }*/
+//
+//      Image _img;
+//      _img.copy(_origImage);
+//
+//      //TODO: Totally debug!!!
+//      rs.set("imgHeight", _img.getHeight());
+//      rs.set("imgWidth", _img.getWidth());
+//      //
+//
+//      if (rs["DebugSession"])
+//      {
+//         ImageUtils::saveImageToFile(_img, "output/real_img.png");
+//      }
+//
+//      //TODO: Other segments should be processed
+//      BOOST_FOREACH( Segment *s, segments )
+//         delete s;
+//      segments.clear();
+//
+//      TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
+//
+//      //WedgeBondExtractor wbe(segments, _img); 
+//      //TIME(wbe.singleDownFetch(mol), "Fetching single-down bonds");
+//
+//      Separator sep(segments, _img);
+//      rs.set("SymHeightErr", 42);      
+//      rs.set("MaxSymRatio", 1.4);      
+//      TIME(sep.firstSeparation(layer_symbols, layer_graphics), 
+//         "Symbols/Graphics elements separation");
+//      LPRINT(0, "Symbols: %i, Graphics: %i", layer_symbols.size(), 
+//         layer_graphics.size());
+//
+//      Image symbols, graphics;
+//
+//      symbols.emptyCopy(_img);
+//      graphics.emptyCopy(_img);
+//
+//      BOOST_FOREACH( Segment *s, layer_symbols )
+//         ImageUtils::putSegment(symbols, *s, true);
+//
+//      BOOST_FOREACH( Segment *s, layer_graphics )
+//         ImageUtils::putSegment(graphics, *s, true);
+//
+//      ImageUtils::saveImageToFile(symbols, (std::string(Filename) + std::string("letters.png")).c_str());
+//      ImageUtils::saveImageToFile(graphics, (std::string(Filename) + std::string("graphics.png")).c_str());
+//
+//      if (rs["DebugSession"])
+//    
+//      {
+//         Image symbols, graphics;
+//
+//         symbols.emptyCopy(_img);
+//         graphics.emptyCopy(_img);
+//
+//         BOOST_FOREACH( Segment *s, layer_symbols )
+//            ImageUtils::putSegment(symbols, *s, true);
+//
+//         BOOST_FOREACH( Segment *s, layer_graphics )
+//            ImageUtils::putSegment(graphics, *s, true);
+//
+//         ImageUtils::saveImageToFile(symbols, "output/letters.png");
+//         ImageUtils::saveImageToFile(graphics, "output/graphics.png");
+//      }
+//
+//      LMARK;
+//      if (!layer_symbols.empty())
+//      {
+//         TIME(_selectFont(layer_symbols, _fnt), "Selecting font");
+//
+//         LabelCombiner lc(layer_symbols, layer_graphics,
+//            rs["CapitalHeight"], *_fnt);
+//         lc.extractLabels(mol.getLabels());
+//
+//         if (rs["DebugSession"])
+//         {
+//            Image symbols;
+//            symbols.emptyCopy(_img);
+//            BOOST_FOREACH( Segment *s, layer_symbols )
+//               ImageUtils::putSegment(symbols, *s, true);
+//            ImageUtils::saveImageToFile(symbols, "output/letters2.png");
+//         }
+//
+//         LPRINT(1, "Found %d superatoms", mol.getLabels().size());
+//      }
+//      else
+//      {
+//         LPRINT(1, "No symbols found in image");
+//      }
+//      
+//      /*
+//
+//      Points ringCenters;
+//
+//      TIME(GraphicsDetector().extractRingsCenters(layer_graphics, ringCenters), "Extracting aromatic rings");
+//
+//      LPRINT(0, "Found %i rings", ringCenters.size());
+//
+//      TIME(GraphExtractor::extract(layer_graphics, mol), 
+//         "Extracting molecular graph");
+//
+//      TIME(wbe.singleUpFetch(mol), "Fetching single-up bonds");
+//
+//      if (!layer_symbols.empty())
+//      {
+//         LMARK;
+//         LabelLogic ll(*_fnt, getSettings()["CapHeightErr"]);
+//         BOOST_FOREACH(Label &l, mol.getLabels())
+//            ll.recognizeLabel(l);
+//
+//         LPRINT(1, "Label recognizing");
+//
+//         mol.mapLabels();
+//      }
+//
+//      mol.aromatize(ringCenters);
+//
+//      TIME(wbe.fixStereoCenters(mol), "Fixing stereo bonds directions");
+//
+//      LPRINT(0, "Compound recognized with #%i config", (int)rs["CfgNumber"] + 1);*/
+//
+//      BOOST_FOREACH( Segment *s, layer_symbols)
+//         delete s;
+//      BOOST_FOREACH( Segment *s, layer_graphics)
+//         delete s;
+//
+//      LPRINT(1, "Recognition finished");
+//
+//
+//
+//      SessionManager::getInstance().releaseSID(id);
+//   }
+//   catch (Exception &e)
+//   {
+//      puts(e.what());
+//   }
+//}
    
 int main( int argc, char *argv[] )
 {
-#ifdef _DEBUG
-   testHandWrittenRecogntion("../../../data/mol_images/from-iphone/filtered/IMG_0057.jpg.out.png");
-#else
-   if (argc > 1)
-      testHandWrittenRecogntion(argv[1]);
-#endif
-
    //if (argc > 1)
      // testHandWrittenRecogntion(argv[1]);
 
@@ -486,12 +475,12 @@ int main( int argc, char *argv[] )
    //testHandWrittenRecogntion("../../../data/mol_images/from-iphone/filtered/iphone3.jpg.out.png");
    //testRNG("../../../data/mol_images/image13.png");
    //testRecognize("../../../data/mol_images/from-iphone/filtered/IMG_0057.jpg.out.png"); 
-   //testRecognize("../../../data/release_examples/3.png"); 
+   testRecognize("../../../data/mol_images/first-delivery-images/photo09.png"); 
+   //C:\work\imago\data\mol_images\first-delivery-images
    //system("start marvinsketch result.mol");
 
    //vs: IMAGE1.PNG
-
-   //aromatize 433
+     //aromatize 433
    //stereo-up 324
    //stereo-down 215 250 258
    //separation 325 429 145(ego cut - one O)

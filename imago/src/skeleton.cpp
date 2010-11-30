@@ -47,7 +47,7 @@ void Skeleton::setInitialAvgBondLength( double avg_length )
    else if (_avg_bond_length < 60)
       mult = 0.11;
    else
-      mult = 0.155;
+      mult = 0.175; //TODO: handwriting
    
    rs.set("AddVertexEps", mult * _avg_bond_length);
    _addVertexEps = rs["AddVertexEps"];

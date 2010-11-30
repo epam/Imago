@@ -140,8 +140,11 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       TIME(wbe.singleDownFetch(mol), "Fetching single-down bonds");
 
       Separator sep(segments, _img);
+
+      //Settings for handwriting separation
       rs.set("SymHeightErr", 42);      
       rs.set("MaxSymRatio", 1.4);      
+
       TIME(sep.firstSeparation(layer_symbols, layer_graphics), 
          "Symbols/Graphics elements separation");
       LPRINT(0, "Symbols: %i, Graphics: %i", layer_symbols.size(), 
@@ -198,7 +201,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       TIME(GraphExtractor::extract(layer_graphics, mol), 
          "Extracting molecular graph");
 
-      TIME(wbe.singleUpFetch(mol), "Fetching single-up bonds");
+      //TIME(wbe.singleUpFetch(mol), "Fetching single-up bonds");
 
       if (!layer_symbols.empty())
       {

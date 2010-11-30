@@ -124,10 +124,11 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 
    BOOST_FOREACH( Segment *s, layer_suspicious )
    {
-      if (!_isSuspiciousSymbol(s, layer_symbols, cap_height))
+      //TODO: Handwriting
+     // if (!_isSuspiciousSymbol(s, layer_symbols, cap_height))
          layer_graphics.push_back(s);
-      else
-         layer_symbols.push_back(s);
+      //else
+        // layer_symbols.push_back(s);
    }
 
    std::sort(layer_symbols.begin(), layer_symbols.end(), _segmentsComparator);
