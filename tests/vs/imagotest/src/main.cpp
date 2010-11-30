@@ -218,6 +218,7 @@ void testRecognizer(int num)
       //filename = "../../../../../flamingo_test/t.png";
       //filename = "~/flamingo_test/800.png";
       //filename = "../../../data/mol_images/from_articles/75.png";
+      filename = "/media/proj/OpenSource/flamingo-dev/first-delivery-images/photo17.png";
       qword sid = SessionManager::getInstance().allocSID();
       SessionManager::getInstance().setSID(sid);
       ChemicalStructureRecognizer &csr = gSession.get()->recognizer();
@@ -340,12 +341,12 @@ void makeFont( )
                                            "../../../data/fonts/png/desyrel.png",
                                            "../../../data/fonts/png/all_hail_julia.png",
                                            "../../../data/fonts/png/sunshine.png"};
-     int count = 11;
+     int count = 25;
      std::vector<Font *> fonts(fonts_count);
      for (int i = 0; i < fonts_count; i++)
         fonts[i]= new Font(font_names[i], count);
      
-     FileOutput fout("../../../data/fonts/TEST.font");
+     FileOutput fout("../../../data/fonts/TEST2.font");
      fout.printf("%d %d %d\n", count, fonts_count, 62);
 
      for (int i = 0; i < fonts_count; i++)
@@ -389,10 +390,10 @@ void testOCR2( const char *name )
       SessionManager::getInstance().setSID(sid);
       Image img;
 
-      CharacterRecognizer cr(3); //, "../../../data/fonts/TEST.font");
+      CharacterRecognizer cr(2, "../../../data/fonts/TEST.font");
 
       const char *filename;
-      filename = name?name:"../../../../flamingo_test/sym/n/IMG_0052.JPG.out.png";
+      filename = name?name:"../../../../flamingo_test/n/IMG_0052.JPG.out.png";
       ImageUtils::loadImageFromFile(img, filename);
       LPRINT(0, "Start");
       // Convolver gauss(img);
@@ -463,7 +464,7 @@ int main(int argc, char **argv)
    //num = readCL(argc, argv);
 
    //testContour();
-   //testRecognizer(num);
+   testRecognizer(num);
    //testOCR(argv[1]);
    //makeFont();
    //testOCR2(argv[1]);

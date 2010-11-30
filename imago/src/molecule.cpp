@@ -58,7 +58,7 @@ Skeleton::SkeletonGraph & Molecule::getSkeleton()
 
 void Molecule::mapLabels()
 {
-   double space = 0.33 * bondLength();
+   double space = 0.45 * bondLength(); //changed in "handwriting"
    std::vector<Skeleton::Vertex> nearest;
 
    BOOST_FOREACH(Label &l, _labels)

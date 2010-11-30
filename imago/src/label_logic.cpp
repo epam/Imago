@@ -28,6 +28,7 @@ LabelLogic::LabelLogic( const CharacterRecognizer &cr, double capHeightError ) :
 _cr(cr),
    cap_height_error(capHeightError) //0.82 0.877 0.78
 {
+   cap_height_error = 0.56; //changed in "handwriting"
    _cap_height = (int)getSettings()["CapitalHeight"];
    flushed = was_charge = was_letter = was_super = 0;
 }
@@ -79,7 +80,7 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
    /*X*/   "e",
    /*Y*/   "b",
    /*Z*/   "nr",
-           "ABCEFGHIKLMNOPQRSTUVWYZX", //XD
+           "ABCEFGHILMNOPQRSTUVWYZX", //XD //K removed in "handwriting"
            "abcdeghiklmnoprstuyz",
    };
    
@@ -128,14 +129,36 @@ void LabelLogic::process( Segment *seg, int line_y )
    int index_val = 0;
 
    double sameLineEps = (double)getSettings()["SameLineEps"];
+   bool capital;
+   //TODO: This can slowdown recognition process! Check this!
+   if (seg->getFeatures().recognizable)
+   {
+      double d_big, d_small, d_digit;
+      char c_big, c_small, c_digit;
 
-   if (seg->getHeight() > cap_height_error * _cap_height)
+      c_big = _cr.recognize(*seg, CharacterRecognizer::upper, &d_big);
+      c_small = _cr.recognize(*seg, CharacterRecognizer::lower, &d_small);
+      c_digit = _cr.recognize(*seg, CharacterRecognizer::digits, &d_digit);
+      if (d_big < d_small && d_big < d_digit)
+         capital = true;
+      else
+      {
+         if (c_small == 'o' || c_small == 'c' || c_small == 's' ||
+             c_small == 'i' || c_small == 'p' || c_small == 'u' ||
+             c_small == 'v' || c_small == 'w')
+            capital = true;
+         else
+            capital = false;
+      }
+   }
+   
+   if (capital) //seg->getHeight() > cap_height_error * _cap_height)
    {
       //Check for tall small letters
       _predict(seg, letters);
       char sym;
       if (seg->getFeatures().recognizable)
-         sym = _cr.recognize(*seg, letters);
+         sym = _cr.recognize(*seg, letters); //TODO: Can use c_big here
       else
          sym = '?';
 

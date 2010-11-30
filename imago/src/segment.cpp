@@ -23,6 +23,7 @@
 #include "segmentator.h"
 #include "output.h"
 #include "png_saver.h"
+#include "exception.h"
 
 using namespace imago;
 
@@ -137,53 +138,60 @@ SymbolFeatures &Segment::getFeatures()
 
 void Segment::initFeatures( int descriptorsCount ) const
 {
-   if (_features.isInit())
+   if (_features.init)
       if ((int)_features.descriptors.size() / 2 >=  descriptorsCount)
          return;
-   
-   FourierDescriptorsExtractor::getDescriptors(this, descriptorsCount,
-                                               _features.descriptors);
 
-   //Searching for inner contours
-
-   SegmentDeque segments;
-   Segmentator::segmentate(*this, segments, 3, 255); //all white parts
-
-   int x, y, w, h;
-   int total = 0;
-   int i = 0;
-   BOOST_FOREACH(Segment * &seg, segments)
+   try
    {
+      FourierDescriptorsExtractor::getDescriptors(this, descriptorsCount,
+                                                  _features.descriptors);
+
+      //Searching for inner contours
+
+      SegmentDeque segments;
+      Segmentator::segmentate(*this, segments, 3, 255); //all white parts
+
+      int x, y, w, h;
+      int total = 0;
+      int i = 0;
+      BOOST_FOREACH(Segment * &seg, segments)
+      {
 //      FileOutput fout("output/seg_%d.png", i++);
 //      PngSaver(fout).saveImage(*seg);
       
-      x = seg->getX(), y = seg->getY();
-      w = seg->getWidth(), h = seg->getHeight();
+         x = seg->getX(), y = seg->getY();
+         w = seg->getWidth(), h = seg->getHeight();
 
-      if (x == 0 || y == 0 || x + w == _width || y + h == _height)
-      {
-         delete seg;
-         seg = 0;
+         if (x == 0 || y == 0 || x + w == _width || y + h == _height)
+         {
+            delete seg;
+            seg = 0;
+         }
+         else
+         {
+            total++;
+         }
       }
-      else
+
+      _features.inner_contours_count = total;
+      _features.inner_descriptors.resize(total);
+
+      i = 0;
+      BOOST_FOREACH(Segment * &seg, segments)
       {
-         total++;
+         if (seg != 0)
+         {
+            std::vector<double> &descr = _features.inner_descriptors[i++];
+            FourierDescriptorsExtractor::getDescriptors(seg, descriptorsCount, descr);
+         }
       }
+      _features.recognizable = true;
    }
-
-   _features.inner_contours_count = total;
-   _features.inner_descriptors.resize(total);
-
-   i = 0;
-   BOOST_FOREACH(Segment * &seg, segments)
+   catch (NoContourException &e)
    {
-      if (seg != 0)
-      {
-         std::vector<double> &descr = _features.inner_descriptors[i++];
-         FourierDescriptorsExtractor::getDescriptors(seg, descriptorsCount, descr);
-      }
+      _features.recognizable = false;
    }
-   
    _features.init = true;
 }
 

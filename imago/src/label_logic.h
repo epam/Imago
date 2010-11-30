@@ -38,7 +38,7 @@ namespace imago
    private:
       int _cap_height;
       const CharacterRecognizer &_cr;
-      const double cap_height_error;
+      double cap_height_error;
       Superatom *_satom;
       Atom *_cur_atom;
       bool flushed, was_super, was_charge, was_letter;

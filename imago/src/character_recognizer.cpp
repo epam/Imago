@@ -137,6 +137,7 @@ char CharacterRecognizer::recognize( const SymbolFeatures &features,
          boost::get<1>(it->second) = std::min(boost::get<1>(it->second),
                                               boost::get<2>(t));
       }
+      //printf("%c %lf\n", c, boost::get<2>(t));
    }
 
    char res = 0;
