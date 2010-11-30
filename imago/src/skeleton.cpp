@@ -48,14 +48,14 @@ void Skeleton::setInitialAvgBondLength( double avg_length )
       mult = 0.11;
    else
       mult = 0.175; //TODO: handwriting
-   
+
    rs.set("AddVertexEps", mult * _avg_bond_length);
    _addVertexEps = rs["AddVertexEps"];
 }
 
 void Skeleton::recalcAvgBondLength()
 {
-   int bonds_num = num_edges(_g);     
+   int bonds_num = num_edges(_g);
 
    if (bonds_num == 0)
       return;
@@ -70,7 +70,7 @@ void Skeleton::recalcAvgBondLength()
 
 Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
 {
-   //TODO: Check if edge was not added  
+   //TODO: Check if edge was not added
    std::pair<Edge, bool> p;
 
    p = boost::edge(v1, v2, _g);
@@ -93,10 +93,10 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
          begin.y, end.x, end.y);
    }
 
-   Edge e = p.first; 
+   Edge e = p.first;
 
    int dx = end.x - begin.x,
-      dy = end.y - begin.y;
+       dy = end.y - begin.y;
    double k = 0;
 
    if (dx == 0)
@@ -114,8 +114,8 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
    return e;
 }
 
-Skeleton::Edge Skeleton::addBond( const Vec2d &begin, const Vec2d &end, 
-   BondType type )
+Skeleton::Edge Skeleton::addBond( const Vec2d &begin, const Vec2d &end,
+                                  BondType type )
 {
    Vertex v1 = addVertex(begin), v2 = addVertex(end);
 
@@ -157,7 +157,7 @@ int Skeleton::getEdgesCount() const
 }
 
 Bond Skeleton::getBondInfo( const Edge &e ) const
-{  
+{
    return boost::get(boost::edge_type, _g, e);
 }
 
@@ -171,19 +171,18 @@ Skeleton::Vertex Skeleton::getBondEnd( const Skeleton::Edge &e ) const
    return boost::target(e, _g);
 }
 
-//TODO: implement us!
-
 void Skeleton::_repairBroken()
 {
    double coef;
    recalcAvgBondLength();
 
    std::deque<Vertex> toRemove;
+
    BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
    {
       if (boost::degree(v, _g) != 2)
          continue;
-
+      
       boost::graph_traits<SkeletonGraph>::adjacency_iterator
          vi = boost::adjacent_vertices(v, _g).first;
       Vertex x, y;
@@ -196,14 +195,15 @@ void Skeleton::_repairBroken()
       e1b = getBondInfo(e1);
       e2b = getBondInfo(e2);
 
-      if (e1b.length < 0.65 * _avg_bond_length &&
-          e2b.length < 0.65 * _avg_bond_length)
+      //changed in "handwriting" to 0.37
+      if (e1b.length < 0.37 * _avg_bond_length &&
+          e2b.length < 0.37 * _avg_bond_length)
          continue;
 
-      coef = 1.0;
+      coef = 1.7;
       if (e1b.length < 0.4 * _avg_bond_length ||
           e2b.length < 0.4 * _avg_bond_length)
-         coef = 2.0;
+         coef = 2.5;
 
       Vec2d x_pos, y_pos, v_pos;
       x_pos = boost::get(boost::vertex_pos, _g, x);
@@ -527,11 +527,28 @@ void Skeleton::modifyGraph()
    // }
    
    _repairBroken();
-   
+
+   // if (getSettings()["DebugSession"])
+   // {
+   //    Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+   //    img.fillWhite();
+   //    ImageDrawUtils::putGraph(img, _g);
+   //    ImageUtils::saveImageToFile(img, "output/ggg2.png");
+   // }
+
    recalcAvgBondLength();
    
    _findMultiple();
 
+   // if (getSettings()["DebugSession"])
+   // {
+   //    Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+   //    img.fillWhite();
+   //    ImageDrawUtils::putGraph(img, _g);
+   //    ImageUtils::saveImageToFile(img, "output/ggg3.png");
+   // }
+
+   
    //if (rs["DebugSession"])
    //drawGraph(2000, 1000, "output/ggg2.png");
 

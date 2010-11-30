@@ -53,7 +53,8 @@ printf("wow");*/
       _Line &l1 = lines[i];
       _Line &l2 = lines[i + 1];
 
-      if (absolute<double>(l1.a * l2.b - l2.a * l1.b) < 0.35) //"Constants"
+      //changed in "handwriting"
+      if (absolute<double>(l1.a * l2.b - l2.a * l1.b) < 0.65) //"Constants"
       {
          l2.a = (l1.a + l2.a) / 2;
          l2.b = (l1.b + l2.b) / 2;
