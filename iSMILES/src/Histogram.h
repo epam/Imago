@@ -10,6 +10,7 @@ namespace gga
         typedef std::map<value_t, IndexVector> ValueMap;
         
         ValueMap Data;
+        
     public:
         Histogram()
         {
@@ -21,7 +22,7 @@ namespace gga
             Histogram<index_t, value_t> result;
             const size_t size = Data.size();
             
-            if (empty())
+            if (isEmpty())
                 return result;
             
             std::vector<bool> processed(size);
@@ -80,7 +81,7 @@ namespace gga
                         fabs(it->first - center_value) < Delta)
                     {
                         for (typename IndexVector::const_iterator idx = it->second.begin(); idx != it->second.end(); idx++)
-                            result.add(*idx, center_value);
+                            result.addValue(*idx, center_value);
                         processed[u] = true;
                     }
                 }
@@ -90,33 +91,33 @@ namespace gga
         }
         
         /* select only groups with members count more than average */
-        Histogram<index_t, value_t> onlyRepresentative() const
+        Histogram<index_t, value_t> getOnlyRepresentative() const
         {
             Histogram<index_t, value_t> result;
             
-            if (empty())
+            if (isEmpty())
                 return result;            
 
             size_t count = 0;
             for (typename ValueMap::const_iterator it = Data.begin(); it != Data.end(); it++)
                 count += it->second.size();
-            size_t average = count / groups();
+            size_t average = count / getGroupsCount();
 
             for (typename ValueMap::const_iterator it = Data.begin(); it != Data.end(); it++)
                 if (it->second.size() >= average)
                     for (typename IndexVector::const_iterator idx = it->second.begin(); idx != it->second.end(); idx++)
-                        result.add(*idx, it->first);
+                        result.addValue(*idx, it->first);
             return result;
         }
         
         /* add value for specified index */
-        void add(index_t index, value_t value)
+        void addValue(index_t index, value_t value)
         {
             Data[value].push_back(index);
         }
         
         /* real average value */
-        value_t average() const
+        value_t getAverage() const
         {
             value_t sum = 0;
             size_t count = 0;
@@ -129,7 +130,7 @@ namespace gga
         }
         
         /* maximal difference */
-        value_t range() const
+        value_t getRange() const
         {
             value_t min = Data.begin()->first, max = min;
             for (typename ValueMap::const_iterator it = Data.begin(); it != Data.end(); it++)
@@ -141,30 +142,31 @@ namespace gga
         }
         
         /* unique groups count */
-        size_t groups() const
+        size_t getGroupsCount() const
         {
             return Data.size();
         }
         
         /* index of each group start */
-        IndexVector startIndexes() const
+        bool getGroup(size_t num, value_t& data, IndexVector& indexes) const
         {
-            IndexVector result;
-            for (typename ValueMap::const_iterator it = Data.begin(); it != Data.end(); it++)
-                result.push_back(it->second.at(0));
-            return result;
+            size_t u = 0;
+            for (typename ValueMap::const_iterator it = Data.begin(); it != Data.end(); it++, u++)
+            {
+                if (u == num)
+                {
+                    data = it->first;
+                    indexes = it->second;
+                    return true;
+                }                
+            }
+            return false;
         }
-        
+
         /* is collection empty */
-        bool empty() const
+        bool isEmpty() const
         {
             return Data.empty();
-        }
-        
-        void dump() const
-        {
-            for (typename ValueMap::const_iterator it = Data.begin(); it != Data.end(); it++)
-                printf("  %f : %i\n", it->first, it->second.size());
         }
     };
 }

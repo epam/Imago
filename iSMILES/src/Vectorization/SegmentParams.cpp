@@ -6,35 +6,30 @@
 #include <stdio.h> // printf "log"
 #endif
 
+// NO MAGIC CONSTANTS/PARAMETERS HERE
+
 namespace gga
 {
     int SegmentParams::getAngle(const Line& line)
     {
-        double Y = line.getEnd().Y - line.getBegin().Y;
-        double X = line.getEnd().X - line.getBegin().X;
+        int Y = line.getEnd().Y - line.getBegin().Y;
+        int X = line.getEnd().X - line.getBegin().X;
 
-        double result = 0.0;
-        if (fabs(Y) < 0.0001)
-            result = (X > 0.0) ? 90.0 : -90.0;
+        int result = 0;
+        if (Y == 0)
+            result = (X > 0) ? 90 : -90;
         else
-            result = atan(X/Y) / (2*M_PI) * 360.0;
-                
-        #ifdef DEBUG
-            printf("Angle for (%i,%i)-(%i,%i) is %f\n",
-                line.getBegin().X, line.getBegin().Y, line.getEnd().X, line.getEnd().Y, result);
-        #endif        
-        
+            result = atan((double)X / (double)Y) / (2*3.14159) * 360.0;
+
         return result;
     }
     
-    SegmentParams::SegmentParams(const Polylines& src)
-    : AverageLineLength(0), Rotation(0)
-    {   
-        // step 1. calc average length
+    void SegmentParams::calcLength()
+    {
         double sumLength = 0.0;
         size_t count = 0;
                 
-        for (Polylines::const_iterator it = src.begin(); it != src.end(); it++)
+        for (Polylines::const_iterator it = Source.begin(); it != Source.end(); it++)
         {
             for (size_t p = 1; p < it->size(); p++)
             {
@@ -47,9 +42,11 @@ namespace gga
         if (count > 0)
         {            
             AverageLineLength = sumLength / count;            
-        }
-        
-        // step 2. calc rotation angle        
+        }        
+    }
+    
+    void SegmentParams::calcAngle()
+    {
         for (size_t maxAngleDelta = 5; maxAngleDelta < 45; maxAngleDelta+=5)
         {
             #ifdef DEBUG
@@ -60,7 +57,7 @@ namespace gga
             double verticalAngle = 0.0, horizontalAngle = 0.0;
             size_t verticalCount = 0, horizontalCount = 0;
             
-            for (Polylines::const_iterator it = src.begin(); it != src.end(); it++)
+            for (Polylines::const_iterator it = Source.begin(); it != Source.end(); it++)
             {
                 for (size_t p = 1; p < it->size(); p++)
                 {
@@ -91,6 +88,13 @@ namespace gga
                 }
                 break; // for maxAngleDelta                
             }            
-        }
+        }        
+    }
+    
+    SegmentParams::SegmentParams(const Polylines& src)
+    : Source(src), AverageLineLength(0), Rotation(0)
+    {   
+        calcLength();
+        calcAngle();
     }
 }

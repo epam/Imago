@@ -1,6 +1,5 @@
 #include "Vectorize.h"
 #include "../Parameters.h"
-#include "SegmentParams.h"
 #ifdef DEBUG
 #include <stdio.h> // printf "log"
 #endif
@@ -22,22 +21,25 @@ namespace gga
                     // that pixel is unprocessed yet, so extract the contour starting from it
                     Contour* c = new Contour(SourceImage, Imagemap, p);
                     // add new contour
-                    Contours.push_back(c);
+                    AllContours.push_back(c);
                 }
             } // for x
         } //for y
         
         // step 2. extract consistent parts only
-        for (size_t u = 0; u < Contours.size(); u++)
+        for (size_t u = 0; u < AllContours.size(); u++)
         {
-            if (Bounds(*Contours[u]).getArea() >= GlobalParams.getMinimalConsistentArea())
-                RecOther.push_back(Contours[u]);
+            if (Bounds(*AllContours[u]).getArea() >= GlobalParams.getMinimalConsistentArea())
+                RecOther.push_back(AllContours[u]);
         }
         
         // step 3. extract lines
         for (size_t u = 0; u < RecOther.size(); )
         {
-            LinearApproximation line(*RecOther[u]);
+            Contour c = *RecOther[u];
+            // TODO: split contour /c/
+            
+            LinearApproximation line(c);
             if (line.isGood())
             {
                 RecLines.push_back(line.getLine());
@@ -46,15 +48,8 @@ namespace gga
             else
                 u++;
         }
-        
-        // step 4.1. extract some segment params
-        SegmentParams segParams(RecLines);
-        #ifdef DEBUG
-            printf("[i] Average line length: %ipx; Image rotation required: %i*\n", 
-                segParams.getAverageLineLength(), segParams.getCompensationAngle());
-        #endif
-        
-        // step 4.2. regroup lines
+
+        // step 4. regroup lines
         VertexRegroup regroup(RecLines);
         RecLines = regroup.getResult();
         
@@ -69,14 +64,14 @@ namespace gga
             }
             else
                 u++;
-        }        
+        }
         // that's all.
     }
     
     Vectorize::~Vectorize()
     {
-        for (size_t u = 0; u < Contours.size(); u++)
-            delete Contours[u];
+        for (size_t u = 0; u < AllContours.size(); u++)
+            delete AllContours[u];
     }
 }
 

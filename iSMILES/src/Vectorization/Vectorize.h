@@ -18,9 +18,7 @@ namespace gga
     {
         const Image& SourceImage;
         ImageMap   Imagemap;
-        PContours Contours;
-        
-    private:
+        PContours AllContours;        
         Triangles RecTriangles;
         Polylines RecLines;   
         PContours RecOther;

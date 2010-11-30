@@ -1,13 +1,17 @@
 #include "TriangleRecognize.h"
+#include "../Parameters.h"
 
 namespace gga
 {
     TriangleRecognize::TriangleRecognize(const Polyline& line, const ImageMap& img_map)
-    : Good(false), Filled(false), Deviation(0.0)
+    : Good(false), Filled(false)
     {
-        if (line.size() == 3)
+        // check polyline can be triangle
+        if (line.size() == 4 && line[0].distance(line[3]) < GlobalParams.getMaxTriangleBreakDistance())
         {
             Result = Triangle(line[0], line[1], line[2]);
+            
+            // check is not degenerated
             if (Result.getSideLength(0) < Result.getSideLength(1) + Result.getSideLength(2) &&
                 Result.getSideLength(1) < Result.getSideLength(2) + Result.getSideLength(0) &&
                 Result.getSideLength(2) < Result.getSideLength(0) + Result.getSideLength(1))
@@ -17,11 +21,13 @@ namespace gga
                         size_t v0 = p % 3;
                         size_t v1 = (p + 1) % 3;
                         size_t v2 = (p + 2) % 3;
-                        double a = 1.5 * Result.getSideLength(v0) / (Result.getSideLength(v1) + Result.getSideLength(v2));
-                        double b = (fabs(Result.getSideLength(v1) - Result.getSideLength(v2))) / (Result.getSideLength(v0) / 1.5);
-                        if (a < 1.0 && b < 1.0)
+                        
+                        // check it is sharp enogh
+                        double r = GlobalParams.getTriangleSideRatio();
+                        if ( r * Result.getSideLength(v0) < Result.getSideLength(v1) &&
+                             r * Result.getSideLength(v0) < Result.getSideLength(v2) &&
+                             r * fabs(Result.getSideLength(v1) - Result.getSideLength(v2)) < Result.getSideLength(v0) )
                         {
-                            Deviation = a * b;
                             Good = true;
                             break;
                         }                

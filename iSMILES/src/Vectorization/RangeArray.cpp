@@ -3,6 +3,20 @@
 
 namespace gga
 {
+    RangeArray::RangeArray(const RangeArray& src, int from, int to)
+    {
+        insert(this->begin(), src.begin() + from, (to == -1) ? src.end() : (src.begin() + to));
+        
+        Left = src.Left;
+        Top = src.Top;
+        InvertedAxis = src.InvertedAxis;
+        
+        if (InvertedAxis)
+            Left += from;
+        else
+            Top += from;
+    }
+    
     RangeArray::RangeArray(const Points& src)
     {
         Bounds b(src);
@@ -71,22 +85,5 @@ namespace gga
             res.push_back(coordToPoint(at(y).R, y));
         }
         return res;
-    }
-    
-    RangeArray RangeArray::head(size_t splitPoint) const
-    {
-        Points p = toPoints(), start;
-        for (size_t u = 0; u < 2*splitPoint && u < p.size(); u++)
-            start.push_back(p[u]);
-        return RangeArray(start);
-    }
-    
-    RangeArray RangeArray::tail(size_t splitPoint) const
-    {
-        Points p = toPoints(), end;
-        for (size_t u = 0; u < p.size(); u++)
-            if (u >= 2*splitPoint)
-                end.push_back(p[u]);
-        return RangeArray(end);
     }
 }
