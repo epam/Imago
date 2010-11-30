@@ -67,6 +67,8 @@ void DoubleBondMaker::_disconnect( Vertex a, Vertex b )
    {
       boost::remove_edge(boost::edge(a, *it, _g).first, _g);
       boost::remove_edge(boost::edge(*it, b, _g).first, _g);
+      if (boost::degree(*it, _g) == 0)
+         boost::remove_vertex(*it, _g);
    }
 }
 
