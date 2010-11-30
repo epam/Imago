@@ -190,5 +190,5 @@ void CharacterRecognizer::_loadFromFile( const std::string &filename )
 
 void CharacterRecognizer::_loadBuiltIn()
 {
-   #include "TEST.font.inc"
+   #include "TEST3.font.inc"
 }

@@ -128,10 +128,13 @@ void LabelLogic::process( Segment *seg, int line_y )
    std::string letters;
    int index_val = 0;
 
-   double sameLineEps = (double)getSettings()["SameLineEps"];
-   bool capital;
+   double sameLineEps = 0.2; //(double)getSettings()["SameLineEps"];
+                             //changed in "handwriting"
+   bool capital = false;
    //TODO: This can slowdown recognition process! Check this!
-   if (seg->getFeatures().recognizable)
+   if (seg->getHeight() > 0.9 * _cap_height)
+      capital = true;
+   else if (seg->getFeatures().recognizable)
    {
       double d_big, d_small, d_digit;
       char c_big, c_small, c_digit;
