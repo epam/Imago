@@ -115,7 +115,7 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
 
       if (angle != -1)
       {
-         if (ImageUtils::testSlashLine(**cur_s, 0, 1.3)) //1.0?
+         if (ImageUtils::testSlashLine(**cur_s, 0, 3.3)) //TODO: Handwriting, original 1.3
          {
             if (ImageUtils::testMinus(**cur_s, _cap_height))
                minus = true;

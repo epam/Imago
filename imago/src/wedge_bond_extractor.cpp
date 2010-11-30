@@ -85,7 +85,7 @@ void WedgeBondExtractor::_fitSingleDownBorders( Vec2d &p1, Vec2d &p2, Vec2d &v1,
 void WedgeBondExtractor::singleDownFetch( Skeleton &g )
 {
    int sdb_count = 0;
-   double eps = 1.3, angle;
+   double eps = 3.3, angle;
 
    std::vector<SingleDownBond> sd_bonds;
    std::vector<SegCenter> segs_info;
@@ -99,6 +99,9 @@ void WedgeBondExtractor::singleDownFetch( Skeleton &g )
          segs_info.push_back(SegCenter(it, a, angle));
       }
    }
+
+   if (segs_info.empty())
+      return;
 
    for (int i = 0; i != (int)segs_info.size(); i++)
    {

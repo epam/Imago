@@ -211,7 +211,7 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring
    std::vector<double> tmp_descriptors;
    for (SegmentDeque::iterator it = segments.begin(); it != segments.end();)
    {      
-      if (absolute((*it)->getRatio() - 1.0) < 0.35)
+      if (absolute((*it)->getRatio() - 1.0) < 0.4)
       {
          Segment tmp;
 
@@ -250,7 +250,7 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring
 
          diff = sqrt(diff);
 
-         if (diff > 0.08 && diff < 0.36)
+         if (diff > 0.08 && diff < 0.41)
          {
             int cur_count = _countBorderBlackPoints(**it);
 
