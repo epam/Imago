@@ -436,6 +436,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\src\character_recognizer.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\src\chemical_structure_recognizer.cpp"
 				>
 			</File>
@@ -603,6 +607,10 @@
 			</File>
 			<File
 				RelativePath=".\src\bond.h"
+				>
+			</File>
+			<File
+				RelativePath=".\src\character_recognizer.h"
 				>
 			</File>
 			<File

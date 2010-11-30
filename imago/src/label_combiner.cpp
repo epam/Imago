@@ -99,7 +99,10 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
    {
       next_s = cur_s + 1;
 
-      if ((*cur_s)->getHeight() > _cap_height)
+      if (getSettings()["DebugSession"])
+         ImageUtils::saveImageToFile(**cur_s, "output/tmp_fetch.png");
+
+      if ((*cur_s)->getHeight() > _cap_height + (int)getSettings()["SymHeightErr"])
          continue;
 
       bool minus = false;
@@ -140,7 +143,7 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
          int h4 = (int)absolute(rect.y + rect.height - seg_rect.y -
                                 0.5 * seg_rect.height);
 
-         if (h1 > 0.5 * _space &&                        //superscript
+         if (h1 > 0.9 * _space && //TODO: Handwriting.Original 0.5 //superscript
              (h2 > 0.6 * _space || h3 > 0.5 * _space) && //lowercase letter
              h4 > 0.5 * _space)                          //subscript
             continue;

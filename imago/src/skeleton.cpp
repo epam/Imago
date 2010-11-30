@@ -47,7 +47,7 @@ void Skeleton::setInitialAvgBondLength( double avg_length )
    else if (_avg_bond_length < 60)
       mult = 0.11;
    else
-      mult = 0.175; //TODO: handwriting
+      mult = 0.31; //TODO: handwriting
 
    rs.set("AddVertexEps", mult * _avg_bond_length);
    _addVertexEps = rs["AddVertexEps"];
@@ -515,38 +515,46 @@ void Skeleton::modifyGraph()
    //CSSETDOUBLE("AddVertexEps", 0.225 * _avg_bond_size);
 
    _parLinesEps = getSettings()["ParLinesEps"];
-   
+
    _joinVertices();
-
-   // if (getSettings()["DebugSession"])
-   // {
-   //    Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-   //    img.fillWhite();
-   //    ImageDrawUtils::putGraph(img, _g);
-   //    ImageUtils::saveImageToFile(img, "output/ggg1.png");
-   // }
+      
    
-   _repairBroken();
+   recalcAvgBondLength();
 
-   // if (getSettings()["DebugSession"])
-   // {
-   //    Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-   //    img.fillWhite();
-   //    ImageDrawUtils::putGraph(img, _g);
-   //    ImageUtils::saveImageToFile(img, "output/ggg2.png");
-   // }
+    if (getSettings()["DebugSession"])
+    {
+       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+       img.fillWhite();
+       ImageDrawUtils::putGraph(img, _g);
+       ImageUtils::saveImageToFile(img, "output/ggg1.png");
+    }
+
+    _repairBroken();
+   
+   recalcAvgBondLength();
+
+    if (getSettings()["DebugSession"])
+    {
+       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+       img.fillWhite();
+       ImageDrawUtils::putGraph(img, _g);
+       ImageUtils::saveImageToFile(img, "output/ggg2.png");
+    }
+
+    _findMultiple();
+    
 
    recalcAvgBondLength();
    
-   _findMultiple();
+//   _findMultiple();
 
-   // if (getSettings()["DebugSession"])
-   // {
-   //    Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-   //    img.fillWhite();
-   //    ImageDrawUtils::putGraph(img, _g);
-   //    ImageUtils::saveImageToFile(img, "output/ggg3.png");
-   // }
+    if (getSettings()["DebugSession"])
+    {
+       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+       img.fillWhite();
+       ImageDrawUtils::putGraph(img, _g);
+       ImageUtils::saveImageToFile(img, "output/ggg3.png");
+    }
 
    
    //if (rs["DebugSession"])
