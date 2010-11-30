@@ -14,6 +14,7 @@
 #include "../iSMILES/src/Image/ImageFilter.h"
 #include "../iSMILES/src/Image/Point.h"
 #include "../iSMILES/src/Image/FileJPG.h"
+#include "../iSMILES/src/Image/FilePNG.h"
 
 #undef LMARK 
 #undef LPRINT 
@@ -35,7 +36,7 @@ void convert( gga::Image &a, imago::Image &b )
       }
 }
 
-void recognize( char *Filename )
+void recognize(const char *Filename, const char *output)
 {
    try
    {
@@ -50,9 +51,16 @@ void recognize( char *Filename )
       gga::Image original_img;
       gga::FileJPG().load(Filename, &original_img);
 
+      original_img.resizeLinear(3);
+      
       //Process image using iSMILES
       gga::ImageFilter flt(original_img);
+      
+      flt.Parameters.ImageSize = 10000;
+      
       TIME(flt.prepareImageForVectorization(), "iSMILES processing");
+
+      //gga::FilePNG().save(output, original_img);
 
       //Back to imago Image type
       convert(original_img, img);
@@ -67,7 +75,8 @@ void recognize( char *Filename )
       imago::ChemicalStructureRecognizer().image2mol(img, mol);
 
       //Save result
-      imago::FileOutput fo("result.mol");
+      //imago::FileOutput fo("result.mol");
+      imago::StandardOutput fo;
       imago::MolfileSaver ma(fo);
       TIME(ma.saveMolecule(mol), "Saving molecule");
 
@@ -79,10 +88,12 @@ void recognize( char *Filename )
    }
 }
 
-int main( int argc, char *argv[] )
+/*
+int main ( int argc, char *argv[] )
 {
    if (argc > 1)
       recognize(argv[1]);
 
    return 0;
 }
+*/

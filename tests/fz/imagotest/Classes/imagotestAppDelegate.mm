@@ -30,7 +30,7 @@ int testVectorization(const char *filename);
        NSString *path = [[NSBundle mainBundle] pathForResource:[NSString stringWithFormat: @"%i", i] ofType:@"_png"];
        NSString *resPath = [[path stringByDeletingPathExtension] stringByAppendingString:@"_imago.png"];
        testGetGraph([path cStringUsingEncoding:NSASCIIStringEncoding], [resPath cStringUsingEncoding:NSASCIIStringEncoding]);
-       testVectorization([path cStringUsingEncoding:NSASCIIStringEncoding]);
+       //testVectorization([path cStringUsingEncoding:NSASCIIStringEncoding]);
     }
    
 

@@ -295,6 +295,10 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = ismiles_Prefix.pch;
+				HEADER_SEARCH_PATHS = (
+					../libjpeg,
+					../libpng,
+				);
 				INSTALL_PATH = /usr/local/lib;
 				PRODUCT_NAME = ismiles;
 			};
@@ -312,6 +316,10 @@
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = ismiles_Prefix.pch;
 				GCC_THUMB_SUPPORT = NO;
+				HEADER_SEARCH_PATHS = (
+					../libjpeg,
+					../libpng,
+				);
 				INSTALL_PATH = /usr/local/lib;
 				PRODUCT_NAME = ismiles;
 			};
