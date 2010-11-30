@@ -218,7 +218,7 @@ void testRecognizer(int num)
       //filename = "../../../../../flamingo_test/t.png";
       //filename = "~/flamingo_test/800.png";
       //filename = "../../../data/mol_images/from_articles/75.png";
-      filename = "/media/proj/OpenSource/flamingo-dev/first-delivery-images/photo17.png";
+      filename = "/media/proj/OpenSource/flamingo-dev/first-delivery-images/photo09.png";
       qword sid = SessionManager::getInstance().allocSID();
       SessionManager::getInstance().setSID(sid);
       ChemicalStructureRecognizer &csr = gSession.get()->recognizer();

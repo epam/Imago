@@ -36,7 +36,7 @@ DoubleBondMaker::~DoubleBondMaker()
 {
 }
 
-void DoubleBondMaker::_disconnect( Vertex a, Vertex b )
+void DoubleBondMaker::_disconnect( Vertex a, Vertex b, const Vertex *third )
 {
    bool exists;
    Edge e;
@@ -49,6 +49,9 @@ void DoubleBondMaker::_disconnect( Vertex a, Vertex b )
 
    BGL_FORALL_ADJ(a, v, _g, Graph)
    {
+      if (third && v == *third)
+         continue;
+      
       BGL_FORALL_ADJ(v, u, _g, Graph)
       {
          if (u == a)
@@ -61,7 +64,7 @@ void DoubleBondMaker::_disconnect( Vertex a, Vertex b )
          }
       }
    }
-
+   
    for (std::vector<Vertex>::iterator it = toDelete.begin();
         it != toDelete.end(); ++it)
    {
@@ -225,8 +228,16 @@ DoubleBondMaker::Result DoubleBondMaker::operator()( std::pair<Edge,Edge> edges 
 //   if (fe == sb)
 //      return boost::make_tuple(0, empty, empty);
 
-   _disconnect(fb, sb);
-   _disconnect(fe, se);
+   const Vertex *third = 0;
+   if (fe == se)
+      third = &fe;
+
+   _disconnect(fb, sb, third);
+
+   third = 0;
+   if (fb == sb)
+      third = &fb;
+   _disconnect(fe, se, third);
 
    double fl = bf.length,
           sl = bs.length;

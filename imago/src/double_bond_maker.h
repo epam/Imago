@@ -51,7 +51,7 @@ namespace imago
 
       Result _hard();
 
-      void _disconnect( Vertex a, Vertex b );
+      void _disconnect( Vertex a, Vertex b, const Vertex *third );
       Skeleton &_s;
       Graph &_g;
       double _avgBondLength;
