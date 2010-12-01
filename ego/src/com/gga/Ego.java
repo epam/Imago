@@ -15,6 +15,7 @@
 package com.gga;
 
 import com.gga.DocumentHandling.DocumentPanel;
+import java.awt.BorderLayout;
 import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Toolkit;
@@ -29,7 +30,10 @@ import javax.swing.UIManager.*;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
@@ -89,10 +93,10 @@ public class Ego extends javax.swing.JFrame {
         jMainTabbedPane.setEnabledAt(0, false);
         jMainTabbedPane.setEnabledAt(1, false);
         jMainTabbedPane.setEnabledAt(2, false);
-                
-        //panel4 = new JPanel(new BorderLayout());
-        //label4 = new JLabel("Unfortunately, Imago couldn't recognize selected image.", JLabel.CENTER);
-        //panel4.add(label4, BorderLayout.CENTER);
+               
+        jNoResultPanel = new JPanel(new BorderLayout());
+        jNoResultLabel = new JLabel("Unfortunately, Imago couldn't recognize selected image.", JLabel.CENTER);
+        jNoResultPanel.add(jNoResultLabel, BorderLayout.CENTER);
     }
 
     /** This method is called from within the constructor to
@@ -560,10 +564,9 @@ public class Ego extends javax.swing.JFrame {
     }
     
     private void showNoResultMessage() {
-        //if (!panel4.equals(jTabbedPane1.getComponentAt(tabs[2])))
-        //    jTabbedPane1.setComponentAt(tabs[2], panel4);
-
-        //jTabbedPane1.setSelectedIndex(tabs[2]);
+        if (!jNoResultPanel.equals(jMainTabbedPane.getComponentAt(2)))
+            jMainTabbedPane.setComponentAt(2, jNoResultPanel);
+        jMainTabbedPane.setSelectedIndex(2);
     }
 
     private void recognize() {
@@ -871,6 +874,8 @@ public class Ego extends javax.swing.JFrame {
     private MoleculePanel moleculePanel;
     private DocumentPanel documentPanel;
     private File curFile;
+    private javax.swing.JPanel jNoResultPanel;
+    private javax.swing.JLabel jNoResultLabel;
     
     private boolean recognizing = false;
     private static final Imago imago;
@@ -904,7 +909,7 @@ public class Ego extends javax.swing.JFrame {
 
         //DEBUG
         //Uncomment this line if you want to run Ego from NetBeans
-        //jarDir = "../output/release/ego";
+        jarDir = "../output/release/ego";
         ///////
         imago = new Imago(jarDir + File.separator + "lib");
     }
