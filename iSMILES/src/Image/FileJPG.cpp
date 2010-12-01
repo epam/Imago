@@ -6,14 +6,75 @@ extern "C"
     #define HAVE_PROTOTYPES
     #include "jpeglib.h"
 }
+#include "ImageFilter.h"
 #include "FileJPG.h"
 
 namespace gga
 {
+static const int JPEG_MAX_SCAN_BLOCK_HEIGHT = 16;
 
-#define JPEG_MAX_SCAN_BLOCK_HEIGHT		16
+static const unsigned char* getApp1Marker(const unsigned char* jpegBuff, size_t size, size_t* len)
+{
+    for(size_t i = 0; i < size-16; i++, jpegBuff++)
+     if(0xFF==*jpegBuff && 0xE1==*(jpegBuff+1) && 'E'==*(jpegBuff+4) && 0==memcmp(jpegBuff+4, "Exif\0\0", 6))    // APP1 MARKER with EXIF Found
+    {
+        *len = (unsigned short) *(jpegBuff+3) + (*(jpegBuff+2)<<8);    // big endian
+        return jpegBuff;
+    }
+     return 0;
+}
 
-/*JPG context while decoding*/
+
+static unsigned short getOrientation (const unsigned char* app1, size_t size)
+{
+    if(0 != app1 && size > 16)
+        for(size_t i = 4+6; i < size-4; i++, app1++)
+         if(0x01==*app1 && 0x12==*(app1+1))    // ORIENTATION TAG ID=0x112 Type=short
+        {
+            return (unsigned short) *(app1+3) + (*(app1+2)<<8);    // big endian;
+        }
+    return -1;
+}
+
+static void jpeg_exif_rotate (Image* img, unsigned short orientation)
+{
+    int angle = 0;
+    switch(orientation)
+    {
+        case 1: // standard orientation, do nothing
+            break;
+        case 2: // flipped right-left
+            break;
+        case 3: // rotated 180
+                angle = 180;
+            break;
+
+        case 4: // flipped top-bottom
+            break;
+        case 5: // flipped diagonally around '\'
+            break;
+        case 6: // 90 CW
+                angle = 90;
+            break;
+        case 7: // flipped diagonally around '/'
+            break;
+        case 8: // 90 CCW
+                angle = 270;
+            break;
+        case -1:    //not found
+        default:    // shouldn't happen
+            break;
+    }
+        
+    if(0 != angle)
+    {
+        const Image src(*img);
+        rotateImage(src, (float)angle, img);
+    }
+}
+
+//=============================================================================
+
 	typedef struct
 	{
 		struct jpeg_error_mgr pub;
@@ -210,11 +271,16 @@ namespace gga
                 img->setPixel(x, y, px);
             }
 		}
-		/*done*/
 		jpeg_finish_decompress(&jpx.cinfo);
 		jpeg_destroy_decompress(&jpx.cinfo);
 		delete[] data;
-		return true;
+
+        size_t len=0;
+        const unsigned char*  app1 = getApp1Marker (&buff[0], buff.size(), &len);
+        unsigned short orientation = getOrientation(app1, len);
+        if(-1 != orientation)
+            img->setOrientation(orientation);  //jpeg_exif_rotate (img, orientation);
+        return true;
     }
 
     bool FileJPG::load(const std::string& path, Image* img)
@@ -232,6 +298,7 @@ namespace gga
             jpeg_create_decompress(&cinfo);
             jpeg_stdio_src(&cinfo, f);
             jpeg_read_header(&cinfo, 1);
+            jpeg_save_markers(&cinfo, JPEG_APP0 + 1, 0xFFFF);
 
             // Step 4: set parameters for decompression
             {
@@ -283,6 +350,15 @@ namespace gga
             jpeg_finish_decompress(&cinfo);
             jpeg_destroy_decompress(&cinfo);
             delete[] data;
+
+            fseek(f, 0, SEEK_SET);
+            std::vector<unsigned char> buff(32*1024);
+            size_t size = fread(&buff[0], 1, buff.size(), f);
+            size_t len=0;
+            const unsigned char*  app1 = getApp1Marker (&buff[0], size, &len);
+            unsigned short orientation = getOrientation(app1, len);
+            if(-1 != orientation)
+                img->setOrientation(orientation);  //jpeg_exif_rotate (img, orientation);
             fclose(f);
         }
         catch(std::exception& )

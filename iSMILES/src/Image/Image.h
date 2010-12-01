@@ -21,13 +21,17 @@ namespace gga
         size_t      Width;
         size_t      Height;
         ImageType   Type;
+        unsigned short Orientation;
         std::vector<Pixel> Data;
     public:
-         Image() : Width(0), Height(0), Type(IT_BW) {}
+         Image() : Width(0), Height(0), Type(IT_BW), Orientation(1) {}
         ~Image(){}
         inline ImageType getType()const  { return Type  ;}
         inline size_t  getWidth ()const  { return Width ;}
         inline size_t  getHeight()const  { return Height;}
+        inline unsigned short getOrientation()const  { return Orientation;}
+        inline void setOrientation(unsigned short orient){ Orientation = orient;}
+
         inline const Pixel* getPixels()const { return &Data[0];}    //for write image on disk
         inline Pixel*       getPixels()  { return &Data[0];}        //for filter image (unsharp mask)
         inline void setType (ImageType type)
