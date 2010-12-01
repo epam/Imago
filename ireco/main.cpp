@@ -36,7 +36,7 @@ void convert( gga::Image &a, imago::Image &b )
       }
 }
 
-void recognize(const char *Filename, const char *output)
+void recognize(const char *Filename, const char *output, const char *font_path)
 {
    try
    {
@@ -52,6 +52,42 @@ void recognize(const char *Filename, const char *output)
       gga::FileJPG().load(Filename, &original_img);
 
       original_img.resizeLinear(3);
+      
+      printf("Orientation: %i\n", original_img.getOrientation());
+      
+      /*
+      int angle = 0;
+      switch(original_img.getOrientation())
+      {
+         case 1: // standard orientation, do nothing
+         case 2: // flipped right-left
+            break;
+         case 3: // rotated 180
+            angle = 180;
+            break;
+         case 4: // flipped top-bottom
+         case 5: // flipped diagonally around '\'
+            break;
+         case 6: // 90 CW
+            angle = 90;
+            break;
+         case 7: // flipped diagonally around '/'
+            break;
+         case 8: // 90 CCW
+            angle = 270;
+            break;
+         case -1:    //not found
+         default:    // shouldn't happen
+            break;
+      }
+      
+      if(angle != 0)
+      {
+         const gga::Image src(original_img);
+         rotateImage(src, (float)angle, &original_img);
+      }
+      */
+      /*
       
       //Process image using iSMILES
       gga::ImageFilter flt(original_img);
@@ -72,14 +108,15 @@ void recognize(const char *Filename, const char *output)
 
       //Recognize molecule
       imago::Molecule mol;
-      const char *fontfile = "TEST3.font"; //TODO: Set correct path
-      imago::ChemicalStructureRecognizer().image2mol(img, mol);
+      const char *fontfile = font_path; //"TEST3.font"; //TODO: Set correct path
+      imago::ChemicalStructureRecognizer(fontfile).image2mol(img, mol);
 
       //Save result
       //imago::FileOutput fo("result.mol");
       imago::StandardOutput fo;
       imago::MolfileSaver ma(fo);
       TIME(ma.saveMolecule(mol), "Saving molecule");
+       */
 
       imago::SessionManager::getInstance().releaseSID(id);
    }

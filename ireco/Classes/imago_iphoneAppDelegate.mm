@@ -20,7 +20,7 @@
 @synthesize window;
 @synthesize navigationController;
 
-void recognize( const char *Filename, const char *output );
+void recognize( const char *Filename, const char *output, const char *font_path );
 
 #pragma mark -
 #pragma mark Application lifecycle
@@ -41,6 +41,8 @@ void recognize( const char *Filename, const char *output );
       
       NSLog(@"Let's start\n");
       
+      NSString *fontPath = [[NSBundle mainBundle] pathForResource:@"TEST3" ofType:@"font"];
+
       for (int i = 1; i < 18; i++)
       {
          NSString *path = [[NSBundle mainBundle] pathForResource:[NSString stringWithFormat: @"photo%02i", i] ofType:@"jpg"];
@@ -62,7 +64,8 @@ void recognize( const char *Filename, const char *output );
          NSString *resPath2 = [[path stringByDeletingPathExtension] stringByAppendingString:@".png"];
          //[rawImage writeToFile: resPath2 atomically: NO];
          
-         recognize([path cStringUsingEncoding:NSASCIIStringEncoding], [resPath2 cStringUsingEncoding:NSASCIIStringEncoding]);
+         recognize([path cStringUsingEncoding:NSASCIIStringEncoding], [resPath2 cStringUsingEncoding:NSASCIIStringEncoding],
+                   [fontPath cStringUsingEncoding:NSASCIIStringEncoding]);
          
 #if 0
          //if(jpg.load(jpgImage, &img))

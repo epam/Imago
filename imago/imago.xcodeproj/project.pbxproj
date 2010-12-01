@@ -27,6 +27,8 @@
 		A7AC39BC128DDA4A00158F63 /* stl_fwd.h in Headers */ = {isa = PBXBuildFile; fileRef = A7AC39A8128DDA4A00158F63 /* stl_fwd.h */; };
 		A7AC39BD128DDA4A00158F63 /* triple_bond_maker.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7AC39A9128DDA4A00158F63 /* triple_bond_maker.cpp */; };
 		A7AC39BE128DDA4A00158F63 /* triple_bond_maker.h in Headers */ = {isa = PBXBuildFile; fileRef = A7AC39AA128DDA4A00158F63 /* triple_bond_maker.h */; };
+		A7B9A0F012A6AB5100280D96 /* character_recognizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7B9A0EE12A6AB5100280D96 /* character_recognizer.cpp */; };
+		A7B9A0F112A6AB5100280D96 /* character_recognizer.h in Headers */ = {isa = PBXBuildFile; fileRef = A7B9A0EF12A6AB5100280D96 /* character_recognizer.h */; };
 		A7E60BB4126DEBC100BA2EFD /* approximator.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7E60B5F126DEBC100BA2EFD /* approximator.cpp */; };
 		A7E60BB5126DEBC100BA2EFD /* approximator.h in Headers */ = {isa = PBXBuildFile; fileRef = A7E60B60126DEBC100BA2EFD /* approximator.h */; };
 		A7E60BBB126DEBC100BA2EFD /* binarizer.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7E60B66126DEBC100BA2EFD /* binarizer.cpp */; };
@@ -124,6 +126,8 @@
 		A7AC39A8128DDA4A00158F63 /* stl_fwd.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = stl_fwd.h; path = src/stl_fwd.h; sourceTree = "<group>"; };
 		A7AC39A9128DDA4A00158F63 /* triple_bond_maker.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = triple_bond_maker.cpp; path = src/triple_bond_maker.cpp; sourceTree = "<group>"; };
 		A7AC39AA128DDA4A00158F63 /* triple_bond_maker.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = triple_bond_maker.h; path = src/triple_bond_maker.h; sourceTree = "<group>"; };
+		A7B9A0EE12A6AB5100280D96 /* character_recognizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = character_recognizer.cpp; path = src/character_recognizer.cpp; sourceTree = "<group>"; };
+		A7B9A0EF12A6AB5100280D96 /* character_recognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = character_recognizer.h; path = src/character_recognizer.h; sourceTree = "<group>"; };
 		A7E60B5F126DEBC100BA2EFD /* approximator.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = approximator.cpp; path = src/approximator.cpp; sourceTree = "<group>"; };
 		A7E60B60126DEBC100BA2EFD /* approximator.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = approximator.h; path = src/approximator.h; sourceTree = "<group>"; };
 		A7E60B66126DEBC100BA2EFD /* binarizer.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = binarizer.cpp; path = src/binarizer.cpp; sourceTree = "<group>"; };
@@ -245,6 +249,28 @@
 		08FB77AEFE84172EC02AAC07 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				A7E60C59126E126D00BA2EFD /* imago_c */,
+				A7E60C1F126E070700BA2EFD /* imago */,
+			);
+			name = Sources;
+			sourceTree = "<group>";
+		};
+		32C88DFF0371C24200C91783 /* Other Sources */ = {
+			isa = PBXGroup;
+			children = (
+				AA747D9E0F9514B9006C5449 /* imago_Prefix.pch */,
+			);
+			name = "Other Sources";
+			sourceTree = "<group>";
+		};
+		A7E60C1F126E070700BA2EFD /* imago */ = {
+			isa = PBXGroup;
+			children = (
+				A7B9A0EE12A6AB5100280D96 /* character_recognizer.cpp */,
+				A7B9A0EF12A6AB5100280D96 /* character_recognizer.h */,
+				A7E60B5F126DEBC100BA2EFD /* approximator.cpp */,
+				A7E60B60126DEBC100BA2EFD /* approximator.h */,
+				A7E60B66126DEBC100BA2EFD /* binarizer.cpp */,
 				A7AC3997128DDA4A00158F63 /* algebra.cpp */,
 				A7AC3998128DDA4A00158F63 /* algebra.h */,
 				A7AC3999128DDA4A00158F63 /* current_session.h */,
@@ -265,26 +291,6 @@
 				A7AC39A8128DDA4A00158F63 /* stl_fwd.h */,
 				A7AC39A9128DDA4A00158F63 /* triple_bond_maker.cpp */,
 				A7AC39AA128DDA4A00158F63 /* triple_bond_maker.h */,
-				A7E60C59126E126D00BA2EFD /* imago_c */,
-				A7E60C1F126E070700BA2EFD /* imago */,
-			);
-			name = Sources;
-			sourceTree = "<group>";
-		};
-		32C88DFF0371C24200C91783 /* Other Sources */ = {
-			isa = PBXGroup;
-			children = (
-				AA747D9E0F9514B9006C5449 /* imago_Prefix.pch */,
-			);
-			name = "Other Sources";
-			sourceTree = "<group>";
-		};
-		A7E60C1F126E070700BA2EFD /* imago */ = {
-			isa = PBXGroup;
-			children = (
-				A7E60B5F126DEBC100BA2EFD /* approximator.cpp */,
-				A7E60B60126DEBC100BA2EFD /* approximator.h */,
-				A7E60B66126DEBC100BA2EFD /* binarizer.cpp */,
 				A7E60B67126DEBC100BA2EFD /* binarizer.h */,
 				A7E60B68126DEBC100BA2EFD /* bond.h */,
 				A7E60B69126DEBC100BA2EFD /* chemical_structure_recognizer.cpp */,
@@ -424,6 +430,7 @@
 				A7AC39BB128DDA4A00158F63 /* stat_utils.h in Headers */,
 				A7AC39BC128DDA4A00158F63 /* stl_fwd.h in Headers */,
 				A7AC39BE128DDA4A00158F63 /* triple_bond_maker.h in Headers */,
+				A7B9A0F112A6AB5100280D96 /* character_recognizer.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -518,6 +525,7 @@
 				A7AC39B7128DDA4A00158F63 /* segments_graph.cpp in Sources */,
 				A7AC39B9128DDA4A00158F63 /* skeleton.cpp in Sources */,
 				A7AC39BD128DDA4A00158F63 /* triple_bond_maker.cpp in Sources */,
+				A7B9A0F012A6AB5100280D96 /* character_recognizer.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
