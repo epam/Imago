@@ -56,7 +56,7 @@ if env['PLATFORM'] == 'win32':
          target_arch = 'x86'
 
    env = Environment(ENV=OS.environ,
-              CCFLAGS = '/O2 /Oi /GL- /GR- /EHsc /D "_CRT_SECURE_NO_DEPRECATE" /MT  /D "WIN32" /D "NDEBUG" /D "_LIB" /D "_UNICODE" /Gy /W3 /nologo /c /wd4345 /wd4244',
+              CCFLAGS = '/O2 /Oi /GL- /GR- /EHsc /D "_CRT_SECURE_NO_DEPRECATE" /MT /D "IMAGO_FONT_BUILT_IN" /D "WIN32" /D "NDEBUG" /D "_LIB" /D "_UNICODE" /Gy /W3 /nologo /c /wd4345 /wd4244',
               CPPPATH = ['#libpng'],
               LIBPATH = ['#libpng'],
               LIBS = libs,
@@ -71,7 +71,7 @@ if env['PLATFORM'] == 'win32':
       
 elif env['PLATFORM'] == 'posix':
    os = 'Linux'
-   common_ccflags = '-Wall -fomit-frame-pointer'
+   common_ccflags = '-Wall -fomit-frame-pointer -D IMAGO_FONT_BUILT_IN'
    special_ccflags = ''
    special_linkflags = ''
    if bits == 'x64':
@@ -110,7 +110,7 @@ elif env['PLATFORM'] == 'darwin':
       Exit(0)
 
    macosx_ccflags = ' -isysroot /Developer/SDKs/MacOSX{0}.sdk -mmacosx-version-min={0}'.format(macosx_version)
-   common_ccflags = '-Wall -fomit-frame-pointer' + macosx_ccflags
+   common_ccflags = '-D IMAGO_FONT_BUILT_IN -Wall -fomit-frame-pointer' + macosx_ccflags
 
    if debug:
       common_ccflags += ' -g'

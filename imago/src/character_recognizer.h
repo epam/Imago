@@ -22,7 +22,9 @@ namespace imago
       char recognize( const Segment &seg, const std::string &candidates,
                       double *err = 0) const;
       ~CharacterRecognizer();
+
    private:
+      bool _loaded;
       void _loadBuiltIn();
       void _loadFromFile( const std::string &filename );
       static double _compareDescriptors( const std::vector<double> &d1,

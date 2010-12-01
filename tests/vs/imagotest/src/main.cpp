@@ -222,6 +222,7 @@ void testRecognizer(int num)
       filename = "../../../../flamingo_test/fdi/photo07.png";
       qword sid = SessionManager::getInstance().allocSID();
       SessionManager::getInstance().setSID(sid);
+      //ChemicalStructureRecognizer CSR("../../../data/fonts/TEST3.font");
       ChemicalStructureRecognizer &csr = gSession.get()->recognizer();
       RecognitionSettings &rs = getSettings();
       rs.set("DebugSession", true);

@@ -72,6 +72,7 @@ void recognize(const char *Filename, const char *output)
 
       //Recognize molecule
       imago::Molecule mol;
+      const char *fontfile = "TEST3.font"; //TODO: Set correct path
       imago::ChemicalStructureRecognizer().image2mol(img, mol);
 
       //Save result

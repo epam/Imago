@@ -7,6 +7,7 @@
 
 #include "character_recognizer.h"
 #include "segment.h"
+#include "exception.h"
 
 using namespace imago;
 
@@ -14,14 +15,14 @@ std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 std::string CharacterRecognizer::lower = "abcdefghijklmnopqrstuvwxyz";
 std::string CharacterRecognizer::digits = "0123456789";
 
-CharacterRecognizer::CharacterRecognizer( int k ) : _k(k)
+CharacterRecognizer::CharacterRecognizer( int k ) : _loaded(false), _k(k)
 {
    _mapping.resize(255, -1);
    _loadBuiltIn();
 }
 
-CharacterRecognizer::CharacterRecognizer( int k,
-                                          const std::string &filename) : _k(k)
+CharacterRecognizer::CharacterRecognizer( int k, const std::string &filename) :
+   _loaded(false), _k(k)
 {
    _mapping.resize(255, -1);
    _loadFromFile(filename);
@@ -81,6 +82,8 @@ char CharacterRecognizer::recognize( const SymbolFeatures &features,
                                      const std::string &candidates,
                                      double *dist ) const
 {
+   if (!_loaded)
+      throw OCRException("Font is not loaded");
    double d;
 
    std::vector<boost::tuple<char, int, double> > nearest;
@@ -186,9 +189,13 @@ void CharacterRecognizer::_loadFromFile( const std::string &filename )
    }
 
    fclose(f);
+   _loaded = true;
 }
 
 void CharacterRecognizer::_loadBuiltIn()
 {
+#ifdef IMAGO_FONT_BUILT_IN
    #include "TEST3.font.inc"
+   _loaded = true;
+#endif
 }

@@ -50,6 +50,11 @@ ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr(2)
 {
 }
 
+ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname )
+   : _cr(2, fontname)
+{
+}
+
 // void ChemicalStructureRecognizer::_selectFont( const SegmentDeque &layer )
 // {
 //    boost::shared_ptr<Font> serif(new Font(Font::SERIF));
