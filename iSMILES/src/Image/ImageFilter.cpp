@@ -297,6 +297,9 @@ tm.reset();
 
     void rotateImage(const Image& img, float angle, Image* out)
     {
+#ifdef TEST
+Timer tm;
+#endif
         const int xc = img.getWidth()/2, yc = img.getHeight()/2;     // center of source image
         float sinAngle = sin(angle*(float)3.14159265359f/(float)180.f), cosAngle = cos(angle*(float)3.14159265359f/(float)180.f);
         {
@@ -331,9 +334,13 @@ tm.reset();
         {
             blurImage(out, 2);
             cropImageToPicture(out);
-            unsharpMaskImage(out, 50.f, 0., 9.f, 0);
+            unsharpMaskImage(out, 20.f, 0., 9.f, 0);    //50
             convertGrayscaleToBlackWhite(out, 210);
         }
+#ifdef TEST
+printf("rotateImage: %.4f sec. a=%f degree.\n", tm.getElapsedTime(), angle);
+tm.reset();
+#endif
     }
 
     void eraseSmallDirts (Image* img, size_t radius)
