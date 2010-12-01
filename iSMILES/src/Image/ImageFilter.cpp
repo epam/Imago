@@ -295,6 +295,55 @@ tm.reset();
         return minx;
     }
 
+    void rotateImage90(const Image& img, unsigned int angle, Image* out) // 90, 180, 270
+    {
+#ifdef TEST
+Timer tm;
+#endif
+        const int xc = img.getWidth()/2, yc = img.getHeight()/2;     // center of source image
+        float sinAngle = sin(angle*(float)3.14159265359f/(float)180.f), cosAngle = cos(angle*(float)3.14159265359f/(float)180.f);
+        {
+            // compute new size
+            int x1 = round(cosAngle * (0 - xc)              - sinAngle * (0 - yc));
+            int x2 = round(cosAngle * (img.getWidth() - xc) - sinAngle * (0 - yc));
+            int x3 = round(cosAngle * (img.getWidth() - xc) - sinAngle * (img.getHeight() - yc));
+            int x4 = round(cosAngle * (0 - xc)              - sinAngle * (img.getHeight() - yc));
+
+            int y1 = round(sinAngle * (0 - xc)              + cosAngle * (0 - yc));
+            int y2 = round(sinAngle * (img.getWidth() - xc) + cosAngle * (0 - yc));
+            int y3 = round(sinAngle * (img.getWidth() - xc) + cosAngle * (img.getHeight() - yc));
+            int y4 = round(sinAngle * (0 - xc)              + cosAngle * (img.getHeight() - yc));
+
+            out->setSize(size_t(max4(x1, x2, x3, x4) - min4(x1, x2, x3, x4)+1), size_t(max4(y1, y2, y3, y4) - min4(y1, y2, y3, y4)+1), img.getType());
+            out->clear();
+        }
+        const size_t xc1 = out->getWidth()/2, yc1 = out->getHeight()/2; // center of output image
+
+        // roteate pixels
+        for (size_t y=0; y < img.getHeight(); y++)
+         for(size_t x=0; x < img.getWidth (); x++)
+        {
+            int xsrc = (int)x - xc, ysrc = (int)y - yc;
+            size_t x1, y1;
+            x1 = (size_t) (xc1 + round(cosAngle * xsrc - sinAngle * ysrc));
+            y1 = (size_t) (yc1 + round(sinAngle * xsrc + cosAngle * ysrc));
+            out->setPixel(x1, y1, img.getPixel(x, y));
+        }
+
+        if(IT_BW == out->getType())//black white image
+        {
+            blurImage(out, 2);
+            cropImageToPicture(out);
+            unsharpMaskImage(out, 20.f, 0., 9.f, 0);    //50
+            convertGrayscaleToBlackWhite(out, 210);
+        }
+#ifdef TEST
+printf("rotateImage90: %.4f sec. a=%d degree.\n", tm.getElapsedTime(), angle);
+tm.reset();
+#endif
+    }
+
+
     void rotateImage(const Image& img, float angle, Image* out)
     {
 #ifdef TEST

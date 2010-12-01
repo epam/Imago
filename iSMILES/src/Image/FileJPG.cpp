@@ -279,7 +279,7 @@ static void jpeg_exif_rotate (Image* img, unsigned short orientation)
         const unsigned char*  app1 = getApp1Marker (&buff[0], buff.size(), &len);
         unsigned short orientation = getOrientation(app1, len);
         if(-1 != orientation)
-            jpeg_exif_rotate (img, orientation);
+            img->setOrientation(orientation);  //jpeg_exif_rotate (img, orientation);
         return true;
     }
 
@@ -358,7 +358,7 @@ static void jpeg_exif_rotate (Image* img, unsigned short orientation)
             const unsigned char*  app1 = getApp1Marker (&buff[0], size, &len);
             unsigned short orientation = getOrientation(app1, len);
             if(-1 != orientation)
-                jpeg_exif_rotate (img, orientation);
+                img->setOrientation(orientation);  //jpeg_exif_rotate (img, orientation);
             fclose(f);
         }
         catch(std::exception& )
