@@ -30,7 +30,7 @@ namespace gga
         inline size_t  getWidth ()const  { return Width ;}
         inline size_t  getHeight()const  { return Height;}
         inline unsigned short getOrientation()const  { return Orientation;}
-        inline void setOrientation(unsigned short or){ Orientation = or;}
+        inline void setOrientation(unsigned short orient){ Orientation = orient;}
 
         inline const Pixel* getPixels()const { return &Data[0];}    //for write image on disk
         inline Pixel*       getPixels()  { return &Data[0];}        //for filter image (unsharp mask)
