@@ -1,0 +1,22 @@
+#ifndef _imago_c_h
+#define _imago_c_h
+
+#ifdef _WIN32
+
+#define DLLEXPORT __declspec(dllexport)
+
+#else 
+
+#define DLLEXPORT
+
+#endif /* _WIN32 */
+
+#ifndef __cplusplus
+#define CEXPORT DLLEXPORT
+#else
+#define CEXPORT extern "C" DLLEXPORT
+#endif
+
+
+/* Load JPG image & process it (rotate, filter) using iSMILES */
+CEXPORT void loadAndProcessJPGImage( const char *filename, unsigned char **buf, int *width, int *height );
