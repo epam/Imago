@@ -5,6 +5,7 @@ Import('env')
 
 Import('imagojni')
 Import('imagojar')
+Import('ismiles_c_shared')
 
 cenv = env.Clone()
 
@@ -27,7 +28,8 @@ needed_jars = ['indigo-java.jar',
 	       'indigo-renderer-java.jar',		
                'jai_core.jar',
                'jai_codec.jar',
-               'PDFRenderer.jar'
+               'PDFRenderer.jar',
+               'jna.jar'
                ]
 classpath = ''
 for jar in needed_jars:
@@ -69,6 +71,7 @@ else:
    path = join(path, env['OS'], env['TARGET_BITS'])
 
 env.Install(path, imagojni)
+env.Install(path, ismiles_c_shared)
 env.Alias('ego', path)
 env.Alias('all', path)
 

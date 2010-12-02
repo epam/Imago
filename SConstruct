@@ -158,6 +158,7 @@ SConscript('alter-ego/SConscript')
 
 if COMMAND_LINE_TARGETS == ['all']:
    SConscript('jimago/SConscript')   
+   SConscript('iSMILES/SConscript')
    SConscript('ego/SConscript')
 else:
    if 'jimago' in COMMAND_LINE_TARGETS:
@@ -165,6 +166,8 @@ else:
    elif 'ego' in COMMAND_LINE_TARGETS:
       if not 'jimago' in COMMAND_LINE_TARGETS:
          SConscript('jimago/SConscript')
+      if not 'ismiles_c' in COMMAND_LINE_TARGETS:
+         SConscript('iSMILES/SConscript')
       SConscript('ego/SConscript')
    elif 'tests' in COMMAND_LINE_TARGETS:
       SConscript('tests/vs/imagotest/SConscript')

@@ -62,11 +62,10 @@ src/Image/ImageFilter.cpp
 ../libjpeg/jquant2.c
 ../libjpeg/jutils.c
 ../libjpeg/jmemmgr.c
-../libjpeg/jmemansi.c
+../libjpeg/jmemnobs.c
 """.split()
 
 objs = []
-print source_files
 for f in source_files:
     base = os.path.splitext(basename(f))[0]
     objs.append(c_env.SharedObject(target = join(builddir, base), source = f))
