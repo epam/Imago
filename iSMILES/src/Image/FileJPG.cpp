@@ -4,7 +4,7 @@
 extern "C"
 {
     #define HAVE_PROTOTYPES
-    #include "jpeglib.h"
+    #include "../../../libjpeg/jpeglib.h"
 }
 #include "ImageFilter.h"
 #include "FileJPG.h"
@@ -31,7 +31,7 @@ static unsigned short getOrientation (const unsigned char* app1, size_t size)
         for(size_t i = 4+6; i < size-4; i++, app1++)
          if(0x01==*app1 && 0x12==*(app1+1))    // ORIENTATION TAG ID=0x112 Type=short
         {
-            return (unsigned short) *(app1+3) + (*(app1+2)<<8);    // big endian;
+            return (unsigned short) *(app1+3+6) + (*(app1+2+6)<<8);    // big endian;
         }
     return -1;
 }
@@ -75,88 +75,86 @@ static void jpeg_exif_rotate (Image* img, unsigned short orientation)
 
 //=============================================================================
 
-	typedef struct
-	{
-		struct jpeg_error_mgr pub;
-		jmp_buf jmpbuf;
-	} JPGErr;
-	
-	typedef struct
-	{
-		/*io manager*/
-		struct jpeg_source_mgr src;
-
-		int skip;
-		struct jpeg_decompress_struct cinfo;
-	} JPGCtx;
-	
-	static void _fatal_error(j_common_ptr cinfo) 
-	{
-		JPGErr *err = (JPGErr *) cinfo->err;
-		longjmp(err->jmpbuf, 1);
-	}
-
-	static void stub(j_decompress_ptr cinfo) {}
-	static void _nonfatal_error(j_common_ptr cinfo) { }
-	static void _nonfatal_error2(j_common_ptr cinfo, int lev) {}
-	/*a JPEG is always carried in a complete, single MPEG4 AU so no refill*/
-	
-	static boolean fill_input_buffer(j_decompress_ptr cinfo) { return 0; }
-	
-	static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
-	{
-		JPGCtx *jpx = (JPGCtx *) cinfo->src;
-		if (num_bytes > (long) jpx->src.bytes_in_buffer)
-		{
-			jpx->skip = num_bytes - jpx->src.bytes_in_buffer;
-			jpx->src.next_input_byte += jpx->src.bytes_in_buffer;
-			jpx->src.bytes_in_buffer = 0;
-		}
-		else
-		{
-			jpx->src.bytes_in_buffer -= num_bytes;
-			jpx->src.next_input_byte += num_bytes;
-			jpx->skip = 0;
-		}
-	}
-	
-	static int put_jpeg_grey_memory(unsigned char **dest_image, unsigned long *image_size, 
-		unsigned char *input_image, int width, int height, int quality)
-	{
-		int y;
-		JSAMPROW row_ptr[1];
-		struct jpeg_compress_struct cjpeg;
-		struct jpeg_error_mgr jerr;
-
-		cjpeg.err = jpeg_std_error(&jerr);
-		jpeg_create_compress(&cjpeg);
-		cjpeg.image_width = width;
-		cjpeg.image_height = height;
-		cjpeg.input_components = 1; /* one colour component */
-		cjpeg.in_color_space = JCS_GRAYSCALE;
-
-		jpeg_set_defaults(&cjpeg);
-
-		jpeg_set_quality(&cjpeg, quality, TRUE);
-		cjpeg.dct_method = JDCT_FASTEST;
-		
-      //TODO: What is it? Compile error?.. Why?
-      //jpeg_mem_dest(&cjpeg, dest_image, image_size);  // data written to mem
-
-		jpeg_start_compress (&cjpeg, TRUE);
-
-		row_ptr[0] = input_image;
+    typedef struct
+    {
+        struct jpeg_error_mgr pub;
+        jmp_buf jmpbuf;
+    } JPGErr;
     
-		for (y = 0; y < height; y++) {
-			jpeg_write_scanlines(&cjpeg, row_ptr, 1);
-			row_ptr[0] += width;
-		}
-    
-		jpeg_finish_compress(&cjpeg);
-		jpeg_destroy_compress(&cjpeg);
+    typedef struct
+    {
+        /*io manager*/
+        struct jpeg_source_mgr src;
 
-		return true;
-	}
+        int skip;
+        struct jpeg_decompress_struct cinfo;
+    } JPGCtx;
+    
+    static void _fatal_error(j_common_ptr cinfo) 
+    {
+        JPGErr *err = (JPGErr *) cinfo->err;
+        longjmp(err->jmpbuf, 1);
+    }
+
+    static void stub(j_decompress_ptr cinfo) {}
+    static void _nonfatal_error(j_common_ptr cinfo) { }
+    static void _nonfatal_error2(j_common_ptr cinfo, int lev) {}
+    /*a JPEG is always carried in a complete, single MPEG4 AU so no refill*/
+    
+    static boolean fill_input_buffer(j_decompress_ptr cinfo) { return 0; }
+    
+    static void skip_input_data(j_decompress_ptr cinfo, long num_bytes)
+    {
+        JPGCtx *jpx = (JPGCtx *) cinfo->src;
+        if (num_bytes > (long) jpx->src.bytes_in_buffer)
+        {
+            jpx->skip = num_bytes - jpx->src.bytes_in_buffer;
+            jpx->src.next_input_byte += jpx->src.bytes_in_buffer;
+            jpx->src.bytes_in_buffer = 0;
+        }
+        else
+        {
+            jpx->src.bytes_in_buffer -= num_bytes;
+            jpx->src.next_input_byte += num_bytes;
+            jpx->skip = 0;
+        }
+    }
+    
+    static int put_jpeg_grey_memory(unsigned char **dest_image, unsigned long *image_size, 
+        unsigned char *input_image, int width, int height, int quality)
+    {
+        int y;
+        JSAMPROW row_ptr[1];
+        struct jpeg_compress_struct cjpeg;
+        struct jpeg_error_mgr jerr;
+
+        cjpeg.err = jpeg_std_error(&jerr);
+        jpeg_create_compress(&cjpeg);
+        cjpeg.image_width = width;
+        cjpeg.image_height = height;
+        cjpeg.input_components = 1; /* one colour component */
+        cjpeg.in_color_space = JCS_GRAYSCALE;
+
+        jpeg_set_defaults(&cjpeg);
+
+        jpeg_set_quality(&cjpeg, quality, TRUE);
+        cjpeg.dct_method = JDCT_FASTEST;
+        jpeg_mem_dest(&cjpeg, dest_image, image_size);  // data written to mem
+
+        jpeg_start_compress (&cjpeg, TRUE);
+
+        row_ptr[0] = input_image;
+    
+        for (y = 0; y < height; y++) {
+            jpeg_write_scanlines(&cjpeg, row_ptr, 1);
+            row_ptr[0] += width;
+        }
+    
+        jpeg_finish_compress(&cjpeg);
+        jpeg_destroy_compress(&cjpeg);
+
+        return true;
+    }
 
 
     FileJPG::FileJPG(void)
