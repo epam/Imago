@@ -13,7 +13,7 @@ namespace gga
 
     #ifdef DEBUG
         static int figure_num = 0;
-        static int recurse_level = 0;
+        static size_t recurse_level = 0;
         char prefix[128] = {0};
     #endif
         
@@ -24,7 +24,9 @@ namespace gga
             first++;
         while (Shift + Coef*last < 0 && last > first)
             last--;                
-        return Line(Ranges.coordToPoint(Shift + Coef*first, first), Ranges.coordToPoint(Shift + Coef*last, last));
+		int first_x = (int)(Shift + Coef*first);
+		int last_x = (int)(Shift + Coef*last);
+        return Line(Ranges.coordToPoint(first_x, first), Ranges.coordToPoint(last_x, last));
     }
     
     LinearApproximation::HistType LinearApproximation::calculateHistogram()
