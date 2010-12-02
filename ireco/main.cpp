@@ -55,7 +55,7 @@ void recognize(const char *Filename, const char *output, const char *font_path)
       
       printf("Orientation: %i\n", original_img.getOrientation());
       
-      /*
+      
       int angle = 0;
       switch(original_img.getOrientation())
       {
@@ -86,8 +86,8 @@ void recognize(const char *Filename, const char *output, const char *font_path)
          const gga::Image src(original_img);
          rotateImage(src, (float)angle, &original_img);
       }
-      */
-      /*
+      
+      
       
       //Process image using iSMILES
       gga::ImageFilter flt(original_img);
@@ -96,7 +96,7 @@ void recognize(const char *Filename, const char *output, const char *font_path)
       
       TIME(flt.prepareImageForVectorization(), "iSMILES processing");
 
-      //gga::FilePNG().save(output, original_img);
+      gga::FilePNG().save(output, original_img);
 
       //Back to imago Image type
       convert(original_img, img);
@@ -116,7 +116,7 @@ void recognize(const char *Filename, const char *output, const char *font_path)
       imago::StandardOutput fo;
       imago::MolfileSaver ma(fo);
       TIME(ma.saveMolecule(mol), "Saving molecule");
-       */
+       
 
       imago::SessionManager::getInstance().releaseSID(id);
    }
