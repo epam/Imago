@@ -7,7 +7,7 @@ namespace mol
     class Element;
 
     struct Link
-	{
+    {
         enum    Type
         {
             LT_SINGLE,
@@ -32,9 +32,9 @@ namespace mol
         const Element*  FirstElement;
         const Element*  LastElement;
     public:
-		inline  Link(const Element* left, const Element* rigth) : FirstElement(left), LastElement(rigth) {}
-		inline ~Link() {}
-	};
+        inline  Link(const Element* left, const Element* rigth) : FirstElement(left), LastElement(rigth) {}
+        inline ~Link() {}
+    };
 }
 }
 

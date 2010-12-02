@@ -9,8 +9,8 @@ namespace gga
 {
 namespace mol
 {
-	class Molecule
-	{
+    class Molecule
+    {
         std::list  <Element>    Elements;
         std::vector<Link   >    Links;
     public:
@@ -20,8 +20,8 @@ namespace mol
             virtual bool processElement(const Element& element)=0;
         };
 
-		inline  Molecule() {}
-		inline ~Molecule() {}
+        inline  Molecule() {}
+        inline ~Molecule() {}
         inline size_t getElementNumber()const        {return Elements.size ();}
         inline const Element& getFirstElement()const {return Elements.front();}
         inline       Element& getFirstElement()      {return Elements.front();}
@@ -34,7 +34,7 @@ namespace mol
         {
             return true;
         }
-	};
+    };
 }
 }
 
