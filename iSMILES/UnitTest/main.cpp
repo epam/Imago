@@ -74,8 +74,10 @@ class Tester
                 Draw::LineToImage(*it, lined);
             saveImage("lined", lined);
 
-            for (PContours::const_iterator it = vectorized.getOtherContours().begin(); it != vectorized.getOtherContours().end(); it++)
+            /*
+             for (PContours::const_iterator it = vectorized.getOtherContours().begin(); it != vectorized.getOtherContours().end(); it++)
                 saveImage("other", Draw::PointsToImage(*(*it)));
+            */
 
             printf("Total: %i consistent parts (Save taken %f ms)\n", Files.size(), 1000.0*timer.getElapsedTime());            
             
@@ -123,7 +125,7 @@ class Tester
 
 int main(int argc, char* argv[])
 {
-    std::string ImagePath = (argc > 1) ? argv[1] : "../../Data/Sample2.png";
+    std::string ImagePath = (argc > 1) ? argv[1] : "../../Data/Sample0.png";
     
     Tester imgTester(ImagePath);
 

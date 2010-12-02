@@ -157,7 +157,7 @@ namespace gga
         RangeArray rng2(Ranges, start);
         LinearApproximation lin2(rng2); // have to be better than current
         
-        double NewDev = (lin1.StdDev * start + lin2.StdDev * (total - start)) / total;
+        double NewDev = (lin1.StdDev * start * getGlobalParams().getSplitStdDevFactor() + lin2.StdDev * (total - start)) / total;
         
         #ifdef DEBUG
             printf("%s%cDev after split [%f,%f]=%f vs base %f\n", prefix, (NewDev < StdDev) ? '+' : '-',

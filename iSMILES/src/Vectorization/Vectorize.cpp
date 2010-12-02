@@ -51,7 +51,7 @@ namespace gga
             ContourSplit cs(*RecOther[u]);
             
             bool AllGood = true;
-            for (PointsArray::const_iterator it = cs.getSplit().begin(); it != cs.getSplit().end(); it++)
+            for (ContourSplit::Contours::const_iterator it = cs.getSplit().begin(); it != cs.getSplit().end(); it++)
             {            
                 LinearApproximation line(*it);
                 if (line.isGood())

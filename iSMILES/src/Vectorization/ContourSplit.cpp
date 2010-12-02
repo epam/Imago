@@ -4,66 +4,41 @@
 
 namespace gga
 {
-    ContourSplit::ContourSplit(const Contour& contour)
+    const int BORDER = 4;
+    
+    ContourSplit::Indexes ContourSplit::reduceIndexCount(const Indexes& indexes, const Contour& contour)
     {   
-        std::vector<size_t> idx, idx_0, idx_90;
+        const int DIST_DELTA_MIN = getGlobalParams().getLineWidth();
+        Indexes result;
         
-        const int DIST_DELTA_MIN = getGlobalParams().getLineWidth() / 2;
-        const int DIST_DELTA_MAX = getGlobalParams().getLineWidth() * 3;
+        if (!indexes.empty())
+        {
+            result.push_back(indexes[0]);
+        }
         
-        const std::vector<size_t> idx_0_src = contour.getWayChanges();
-        
-        // reduce points count
-        idx_0.push_back(idx_0_src[0]);
-        for (int i = 1; i < idx_0_src.size(); i++)
+        for (int i = 1; i < indexes.size(); i++)
         {
             int max = DIST_DELTA_MIN;
             
-            for (int k = 0; k < idx_0.size(); k++)
+            for (int k = 0; k < result.size(); k++)
             {
-                if (contour[idx_0[k]].distance(contour[idx_0_src[i]]) < max)
+                if (contour[result[k]].distance(contour[indexes[i]]) < max)
                 {
-                    max = contour[idx_0[k]].distance(contour[idx_0_src[i]]);
+                    max = contour[result[k]].distance(contour[indexes[i]]);
                 }
              }
             
             if (max == DIST_DELTA_MIN)
-                idx_0.push_back(idx_0_src[i]);
+                result.push_back(indexes[i]);
         }
         
-        // reconstruct rotated contour
-        Bounds b(contour);
-        Image img;
-        img.setSize(b.getRight() + 4, b.getBottom() + 4, IT_BW);
-        img.clear();
-        for (Points::const_iterator it = contour.begin(); it != contour.end(); it++)
-        {
-            img.setPixel(it->X, it->Y, INK);                                
-        }
-        
-        ImageMap map(img.getWidth(), img.getHeight());
-        Contour rotated(img, map, contour[0], true);
-        const std::vector<size_t> idx_90_src = rotated.getWayChanges();            
-        
-        // reduce points count
-        idx_90.push_back(idx_90_src[0]);            
-        for (int i = 1; i < idx_90_src.size(); i++)
-        {
-            int max = DIST_DELTA_MIN;
-            
-            for (int k = 0; k < idx_90.size(); k++)
-            {
-                if (contour[idx_90[k]].distance(contour[idx_90_src[i]]) < max)
-                {
-                    max = contour[idx_90[k]].distance(contour[idx_90_src[i]]);
-                }
-             }
-            
-            if (max == DIST_DELTA_MIN)
-                idx_90.push_back(idx_90_src[i]);
-        }
-        
-        // select only intersection indexes   
+        return result;
+    }
+    
+    ContourSplit::Indexes ContourSplit::intersectIndexes(const Indexes& idx_90, const Contour& rotated, const Indexes& idx_0, const Contour& contour)
+    {
+        const int DIST_DELTA_MAX = getGlobalParams().getMinimalLineLength();
+        Indexes result;
         for (std::vector<size_t>::const_iterator it_90 = idx_90.begin(); it_90 != idx_90.end(); it_90++)
         {
             bool found = false;
@@ -73,24 +48,57 @@ namespace gga
                     found = true;
             }
             if (found)
-                idx.push_back(*it_90);
+                result.push_back(*it_90);
         }
-        
-        // split contour by junction points or line endpoints
-        std::vector<size_t>::const_iterator it = idx.begin();
+        return result;
+    }
+    
+    void ContourSplit::createResultSplit(const Indexes& indexes, const Contour& contour)
+    {
+        Result.clear();
+        std::vector<size_t>::const_iterator it = indexes.begin();
         Points temp;                
-        for (size_t u = 0; u < rotated.size(); u++)
+        for (size_t u = 0; u < contour.size(); u++)
         {
-            if (it != idx.end() && u == *it)
+            if (it != indexes.end() && u == *it)
             {
                 it++;
                 if (!temp.empty())
                     Result.push_back(temp);
                 temp.clear();
             }
-            temp.push_back(rotated[u]);
+            temp.push_back(contour[u]);
         }        
         if (!temp.empty())
-            Result.push_back(temp);        
+            Result.push_back(temp);   
+    }
+        
+    ContourSplit::ContourSplit(const Contour& contour)
+    : ContourBounds(contour)
+    {   
+        // reconstruct rotated contour
+        const int dx = ContourBounds.getLeft() - BORDER;
+        const int dy = ContourBounds.getTop() - BORDER;
+
+        Image img;
+        img.setSize(ContourBounds.getWidth() + 2 * BORDER, ContourBounds.getHeight() + 2 * BORDER, IT_BW);
+        img.clear();
+        for (Points::const_iterator it = contour.begin(); it != contour.end(); it++)
+            img.setPixel(it->X - dx, it->Y - dy, INK);
+            
+        ImageMap map(img.getWidth(), img.getHeight());
+        Point start(contour[0].X - dx, contour[0].Y - dy);
+        Contour rotated(img, map, start, true, false);
+        
+        for (Points::iterator it = rotated.begin(); it != rotated.end(); it++)
+            *it = Point(it->X + dx, it->Y + dy);
+        
+        // select only intersection indexes
+        const Indexes idx_0 = reduceIndexCount(contour.getWayChanges(), contour);
+        const Indexes idx_90 = reduceIndexCount(rotated.getWayChanges(), rotated);        
+        const Indexes idx = intersectIndexes(idx_90, rotated, idx_0, contour);
+        
+        // split contour by junction points or line endpoints
+        createResultSplit(idx, rotated);
     }
 }

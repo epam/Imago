@@ -73,13 +73,16 @@ namespace gga
         }
     }
     
-    Contour::Contour(const Image& img, ImageMap& map, const Point& start, bool rotate90Axis)
+    Contour::Contour(const Image& img, ImageMap& map, const Point& start, bool rotate90Axis, bool fillImageMap)
     : SourceImage(img), CurrentImageMap(map), OuterContour(NULL)
     {
         Rotate90Axis = rotate90Axis;
         constructContour(start);
-        fillRelatedImageMap();
-        findOuterObject();
+        if (fillImageMap)
+        {
+            fillRelatedImageMap();
+            findOuterObject();
+        }
     }
 
     Point Contour::movePoint(const Point& src, int x, int y, bool InvertedAxis)

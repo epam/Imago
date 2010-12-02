@@ -5,21 +5,26 @@
 #include "../Image/Image.h"
 
 namespace gga
-{
-    // TODO: give meaningful name
-    typedef std::vector<Points> PointsArray;
-    
+{    
     class ContourSplit
     {
-        PointsArray Result;
+    public:
+        typedef std::vector<Points> Contours;
+        typedef std::vector<size_t> Indexes;
+    
+    private:
+        Contours Result;
+        Bounds ContourBounds;
 
     public:
         ContourSplit(const Contour& contour);
         
-        const PointsArray& getSplit() const { return Result; }        
+        const Contours& getSplit() const { return Result; }        
         
     private:
-        
+        Indexes reduceIndexCount(const Indexes& indexes, const Contour& contour);
+        Indexes intersectIndexes(const Indexes& idx_90, const Contour& rotated, const Indexes& idx_0, const Contour& contour);
+        void createResultSplit(const Indexes& indexes, const Contour& contour);
     };
 }
 

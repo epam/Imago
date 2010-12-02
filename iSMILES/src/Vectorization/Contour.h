@@ -21,7 +21,7 @@ namespace gga
          * then it will be considered as separate image part */         
          
         // extract contour and mark all coherent points on image map
-        Contour(const Image& img, ImageMap& map, const Point& start, bool rotate90Axis = false);
+        Contour(const Image& img, ImageMap& map, const Point& start, bool rotate90Axis = false, bool fillImageMap = true);
         
         // returns outer contour for that one or NULL
         const Contour* getOuterContour() const { return OuterContour; }

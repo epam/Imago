@@ -44,7 +44,10 @@ namespace gga
         double getTriangleSideRatio() const { return 1.5; }
         
         /* maximal std.dev. value for lines */
-        double getDeviationThreshold() const { return 0.4; }
+        double getDeviationThreshold() const { return 0.5; }
+        
+        /* each split increments result std.dev. by this factor */
+        double getSplitStdDevFactor() const { return 1.5; }
     };
     
     Parameters& getGlobalParams();
