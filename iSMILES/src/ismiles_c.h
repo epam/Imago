@@ -17,6 +17,9 @@
 #define CEXPORT extern "C" DLLEXPORT
 #endif
 
+/* Load JPG image & process it (rotate, filter) using iSMILES 
+ * !Careful! memory leak possible */
+CEXPORT char *loadAndProcessJPGImage( const char *filename, int *width, int *height );
 
-/* Load JPG image & process it (rotate, filter) using iSMILES */
-CEXPORT void loadAndProcessJPGImage( const char *filename, unsigned char **buf, int *width, int *height );
+
+#endif /* _imago_c_h */
