@@ -1,11 +1,11 @@
-#ifndef _imago_c_h
-#define _imago_c_h
+#ifndef _ismiles_c_h
+#define _ismiles_c_h
 
 #ifdef _WIN32
 
 #define DLLEXPORT __declspec(dllexport)
 
-#else 
+#else
 
 #define DLLEXPORT
 
@@ -22,4 +22,4 @@
 CEXPORT char *loadAndProcessJPGImage( const char *filename, int *width, int *height );
 
 
-#endif /* _imago_c_h */
+#endif /* _ismiles_c_h */

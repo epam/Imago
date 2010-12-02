@@ -1,0 +1,80 @@
+import os, os.path
+from os.path import join, basename
+
+Import('env')
+
+include_dirs = [
+'../libjpeg',
+'src/Image'
+]
+
+c_env = env.Clone()
+c_env.Append(CPPPATH = include_dirs)
+
+builddir = env['BUILDDIR']
+
+source_files = """
+src/ismiles_c.cpp
+src/Image/FileJPG.cpp
+src/Image/ImageFilter.cpp
+../libjpeg/jaricom.c
+../libjpeg/jcapimin.c
+../libjpeg/jcapistd.c
+../libjpeg/jcarith.c
+../libjpeg/jccoefct.c
+../libjpeg/jccolor.c
+../libjpeg/jcdctmgr.c
+../libjpeg/jchuff.c
+../libjpeg/jcinit.c
+../libjpeg/jcmainct.c
+../libjpeg/jcmarker.c
+../libjpeg/jcmaster.c
+../libjpeg/jcomapi.c
+../libjpeg/jcparam.c
+../libjpeg/jcprepct.c
+../libjpeg/jcsample.c
+../libjpeg/jctrans.c
+../libjpeg/jdapimin.c
+../libjpeg/jdapistd.c
+../libjpeg/jdarith.c
+../libjpeg/jdatadst.c
+../libjpeg/jdatasrc.c
+../libjpeg/jdcoefct.c
+../libjpeg/jdcolor.c
+../libjpeg/jddctmgr.c
+../libjpeg/jdhuff.c
+../libjpeg/jdinput.c
+../libjpeg/jdmainct.c
+../libjpeg/jdmarker.c
+../libjpeg/jdmaster.c
+../libjpeg/jdmerge.c
+../libjpeg/jdpostct.c
+../libjpeg/jdsample.c
+../libjpeg/jdtrans.c
+../libjpeg/jerror.c
+../libjpeg/jfdctflt.c
+../libjpeg/jfdctfst.c
+../libjpeg/jfdctint.c
+../libjpeg/jidctflt.c
+../libjpeg/jidctfst.c
+../libjpeg/jidctint.c
+../libjpeg/jquant1.c
+../libjpeg/jquant2.c
+../libjpeg/jutils.c
+../libjpeg/jmemmgr.c
+../libjpeg/jmemansi.c
+""".split()
+
+objs = []
+print source_files
+for f in source_files:
+    base = os.path.splitext(basename(f))[0]
+    objs.append(c_env.SharedObject(target = join(builddir, base), source = f))
+
+ismiles_c_shared = c_env.SharedLibrary(target = os.path.join(builddir, 'ismiles_c'), source = objs)
+
+path = join(env['OUTPUT_DIR'], 'ismiles_c', env['TARGET_SUFFIX'])
+env.Install(path, [ismiles_c_shared])
+env.Alias('ismiles_c', path)
+
+Export('ismiles_c_shared')

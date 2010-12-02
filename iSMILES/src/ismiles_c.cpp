@@ -10,11 +10,10 @@ using namespace gga;
 CEXPORT char *loadAndProcessJPGImage( const char *filename, int *width, int *height )
 {
    Image img;
-   
+
    FileJPG().load(filename, &img);
    img.resizeLinear(3);
-      
-   int angle = 0;
+   int angle;
 
    switch(img.getOrientation())
    {

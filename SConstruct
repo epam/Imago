@@ -168,3 +168,5 @@ else:
       SConscript('ego/SConscript')
    elif 'tests' in COMMAND_LINE_TARGETS:
       SConscript('tests/vs/imagotest/SConscript')
+   elif 'ismiles_c' in COMMAND_LINE_TARGETS:
+      SConscript('iSMILES/SConscript')
