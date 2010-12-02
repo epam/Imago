@@ -9,7 +9,7 @@
 
 namespace gga
 {    
-	const double LinearApproximation::eps = 0.0001;
+    const double LinearApproximation::eps = 0.0001;
 
     #ifdef DEBUG
         static int figure_num = 0;
@@ -24,8 +24,8 @@ namespace gga
             first++;
         while (Shift + Coef*last < 0 && last > first)
             last--;                
-		int first_x = (int)(Shift + Coef*first);
-		int last_x = (int)(Shift + Coef*last);
+        int first_x = (int)(Shift + Coef*first);
+        int last_x = (int)(Shift + Coef*last);
         return Line(Ranges.coordToPoint(first_x, first), Ranges.coordToPoint(last_x, last));
     }
     

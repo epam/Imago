@@ -166,90 +166,90 @@ static void jpeg_exif_rotate (Image* img, unsigned short orientation)
     FileJPG::~FileJPG(void)
     {
     }
-	
-	bool FileJPG::load(const std::vector<unsigned char>& buff, Image* img)
-	{
-		unsigned int width, height, pixel_format;
-		int i;
-		int stride;
-		JPGErr jper;
-		JPGCtx jpx;
-		
-		jpx.cinfo.err = jpeg_std_error(&(jper.pub));
-		jper.pub.error_exit = _fatal_error;
-		jper.pub.output_message = _nonfatal_error;
-		jper.pub.emit_message = _nonfatal_error2;
-		if (setjmp(jper.jmpbuf)) {
-			jpeg_destroy_decompress(&jpx.cinfo);
-			return false;
-		}
-		
-		/*create decompress struct*/
-		jpeg_create_decompress(&jpx.cinfo);
-		
-		/*prepare IO*/
-		jpx.src.init_source = stub;
-		jpx.src.fill_input_buffer = fill_input_buffer;
-		jpx.src.skip_input_data = skip_input_data;
-		jpx.src.resync_to_restart = jpeg_resync_to_restart;
-		jpx.src.term_source = stub;
-		jpx.skip = 0;
-		jpx.src.next_input_byte = (const JOCTET *)(&(buff[0]));
-		jpx.src.bytes_in_buffer = buff.size();
-		jpx.cinfo.src = (struct jpeg_source_mgr *) &jpx.src;
-		
-		/*read header*/
-		do 
+    
+    bool FileJPG::load(const std::vector<unsigned char>& buff, Image* img)
+    {
+        unsigned int width, height, pixel_format;
+        int i;
+        int stride;
+        JPGErr jper;
+        JPGCtx jpx;
+        
+        jpx.cinfo.err = jpeg_std_error(&(jper.pub));
+        jper.pub.error_exit = _fatal_error;
+        jper.pub.output_message = _nonfatal_error;
+        jper.pub.emit_message = _nonfatal_error2;
+        if (setjmp(jper.jmpbuf)) {
+            jpeg_destroy_decompress(&jpx.cinfo);
+            return false;
+        }
+        
+        /*create decompress struct*/
+        jpeg_create_decompress(&jpx.cinfo);
+        
+        /*prepare IO*/
+        jpx.src.init_source = stub;
+        jpx.src.fill_input_buffer = fill_input_buffer;
+        jpx.src.skip_input_data = skip_input_data;
+        jpx.src.resync_to_restart = jpeg_resync_to_restart;
+        jpx.src.term_source = stub;
+        jpx.skip = 0;
+        jpx.src.next_input_byte = (const JOCTET *)(&(buff[0]));
+        jpx.src.bytes_in_buffer = buff.size();
+        jpx.cinfo.src = (struct jpeg_source_mgr *) &jpx.src;
+        
+        /*read header*/
+        do 
         {
-			i = jpeg_read_header(&jpx.cinfo, TRUE);
-		}
+            i = jpeg_read_header(&jpx.cinfo, TRUE);
+        }
         while (i == JPEG_HEADER_TABLES_ONLY);
 
-		/*we're supposed to have the full image in the buffer, wrong stream*/
-		if (i == JPEG_SUSPENDED) {
-			jpeg_destroy_decompress(&jpx.cinfo);
-			return false;
-		}
-		
-		width = jpx.cinfo.image_width;
-		height = jpx.cinfo.image_height;
-		stride = width * jpx.cinfo.num_components;
+        /*we're supposed to have the full image in the buffer, wrong stream*/
+        if (i == JPEG_SUSPENDED) {
+            jpeg_destroy_decompress(&jpx.cinfo);
+            return false;
+        }
+        
+        width = jpx.cinfo.image_width;
+        height = jpx.cinfo.image_height;
+        stride = width * jpx.cinfo.num_components;
 
-		switch (jpx.cinfo.num_components) {
-		case 1:     pixel_format = JCS_GRAYSCALE;
-			break;
-		case 3:     pixel_format = JCS_RGB;
-			break;
-		default:    jpeg_destroy_decompress(&jpx.cinfo);
-			return false;
-		}
-		
-		img->setSize(width, height, IT_GRAYSCALE);
-		/*decode*/
-		jpx.cinfo.do_fancy_upsampling = FALSE;
-		jpx.cinfo.do_block_smoothing = FALSE;
-		if (!jpeg_start_decompress(&jpx.cinfo))
+        switch (jpx.cinfo.num_components) {
+        case 1:     pixel_format = JCS_GRAYSCALE;
+            break;
+        case 3:     pixel_format = JCS_RGB;
+            break;
+        default:    jpeg_destroy_decompress(&jpx.cinfo);
+            return false;
+        }
+        
+        img->setSize(width, height, IT_GRAYSCALE);
+        /*decode*/
+        jpx.cinfo.do_fancy_upsampling = FALSE;
+        jpx.cinfo.do_block_smoothing = FALSE;
+        if (!jpeg_start_decompress(&jpx.cinfo))
         {
-			jpeg_destroy_decompress(&jpx.cinfo);
-			return false;
-		}
-		if (jpx.cinfo.rec_outbuf_height>JPEG_MAX_SCAN_BLOCK_HEIGHT)
+            jpeg_destroy_decompress(&jpx.cinfo);
+            return false;
+        }
+        if (jpx.cinfo.rec_outbuf_height>JPEG_MAX_SCAN_BLOCK_HEIGHT)
         {
-			jpeg_destroy_decompress(&jpx.cinfo);
-			return false;
-		}
-		
-		JSAMPROW data = new JSAMPLE[jpx.cinfo.output_width * jpx.cinfo.num_components];
-		for(size_t y = 0; jpx.cinfo.output_scanline < jpx.cinfo.output_height; y++)
-		{
-			JDIMENSION num_scanlines;
-			num_scanlines = jpeg_read_scanlines(&jpx.cinfo, &data, 1);
-			for(size_t x = 0; x < img->getWidth(); x++)
-			{
-				Pixel    px;
-				unsigned r, g, b;
+            jpeg_destroy_decompress(&jpx.cinfo);
+            return false;
+        }
+        
+        JSAMPROW data = new JSAMPLE[jpx.cinfo.output_width * jpx.cinfo.num_components];
+        for(size_t y = 0; jpx.cinfo.output_scanline < jpx.cinfo.output_height; y++)
+        {
+            JDIMENSION num_scanlines;
+            num_scanlines = jpeg_read_scanlines(&jpx.cinfo, &data, 1);
+            for(size_t x = 0; x < img->getWidth(); x++)
+            {
+                Pixel    px;
+                unsigned r, g, b;
 
-				if(JCS_GRAYSCALE == jpx.cinfo.out_color_space)
+                if(JCS_GRAYSCALE == jpx.cinfo.out_color_space)
                 {
                     px = Pixel(data[x]);
                 }
@@ -270,10 +270,10 @@ static void jpeg_exif_rotate (Image* img, unsigned short orientation)
 
                 img->setPixel(x, y, px);
             }
-		}
-		jpeg_finish_decompress(&jpx.cinfo);
-		jpeg_destroy_decompress(&jpx.cinfo);
-		delete[] data;
+        }
+        jpeg_finish_decompress(&jpx.cinfo);
+        jpeg_destroy_decompress(&jpx.cinfo);
+        delete[] data;
 
         size_t len=0;
         const unsigned char*  app1 = getApp1Marker (&buff[0], buff.size(), &len);
@@ -408,17 +408,17 @@ static void jpeg_exif_rotate (Image* img, unsigned short orientation)
         return true;
     }
  
-	bool FileJPG::save(std::vector<unsigned char>* out, const Image& img, int quality)
+    bool FileJPG::save(std::vector<unsigned char>* out, const Image& img, int quality)
     {
-		unsigned char *dest_image = 0;
-		unsigned long  image_size = 0;
+        unsigned char *dest_image = 0;
+        unsigned long  image_size = 0;
 
         put_jpeg_grey_memory(&dest_image, &image_size, (unsigned char *)img.getPixels(), img.getWidth(), img.getHeight(), quality);
         if(0==out || 0==image_size)
             return false;
         out->resize(image_size);
         memcpy(&out->front(), dest_image, image_size);
-		free(dest_image);
+        free(dest_image);
         return true;
     }
 

@@ -10,7 +10,7 @@ namespace gga
         unsigned char Value;
 
         inline Pixel(unsigned char color = BACKGROUND) : Value(color) {}
-		
+        
         inline bool isBackground()const { return BACKGROUND == Value;}
         inline bool isInk()const        { return INK == Value;}
     };

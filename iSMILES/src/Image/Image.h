@@ -88,10 +88,10 @@ namespace gga
                 for (size_t i = 0; i < n; i++)
                  for(size_t j = 0; j < n; j++)
                     px |= getPixel(x+j, y+i).isInk();
-				if(px)
-					Data[xn + yn*cx] = Pixel(INK);
-				else
-					Data[xn + yn*cx] = Pixel(BACKGROUND);
+                if(px)
+                    Data[xn + yn*cx] = Pixel(INK);
+                else
+                    Data[xn + yn*cx] = Pixel(BACKGROUND);
              }
             Width  = cx;
             Height/= n;

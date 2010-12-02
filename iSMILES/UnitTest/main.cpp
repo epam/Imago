@@ -125,7 +125,7 @@ class Tester
 
 int main(int argc, char* argv[])
 {
-    std::string ImagePath = (argc > 1) ? argv[1] : "../../Data/Sample0.png";
+    std::string ImagePath = (argc > 1) ? argv[1] : "../../Data/Sample2.png";
     
     Tester imgTester(ImagePath);
 
