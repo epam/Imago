@@ -53,7 +53,7 @@ path = join(env['OUTPUT_DIR'], 'ego')
 env.Install(path, egojar)
 env.Install(path, File(join("runscripts", "ego")))
 Chmod(join(path, "ego"), 0755)
-#env.Install(path, File(join("runscripts", "ego.bat")))
+env.Install(path, File(join("runscripts", "ego.bat")))
 env.Alias('ego', path)
 env.Alias('all', path)
 
