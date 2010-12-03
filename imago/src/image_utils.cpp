@@ -57,7 +57,7 @@ bool ImageUtils::testVertHorLine( Segment &img, int &angle )
 
 bool ImageUtils::testSlashLine( Segment &img, double *angle, double eps )
 {
-   const double SLASH_LINE_DENSITY = 0.44; //TODO: Handwriting, original 0.56
+   const double SLASH_LINE_DENSITY = 0.41; //TODO: Handwriting, original 0.56
    double density, thetha, r;
 
    //ImageUtils::saveImageToFile(img, "output/origin.png");

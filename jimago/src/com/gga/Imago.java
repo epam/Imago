@@ -143,7 +143,7 @@ public class Imago {
 
     private native void loadPNGImageFromBuffer(byte[] buf);
 
-    private native void loadGreyscaleRawImage(byte[] buf, int w, int h);
+    public native void loadGreyscaleRawImage(byte[] buf, int w, int h);
 
     private native void savePNGImageToFile(String filename);
     private native void loadPNGImageFromFile(String filename);

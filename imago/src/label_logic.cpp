@@ -80,7 +80,7 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
    /*X*/   "e",
    /*Y*/   "b",
    /*Z*/   "nr",
-           "ABCEFGHILMNOPQRSTUVWYZX", //XD //K removed in "handwriting"
+           "ABCEFGHIKLMNOPQRSTUVWYZX", //XD //K removed in "handwriting"
            "abcdeghiklmnoprstuyz",
    };
    

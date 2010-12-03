@@ -91,12 +91,12 @@ public class DocumentPanel extends javax.swing.JPanel {
             selection.width = selection.height = 0;
             ready = false;
             currentPage = page;
-            if (scale < 0)
-            {
+
+            if (parent.careful) {
                 if (page.getUnscaledSize().height > page.getUnscaledSize().width)
-                    fitHeight();
+                    parent.fitHeight();
                 else
-                    fitWidth();
+                    parent.fitWidth();
             }
 
             prepPage(scale);
@@ -636,7 +636,7 @@ public class DocumentPanel extends javax.swing.JPanel {
         jPageNumberComboBox.addActionListener(pageNumberComboBoxListener);
     }
 
-    private String getFileExtension(File file) {
+    public String getFileExtension(File file) {
         String name = file.getName();
         if (!name.contains("."))
             return null;
@@ -676,6 +676,16 @@ public class DocumentPanel extends javax.swing.JPanel {
             return true;
 
         return false;
+    }
+
+    public void fitSize() {
+
+
+        
+//        fitHeight();
+  //      fitWidth();
+        
+
     }
 
     public void setFile(File file) {
@@ -775,6 +785,11 @@ public class DocumentPanel extends javax.swing.JPanel {
     public void setActualSize() {
         viewer.setActualSize();
     }
+
+    public void setCareful() {
+        careful = true;
+    }
+
 
     public BufferedImage getSelectedSubimage(ImageObserver observer) {
         return viewer.getSelectedSubimage(observer);
@@ -987,6 +1002,8 @@ public class DocumentPanel extends javax.swing.JPanel {
     private int curPage;
     private ActionListener zoomComboBoxListener;
     private ActionListener pageNumberComboBoxListener;
+    
+    private boolean careful = false;
     
     //TODO: Eeeww
     private Ego parent;

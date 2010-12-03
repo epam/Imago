@@ -112,7 +112,6 @@ void FourierDescriptorsExtractor::_getContour( const Image &_img, IntDeque &cont
    byte ul, ur, dl, dr;
    int i;
    std::deque<int> prev(k, -1);
-
    double dist = 0;
    double min_dist = 1e16;
    for (i = 0; i < w * h; i++)
@@ -124,7 +123,9 @@ void FourierDescriptorsExtractor::_getContour( const Image &_img, IntDeque &cont
          //begin = y * (w + 1) + x;
 
          dist = sqrt((double)x * x + y * y);
+         //dist = x + y;
          if (min_dist - dist > EPS)
+            //if (dist < min_dist)
          {
             min_dist = dist;
             begin = i + i / w;

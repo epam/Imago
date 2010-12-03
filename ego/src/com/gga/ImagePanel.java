@@ -19,7 +19,7 @@ import java.awt.Graphics;
 import java.awt.Image;
 import javax.swing.JPanel;
 
-public class ImagePanel extends JPanel {
+public class ImagePanel extends javax.swing.JPanel {
 
     private Image orig_img = null;
     private Image scaled_img = null;

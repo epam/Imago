@@ -46,12 +46,12 @@
 
 using namespace imago;
 
-ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr(2)
+ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr(3)
 {
 }
 
 ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname )
-   : _cr(2, fontname)
+   : _cr(3, fontname)
 {
 }
 
@@ -144,7 +144,8 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       //Settings for handwriting separation
       rs.set("SymHeightErr", 42);      
-      rs.set("MaxSymRatio", 1.4);      
+      rs.set("MaxSymRatio", 1.4);   
+      //rs.set("ParLinesEps", 0.34);
 
       TIME(sep.firstSeparation(layer_symbols, layer_graphics), 
          "Symbols/Graphics elements separation");

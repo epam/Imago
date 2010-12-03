@@ -38,11 +38,30 @@ import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
+import com.sun.jna.*;
+import com.sun.jna.ptr.IntByReference;
+import java.awt.Image;
+import java.nio.Buffer;
+import java.nio.ByteBuffer;
+
 public class Ego extends javax.swing.JFrame {
+
+    public interface iSMILES extends Library
+    {
+        public Pointer loadAndProcessJPGImage( String filename, IntByReference width, IntByReference height);
+    }
+    
     /** Creates new form Main */
     public Ego() {
 
-        //Integer a[] = new Integer[1]{ new Integer(2) };
+        IsmilesHelper ismh = new IsmilesHelper();
+
+        try {
+            ism = (iSMILES)Native.loadLibrary(ismh.getiSMILESPath(jarDir + File.separator + "lib"),
+                iSMILES.class);
+        }
+        catch (Exception e) {
+        }
 
         initComponents();
         setVisible(true);
@@ -52,12 +71,12 @@ public class Ego extends javax.swing.JFrame {
 
         setLocation((screen_size.width - getWidth()) / 2,
                     (screen_size.height - getHeight()) / 2);
-
 //        setSize(Toolkit.getDefaultToolkit().getScreenSize());
 
         moleculePanel = (MoleculePanel)jMoleculePanel;
         documentPanel = (DocumentPanel)jDocumentPanel;
-
+        filteredImagePanel = (ImagePanel)jFilteredImagePanel;
+        
         documentPanel.setParent(this);
         
         try {
@@ -93,6 +112,7 @@ public class Ego extends javax.swing.JFrame {
         jMainTabbedPane.setEnabledAt(0, false);
         jMainTabbedPane.setEnabledAt(1, false);
         jMainTabbedPane.setEnabledAt(2, false);
+        jMainTabbedPane.setEnabledAt(3, false);
                
         jNoResultPanel = new JPanel(new BorderLayout());
         jNoResultLabel = new JLabel("Unfortunately, Imago couldn't recognize selected image.", JLabel.CENTER);
@@ -119,6 +139,7 @@ public class Ego extends javax.swing.JFrame {
         jSketcherButton = new javax.swing.JButton();
         jMainTabbedPane = new javax.swing.JTabbedPane();
         jDocumentPanel = new DocumentPanel();
+        jFilteredImagePanel = new ImagePanel();
         jLogScollPane = new javax.swing.JScrollPane();
         logArea = new javax.swing.JTextArea();
         jMoleculePanel = new MoleculePanel();
@@ -246,6 +267,11 @@ public class Ego extends javax.swing.JFrame {
         jDocumentPanel.setLayout(null);
         */
         jMainTabbedPane.addTab("Document", jDocumentPanel);
+
+        /*
+        jFilteredImagePanel.setLayout(null);
+        */
+        jMainTabbedPane.addTab("Filtered Image", jFilteredImagePanel);
 
         logArea.setColumns(20);
         logArea.setEditable(false);
@@ -459,8 +485,10 @@ public class Ego extends javax.swing.JFrame {
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jMainTabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 727, Short.MAX_VALUE)
             .addComponent(jMainToolBar, javax.swing.GroupLayout.DEFAULT_SIZE, 727, Short.MAX_VALUE)
+            .addGroup(layout.createSequentialGroup()
+                .addComponent(jMainTabbedPane, javax.swing.GroupLayout.DEFAULT_SIZE, 717, Short.MAX_VALUE)
+                .addContainerGap())
         );
         layout.setVerticalGroup(
             layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -525,12 +553,40 @@ public class Ego extends javax.swing.JFrame {
 
     private void setFile(File file) {
 
+
+
         toggleAfterRecognitionItems(false);
         toggleAfterSelectionItems(false);
         toggleNavigateItems(true);
 
         if (!documentPanel.checkFile(file))
             return;
+        
+        String ext = documentPanel.getFileExtension(file);
+
+        if ("jpg".equals(ext))
+        {
+            IntByReference w = new IntByReference(),
+                    h = new IntByReference();
+            Pointer jpg_image =
+                    ism.loadAndProcessJPGImage(file.getAbsoluteFile().toString(), w, h);
+
+            byte[] arr = jpg_image.getByteArray(0, w.getValue() * h.getValue());
+
+            imago.loadGreyscaleRawImage(arr, w.getValue(), h.getValue());
+
+            jpg_handwriting = true;
+            documentPanel.setCareful();
+            BufferedImage filtered = new BufferedImage(w.getValue(), h.getValue(), BufferedImage.TYPE_BYTE_GRAY);
+
+            for (int i = 0; i < w.getValue(); i++)
+                for (int j = 0; j < h.getValue(); j++)
+                    filtered.setRGB(i, j, arr[j * w.getValue() + i]);
+            
+            filteredImagePanel.setImage(filtered);
+            jMainTabbedPane.setEnabledAt(1, true);
+            //jMainTabbedPane.setEnabledAt(2, true);
+        }
 
         try
         {
@@ -573,8 +629,8 @@ public class Ego extends javax.swing.JFrame {
         if (recognizing)
             return;       
 
-        jMainTabbedPane.setEnabledAt(1, true);
-        jMainTabbedPane.setSelectedIndex(1);
+        jMainTabbedPane.setEnabledAt(2, true);
+        jMainTabbedPane.setSelectedIndex(2);
 
         logArea.setText("");
         final Ego thiz = this;
@@ -587,17 +643,22 @@ public class Ego extends javax.swing.JFrame {
                 for (int i = 0; i < Imago.configsCount; i++) {
                     molfile = "";
                     try {
-                        BufferedImage img = documentPanel.getSelectedSubimage(null);
+                        BufferedImage img = null;
+                        if (!jpg_handwriting)
+                        {
+                            img = documentPanel.getSelectedSubimage(null);
 
-                        if (img == null) {
-                            throw new Exception("Highlight a molecule first please.");
+                            if (img == null) {
+                                throw new Exception("Highlight a molecule first please.");
+                            }
                         }
 
                         //MyDialog jd = new MyDialog(thiz, true, img);
                         //jd.setVisible(true);
                         
                         try {
-                            imago.loadBufImage(img);
+                            if (!jpg_handwriting)
+                                imago.loadBufImage(img);
                         } catch (Exception e) {
                             System.out.println(e.getMessage());
                         }
@@ -620,7 +681,8 @@ public class Ego extends javax.swing.JFrame {
                                 //if (!moleculePanel.equals(jTabbedPane1.getComponentAt(tabs[2])))
                                 //    jTabbedPane1.setComponentAt(tabs[2], moleculePanel);
                                 jMainTabbedPane.setEnabledAt(2, true);
-                                jMainTabbedPane.setSelectedIndex(2);                               
+                                jMainTabbedPane.setEnabledAt(3, true);
+                                jMainTabbedPane.setSelectedIndex(3);
 
                                 //jTabbedPane1.setEnabledAt(tabs[0], false);
                                 
@@ -835,6 +897,7 @@ public class Ego extends javax.swing.JFrame {
     private javax.swing.JMenuItem jCopyMenuItem;
     private javax.swing.JPanel jDocumentPanel;
     private javax.swing.JMenu jFileMenu;
+    private javax.swing.JPanel jFilteredImagePanel;
     private javax.swing.JMenuItem jFirstPageMenuItem;
     private javax.swing.JMenuItem jFitHeightMenuItem;
     private javax.swing.JMenuItem jFitWidthMenuItem;
@@ -873,13 +936,16 @@ public class Ego extends javax.swing.JFrame {
 
     private MoleculePanel moleculePanel;
     private DocumentPanel documentPanel;
+    private ImagePanel filteredImagePanel;
     private File curFile;
     private javax.swing.JPanel jNoResultPanel;
     private javax.swing.JLabel jNoResultLabel;
+
+    private iSMILES ism;
     
     private boolean recognizing = false;
     private static final Imago imago;
-
+    private boolean jpg_handwriting = false;
     public static String jarDir = getPathToJarfileDir(Ego.class);
 
     private class MyDialog extends JDialog {
@@ -909,7 +975,7 @@ public class Ego extends javax.swing.JFrame {
 
         //DEBUG
         //Uncomment this line if you want to run Ego from NetBeans
-        jarDir = "../output/release/ego";
+        //jarDir = "../output/release/ego";
         ///////
         imago = new Imago(jarDir + File.separator + "lib");
     }
