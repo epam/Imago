@@ -45,7 +45,7 @@ double CharacterRecognizer::_compareDescriptors( const std::vector<double> &d1,
       r = d1[i] - d2[i];
 
       if (i % 2)
-         weight = 0.5;
+         weight = 0.7;
       else
          weight = 1.5;
 
@@ -140,7 +140,7 @@ char CharacterRecognizer::recognize( const SymbolFeatures &features,
          boost::get<1>(it->second) = std::min(boost::get<1>(it->second),
                                               boost::get<2>(t));
       }
-      //printf("%c %lf\n", c, boost::get<2>(t));
+      printf("%c %lf\n", c, boost::get<2>(t));
    }
 
    char res = 0;
@@ -195,7 +195,7 @@ void CharacterRecognizer::_loadFromFile( const std::string &filename )
 void CharacterRecognizer::_loadBuiltIn()
 {
 #ifdef IMAGO_FONT_BUILT_IN
-   #include "TEST3.font.inc"
+   #include "TEST4.font.inc"
    _loaded = true;
 #endif
 }

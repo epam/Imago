@@ -46,7 +46,7 @@
 
 using namespace imago;
 
-ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr(2)
+ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr(5)
 {
 }
 
