@@ -44,11 +44,20 @@ double CharacterRecognizer::_compareDescriptors( const std::vector<double> &d1,
    {
       r = d1[i] - d2[i];
 
-      if (i % 2)
-         weight = 0.7;
+      if (i < s / 2)
+      {
+         if (i % 2)
+            weight = 2.5;
+         else
+            weight = 3.5;
+      }
       else
-         weight = 1.5;
-
+      {
+         if (i % 2)
+            weight = 0.9;
+         else
+            weight = 0.3;
+      }
       d += weight * r * r;
    }
 
@@ -140,7 +149,7 @@ char CharacterRecognizer::recognize( const SymbolFeatures &features,
          boost::get<1>(it->second) = std::min(boost::get<1>(it->second),
                                               boost::get<2>(t));
       }
-      printf("%c %lf\n", c, boost::get<2>(t));
+      printf("%c %lf %d\n", c, boost::get<2>(t), boost::get<1>(t));
    }
 
    char res = 0;

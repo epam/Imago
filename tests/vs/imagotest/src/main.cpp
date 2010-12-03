@@ -334,16 +334,16 @@ void makeFont( )
 {
   try
   {
-     const int fonts_count = 8;
-     char font_names[fonts_count][1024] = {"../../../data/fonts/png/arial2.png",
+     const int fonts_count = 5;
+     char font_names[fonts_count][1024] = {//"../../../data/fonts/png/arial2.png",
                                            "../../../data/fonts/png/serif.png",
-                                           "../../../data/fonts/png/MarkerSD_it.png",
-                                           "../../../data/fonts/png/Writing_Stuff.png",
+                                           //"../../../data/fonts/png/MarkerSD_it.png",
+                                           //"../../../data/fonts/png/Writing_Stuff.png",
                                            "../../../data/fonts/png/MarkerSD.png",
                                            "../../../data/fonts/png/desyrel.png",
                                            "../../../data/fonts/png/budhand.png",
                                            "../../../data/fonts/png/annifont.png"};
-     int count = 15;
+     int count = 25;
      std::vector<Font *> fonts(fonts_count);
      for (int i = 0; i < fonts_count; i++)
         fonts[i]= new Font(font_names[i], count);
