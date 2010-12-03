@@ -19,7 +19,7 @@
 
 /* Load JPG image & process it (rotate, filter) using iSMILES 
  * !Careful! memory leak possible */
-CEXPORT char *loadAndProcessJPGImage( const char *filename, int *width, int *height );
+CEXPORT unsigned char *loadAndProcessJPGImage( const char *filename, int *width, int *height );
 
 
 #endif /* _ismiles_c_h */

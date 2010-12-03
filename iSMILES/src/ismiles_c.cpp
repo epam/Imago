@@ -7,13 +7,13 @@
 
 using namespace gga;
 
-CEXPORT char *loadAndProcessJPGImage( const char *filename, int *width, int *height )
+CEXPORT unsigned char *loadAndProcessJPGImage( const char *filename, int *width, int *height )
 {
    Image img;
 
    FileJPG().load(filename, &img);
    img.resizeLinear(3);
-   int angle;
+   int angle = 0;
 
    switch(img.getOrientation())
    {
@@ -49,7 +49,9 @@ CEXPORT char *loadAndProcessJPGImage( const char *filename, int *width, int *hei
    flt.Parameters.ImageSize = 10000;
    flt.prepareImageForVectorization();
 
-   char *buf = new char[img.getWidth() * img.getHeight()];
+   FileJPG().save("D:\\asdfasdf.jpg", img);
+
+   unsigned char *buf = new unsigned char[img.getWidth() * img.getHeight()];
 
    *height = img.getHeight();
    *width = img.getWidth();
