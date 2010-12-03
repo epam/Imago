@@ -12,7 +12,13 @@ CEXPORT unsigned char *loadAndProcessJPGImage( const char *filename, int *width,
    Image img;
 
    FileJPG().load(filename, &img);
-   img.resizeLinear(3);
+
+   int maxside = img.getWidth() > img.getHeight() ?
+      img.getWidth() : img.getHeight();
+   int n = maxside / 800;
+   if (n > 1)
+      img.resizeLinear(n);
+
    int angle = 0;
 
    switch(img.getOrientation())
@@ -48,8 +54,6 @@ CEXPORT unsigned char *loadAndProcessJPGImage( const char *filename, int *width,
    ImageFilter flt(img);
    flt.Parameters.ImageSize = 10000;
    flt.prepareImageForVectorization();
-
-   FileJPG().save("D:\\asdfasdf.jpg", img);
 
    unsigned char *buf = new unsigned char[img.getWidth() * img.getHeight()];
 
