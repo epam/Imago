@@ -204,7 +204,7 @@ void Skeleton::_repairBroken()
           e2b.length < 0.37 * _avg_bond_length)
          continue;
 
-      coef = 1.7;
+      coef = 1.5;
       if (e1b.length < 0.4 * _avg_bond_length ||
           e2b.length < 0.4 * _avg_bond_length)
          coef = 2.5;
@@ -522,7 +522,6 @@ void Skeleton::modifyGraph()
 
    _joinVertices();
       
-   
    recalcAvgBondLength();
 
     if (getSettings()["DebugSession"])

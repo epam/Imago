@@ -144,14 +144,14 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
          if (Rectangle::distance(seg_rect, rect) > _space)
             continue;
 
-         int h1 = (int)absolute(rect.y - seg_rect.y - 0.5 * seg_rect.height);
+         int h1 = (int)absolute(rect.y - seg_rect.y - 0.5 * seg_rect.height); //TODO: Handwriting. Original 0.4
          int h2 = (int)absolute(rect.y + 0.5 * rect.height - seg_rect.y);
          int h3 = (int)absolute(rect.y + rect.height - seg_rect.y -
                                 seg_rect.height);
          int h4 = (int)absolute(rect.y + rect.height - seg_rect.y -
                                 0.5 * seg_rect.height);
 
-         if (h1 > 0.9 * _space && //TODO: Handwriting.Original 0.5 //superscript
+         if (h1 > 1.1 * _space && //TODO: Handwriting.Original 0.5 //superscript
              (h2 > 0.6 * _space || h3 > 0.5 * _space) && //lowercase letter
              h4 > 0.5 * _space)                          //subscript
             continue;

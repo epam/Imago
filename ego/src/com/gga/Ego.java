@@ -585,6 +585,7 @@ public class Ego extends javax.swing.JFrame {
             
             filteredImagePanel.setImage(filtered);
             jMainTabbedPane.setEnabledAt(1, true);
+            //jMainTabbedPane.setEnabledAt(2, true);
         }
 
         try
@@ -628,8 +629,8 @@ public class Ego extends javax.swing.JFrame {
         if (recognizing)
             return;       
 
-        jMainTabbedPane.setEnabledAt(1, true);
-        jMainTabbedPane.setSelectedIndex(1);
+        jMainTabbedPane.setEnabledAt(2, true);
+        jMainTabbedPane.setSelectedIndex(2);
 
         logArea.setText("");
         final Ego thiz = this;
