@@ -89,7 +89,7 @@ public class IsmilesHelper {
 
     public String getiSMILESPath( String path ) {
 
-         path = path + File.separator + _dllpath;
+        path = path + File.separator + _dllpath;
 
         String fullpath = path;
         try {
@@ -98,9 +98,9 @@ public class IsmilesHelper {
         }
 
         if (_os == OS_LINUX) {
-            return fullpath + File.separator + "ismiles_c.so";
+            return fullpath + File.separator + "libismiles_c.so";
         } else if (_os == OS_MACOS) {
-            return fullpath + File.separator + "ismiles_c.dylib";
+            return fullpath + File.separator + "libismiles_c.dylib";
         } else // _os == OS_WINDOWS
         {
             return fullpath + File.separator + "ismiles_c.dll";
