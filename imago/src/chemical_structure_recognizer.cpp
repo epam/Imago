@@ -51,7 +51,7 @@ ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr(3)
 }
 
 ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname )
-   : _cr(2, fontname)
+   : _cr(3, fontname)
 {
 }
 
