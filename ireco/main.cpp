@@ -45,13 +45,18 @@ void recognize(const char *Filename, const char *output, const char *font_path)
       imago::RecognitionSettings &rs = imago::getSettings();
       rs.set("DebugSession", false);
 
+      imago::getLog().reset();
+
+      LMARK;
+      LPRINT(0 , "Let the recognition begin");
+
       imago::Image img;
 
       //Load JPG image in iSMILES image structure
       gga::Image original_img;
       gga::FileJPG().load(Filename, &original_img);
 
-      original_img.resizeLinear(3);
+      TIME(original_img.resizeLinear(3), "iSMILES resize");
       
       printf("Orientation: %i\n", original_img.getOrientation());
       
@@ -84,9 +89,8 @@ void recognize(const char *Filename, const char *output, const char *font_path)
       if(angle != 0)
       {
          const gga::Image src(original_img);
-         rotateImage(src, (float)angle, &original_img);
+         TIME(rotateImage(src, (float)angle, &original_img), "iSMILES rotate");
       }
-      
       
       
       //Process image using iSMILES
@@ -94,7 +98,7 @@ void recognize(const char *Filename, const char *output, const char *font_path)
       
       flt.Parameters.ImageSize = 10000;
       
-      TIME(flt.prepareImageForVectorization(), "iSMILES processing");
+      TIME(flt.prepareImageForVectorization(), "iSMILES image processing");
 
       gga::FilePNG().save(output, original_img);
 

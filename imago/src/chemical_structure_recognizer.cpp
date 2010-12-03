@@ -117,16 +117,12 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 {
    try
    {
-      getLog().reset();
       mol.clear();
 
       SegmentDeque layer_symbols, layer_graphics, segments;
       RecognitionSettings &rs = getSettings();      
       
-      LMARK;
-      LPRINT(0 , "Let the recognition begin");
-
-      TIME(_processFilter(), "Image processing");
+      TIME(_processFilter(), "Imago image processing");
 
       //Notice, that there is no supersegmentation procedure
       Image &_img = _origImage;
