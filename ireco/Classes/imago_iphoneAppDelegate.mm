@@ -7,7 +7,6 @@
 //
 
 #import "imago_iphoneAppDelegate.h"
-#import "RootViewController.h"
 #import "imago_c.h"
 #import "FileJPG.h"
 #import "FilePNG.h"
@@ -30,10 +29,11 @@ void recognize( const char *Filename, const char *output, const char *font_path 
     // Override point for customization after application launch.
     
     // Add the navigation controller's view to the window and display.
-    //[window addSubview:navigationController.view];
-    [window addSubview:imageView];
+    [window addSubview:navigationController.view];
+    //[window addSubview:imageView];
     [window makeKeyAndVisible];
 
+#if 0
    {
       gga::FileJPG jpg;
       gga::FilePNG png;
@@ -67,7 +67,6 @@ void recognize( const char *Filename, const char *output, const char *font_path 
          recognize([path cStringUsingEncoding:NSASCIIStringEncoding], [resPath2 cStringUsingEncoding:NSASCIIStringEncoding],
                    [fontPath cStringUsingEncoding:NSASCIIStringEncoding]);
          
-#if 0
          //if(jpg.load(jpgImage, &img))
          if(jpg.load([path cStringUsingEncoding:NSASCIIStringEncoding], &img))
          //if(jpg.load([resPath2 cStringUsingEncoding:NSASCIIStringEncoding], &img))
@@ -111,9 +110,9 @@ void recognize( const char *Filename, const char *output, const char *font_path 
             imageView.image = resImage;
             [imageView sizeToFit];
          }
-#endif
       }
    }
+#endif
    
    
    /*

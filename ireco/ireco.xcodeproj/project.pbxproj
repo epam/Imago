@@ -12,13 +12,15 @@
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		2892E4100DC94CBA00A64D0F /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2892E40F0DC94CBA00A64D0F /* CoreGraphics.framework */; };
-		28AD73600D9D9599002E5188 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28AD735F0D9D9599002E5188 /* MainWindow.xib */; };
-		28C286E10D94DF7D0034E888 /* RootViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = 28C286E00D94DF7D0034E888 /* RootViewController.m */; };
-		28F335F11007B36200424DE2 /* RootViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = 28F335F01007B36200424DE2 /* RootViewController.xib */; };
 		A704F74E1271BEAC0006F5C5 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A704F7481271BE4E0006F5C5 /* libpng.a */; };
 		A704F75C1271BED80006F5C5 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A704F75B1271BED80006F5C5 /* libz.dylib */; };
 		A704F8731275E5600006F5C5 /* test2._png in Resources */ = {isa = PBXBuildFile; fileRef = A704F8721275E5600006F5C5 /* test2._png */; };
 		A704F8811275E6850006F5C5 /* test3._png in Resources */ = {isa = PBXBuildFile; fileRef = A704F8801275E6850006F5C5 /* test3._png */; };
+		A732666C12AD207A001F7D75 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = A732666812AD207A001F7D75 /* MainWindow.xib */; };
+		A732666D12AD207A001F7D75 /* OverlayViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A732666A12AD207A001F7D75 /* OverlayViewController.xib */; };
+		A732667012AD20B3001F7D75 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A732666F12AD20B3001F7D75 /* MainViewController.m */; };
+		A75C26A712AD496900EBBC45 /* ireco.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A512AD496900EBBC45 /* ireco.png */; };
+		A75C26A812AD496900EBBC45 /* irecohd.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A612AD496900EBBC45 /* irecohd.png */; };
 		A75FD78912A3E5510015285D /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A75FD78812A3E5510015285D /* main.cpp */; };
 		A7B9A11412A6B98F00280D96 /* TEST3.font in Resources */ = {isa = PBXBuildFile; fileRef = A7B9A11312A6B98F00280D96 /* TEST3.font */; };
 		A7BB125312A411FD0006780D /* photo01.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A7BB124712A411FD0006780D /* photo01.jpg */; };
@@ -34,7 +36,6 @@
 		A7BB125D12A411FD0006780D /* photo13.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A7BB125112A411FD0006780D /* photo13.jpg */; };
 		A7BB125E12A411FD0006780D /* photo17.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A7BB125212A411FD0006780D /* photo17.jpg */; };
 		A7DB91D312804B8E00B51670 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7DB91D212804B8E00B51670 /* AudioToolbox.framework */; };
-		A7DCA422127F341F0090E707 /* OverlayViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7DCA421127F341F0090E707 /* OverlayViewController.xib */; };
 		A7E234981281B61400C7CDC4 /* OverlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7E234971281B61400C7CDC4 /* OverlayViewController.m */; };
 		A7E2B8081296C9B300F3BB6E /* libismiles.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E2B7FC1296C99300F3BB6E /* libismiles.a */; };
 		A7E2B8091296C9B900F3BB6E /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E2B8071296C9A600F3BB6E /* libjpeg.a */; };
@@ -115,16 +116,18 @@
 		1DF5F4DF0D08C38300B7A737 /* UIKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = UIKit.framework; path = System/Library/Frameworks/UIKit.framework; sourceTree = SDKROOT; };
 		2892E40F0DC94CBA00A64D0F /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		28A0AAE50D9B0CCF005BE974 /* imago_iphone_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imago_iphone_Prefix.pch; sourceTree = "<group>"; };
-		28AD735F0D9D9599002E5188 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
-		28C286DF0D94DF7D0034E888 /* RootViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = RootViewController.h; sourceTree = "<group>"; };
-		28C286E00D94DF7D0034E888 /* RootViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = RootViewController.m; sourceTree = "<group>"; };
-		28F335F01007B36200424DE2 /* RootViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = RootViewController.xib; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* imago_iphone-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "imago_iphone-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 		A704F7401271BE4E0006F5C5 /* libpng.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libpng.xcodeproj; path = ../libpng/libpng.xcodeproj; sourceTree = SOURCE_ROOT; };
 		A704F75B1271BED80006F5C5 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		A704F8721275E5600006F5C5 /* test2._png */ = {isa = PBXFileReference; lastKnownFileType = file; path = test2._png; sourceTree = "<group>"; };
 		A704F8801275E6850006F5C5 /* test3._png */ = {isa = PBXFileReference; lastKnownFileType = file; path = test3._png; sourceTree = "<group>"; };
+		A732666912AD207A001F7D75 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/MainWindow.xib; sourceTree = "<group>"; };
+		A732666B12AD207A001F7D75 /* en */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = en; path = en.lproj/OverlayViewController.xib; sourceTree = "<group>"; };
+		A732666E12AD20B3001F7D75 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
+		A732666F12AD20B3001F7D75 /* MainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
+		A75C26A512AD496900EBBC45 /* ireco.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ireco.png; sourceTree = "<group>"; };
+		A75C26A612AD496900EBBC45 /* irecohd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = irecohd.png; sourceTree = "<group>"; };
 		A75FD78812A3E5510015285D /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
 		A7B9A11312A6B98F00280D96 /* TEST3.font */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TEST3.font; path = ../data/fonts/TEST3.font; sourceTree = SOURCE_ROOT; };
 		A7BB124712A411FD0006780D /* photo01.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = photo01.jpg; path = "first-delivery-images/photo01.jpg"; sourceTree = "<group>"; };
@@ -140,7 +143,6 @@
 		A7BB125112A411FD0006780D /* photo13.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = photo13.jpg; path = "first-delivery-images/photo13.jpg"; sourceTree = "<group>"; };
 		A7BB125212A411FD0006780D /* photo17.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = photo17.jpg; path = "first-delivery-images/photo17.jpg"; sourceTree = "<group>"; };
 		A7DB91D212804B8E00B51670 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
-		A7DCA421127F341F0090E707 /* OverlayViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = OverlayViewController.xib; sourceTree = "<group>"; };
 		A7E234961281B61400C7CDC4 /* OverlayViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OverlayViewController.h; sourceTree = "<group>"; };
 		A7E234971281B61400C7CDC4 /* OverlayViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OverlayViewController.m; sourceTree = "<group>"; };
 		A7E2B7F41296C99300F3BB6E /* ismiles.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ismiles.xcodeproj; path = ../iSMILES/ismiles.xcodeproj; sourceTree = SOURCE_ROOT; };
@@ -179,10 +181,10 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				A732666E12AD20B3001F7D75 /* MainViewController.h */,
+				A732666F12AD20B3001F7D75 /* MainViewController.m */,
 				A7E234961281B61400C7CDC4 /* OverlayViewController.h */,
 				A7E234971281B61400C7CDC4 /* OverlayViewController.m */,
-				28C286DF0D94DF7D0034E888 /* RootViewController.h */,
-				28C286E00D94DF7D0034E888 /* RootViewController.m */,
 				1D3623240D0F684500981E51 /* imago_iphoneAppDelegate.h */,
 				1D3623250D0F684500981E51 /* imago_iphoneAppDelegate.mm */,
 			);
@@ -229,6 +231,10 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				A75C26A512AD496900EBBC45 /* ireco.png */,
+				A75C26A612AD496900EBBC45 /* irecohd.png */,
+				A732666812AD207A001F7D75 /* MainWindow.xib */,
+				A732666A12AD207A001F7D75 /* OverlayViewController.xib */,
 				A7B9A11312A6B98F00280D96 /* TEST3.font */,
 				A7BB124512A411E50006780D /* first-delivery-images */,
 				A7E2B8951296EA0000F3BB6E /* photo11.jpg */,
@@ -236,12 +242,9 @@
 				A7E2B8981296EA0000F3BB6E /* photo14.jpg */,
 				A7E2B8991296EA0000F3BB6E /* photo15.jpg */,
 				A7E2B89A1296EA0000F3BB6E /* photo16.jpg */,
-				A7DCA421127F341F0090E707 /* OverlayViewController.xib */,
 				A704F8801275E6850006F5C5 /* test3._png */,
 				A704F8721275E5600006F5C5 /* test2._png */,
 				A7E60C87126E187F00BA2EFD /* test._png */,
-				28F335F01007B36200424DE2 /* RootViewController.xib */,
-				28AD735F0D9D9599002E5188 /* MainWindow.xib */,
 				8D1107310486CEB800E47090 /* imago_iphone-Info.plist */,
 			);
 			name = Resources;
@@ -411,12 +414,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				28AD73600D9D9599002E5188 /* MainWindow.xib in Resources */,
-				28F335F11007B36200424DE2 /* RootViewController.xib in Resources */,
 				A7E60C88126E187F00BA2EFD /* test._png in Resources */,
 				A704F8731275E5600006F5C5 /* test2._png in Resources */,
 				A704F8811275E6850006F5C5 /* test3._png in Resources */,
-				A7DCA422127F341F0090E707 /* OverlayViewController.xib in Resources */,
 				A7E2B8A01296EA0000F3BB6E /* photo11.jpg in Resources */,
 				A7E2B8A11296EA0000F3BB6E /* photo12.jpg in Resources */,
 				A7E2B8A31296EA0000F3BB6E /* photo14.jpg in Resources */,
@@ -435,6 +435,10 @@
 				A7BB125D12A411FD0006780D /* photo13.jpg in Resources */,
 				A7BB125E12A411FD0006780D /* photo17.jpg in Resources */,
 				A7B9A11412A6B98F00280D96 /* TEST3.font in Resources */,
+				A732666C12AD207A001F7D75 /* MainWindow.xib in Resources */,
+				A732666D12AD207A001F7D75 /* OverlayViewController.xib in Resources */,
+				A75C26A712AD496900EBBC45 /* ireco.png in Resources */,
+				A75C26A812AD496900EBBC45 /* irecohd.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -447,9 +451,9 @@
 			files = (
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
 				1D3623260D0F684500981E51 /* imago_iphoneAppDelegate.mm in Sources */,
-				28C286E10D94DF7D0034E888 /* RootViewController.m in Sources */,
 				A7E234981281B61400C7CDC4 /* OverlayViewController.m in Sources */,
 				A75FD78912A3E5510015285D /* main.cpp in Sources */,
+				A732667012AD20B3001F7D75 /* MainViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -477,6 +481,25 @@
 			targetProxy = A7E60C46126E0C2700BA2EFD /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin PBXVariantGroup section */
+		A732666812AD207A001F7D75 /* MainWindow.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A732666912AD207A001F7D75 /* en */,
+			);
+			name = MainWindow.xib;
+			sourceTree = "<group>";
+		};
+		A732666A12AD207A001F7D75 /* OverlayViewController.xib */ = {
+			isa = PBXVariantGroup;
+			children = (
+				A732666B12AD207A001F7D75 /* en */,
+			);
+			name = OverlayViewController.xib;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin XCBuildConfiguration section */
 		1D6058940D05DD3E006BFB54 /* Debug */ = {
