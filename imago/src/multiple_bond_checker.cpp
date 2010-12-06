@@ -22,7 +22,7 @@ MultipleBondChecker::MultipleBondChecker( Skeleton &s ) : _s(s), _g(_s.getGraph(
 {
    _avgBondLength = _s.bondLength();
    if (_avgBondLength > 125)
-      _multiBondErr = 0.175;
+      _multiBondErr = 0.18;
    else if (_avgBondLength > 85)
       _multiBondErr = 0.4;
    else

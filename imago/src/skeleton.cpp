@@ -551,8 +551,6 @@ void Skeleton::modifyGraph()
    rs.set("AddVertexEps", 0.2 * _avg_bond_length);
    _joinVertices();
    
-//   _findMultiple();
-
     if (getSettings()["DebugSession"])
     {
        Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
