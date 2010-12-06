@@ -475,7 +475,7 @@ int main( int argc, char *argv[] )
    //testHandWrittenRecogntion("../../../data/mol_images/from-iphone/filtered/iphone3.jpg.out.png");
    //testRNG("../../../data/mol_images/image13.png");
    //testRecognize("../../../data/mol_images/from-iphone/filtered/IMG_0057.jpg.out.png"); 
-   testRecognize("../../../data/mol_images/first-delivery-images/filename.png"); 
+   testRecognize("../../../data/mol_images/temp/1.png"); 
    //C:\work\imago\data\mol_images\first-delivery-images
    //system("start marvinsketch result.mol");
 

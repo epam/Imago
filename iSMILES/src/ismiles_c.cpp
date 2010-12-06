@@ -70,7 +70,7 @@ CEXPORT unsigned char *loadAndProcessJPGImage( const char *filename, int *width,
    flt.prepareImageForVectorization();
    printf("now the image is %d x %d\n", img.getWidth(), img.getHeight());
    printf("\n");
-   
+
    unsigned char *buf = new unsigned char[img.getWidth() * img.getHeight()];
 
    *height = img.getHeight();
