@@ -47,9 +47,9 @@ void Skeleton::setInitialAvgBondLength( double avg_length )
    if (_avg_bond_length < 20)
       mult = 0.2;
    else if (_avg_bond_length < 85)
-      mult = 0.3;
-   else if (_avg_bond_length < 100)
-      mult = 0.2; //TODO: handwriting
+      mult = 0.2;
+   else if (_avg_bond_length < 110)
+      mult = 0.15; //TODO: handwriting
    else
       mult = 0.3; //TODO: handwriting
 
@@ -204,7 +204,7 @@ void Skeleton::_repairBroken()
           e2b.length < 0.37 * _avg_bond_length)
          continue;
 
-      coef = 1.5;
+      coef = 1.0;
       if (e1b.length < 0.4 * _avg_bond_length ||
           e2b.length < 0.4 * _avg_bond_length)
          coef = 2.5;
@@ -546,8 +546,10 @@ void Skeleton::modifyGraph()
 
     _findMultiple();
     
-
    recalcAvgBondLength();
+
+   rs.set("AddVertexEps", 0.2 * _avg_bond_length);
+   _joinVertices();
    
 //   _findMultiple();
 
