@@ -553,8 +553,6 @@ public class Ego extends javax.swing.JFrame {
 
     private void setFile(File file) {
 
-
-
         toggleAfterRecognitionItems(false);
         toggleAfterSelectionItems(false);
         toggleNavigateItems(true);
@@ -562,32 +560,6 @@ public class Ego extends javax.swing.JFrame {
         if (!documentPanel.checkFile(file))
             return;
         
-        String ext = documentPanel.getFileExtension(file);
-
-        if ("jpg".equals(ext))
-        {
-            IntByReference w = new IntByReference(),
-                    h = new IntByReference();
-            Pointer jpg_image =
-                    ism.loadAndProcessJPGImage(file.getAbsoluteFile().toString(), w, h);
-
-            byte[] arr = jpg_image.getByteArray(0, w.getValue() * h.getValue());
-
-            imago.loadGreyscaleRawImage(arr, w.getValue(), h.getValue());
-
-            jpg_handwriting = true;
-            documentPanel.setCareful();
-            BufferedImage filtered = new BufferedImage(w.getValue(), h.getValue(), BufferedImage.TYPE_BYTE_GRAY);
-
-            for (int i = 0; i < w.getValue(); i++)
-                for (int j = 0; j < h.getValue(); j++)
-                    filtered.setRGB(i, j, arr[j * w.getValue() + i]);
-            
-            filteredImagePanel.setImage(filtered);
-            jMainTabbedPane.setEnabledAt(1, true);
-            //jMainTabbedPane.setEnabledAt(2, true);
-        }
-
         try
         {
            imago.setConfig(0);
@@ -617,6 +589,33 @@ public class Ego extends javax.swing.JFrame {
                 documentPanel.setFile(curFile);
             }
         });
+
+        String ext = documentPanel.getFileExtension(file);
+
+        if ("jpg".equals(ext))
+        {
+            documentPanel.setCareful();
+
+            IntByReference w = new IntByReference(),
+                    h = new IntByReference();
+            Pointer jpg_image =
+                    ism.loadAndProcessJPGImage(file.getAbsoluteFile().toString(), w, h);
+
+            byte[] arr = jpg_image.getByteArray(0, w.getValue() * h.getValue());
+
+            imago.loadGreyscaleRawImage(arr, w.getValue(), h.getValue());
+
+            jpg_handwriting = true;
+            BufferedImage filtered = new BufferedImage(w.getValue(), h.getValue(), BufferedImage.TYPE_BYTE_GRAY);
+
+            for (int i = 0; i < w.getValue(); i++)
+                for (int j = 0; j < h.getValue(); j++)
+                    filtered.setRGB(i, j, arr[j * w.getValue() + i]);
+
+            filteredImagePanel.setImage(filtered);
+            jMainTabbedPane.setEnabledAt(1, true);
+            //jMainTabbedPane.setEnabledAt(2, true);*/
+        }
     }
     
     private void showNoResultMessage() {

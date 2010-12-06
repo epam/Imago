@@ -31,6 +31,7 @@ public class ImageDocument implements Document {
 
         private BufferedImage origImage;
         private BufferedImage image;
+        private double scl;
 
         public ImagePage(BufferedImage img) {
             
@@ -42,6 +43,8 @@ public class ImageDocument implements Document {
                 tmp.getGraphics().drawImage(img, 0, 0, Color.white, null);
                 img = tmp;
             }
+            
+            scl = -1;
 
             origImage = img;
             image = origImage;
@@ -68,13 +71,21 @@ public class ImageDocument implements Document {
 
         @Override
         public void setScale(double scale) {
-            int newWidth = (int)(origImage.getWidth() * scale);
-            int newHeight = (int)(origImage.getHeight() * scale);
-            Image scaled = origImage.getScaledInstance(newWidth, newHeight,
-                    Image.SCALE_FAST);
-            image = new BufferedImage(scaled.getWidth(null), scaled.getHeight(null),
-                    origImage.getType());
-            image.getGraphics().drawImage(scaled, 0, 0, null);
+            
+            if (Math.abs(scl - scale) > 0.001 || scl == -1)
+            {
+                int newWidth = (int)(origImage.getWidth() * scale);
+                int newHeight = (int)(origImage.getHeight() * scale);
+
+
+                Image scaled = origImage.getScaledInstance(newWidth, newHeight,
+                        Image.SCALE_FAST);
+                image = new BufferedImage(scaled.getWidth(null), scaled.getHeight(null),
+                        origImage.getType());
+                image.getGraphics().drawImage(scaled, 0, 0, null);
+                
+                scl = scale;
+            }
         }
 
         @Override

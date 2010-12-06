@@ -38,12 +38,12 @@ public class ImagePanel extends javax.swing.JPanel {
 
         if (i_height > i_width) {
             if (i_height > getHeight()) {
-                scaled_img = orig_img.getScaledInstance(-1, getHeight(), Image.SCALE_AREA_AVERAGING);
+                scaled_img = orig_img.getScaledInstance(-1, getHeight(), Image.SCALE_FAST);
             }
         }
         else {
             if (i_width > getWidth()) {
-                scaled_img = orig_img.getScaledInstance(getWidth(), -1, Image.SCALE_AREA_AVERAGING);
+                scaled_img = orig_img.getScaledInstance(getWidth(), -1, Image.SCALE_FAST);
             }
         }
         if (scaled_img == null)

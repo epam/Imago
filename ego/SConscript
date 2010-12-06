@@ -38,7 +38,7 @@ for jar in needed_jars:
 classpath += str(imagojar[0])
 cenv['JAVACLASSPATH'] = classpath
 cenv['JAVAVERSION'] = '1.6'
-
+cenv['JAVACFLAGS'] = '-O'
 classes = cenv.Java('classes', 'src')
 Requires(classes, imagojar)
 
