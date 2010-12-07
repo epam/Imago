@@ -29,7 +29,7 @@
         <script type="text/javascript" src="ketcher.js"></script>
     </head>
 
-    <body onload="ketcher.init()">
+    <body onload="ketcher.init();ketcher.setMolecule($('iphone_molfile').innerText);">
         <div>
             <table id="ketcher_window">
                 <tr align="center" id="main_toolbar">
@@ -257,5 +257,6 @@
             <iframe name="buffer_frame" id="buffer_frame" src="about:blank" style="display:none">
             </iframe>
         </div>
+        <div style="display:none" id="iphone_molfile">MOLFILE_PLACEHOLDER</div>
     </body>
 </html>

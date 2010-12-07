@@ -14,12 +14,10 @@
 		2892E4100DC94CBA00A64D0F /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2892E40F0DC94CBA00A64D0F /* CoreGraphics.framework */; };
 		A704F74E1271BEAC0006F5C5 /* libpng.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A704F7481271BE4E0006F5C5 /* libpng.a */; };
 		A704F75C1271BED80006F5C5 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A704F75B1271BED80006F5C5 /* libz.dylib */; };
-		A704F8731275E5600006F5C5 /* test2._png in Resources */ = {isa = PBXBuildFile; fileRef = A704F8721275E5600006F5C5 /* test2._png */; };
-		A704F8811275E6850006F5C5 /* test3._png in Resources */ = {isa = PBXBuildFile; fileRef = A704F8801275E6850006F5C5 /* test3._png */; };
 		A732667012AD20B3001F7D75 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A732666F12AD20B3001F7D75 /* MainViewController.m */; };
 		A75C26A712AD496900EBBC45 /* ireco.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A512AD496900EBBC45 /* ireco.png */; };
 		A75C26A812AD496900EBBC45 /* irecohd.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A612AD496900EBBC45 /* irecohd.png */; };
-		A75FD78912A3E5510015285D /* main.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A75FD78812A3E5510015285D /* main.cpp */; };
+		A79D4C0212AE849000A3C3DA /* Recognizer.mm in Sources */ = {isa = PBXBuildFile; fileRef = A79D4C0112AE849000A3C3DA /* Recognizer.mm */; };
 		A7BB125312A411FD0006780D /* photo01.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A7BB124712A411FD0006780D /* photo01.jpg */; };
 		A7BB125412A411FD0006780D /* photo02.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A7BB124812A411FD0006780D /* photo02.jpg */; };
 		A7BB125512A411FD0006780D /* photo03.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A7BB124912A411FD0006780D /* photo03.jpg */; };
@@ -37,21 +35,21 @@
 		A7D5CBA812ADB8B500C60C51 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA612ADB8B500C60C51 /* MainWindow.xib */; };
 		A7D5CBA912ADB8B500C60C51 /* OverlayViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */; };
 		A7D5CBB312ADBF1100C60C51 /* KetcherViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBB212ADBF1100C60C51 /* KetcherViewController.m */; };
-		A7D5CC0812ADC82200C60C51 /* cis_trans.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBC712ADC82200C60C51 /* cis_trans.js */; };
-		A7D5CC0912ADC82200C60C51 /* common.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBC812ADC82200C60C51 /* common.js */; };
-		A7D5CC0A12ADC82200C60C51 /* dfs.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBC912ADC82200C60C51 /* dfs.js */; };
-		A7D5CC0B12ADC82200C60C51 /* element.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBCA12ADC82200C60C51 /* element.js */; };
-		A7D5CC0C12ADC82200C60C51 /* map.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBCB12ADC82200C60C51 /* map.js */; };
-		A7D5CC0D12ADC82200C60C51 /* molecule.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBCC12ADC82200C60C51 /* molecule.js */; };
-		A7D5CC0E12ADC82200C60C51 /* molfile.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBCD12ADC82200C60C51 /* molfile.js */; };
-		A7D5CC0F12ADC82200C60C51 /* pool.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBCE12ADC82200C60C51 /* pool.js */; };
-		A7D5CC1012ADC82200C60C51 /* sgroup.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBCF12ADC82200C60C51 /* sgroup.js */; };
-		A7D5CC1112ADC82200C60C51 /* smiles.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBD012ADC82200C60C51 /* smiles.js */; };
-		A7D5CC1212ADC82200C60C51 /* stereocenters.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBD112ADC82200C60C51 /* stereocenters.js */; };
-		A7D5CC1312ADC82200C60C51 /* vec2.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBD212ADC82200C60C51 /* vec2.js */; };
+		A7D5CC0812ADC82200C60C51 /* cis_trans.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBC712ADC82200C60C51 /* cis_trans.js */; };
+		A7D5CC0912ADC82200C60C51 /* common.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBC812ADC82200C60C51 /* common.js */; };
+		A7D5CC0A12ADC82200C60C51 /* dfs.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBC912ADC82200C60C51 /* dfs.js */; };
+		A7D5CC0B12ADC82200C60C51 /* element.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBCA12ADC82200C60C51 /* element.js */; };
+		A7D5CC0C12ADC82200C60C51 /* map.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBCB12ADC82200C60C51 /* map.js */; };
+		A7D5CC0D12ADC82200C60C51 /* molecule.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBCC12ADC82200C60C51 /* molecule.js */; };
+		A7D5CC0E12ADC82200C60C51 /* molfile.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBCD12ADC82200C60C51 /* molfile.js */; };
+		A7D5CC0F12ADC82200C60C51 /* pool.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBCE12ADC82200C60C51 /* pool.js */; };
+		A7D5CC1012ADC82200C60C51 /* sgroup.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBCF12ADC82200C60C51 /* sgroup.js */; };
+		A7D5CC1112ADC82200C60C51 /* smiles.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBD012ADC82200C60C51 /* smiles.js */; };
+		A7D5CC1212ADC82200C60C51 /* stereocenters.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBD112ADC82200C60C51 /* stereocenters.js */; };
+		A7D5CC1312ADC82200C60C51 /* vec2.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBD212ADC82200C60C51 /* vec2.js */; };
 		A7D5CC1412ADC82200C60C51 /* ketcher.css in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBD312ADC82200C60C51 /* ketcher.css */; };
 		A7D5CC1512ADC82200C60C51 /* ketcher.html in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBD412ADC82200C60C51 /* ketcher.html */; };
-		A7D5CC1612ADC82200C60C51 /* ketcher.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBD512ADC82200C60C51 /* ketcher.js */; };
+		A7D5CC1612ADC82200C60C51 /* ketcher.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBD512ADC82200C60C51 /* ketcher.js */; };
 		A7D5CC1712ADC82200C60C51 /* anyatom.png in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBD712ADC82200C60C51 /* anyatom.png */; };
 		A7D5CC1812ADC82200C60C51 /* anybond.png in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBD812ADC82200C60C51 /* anybond.png */; };
 		A7D5CC1912ADC82200C60C51 /* aromatic.png in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBD912ADC82200C60C51 /* aromatic.png */; };
@@ -89,16 +87,16 @@
 		A7D5CC3912ADC82200C60C51 /* up.png in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBF912ADC82200C60C51 /* up.png */; };
 		A7D5CC3A12ADC82200C60C51 /* view-zoom-in.png in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBFA12ADC82200C60C51 /* view-zoom-in.png */; };
 		A7D5CC3B12ADC82200C60C51 /* view-zoom-out.png in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBFB12ADC82200C60C51 /* view-zoom-out.png */; };
-		A7D5CC3C12ADC82200C60C51 /* prototype-min.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBFC12ADC82200C60C51 /* prototype-min.js */; };
-		A7D5CC3D12ADC82200C60C51 /* raphael-min.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBFD12ADC82200C60C51 /* raphael-min.js */; };
-		A7D5CC3E12ADC82200C60C51 /* drawing.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBFF12ADC82200C60C51 /* drawing.js */; };
-		A7D5CC3F12ADC82200C60C51 /* events.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CC0012ADC82200C60C51 /* events.js */; };
-		A7D5CC4012ADC82200C60C51 /* moldata.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CC0112ADC82200C60C51 /* moldata.js */; };
-		A7D5CC4112ADC82200C60C51 /* moldata_valence.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CC0212ADC82200C60C51 /* moldata_valence.js */; };
-		A7D5CC4212ADC82200C60C51 /* render.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CC0312ADC82200C60C51 /* render.js */; };
-		A7D5CC4312ADC82200C60C51 /* visel.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CC0412ADC82200C60C51 /* visel.js */; };
-		A7D5CC4412ADC82200C60C51 /* log.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CC0612ADC82200C60C51 /* log.js */; };
-		A7D5CC4512ADC82200C60C51 /* ui.js in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CC0712ADC82200C60C51 /* ui.js */; };
+		A7D5CC3C12ADC82200C60C51 /* prototype-min.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBFC12ADC82200C60C51 /* prototype-min.js */; };
+		A7D5CC3D12ADC82200C60C51 /* raphael-min.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBFD12ADC82200C60C51 /* raphael-min.js */; };
+		A7D5CC3E12ADC82200C60C51 /* drawing.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBFF12ADC82200C60C51 /* drawing.js */; };
+		A7D5CC3F12ADC82200C60C51 /* events.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0012ADC82200C60C51 /* events.js */; };
+		A7D5CC4012ADC82200C60C51 /* moldata.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0112ADC82200C60C51 /* moldata.js */; };
+		A7D5CC4112ADC82200C60C51 /* moldata_valence.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0212ADC82200C60C51 /* moldata_valence.js */; };
+		A7D5CC4212ADC82200C60C51 /* render.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0312ADC82200C60C51 /* render.js */; };
+		A7D5CC4312ADC82200C60C51 /* visel.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0412ADC82200C60C51 /* visel.js */; };
+		A7D5CC4412ADC82200C60C51 /* log.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0612ADC82200C60C51 /* log.js */; };
+		A7D5CC4512ADC82200C60C51 /* ui.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0712ADC82200C60C51 /* ui.js */; };
 		A7DB91D312804B8E00B51670 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7DB91D212804B8E00B51670 /* AudioToolbox.framework */; };
 		A7E234981281B61400C7CDC4 /* OverlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7E234971281B61400C7CDC4 /* OverlayViewController.m */; };
 		A7E2B8081296C9B300F3BB6E /* libismiles.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E2B7FC1296C99300F3BB6E /* libismiles.a */; };
@@ -110,7 +108,6 @@
 		A7E2B8A51296EA0000F3BB6E /* photo16.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A7E2B89A1296EA0000F3BB6E /* photo16.jpg */; };
 		A7E60C45126E0C1700BA2EFD /* libimago.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E60C44126E0C0C00BA2EFD /* libimago.a */; };
 		A7E60C6C126E15F600BA2EFD /* libstdc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E60C6B126E15F600BA2EFD /* libstdc++.dylib */; };
-		A7E60C88126E187F00BA2EFD /* test._png in Resources */ = {isa = PBXBuildFile; fileRef = A7E60C87126E187F00BA2EFD /* test._png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -184,13 +181,12 @@
 		8D1107310486CEB800E47090 /* imago_iphone-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "imago_iphone-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 		A704F7401271BE4E0006F5C5 /* libpng.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libpng.xcodeproj; path = ../libpng/libpng.xcodeproj; sourceTree = SOURCE_ROOT; };
 		A704F75B1271BED80006F5C5 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
-		A704F8721275E5600006F5C5 /* test2._png */ = {isa = PBXFileReference; lastKnownFileType = file; path = test2._png; sourceTree = "<group>"; };
-		A704F8801275E6850006F5C5 /* test3._png */ = {isa = PBXFileReference; lastKnownFileType = file; path = test3._png; sourceTree = "<group>"; };
 		A732666E12AD20B3001F7D75 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		A732666F12AD20B3001F7D75 /* MainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
 		A75C26A512AD496900EBBC45 /* ireco.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ireco.png; sourceTree = "<group>"; };
 		A75C26A612AD496900EBBC45 /* irecohd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = irecohd.png; sourceTree = "<group>"; };
-		A75FD78812A3E5510015285D /* main.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; path = main.cpp; sourceTree = "<group>"; };
+		A79D4C0012AE849000A3C3DA /* Recognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Recognizer.h; sourceTree = "<group>"; };
+		A79D4C0112AE849000A3C3DA /* Recognizer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Recognizer.mm; sourceTree = "<group>"; };
 		A7BB124712A411FD0006780D /* photo01.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = photo01.jpg; path = "first-delivery-images/photo01.jpg"; sourceTree = "<group>"; };
 		A7BB124812A411FD0006780D /* photo02.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = photo02.jpg; path = "first-delivery-images/photo02.jpg"; sourceTree = "<group>"; };
 		A7BB124912A411FD0006780D /* photo03.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = photo03.jpg; path = "first-delivery-images/photo03.jpg"; sourceTree = "<group>"; };
@@ -209,21 +205,21 @@
 		A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = OverlayViewController.xib; sourceTree = "<group>"; };
 		A7D5CBAE12ADBC3E00C60C51 /* KetcherViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KetcherViewController.h; sourceTree = "<group>"; };
 		A7D5CBB212ADBF1100C60C51 /* KetcherViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KetcherViewController.m; sourceTree = "<group>"; };
-		A7D5CBC712ADC82200C60C51 /* cis_trans.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = cis_trans.js; sourceTree = "<group>"; };
-		A7D5CBC812ADC82200C60C51 /* common.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = common.js; sourceTree = "<group>"; };
-		A7D5CBC912ADC82200C60C51 /* dfs.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = dfs.js; sourceTree = "<group>"; };
-		A7D5CBCA12ADC82200C60C51 /* element.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = element.js; sourceTree = "<group>"; };
-		A7D5CBCB12ADC82200C60C51 /* map.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = map.js; sourceTree = "<group>"; };
-		A7D5CBCC12ADC82200C60C51 /* molecule.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = molecule.js; sourceTree = "<group>"; };
-		A7D5CBCD12ADC82200C60C51 /* molfile.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = molfile.js; sourceTree = "<group>"; };
-		A7D5CBCE12ADC82200C60C51 /* pool.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = pool.js; sourceTree = "<group>"; };
-		A7D5CBCF12ADC82200C60C51 /* sgroup.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = sgroup.js; sourceTree = "<group>"; };
-		A7D5CBD012ADC82200C60C51 /* smiles.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = smiles.js; sourceTree = "<group>"; };
-		A7D5CBD112ADC82200C60C51 /* stereocenters.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = stereocenters.js; sourceTree = "<group>"; };
-		A7D5CBD212ADC82200C60C51 /* vec2.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = vec2.js; sourceTree = "<group>"; };
+		A7D5CBC712ADC82200C60C51 /* cis_trans.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = cis_trans.js; sourceTree = "<group>"; };
+		A7D5CBC812ADC82200C60C51 /* common.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = common.js; sourceTree = "<group>"; };
+		A7D5CBC912ADC82200C60C51 /* dfs.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = dfs.js; sourceTree = "<group>"; };
+		A7D5CBCA12ADC82200C60C51 /* element.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = element.js; sourceTree = "<group>"; };
+		A7D5CBCB12ADC82200C60C51 /* map.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = map.js; sourceTree = "<group>"; };
+		A7D5CBCC12ADC82200C60C51 /* molecule.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = molecule.js; sourceTree = "<group>"; };
+		A7D5CBCD12ADC82200C60C51 /* molfile.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = molfile.js; sourceTree = "<group>"; };
+		A7D5CBCE12ADC82200C60C51 /* pool.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = pool.js; sourceTree = "<group>"; };
+		A7D5CBCF12ADC82200C60C51 /* sgroup.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = sgroup.js; sourceTree = "<group>"; };
+		A7D5CBD012ADC82200C60C51 /* smiles.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = smiles.js; sourceTree = "<group>"; };
+		A7D5CBD112ADC82200C60C51 /* stereocenters.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = stereocenters.js; sourceTree = "<group>"; };
+		A7D5CBD212ADC82200C60C51 /* vec2.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = vec2.js; sourceTree = "<group>"; };
 		A7D5CBD312ADC82200C60C51 /* ketcher.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; name = ketcher.css; path = Ketcher/ketcher.css; sourceTree = "<group>"; };
 		A7D5CBD412ADC82200C60C51 /* ketcher.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; name = ketcher.html; path = Ketcher/ketcher.html; sourceTree = "<group>"; };
-		A7D5CBD512ADC82200C60C51 /* ketcher.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = ketcher.js; path = Ketcher/ketcher.js; sourceTree = "<group>"; };
+		A7D5CBD512ADC82200C60C51 /* ketcher.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; name = ketcher.js; path = Ketcher/ketcher.js; sourceTree = "<group>"; };
 		A7D5CBD712ADC82200C60C51 /* anyatom.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = anyatom.png; sourceTree = "<group>"; };
 		A7D5CBD812ADC82200C60C51 /* anybond.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = anybond.png; sourceTree = "<group>"; };
 		A7D5CBD912ADC82200C60C51 /* aromatic.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = aromatic.png; sourceTree = "<group>"; };
@@ -261,16 +257,16 @@
 		A7D5CBF912ADC82200C60C51 /* up.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = up.png; sourceTree = "<group>"; };
 		A7D5CBFA12ADC82200C60C51 /* view-zoom-in.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "view-zoom-in.png"; sourceTree = "<group>"; };
 		A7D5CBFB12ADC82200C60C51 /* view-zoom-out.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "view-zoom-out.png"; sourceTree = "<group>"; };
-		A7D5CBFC12ADC82200C60C51 /* prototype-min.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "prototype-min.js"; path = "Ketcher/prototype-min.js"; sourceTree = "<group>"; };
-		A7D5CBFD12ADC82200C60C51 /* raphael-min.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = "raphael-min.js"; path = "Ketcher/raphael-min.js"; sourceTree = "<group>"; };
-		A7D5CBFF12ADC82200C60C51 /* drawing.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = drawing.js; sourceTree = "<group>"; };
-		A7D5CC0012ADC82200C60C51 /* events.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = events.js; sourceTree = "<group>"; };
-		A7D5CC0112ADC82200C60C51 /* moldata.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = moldata.js; sourceTree = "<group>"; };
-		A7D5CC0212ADC82200C60C51 /* moldata_valence.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = moldata_valence.js; sourceTree = "<group>"; };
-		A7D5CC0312ADC82200C60C51 /* render.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = render.js; sourceTree = "<group>"; };
-		A7D5CC0412ADC82200C60C51 /* visel.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = visel.js; sourceTree = "<group>"; };
-		A7D5CC0612ADC82200C60C51 /* log.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = log.js; sourceTree = "<group>"; };
-		A7D5CC0712ADC82200C60C51 /* ui.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = ui.js; sourceTree = "<group>"; };
+		A7D5CBFC12ADC82200C60C51 /* prototype-min.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; name = "prototype-min.js"; path = "Ketcher/prototype-min.js"; sourceTree = "<group>"; };
+		A7D5CBFD12ADC82200C60C51 /* raphael-min.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; name = "raphael-min.js"; path = "Ketcher/raphael-min.js"; sourceTree = "<group>"; };
+		A7D5CBFF12ADC82200C60C51 /* drawing.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = drawing.js; sourceTree = "<group>"; };
+		A7D5CC0012ADC82200C60C51 /* events.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = events.js; sourceTree = "<group>"; };
+		A7D5CC0112ADC82200C60C51 /* moldata.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = moldata.js; sourceTree = "<group>"; };
+		A7D5CC0212ADC82200C60C51 /* moldata_valence.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = moldata_valence.js; sourceTree = "<group>"; };
+		A7D5CC0312ADC82200C60C51 /* render.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = render.js; sourceTree = "<group>"; };
+		A7D5CC0412ADC82200C60C51 /* visel.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = visel.js; sourceTree = "<group>"; };
+		A7D5CC0612ADC82200C60C51 /* log.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = log.js; sourceTree = "<group>"; };
+		A7D5CC0712ADC82200C60C51 /* ui.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = ui.js; sourceTree = "<group>"; };
 		A7DB91D212804B8E00B51670 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		A7E234961281B61400C7CDC4 /* OverlayViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OverlayViewController.h; sourceTree = "<group>"; };
 		A7E234971281B61400C7CDC4 /* OverlayViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OverlayViewController.m; sourceTree = "<group>"; };
@@ -283,7 +279,6 @@
 		A7E2B89A1296EA0000F3BB6E /* photo16.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = photo16.jpg; sourceTree = "<group>"; };
 		A7E60C3F126E0C0C00BA2EFD /* imago.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = imago.xcodeproj; path = ../imago/imago.xcodeproj; sourceTree = SOURCE_ROOT; };
 		A7E60C6B126E15F600BA2EFD /* libstdc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libstdc++.dylib"; path = "usr/lib/gcc/arm-apple-darwin10/4.2.1/libstdc++.dylib"; sourceTree = SDKROOT; };
-		A7E60C87126E187F00BA2EFD /* test._png */ = {isa = PBXFileReference; lastKnownFileType = file; path = test._png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -318,6 +313,8 @@
 				1D3623250D0F684500981E51 /* imago_iphoneAppDelegate.mm */,
 				A7D5CBAE12ADBC3E00C60C51 /* KetcherViewController.h */,
 				A7D5CBB212ADBF1100C60C51 /* KetcherViewController.m */,
+				A79D4C0012AE849000A3C3DA /* Recognizer.h */,
+				A79D4C0112AE849000A3C3DA /* Recognizer.mm */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -352,7 +349,6 @@
 		29B97315FDCFA39411CA2CEA /* Other Sources */ = {
 			isa = PBXGroup;
 			children = (
-				A75FD78812A3E5510015285D /* main.cpp */,
 				28A0AAE50D9B0CCF005BE974 /* imago_iphone_Prefix.pch */,
 				29B97316FDCFA39411CA2CEA /* main.m */,
 			);
@@ -374,9 +370,6 @@
 				A7E2B8981296EA0000F3BB6E /* photo14.jpg */,
 				A7E2B8991296EA0000F3BB6E /* photo15.jpg */,
 				A7E2B89A1296EA0000F3BB6E /* photo16.jpg */,
-				A704F8801275E6850006F5C5 /* test3._png */,
-				A704F8721275E5600006F5C5 /* test2._png */,
-				A7E60C87126E187F00BA2EFD /* test._png */,
 				8D1107310486CEB800E47090 /* imago_iphone-Info.plist */,
 				A7D5CBA012ADB7E900C60C51 /* KetcherViewController.xib */,
 			);
@@ -652,9 +645,29 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A7E60C88126E187F00BA2EFD /* test._png in Resources */,
-				A704F8731275E5600006F5C5 /* test2._png in Resources */,
-				A704F8811275E6850006F5C5 /* test3._png in Resources */,
+				A7D5CC0812ADC82200C60C51 /* cis_trans.js in Resources */,
+				A7D5CC0912ADC82200C60C51 /* common.js in Resources */,
+				A7D5CC0A12ADC82200C60C51 /* dfs.js in Resources */,
+				A7D5CC0B12ADC82200C60C51 /* element.js in Resources */,
+				A7D5CC0C12ADC82200C60C51 /* map.js in Resources */,
+				A7D5CC0D12ADC82200C60C51 /* molecule.js in Resources */,
+				A7D5CC0E12ADC82200C60C51 /* molfile.js in Resources */,
+				A7D5CC0F12ADC82200C60C51 /* pool.js in Resources */,
+				A7D5CC1012ADC82200C60C51 /* sgroup.js in Resources */,
+				A7D5CC1112ADC82200C60C51 /* smiles.js in Resources */,
+				A7D5CC1212ADC82200C60C51 /* stereocenters.js in Resources */,
+				A7D5CC1312ADC82200C60C51 /* vec2.js in Resources */,
+				A7D5CC1612ADC82200C60C51 /* ketcher.js in Resources */,
+				A7D5CC3C12ADC82200C60C51 /* prototype-min.js in Resources */,
+				A7D5CC3D12ADC82200C60C51 /* raphael-min.js in Resources */,
+				A7D5CC3E12ADC82200C60C51 /* drawing.js in Resources */,
+				A7D5CC3F12ADC82200C60C51 /* events.js in Resources */,
+				A7D5CC4012ADC82200C60C51 /* moldata.js in Resources */,
+				A7D5CC4112ADC82200C60C51 /* moldata_valence.js in Resources */,
+				A7D5CC4212ADC82200C60C51 /* render.js in Resources */,
+				A7D5CC4312ADC82200C60C51 /* visel.js in Resources */,
+				A7D5CC4412ADC82200C60C51 /* log.js in Resources */,
+				A7D5CC4512ADC82200C60C51 /* ui.js in Resources */,
 				A7E2B8A01296EA0000F3BB6E /* photo11.jpg in Resources */,
 				A7E2B8A11296EA0000F3BB6E /* photo12.jpg in Resources */,
 				A7E2B8A31296EA0000F3BB6E /* photo14.jpg in Resources */,
@@ -730,32 +743,9 @@
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
 				1D3623260D0F684500981E51 /* imago_iphoneAppDelegate.mm in Sources */,
 				A7E234981281B61400C7CDC4 /* OverlayViewController.m in Sources */,
-				A75FD78912A3E5510015285D /* main.cpp in Sources */,
 				A732667012AD20B3001F7D75 /* MainViewController.m in Sources */,
 				A7D5CBB312ADBF1100C60C51 /* KetcherViewController.m in Sources */,
-				A7D5CC0812ADC82200C60C51 /* cis_trans.js in Sources */,
-				A7D5CC0912ADC82200C60C51 /* common.js in Sources */,
-				A7D5CC0A12ADC82200C60C51 /* dfs.js in Sources */,
-				A7D5CC0B12ADC82200C60C51 /* element.js in Sources */,
-				A7D5CC0C12ADC82200C60C51 /* map.js in Sources */,
-				A7D5CC0D12ADC82200C60C51 /* molecule.js in Sources */,
-				A7D5CC0E12ADC82200C60C51 /* molfile.js in Sources */,
-				A7D5CC0F12ADC82200C60C51 /* pool.js in Sources */,
-				A7D5CC1012ADC82200C60C51 /* sgroup.js in Sources */,
-				A7D5CC1112ADC82200C60C51 /* smiles.js in Sources */,
-				A7D5CC1212ADC82200C60C51 /* stereocenters.js in Sources */,
-				A7D5CC1312ADC82200C60C51 /* vec2.js in Sources */,
-				A7D5CC1612ADC82200C60C51 /* ketcher.js in Sources */,
-				A7D5CC3C12ADC82200C60C51 /* prototype-min.js in Sources */,
-				A7D5CC3D12ADC82200C60C51 /* raphael-min.js in Sources */,
-				A7D5CC3E12ADC82200C60C51 /* drawing.js in Sources */,
-				A7D5CC3F12ADC82200C60C51 /* events.js in Sources */,
-				A7D5CC4012ADC82200C60C51 /* moldata.js in Sources */,
-				A7D5CC4112ADC82200C60C51 /* moldata_valence.js in Sources */,
-				A7D5CC4212ADC82200C60C51 /* render.js in Sources */,
-				A7D5CC4312ADC82200C60C51 /* visel.js in Sources */,
-				A7D5CC4412ADC82200C60C51 /* log.js in Sources */,
-				A7D5CC4512ADC82200C60C51 /* ui.js in Sources */,
+				A79D4C0212AE849000A3C3DA /* Recognizer.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -796,10 +786,7 @@
 				GCC_PREFIX_HEADER = imago_iphone_Prefix.pch;
 				HEADER_SEARCH_PATHS = (
 					../imago/src,
-					../imago_c/src,
-					../iSMILES/src/Image,
-					../libjpeg,
-					../libpng,
+					../iSMILES/src,
 					..,
 				);
 				INFOPLIST_FILE = "imago_iphone-Info.plist";
@@ -818,10 +805,7 @@
 				GCC_PREFIX_HEADER = imago_iphone_Prefix.pch;
 				HEADER_SEARCH_PATHS = (
 					../imago/src,
-					../imago_c/src,
-					../iSMILES/src/Image,
-					../libjpeg,
-					../libpng,
+					../iSMILES/src,
 					..,
 				);
 				INFOPLIST_FILE = "imago_iphone-Info.plist";

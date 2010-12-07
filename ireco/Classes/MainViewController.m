@@ -86,7 +86,8 @@
 - (void)recognizeAction:(id)sender
 {
    [self.navigationController pushViewController:ketcherViewController animated:YES]; 
-   [self.ketcherViewController setupKetcher:@""];
+   
+   [self.ketcherViewController setupKetcher: [self.capturedImages objectAtIndex:0]];
 }
    
 #pragma mark -

@@ -7,11 +7,6 @@
 //
 
 #import "imago_iphoneAppDelegate.h"
-#import "imago_c.h"
-#import "FileJPG.h"
-#import "FilePNG.h"
-#import "ImageFilter.h"
-//#import "UIImage.h"
 
 
 @implementation imago_iphoneAppDelegate

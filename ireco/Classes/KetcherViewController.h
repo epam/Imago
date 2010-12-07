@@ -7,17 +7,22 @@
 //
 
 #import <UIKit/UIKit.h>
-#import <AudioToolbox/AudioServices.h>
 
-@interface KetcherViewController : UIViewController <UINavigationControllerDelegate>
+@interface KetcherViewController : UIViewController <UINavigationControllerDelegate, UIWebViewDelegate>
 {
    UIWebView *webView;
-   
+   UIActivityIndicatorView *activityView;
 @private
+   NSString *molfile;
+   UIImage *prevImage;
 }    
 
 @property (nonatomic, retain) IBOutlet UIWebView *webView;
+@property (nonatomic, retain) IBOutlet UIActivityIndicatorView *activityView;
+@property (nonatomic, retain) NSString *molfile;
+@property (nonatomic, retain) UIImage *prevImage;
 
-- (void)setupKetcher:(NSString *)molfile;
+- (void)setupKetcher:(UIImage *)image;
+- (void)recognizingProc:(UIImage *)image;
 
 @end
