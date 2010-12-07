@@ -41,7 +41,7 @@ void recognize( const char *Filename, const char *output, const char *font_path 
       
       NSLog(@"Let's start\n");
       
-      NSString *fontPath = [[NSBundle mainBundle] pathForResource:@"TEST3" ofType:@"font"];
+      NSString *fontPath = [[NSBundle mainBundle] pathForResource:@"TEST4" ofType:@"font"];
 
       for (int i = 1; i < 18; i++)
       {

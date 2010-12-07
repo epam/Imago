@@ -2,7 +2,7 @@
 
 @implementation MainViewController
 
-@synthesize imageView, toolbar, overlayViewController, capturedImages;
+@synthesize imageView, toolbar, overlayViewController, ketcherViewController, capturedImages, recognizeButton;
 
 
 #pragma mark -
@@ -15,7 +15,10 @@
 
     // as a delegate we will be notified when pictures are taken and when to dismiss the image picker
     self.overlayViewController.delegate = self;
-    
+
+    self.ketcherViewController =
+        [[[KetcherViewController alloc] initWithNibName:@"KetcherViewController" bundle:nil] autorelease];
+
     self.capturedImages = [NSMutableArray array];
 
     if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
@@ -77,13 +80,26 @@
    [self showImagePicker:UIImagePickerControllerSourceTypeCamera];
 }
 
+#pragma mark -
+#pragma mark Navigation Bar Actions
 
+- (void)recognizeAction:(id)sender
+{
+   [self.navigationController pushViewController:ketcherViewController animated:YES]; 
+   [self.ketcherViewController setupKetcher:@""];
+}
+   
 #pragma mark -
 #pragma mark OverlayViewControllerDelegate
 
 // as a delegate we are being told a picture was taken
 - (void)didTakePicture:(UIImage *)picture
 {
+    if (self.capturedImages.count > 0)
+       [self.capturedImages removeAllObjects];
+    else
+       self.recognizeButton.enabled = YES;
+
     [self.capturedImages addObject:picture];
 }
 
@@ -94,11 +110,11 @@
     
     if ([self.capturedImages count] > 0)
     {
-        if ([self.capturedImages count] == 1)
+        //if ([self.capturedImages count] == 1)
         {
             // we took a single shot
             [self.imageView setImage:[self.capturedImages objectAtIndex:0]];
-        }
+        }/*
         else
         {
             // we took multiple shots, use the list of images for animation
@@ -111,7 +127,7 @@
             self.imageView.animationDuration = 5.0;    // show each captured photo for 5 seconds
             self.imageView.animationRepeatCount = 0;   // animate forever (show all photos)
             self.imageView.startAnimating;
-        }
+        }*/
     }
 }
 
