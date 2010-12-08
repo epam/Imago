@@ -8,7 +8,7 @@
 #include "../src/Image/ImageFilter.h"
 #include "../src/Image/FilePNG.h"
 #include "../src/Image/FileJPG.h"
-#include "../src/Vectorization/Vectorize.h"
+#include "../src/Vectorization/Vectorization.h"
 #include "../src/Vectorization/SegmentParams.h"
 #include "Draw.h"
 
@@ -47,7 +47,7 @@ class Tester
         
         bool loadImage()
         {
-            if(FilePNG().load(ImagePath, &Image))
+            if(FilePNG().load(ImagePath, &Image) || FileJPG().load(ImagePath, &Image))
             {
                 printf("Image loaded '%s': %ix%i pixels\n", ImagePath.c_str(), Image.getWidth(), Image.getHeight());
                 return true;
@@ -62,7 +62,7 @@ class Tester
         Polylines vectorizeTest()
         {
             Timer timer;
-            Vectorize vectorized(Image);
+            Vectorization vectorized(Image);
             printf("Vectorize taken %f ms\n", 1000.0*timer.getElapsedTime());
             timer.reset();  
             
@@ -86,7 +86,7 @@ class Tester
             if (abs(angle) > getGlobalParams().getMinimalAllowedRotationAngle())
             {
                 gga::Image rotated;
-                rotateImage(Image, angle, &rotated);
+                rotateImage(Image, (float)angle, &rotated);
                 saveImage("rotate", rotated);
                 Image = rotated;
             }
@@ -118,7 +118,7 @@ class Tester
 int main(int argc, char* argv[])
 {
     remove(LOGFILE);
-    std::string ImagePath = (argc > 1) ? argv[1] : "../../Data/Sample3.png";
+    std::string ImagePath = (argc > 1) ? argv[1] : "../Data/Raw/IMG_0007.JPG";
     
     Tester imgTester(ImagePath);
 

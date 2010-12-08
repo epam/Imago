@@ -1,7 +1,7 @@
 #pragma once
 #include "../src/Image/Image.h"
-#include "../src/Vectorization/ContourSplit.h"
-#include "../src/Vectorization/Vectorize.h"
+// quick way to include all necessary structures:
+#include "../src/Vectorization/Vectorization.h"
 
 namespace gga
 {

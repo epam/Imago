@@ -22,7 +22,7 @@ namespace gga
         }
         if (count > 0)
         {            
-            AverageLineLength = sumLength / count;            
+            AverageLineLength = (size_t)(sumLength / count);
         }        
     }
     
@@ -30,7 +30,7 @@ namespace gga
     {
         LOG << "---- calcAngle ----";
         
-        for (size_t maxAngleDelta = 5; maxAngleDelta < 45; maxAngleDelta+=5)
+        for (int maxAngleDelta = 5; maxAngleDelta < 45; maxAngleDelta+=5)
         {
             LOG << "SegmentParams::calcAngle increased maxAngleDelta to " << maxAngleDelta;            
             
@@ -42,7 +42,7 @@ namespace gga
                 for (size_t p = 1; p < it->size(); p++)
                 {
                     Line line(it->at(p-1), it->at(p));
-                    int angle = (line.getAngle() + 180) % 180; // 0..179
+                    int angle = ((int)line.getAngle() + 180) % 180; // 0..179
                     if (angle < maxAngleDelta || angle > 180 - maxAngleDelta)
                     {
                         horizontalAngle += (angle < 90) ? angle : (angle - 180);
@@ -60,11 +60,11 @@ namespace gga
             {
                 if (verticalCount > horizontalCount)
                 {
-                    Rotation = verticalAngle / verticalCount;
+                    Rotation = (int)(verticalAngle / verticalCount);
                 }
                 else
                 {
-                    Rotation = horizontalAngle / horizontalCount;
+                    Rotation = (int)(horizontalAngle / horizontalCount);
                 }
                 break; // for maxAngleDelta                
             }            

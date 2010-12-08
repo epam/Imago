@@ -4,6 +4,12 @@
 #include <algorithm>
 #include "Image.h"
 
+#ifdef _WIN32
+// workaround Visual Studio '#define min' problem
+#undef min
+#undef max
+#endif
+
 namespace gga
 {
     struct  ImageFilterParameters

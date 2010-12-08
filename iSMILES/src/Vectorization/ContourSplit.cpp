@@ -8,7 +8,7 @@ namespace gga
     
     ContourSplit::Indexes ContourSplit::reduceIndexCount(const Indexes& indexes, const Contour& contour)
     {   
-        const int DIST_DELTA_MIN = getGlobalParams().getLineWidth();
+        const size_t DIST_DELTA_MIN = getGlobalParams().getLineWidth();
         Indexes result;
         
         if (!indexes.empty())
@@ -16,15 +16,15 @@ namespace gga
             result.push_back(indexes[0]);
         }
         
-        for (int i = 1; i < indexes.size(); i++)
+        for (size_t i = 1; i < indexes.size(); i++)
         {
-            int max = DIST_DELTA_MIN;
+            size_t max = DIST_DELTA_MIN;
             
-            for (int k = 0; k < result.size(); k++)
+            for (size_t k = 0; k < result.size(); k++)
             {
                 if (contour[result[k]].distance(contour[indexes[i]]) < max)
                 {
-                    max = contour[result[k]].distance(contour[indexes[i]]);
+                    max = (size_t)contour[result[k]].distance(contour[indexes[i]]);
                 }
              }
             
@@ -37,7 +37,7 @@ namespace gga
     
     ContourSplit::Indexes ContourSplit::intersectIndexes(const Indexes& idx_90, const Contour& rotated, const Indexes& idx_0, const Contour& contour)
     {
-        const int DIST_DELTA_MAX = getGlobalParams().getMinimalLineLength();
+        const size_t DIST_DELTA_MAX = getGlobalParams().getMinimalLineLength();
         Indexes result;
         for (std::vector<size_t>::const_iterator it_90 = idx_90.begin(); it_90 != idx_90.end(); it_90++)
         {

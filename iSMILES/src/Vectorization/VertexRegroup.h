@@ -17,10 +17,11 @@ namespace gga
         const Polylines& getResult() const { return Result; }
     
     private:
-        static int pointToLineDistance(const Point& p, const Line& l);
-        static int lineDistance(const Line& longer, const Line& shorter);
         void removeDuplicates();
+
         void concatenateLines();
+
         void reduceFractures();
+        void reduceFractures(Polyline& line);
     };
 }
