@@ -1,5 +1,7 @@
 #include <stdio.h>
+#include <stdlib.h>
 #include <string>
+#include "../src/Logger.h"
 #include "../src/Parameters.h"
 #include "../src/Timer.h"
 #include "../src/Image/Image.h"
@@ -31,8 +33,7 @@ class Tester
         void setupLineWidth(ImageFilter& flt)
         {
             std::vector<size_t> w_histogram;
-            Coord w = flt.computeLineWidthHistogram(&w_histogram);
-            printf("Line width = %d\n", (int)w);
+            Coord w = flt.computeLineWidthHistogram(&w_histogram);            
             getGlobalParams().setLineWidth(w);
         }
         
@@ -40,8 +41,7 @@ class Tester
         {
             Timer timer;
             flt.prepareImageForVectorization();
-            printf("PrepareImageForVectorization taken %f ms\n", 1000.0*timer.getElapsedTime());
-            printf("Image cleared '%s': %ix%i pixels\n", ImagePath.c_str(), Image.getWidth(), Image.getHeight());
+            printf("Prepare image taken %f ms\n", 1000.0*timer.getElapsedTime());
             saveImage("clear", Image);
         }
         
@@ -74,13 +74,6 @@ class Tester
                 Draw::LineToImage(*it, lined);
             saveImage("lined", lined);
 
-            /*
-             for (PContours::const_iterator it = vectorized.getOtherContours().begin(); it != vectorized.getOtherContours().end(); it++)
-                saveImage("other", Draw::PointsToImage(*(*it)));
-            */
-
-            printf("Total: %i consistent parts (Save taken %f ms)\n", Files.size(), 1000.0*timer.getElapsedTime());            
-            
             return vectorized.getLines();
         }
         
@@ -88,8 +81,9 @@ class Tester
         {
             SegmentParams segParams(lines);
             int angle = -segParams.getRotationAngle();
-            printf("Average line length: %ipx; Image rotation required: %i*\n", segParams.getAverageLineLength(), angle);
-            if ( fabs((double)angle) > getGlobalParams().getMinimalAllowedRotationAngle() )
+            printf("Average line length: %ipx, width: %ipx; Image rotation required: %i*\n", 
+                segParams.getAverageLineLength(), getGlobalParams().getLineWidth(), angle);
+            if (abs(angle) > getGlobalParams().getMinimalAllowedRotationAngle())
             {
                 gga::Image rotated;
                 rotateImage(Image, angle, &rotated);
@@ -121,11 +115,10 @@ class Tester
 };
 
 
-
-
 int main(int argc, char* argv[])
 {
-    std::string ImagePath = (argc > 1) ? argv[1] : "../../Data/Sample2.png";
+    remove(LOGFILE);
+    std::string ImagePath = (argc > 1) ? argv[1] : "../../Data/Sample3.png";
     
     Tester imgTester(ImagePath);
 

@@ -13,7 +13,7 @@ CurrentFileName        :=
 CurrentFilePath        :=
 CurrentFileFullPath    :=
 User                   :=sic
-Date                   :=01.12.2010
+Date                   :=02.12.2010
 CodeLitePath           :="/home/sic/.codelite"
 LinkerName             :=g++
 ArchiveTool            :=ar rcus
@@ -49,7 +49,7 @@ LibPath                := "$(LibraryPathSwitch)."
 ##
 CodeLiteDir:=/usr/share/codelite
 Objects=$(IntermediateDirectory)/UnitTest_main$(ObjectSuffix) $(IntermediateDirectory)/UnitTest_Draw$(ObjectSuffix) $(IntermediateDirectory)/Image_FilePNG$(ObjectSuffix) $(IntermediateDirectory)/Image_ImageFilter$(ObjectSuffix) $(IntermediateDirectory)/Image_Image$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_ImageMap$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Bounds$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_LinearApproximation$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_RangeArray$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Contour$(ObjectSuffix) \
-	$(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_VertexRegroup$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_SegmentParams$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_ContourSplit$(ObjectSuffix) $(IntermediateDirectory)/src_Parameters$(ObjectSuffix) 
+	$(IntermediateDirectory)/Vectorization_Vectorize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_TriangleRecognize$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_VertexRegroup$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_SegmentParams$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_ContourSplit$(ObjectSuffix) $(IntermediateDirectory)/Vectorization_Line$(ObjectSuffix) $(IntermediateDirectory)/src_Parameters$(ObjectSuffix) 
 
 ##
 ## Main Build Targets 
@@ -189,6 +189,14 @@ $(IntermediateDirectory)/Vectorization_ContourSplit$(DependSuffix): ../../src/Ve
 $(IntermediateDirectory)/Vectorization_ContourSplit$(PreprocessSuffix): ../../src/Vectorization/ContourSplit.cpp
 	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Vectorization_ContourSplit$(PreprocessSuffix) "/home/sic/iSMILES/src/Vectorization/ContourSplit.cpp"
 
+$(IntermediateDirectory)/Vectorization_Line$(ObjectSuffix): ../../src/Vectorization/Line.cpp $(IntermediateDirectory)/Vectorization_Line$(DependSuffix)
+	$(CompilerName) $(SourceSwitch) "/home/sic/iSMILES/src/Vectorization/Line.cpp" $(CmpOptions) $(ObjectSwitch)$(IntermediateDirectory)/Vectorization_Line$(ObjectSuffix) $(IncludePath)
+$(IntermediateDirectory)/Vectorization_Line$(DependSuffix): ../../src/Vectorization/Line.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) -MT$(IntermediateDirectory)/Vectorization_Line$(ObjectSuffix) -MF$(IntermediateDirectory)/Vectorization_Line$(DependSuffix) -MM "/home/sic/iSMILES/src/Vectorization/Line.cpp"
+
+$(IntermediateDirectory)/Vectorization_Line$(PreprocessSuffix): ../../src/Vectorization/Line.cpp
+	@$(CompilerName) $(CmpOptions) $(IncludePath) $(PreprocessOnlySwitch) $(OutputSwitch) $(IntermediateDirectory)/Vectorization_Line$(PreprocessSuffix) "/home/sic/iSMILES/src/Vectorization/Line.cpp"
+
 $(IntermediateDirectory)/src_Parameters$(ObjectSuffix): ../../src/Parameters.cpp $(IntermediateDirectory)/src_Parameters$(DependSuffix)
 	$(CompilerName) $(SourceSwitch) "/home/sic/iSMILES/src/Parameters.cpp" $(CmpOptions) $(ObjectSwitch)$(IntermediateDirectory)/src_Parameters$(ObjectSuffix) $(IncludePath)
 $(IntermediateDirectory)/src_Parameters$(DependSuffix): ../../src/Parameters.cpp
@@ -248,6 +256,9 @@ clean:
 	$(RM) $(IntermediateDirectory)/Vectorization_ContourSplit$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_ContourSplit$(DependSuffix)
 	$(RM) $(IntermediateDirectory)/Vectorization_ContourSplit$(PreprocessSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_Line$(ObjectSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_Line$(DependSuffix)
+	$(RM) $(IntermediateDirectory)/Vectorization_Line$(PreprocessSuffix)
 	$(RM) $(IntermediateDirectory)/src_Parameters$(ObjectSuffix)
 	$(RM) $(IntermediateDirectory)/src_Parameters$(DependSuffix)
 	$(RM) $(IntermediateDirectory)/src_Parameters$(PreprocessSuffix)

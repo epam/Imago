@@ -1,7 +1,5 @@
 #pragma once
 
-#define DEBUG
-
 namespace gga
 {
     class Parameters
@@ -13,7 +11,7 @@ namespace gga
         /* call the prepareImageForVectorization() method? */
         bool isClearImageRequired() const { return true; }
         
-        /* Minimal allowed rotation angle on rotation correction for text recognize */
+        /* minimal allowed rotation angle on rotation correction for text recognize, degrees */
         int getMinimalAllowedRotationAngle() const { return 5; }
 
         // ---------------------- line & area sizes ---------------------- //
@@ -21,33 +19,55 @@ namespace gga
         void setLineWidth(unsigned int value) { LineWidth = value; }
         
         /* average ink line width, pixels */
+        // affects most following methods
+        // affects ContourSplit.reduceIndexCount
         unsigned int getLineWidth() const { return LineWidth; }
 
         /* minimal consistent line length, pixels */
+        // affects getMinimalConsistentArea() 
+        // affects ContourSplit.intersectIndexes
         unsigned int getMinimalLineLength() const { return 4 * LineWidth; }
 
         /* all coherent image parts with area less that constant will be ignored, pixels^2 */
+        // affects Vectorize.extractConsistent
         unsigned int getMinimalConsistentArea() const { return LineWidth * getMinimalLineLength(); }
         
         // ---------------------- vectorization consts ---------------------- //
         /* minimal distance between Y coordinates of line points to evaluate angle coefficient:
          * k = (x-x0)/(y-yo) */
+        // affects LinearApproximation.calculateHistogram
         unsigned int getLinearApproximationStep() const { return 2 * LineWidth; }
         
         /* target groups count for classification algorithm in linear approximator, groups */
+        // affects LinearApproximation.calculateHistogram
         unsigned int getTargetGroupsCount() const { return 10; }
-        
-        /* maximal distance between first and last triangle segment endpoints, pixels */
-        unsigned int getMaxTriangleBreakDistance() const { return 5 * LineWidth; }
-        
-        /* minimal ratio longer/smaller side for determine triangle is up-side link */
-        double getTriangleSideRatio() const { return 1.5; }
-        
-        /* maximal std.dev. value for lines */
+
+        /* maximal std.dev. value for object to be recognized as line */
+        // affects LinearApproximation
         double getDeviationThreshold() const { return 0.5; }
         
-        /* each split increments result std.dev. by this factor */
+        /* each split increments result std.dev. by this factor: */
+        // affects LinearApproximation
         double getSplitStdDevFactor() const { return 1.5; }
+        
+        // ---------------------- vertex regroup params ---------------------- //
+        
+        /* maximal distance between first and last line segment to concatenate, pixels */
+        // affects VertexRegroup
+        unsigned int getMaxLineBreakDistance() const { return LineWidth; }
+
+        /* maximal angle to be eliminated between two neighbor segments in polyline, degrees */
+        // affects VertexRegroup
+        int getMaxFractureAngle() const { return 20; }
+        
+        // ---------------------- triangle recognition ---------------------- //
+        /* maximal distance between first and last triangle segment endpoints, pixels */
+        // affects TriangleRecognize
+        unsigned int getMaxTriangleBreakDistance() const { return 3 * LineWidth; }
+        
+        /* minimal ratio longer/smaller side for determine triangle is up-side link */
+        // affects TriangleRecognize
+        double getTriangleSideRatio() const { return 1.0; } // previosly was 1.5
     };
     
     Parameters& getGlobalParams();

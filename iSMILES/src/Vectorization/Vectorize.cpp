@@ -1,19 +1,22 @@
 #include "Vectorize.h"
 #include "ContourSplit.h"
+#include "../Logger.h"
 #include "../Parameters.h"
-#ifdef DEBUG
-#include <stdio.h> // printf "log"
-#endif
 
 namespace gga
 {
     Vectorize::Vectorize(const Image& image) 
     : SourceImage(image), Map(image.getWidth(), image.getHeight())
     {
+        LOG << "---- getContours ----";
         getContours();
+        LOG << "---- extractConsistent ----";
         extractConsistent();
+        LOG << "---- recognizeLines ----";
         recognizeLines();
+        LOG << "---- regroupLines ----";
         regroupLines();
+        LOG << "---- extractTriangles ----";
         extractTriangles();        
     }
     
@@ -42,6 +45,7 @@ namespace gga
             if (Bounds(*AllContours[u]).getArea() >= getGlobalParams().getMinimalConsistentArea())
                 RecOther.push_back(AllContours[u]);
         }
+        LOG << "Contours count " << AllContours.size() << ", consistent: " << RecOther.size();
     }
     
     void Vectorize::recognizeLines()
@@ -51,8 +55,10 @@ namespace gga
             ContourSplit cs(*RecOther[u]);
             
             bool AllGood = true;
+            int num = 0;
             for (ContourSplit::Contours::const_iterator it = cs.getSplit().begin(); it != cs.getSplit().end(); it++)
-            {            
+            {
+                LOG << "------ Figure " << u << "." << (num++) << " ------";
                 LinearApproximation line(*it);
                 if (line.isGood())
                 {

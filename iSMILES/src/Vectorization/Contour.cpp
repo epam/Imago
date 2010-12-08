@@ -1,4 +1,5 @@
 #include "Contour.h"
+#include "../Logger.h"
 #include "Bounds.h"
 
 namespace gga
@@ -7,19 +8,22 @@ namespace gga
     {        
         bool doneSomething = true;
         Point p = start;
-        for (int iter = 0; doneSomething; iter++)
+        int iter;
+        for (iter = 0; doneSomething; iter++)
         {
             size_t count = size();            
             passDownLeft(p, iter % 2 == 1);
             doneSomething = size() > count;
             if (doneSomething && count != 0)
                 WayChangeIndexes.push_back(count);
-        }        
+        }
+        LOG << "constructContour produced " << size() << " contour points" << " using " << iter << " iterations";
     }
     
     void Contour::fillRelatedImageMap()
     {
         const Bounds b(*this);
+        int filled = 0;
         bool doneSomething = false;
         do
         {
@@ -39,6 +43,7 @@ namespace gga
                                 if (SourceImage.isFilled(right) && !CurrentImageMap.isAssigned(right))
                                 {
                                     CurrentImageMap.assignSegment(right, this);
+                                    filled++;
                                     doneSomething = true;
                                 }
                             }                            
@@ -47,6 +52,7 @@ namespace gga
                 }
             }
         } while (doneSomething);        
+        LOG << "fillRelatedImageMap filled " << filled << " image points";
     }
     
     void Contour::findOuterObject()
@@ -56,7 +62,7 @@ namespace gga
             
         const Coord start_y = at(0).Y;
         const Coord start_x = at(0).X;
-        for (Coord x1 = start_x; x1 > 0 && OuterContour == NULL; x1--)
+        for (Coord x1 = start_x; x1 > 0 && OuterSegment == NULL; x1--)
         {
             const ISegment* seg1 = CurrentImageMap.getAssignedSegment(Point(x1, start_y));
             if (seg1 != NULL && seg1 != this)
@@ -65,16 +71,17 @@ namespace gga
                 {
                     if (seg1 == CurrentImageMap.getAssignedSegment(Point(x2, start_y)))
                     {
-                        OuterContour = static_cast<const Contour*>(seg1);
+                        OuterSegment = static_cast<const Contour*>(seg1);
                         break;
                     }
                 }
             }                
         }
+        LOG << "findOuterObject returned object " << OuterSegment;
     }
     
     Contour::Contour(const Image& img, ImageMap& map, const Point& start, bool rotate90Axis, bool fillImageMap)
-    : SourceImage(img), CurrentImageMap(map), OuterContour(NULL)
+    : SourceImage(img), CurrentImageMap(map), OuterSegment(NULL)
     {
         Rotate90Axis = rotate90Axis;
         constructContour(start);

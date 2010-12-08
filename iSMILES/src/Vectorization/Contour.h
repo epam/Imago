@@ -1,18 +1,17 @@
 #pragma once
 #include "../Image/Point.h"
-#include "../Image/Region.h"
 #include "../Image/Image.h"
 #include "ImageMap.h"
 #include "Line.h"
 
 namespace gga
 {   
-    class Contour : public ISegment, public Region
+    class Contour : public ISegment, public Points
     {       
         // references to the constructor params
         const Image& SourceImage;
         ImageMap& CurrentImageMap;
-        const Contour* OuterContour;
+        const Contour* OuterSegment;
         std::vector<size_t> WayChangeIndexes;
         
     public:
@@ -23,8 +22,8 @@ namespace gga
         // extract contour and mark all coherent points on image map
         Contour(const Image& img, ImageMap& map, const Point& start, bool rotate90Axis = false, bool fillImageMap = true);
         
-        // returns outer contour for that one or NULL
-        const Contour* getOuterContour() const { return OuterContour; }
+        // returns outer contour for that one or NULL (ISegment override)
+        const Contour* getOuterSegment() const { return OuterSegment; }
         
         const std::vector<size_t> getWayChanges() const { return WayChangeIndexes; }
         

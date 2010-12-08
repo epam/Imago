@@ -38,6 +38,10 @@ namespace gga
     public:
         inline Timer ()         { reset(); }
         inline void   reset ()  { StartTime = getTimeMicroseconds(); }
+        static inline double getNowTime() // in seconds
+        {
+            return getTimeMicroseconds() / getTimerFrequency();
+        }
         inline double getElapsedTime ()const // in seconds
         {
            return (getTimeMicroseconds() - StartTime) / getTimerFrequency();

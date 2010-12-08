@@ -1,4 +1,5 @@
 #pragma once
+#include <string>
 #include "RangeArray.h"
 #include "Line.h"
 #include "../Histogram.h"
@@ -23,13 +24,14 @@ namespace gga
         
     private:
         static const double eps;
+        std::string getLogPrefix() const;
         
-        HistType calculateHistogram();
-        double optimizeCoef(double& Coef, const double Shift);  // returns std.dev 
-        double optimizeShift(const double Coef, double& Shift); // returns (R-L) disbalance
+        HistType calculateHistogram() const;
+        double optimizeCoef(double& Coef, const double Shift) const;  // returns std.dev 
+        double optimizeShift(const double Coef, double& Shift) const; // returns (R-L) disbalance
         Polyline constructDefaultResult(const double Coef, const double Shift);
                 
-        int calculateSplitStart(const HistType& hist); // returns 0 if no split applicable
+        int calculateSplitStart(const HistType& hist) const; // returns 0 if no split applicable
         void checkSplit(int splitStart); // updates StdDev and ResultLine
         
         static Polyline concatenateLines(const Polyline& line1, const Polyline& line2);

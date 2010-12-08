@@ -11,11 +11,10 @@ namespace gga
     public:
         SegmentParams(const Polylines& src);
         
-        static int getAngle(const Line& line); // -180..180
-        
+        /* average line segment length in pixels */
         size_t getAverageLineLength() const { return AverageLineLength; }
         
-        /* rotate image to returned Grad amount to make vertical/horizontal lines real vertical/horizontal */
+        /* rotate image to returned degree amount to make vertical/horizontal lines real vertical/horizontal */
         int getRotationAngle() const { return Rotation; }
         
     private:

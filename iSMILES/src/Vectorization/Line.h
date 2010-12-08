@@ -6,18 +6,14 @@ namespace gga
     class Line : public Points
     {
     public:
-        Point& getBegin() { return at(0); }
-        Point& getEnd()   { return at(size()-1); }
-        
+        Line() { }        
+        Line(const Point& begin, const Point& end);                
+
         const Point& getBegin() const { return at(0); }
         const Point& getEnd()   const { return at(size()-1); }
         
-        Line() { }
-        Line(const Point& begin, const Point& end)
-        {
-            push_back(begin);
-            push_back(end);
-        }
+        double getLength() const;
+        int getAngle() const;
     };
     
     class Polyline : public Line

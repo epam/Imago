@@ -1,21 +1,17 @@
-#include <algorithm>
 #include "LinearApproximation.h"
+#include <algorithm>
+#include "../Logger.h"
 #include "../Parameters.h"
-#ifdef DEBUG
-#include <stdio.h> // printf "log"
-#endif
 
-// ALL MAGIC CONSTANTS MOVED TO PARAMETERS.H
+#ifdef _WIN32
+// workaround Visual Studio '#define min' problem
+#undef min
+#endif
 
 namespace gga
 {    
     const double LinearApproximation::eps = 0.0001;
-
-    #ifdef DEBUG
-        static int figure_num = 0;
-        static size_t recurse_level = 0;
-        char prefix[128] = {0};
-    #endif
+    static size_t RecurseLevel = 0;
         
     Polyline LinearApproximation::constructDefaultResult(const double Coef, const double Shift)
     {
@@ -29,7 +25,7 @@ namespace gga
         return Line(Ranges.coordToPoint(first_x, first), Ranges.coordToPoint(last_x, last));
     }
     
-    LinearApproximation::HistType LinearApproximation::calculateHistogram()
+    LinearApproximation::HistType LinearApproximation::calculateHistogram() const
     {
         HistType result;
         for (size_t y = 0; y < Ranges.size(); y++)
@@ -49,7 +45,7 @@ namespace gga
         return result;
     }
     
-    double LinearApproximation::optimizeCoef(double& Coef, const double Shift)
+    double LinearApproximation::optimizeCoef(double& Coef, const double Shift) const
     {
         double delta = 1.0;
         double dev[3];
@@ -81,7 +77,7 @@ namespace gga
         return dev[1];
     }
     
-    double LinearApproximation::optimizeShift(const double Coef, double& Shift)
+    double LinearApproximation::optimizeShift(const double Coef, double& Shift) const
     {
         double delta = 0.0;        
         do {
@@ -94,7 +90,7 @@ namespace gga
             }
             delta = (avgR - avgL) / (Ranges.size() * 2.0);
             Shift += delta; // adjust
-        } while (fabs(delta) > eps);
+        } while (fabs(delta) >= 1.0); // 1.0 == one pixel in average, not magic.
         return delta;
     }
     
@@ -124,7 +120,7 @@ namespace gga
         return result;
     }
                  
-    int LinearApproximation::calculateSplitStart(const HistType& hist)
+    int LinearApproximation::calculateSplitStart(const HistType& hist) const
     {   
         int result = 0;
                 
@@ -145,26 +141,20 @@ namespace gga
     {        
         int total = Ranges.size();
         
-        #ifdef DEBUG
-            printf("%sFirst group [%i..%i]:\n", prefix, 0, start-1);
-        #endif
+        LOG << getLogPrefix() << "First group [0.." << (start-1) << "]:";
         
         RangeArray rng1(Ranges, 0, start);
         LinearApproximation lin1(rng1); // will be good
-        
-        #ifdef DEBUG
-            printf("%sSecond group [%i..%i]:\n", prefix, start, total);
-        #endif
+
+        LOG << getLogPrefix() << "Second group [" << start << ".." << total << "]:";
         
         RangeArray rng2(Ranges, start);
         LinearApproximation lin2(rng2); // have to be better than current
         
         double NewDev = (lin1.StdDev * start * getGlobalParams().getSplitStdDevFactor() + lin2.StdDev * (total - start)) / total;
         
-        #ifdef DEBUG
-            printf("%s%cDev after split [%f,%f]=%f vs base %f\n", prefix, (NewDev < StdDev) ? '+' : '-',
-                   lin1.StdDev, lin2.StdDev, NewDev, StdDev);
-        #endif
+        LOG << getLogPrefix() << ((NewDev < StdDev) ? '+' : '-') << "Dev after split [" << lin1.StdDev << "," << lin2.StdDev
+                << "]=" << NewDev << " vs base " << StdDev;
         
         if (NewDev < StdDev)
         {                    
@@ -173,13 +163,25 @@ namespace gga
         }
     }
     
+    std::string LinearApproximation::getLogPrefix() const
+    {
+        std::string result;
+        result.resize(RecurseLevel*3);
+        for (size_t u = 0; u < result.size(); u++)
+            result[u] = ' ';
+        return result;
+    }
+    
     LinearApproximation::LinearApproximation(const RangeArray& ranges)
     : Good(false), StdDev(0.0), Ranges(ranges)
     {        
         HistType Hist_df = calculateHistogram();
         
         if (Hist_df.isEmpty())
+        {
+            LOG << "f' histogram is empty";
             return;
+        }
 
         /* initial values */
         double Coef = Hist_df.getAverage();
@@ -189,18 +191,8 @@ namespace gga
         optimizeCoef(Coef, Shift);
         optimizeShift(Coef, Shift);
         StdDev = optimizeCoef(Coef, Shift);
-
-        #ifdef DEBUG
-            if (recurse_level == 0)
-                printf("Figure %i\n", figure_num);
-            for (size_t u = 0; u < recurse_level*3; u++)
-            {
-                prefix[u] = ' ';
-                prefix[u+1] = 0;
-            }                
-            recurse_level++;
-            printf("%sDev: %f, Coef: %f, Shift: %f\n", prefix, StdDev, Coef, Shift);
-        #endif
+        
+        LOG << getLogPrefix() << "Dev: " << StdDev << ", Coef: " << Coef << ", Shift: " << Shift;
         
         ResultLine = constructDefaultResult(Coef, Shift);
         
@@ -208,22 +200,16 @@ namespace gga
         double delta = Hist_df.getRange() / getGlobalParams().getTargetGroupsCount() + eps;
         HistType hist_d2 = Hist_df.regroup(delta).getOnlyRepresentative();
 
-        #ifdef DEBUG
-            printf("%sDiff count: %i, after regroup: %i\n", prefix, Hist_df.getGroupsCount(), hist_d2.getGroupsCount());
-        #endif
-
-        int splitStart = calculateSplitStart(hist_d2);
-        if (splitStart > 0)
-        {
-            checkSplit(splitStart);            
-        }
-        
-        Good = StdDev < getGlobalParams().getDeviationThreshold();
+        LOG << getLogPrefix() << "Diff count: " << Hist_df.getGroupsCount() << ", after regroup: " << hist_d2.getGroupsCount();
                 
-        #ifdef DEBUG
-            recurse_level--;
-            if (recurse_level == 0)
-                figure_num++;
-        #endif
+        int splitStart = calculateSplitStart(hist_d2);        
+        if (splitStart > 0)
+        {            
+            RecurseLevel++;
+            checkSplit(splitStart);
+            RecurseLevel--;
+        }
+                
+        Good = StdDev < getGlobalParams().getDeviationThreshold();
     }
 }

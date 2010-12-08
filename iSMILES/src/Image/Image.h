@@ -5,7 +5,6 @@
 #include <vector>
 #include "Pixel.h"
 #include "Point.h"
-#include "Region.h"
 #include "LineDefinition.h"
 
 namespace gga

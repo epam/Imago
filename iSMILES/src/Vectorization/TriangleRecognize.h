@@ -8,14 +8,12 @@ namespace gga
     class TriangleRecognize
     {
         bool Good;
-        bool Filled;
         Triangle Result;
       
     public:
-        TriangleRecognize(const Polyline& line, const ImageMap& img_map);
+        TriangleRecognize(const Polyline& line, const ImageMap& imgMap);
         
         bool isGood() const { return Good; }
-        bool isFilled() const { return Filled; }
         const Triangle& getTriangle() const { return Result; }
     };
 }

@@ -111,12 +111,14 @@
     <File Name="../../src/Vectorization/SegmentParams.cpp"/>
     <File Name="../../src/Vectorization/ContourSplit.h"/>
     <File Name="../../src/Vectorization/ContourSplit.cpp"/>
+    <File Name="../../src/Vectorization/Line.cpp"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Common">
     <File Name="../../src/Parameters.h"/>
     <File Name="../../src/Timer.h"/>
     <File Name="../../src/Histogram.h"/>
     <File Name="../../src/Parameters.cpp"/>
+    <File Name="../../src/Logger.h"/>
   </VirtualDirectory>
   <VirtualDirectory Name="Molecule">
     <File Name="../../src/Molecule/Molecule.h"/>

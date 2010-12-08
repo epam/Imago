@@ -4,6 +4,7 @@
 
 namespace gga
 {
+    // UNUSED NOW
     struct Region : public Points
     {
         inline Region(size_t allocate=127) { reserve(allocate); }

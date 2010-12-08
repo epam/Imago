@@ -7,6 +7,8 @@ namespace gga
     class ISegment
     {
     public:
+        // returns pointer to the outer segment that contains this segment or NULL
+        virtual const ISegment* getOuterSegment() const = 0;
     };
     
     class ImageMap

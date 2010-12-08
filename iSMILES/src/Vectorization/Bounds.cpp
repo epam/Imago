@@ -1,4 +1,5 @@
 #include "Bounds.h"
+#include "../Logger.h"
 
 namespace gga
 {
@@ -32,6 +33,8 @@ namespace gga
                     Bottom = it->Y;
             }
         }
+        
+        // LOG << "Generated bounds for " << points.size() << " points: [" << Left << ".." << Right << "] x [" << Top << ".." << Bottom << "]";
     }
     
     bool Bounds::isInside(const Image& image) const
