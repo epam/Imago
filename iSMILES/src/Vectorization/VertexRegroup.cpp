@@ -5,24 +5,33 @@
 
 namespace gga
 {
-    #define pr(x) (void*)(&(*x))
-    
+    void VertexRegroup::reduceFractures(Polyline& line)
+    {
+        bool doneSomething;
+        do
+        {
+            doneSomething = false;
+            for (size_t u = 1; u < line.size()-1; u++)
+            {
+                // 180* addition to avoid negative angles
+                int a1v = 180 + (int)(Line(line[u-1],line[u]).getAngle());
+                int a2v = 180 + (int)(Line(line[u],line[u+1]).getAngle());
+                if (abs(a1v-a2v) < getGlobalParams().getMaxFractureAngle())
+                {
+                    line.erase(line.begin() + u);
+                    LOG << "Removed fracture for angles " << a1v << " and " << a2v << " in line " << line.getId();
+                    doneSomething = true;
+                    break;
+                }
+            }
+        } while (doneSomething);
+    }
+
     void VertexRegroup::reduceFractures()
     {
         for (Polylines::iterator it = Result.begin(); it != Result.end(); it++)
         {
-            for (size_t u = 1; u < it->size()-1; u++)
-            {
-                // 180* addition to avoid negative angles
-                int a1v = 180 + Line(it->at(u-1),it->at(u)).getAngle();
-                int a2v = 180 + Line(it->at(u),it->at(u+1)).getAngle();
-                if (abs(a1v-a2v) < getGlobalParams().getMaxFractureAngle())
-                {
-                    it->erase(it->begin() + u);
-                    LOG << "Removed fracture for angles " << a1v << " and " << a2v << " in line " << pr(it);                    
-                    break;
-                }
-            }
+            reduceFractures(*it);
         }
     }
     
@@ -32,89 +41,40 @@ namespace gga
         do
         {
             doneSomething = false;
-            for (Polylines::iterator first = Result.begin(); !doneSomething && first != Result.end(); )
+            for (Polylines::iterator first = Result.begin(); first != Result.end(); first++)
             {
                 for (Polylines::iterator second = Result.begin(); second != Result.end(); second++)
                 {
                     if (first == second)
                         continue;
                         
-                    // compare positions of first line end to second line begin
                     if ( second->getBegin().distance(first->getEnd()) < getGlobalParams().getMaxLineBreakDistance() )
                     {
                         for (size_t u = 1; u < second->size(); u++)
                             first->push_back(second->at(u));
-                        LOG << "Joined (end-to-begin) lines " << pr(first) << " and " << pr(second);
-						Result.erase(second);
                         doneSomething = true;
-                        break;
                     }
                     else if ( second->getEnd().distance(first->getEnd()) < getGlobalParams().getMaxLineBreakDistance() )
                     {
                         for (int u = second->size()-2; u >= 0; u--)
                             first->push_back(second->at(u));
-                        LOG << "Joined (end-to-end) lines " << pr(first) << " and " << pr(second);
-                        Result.erase(second);
                         doneSomething = true;
+                    }
+
+                    if (doneSomething)
+                    {
+                        first->SplitId = first->SplitId + " - " + second->SplitId;
+                        LOG << "Joined lines " << first->getId() << " by " << second->getId();
+                        Result.erase(second);
                         break;
                     }
                 }
-				if (!doneSomething)
-					first++;
+                if (doneSomething)
+                    break;
             }                
         } while (doneSomething);
     }
-    
-    
-    double DistanceFromLine(double cx, double cy, double ax, double ay, double bx, double by)
-    {
-        double r_numerator = (cx-ax)*(bx-ax) + (cy-ay)*(by-ay);
-        double r_denomenator = (bx-ax)*(bx-ax) + (by-ay)*(by-ay);
-        double r = r_numerator / r_denomenator;
-        double px = ax + r*(bx-ax);
-        double py = ay + r*(by-ay);
-        double s = ((ay-cy)*(bx-ax)-(ax-cx)*(by-ay) ) / r_denomenator;
 
-        double distanceLine = fabs(s)*sqrt(r_denomenator);
-        double distanceSegment = distanceLine;
-        
-        double xx = px;
-        double yy = py;
-
-        if ( (r < 0) || (r > 1) )
-        {
-
-            double dist1 = (cx-ax)*(cx-ax) + (cy-ay)*(cy-ay);
-            double dist2 = (cx-bx)*(cx-bx) + (cy-by)*(cy-by);
-            if (dist1 < dist2)
-            {
-                xx = ax;
-                yy = ay;
-                distanceSegment = sqrt(dist1);
-            }
-            else
-            {
-                xx = bx;
-                yy = by;
-                distanceSegment = sqrt(dist2);
-            }
-        }
-
-        return distanceSegment;
-    }
-
-    int VertexRegroup::pointToLineDistance(const Point& p, const Line& l)
-    {
-        return (int)DistanceFromLine(p.X, p.Y, l.getBegin().X, l.getBegin().Y, l.getEnd().X, l.getEnd().Y);
-    }
-    
-    int VertexRegroup::lineDistance(const Line& longer, const Line& shorter)
-    {
-        int dB = pointToLineDistance(shorter.getBegin(), longer);
-        int dE = pointToLineDistance(shorter.getEnd(), longer);
-        return (dB + dE) / 2;
-    }
-    
     void VertexRegroup::removeDuplicates()
     {
         std::vector<Line> p;
@@ -123,6 +83,10 @@ namespace gga
             for (size_t u = 0; u < it->size()-1; u++)
             {
                 Line line(it->at(u),it->at(u+1));
+                line.BaseContourId = it->BaseContourId;
+                std::stringstream ss;
+                ss << p.size();
+                line.SplitId = ss.str();
                 p.push_back(line);
             }
         }
@@ -131,35 +95,30 @@ namespace gga
         do
         {
             doneSomething = false;        
-            for (std::vector<Line>::iterator first = p.begin(); !doneSomething && first != p.end(); )
+            for (std::vector<Line>::iterator first = p.begin(); first != p.end(); first++)
             {
                 for (std::vector<Line>::iterator second = p.begin(); second != p.end(); second++)
                 {
-                    if (first == second)
+                    if ( first == second || 
+                        first->BaseContourId != second->BaseContourId || 
+                        first->getLength() < second->getLength() )
                         continue;
 
-                    int l1 = (int)first->getLength();
-                    int l2 = (int)second->getLength();
-                    if (l2 > l1)
-                        continue;
+                    int a1v = (180 + (int)first->getAngle()) % 180;
+                    int a2v = (180 + (int)second->getAngle()) % 180;
 
-                    int a1v = (180 + first->getAngle()) % 180;
-                    int a2v = (180 + second->getAngle()) % 180;
-                    int a = abs(a1v - a2v);
-                    
-                    unsigned int d = lineDistance(*first, *second);
-
-                    if (a < getGlobalParams().getMaxFractureAngle() && 
-                        d < getGlobalParams().getLineWidth() * 2 ) // TODO: check and name this.
+                    if (abs(a1v - a2v) < getGlobalParams().getMaxFractureAngle() && 
+                        first->getDistance(*second) < getGlobalParams().getMaxDuplicateDistance())
                     {
-                        LOG << "Removed duplicate (" << l2 << "), keep " << l1 << " pixels";
+                        LOG << "Removed " << second->getId() << " duplicate of " << first->getId();
                         p.erase(second);
                         doneSomething = true;
                         break;
                     }
                 }
-				if (!doneSomething)
-					first++;
+
+                if (doneSomething)
+                    break;
             }
         } while (doneSomething);
         
