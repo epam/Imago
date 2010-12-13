@@ -22,6 +22,13 @@
    return self;
 }
 
+- (void)viewDidLoad
+{
+   NSError *error = nil;
+   NSString *html = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ketcher" ofType:@"html"] encoding:NSUTF8StringEncoding error:&error];
+   [webView loadHTMLString:html baseURL:[NSURL fileURLWithPath: [[NSBundle mainBundle] bundlePath]]];
+}
+
 - (void)viewDidUnload
 {
 }
@@ -43,7 +50,7 @@
    /**/
    //[webView loadRequest:[NSURLRequest requestWithURL: [NSURL fileURLWithPath: [[NSBundle mainBundle] pathForResource:@"ketcher" ofType:@"html"] isDirectory:NO]]];
    
-   //[webView stringByEvaluatingJavaScriptFromString:@"alert('ok!');"];
+   //NSLog([webView stringByEvaluatingJavaScriptFromString:@"ketcher.setMolecule();"]);
 }
 
 - (void)recognizingProc:(UIImage *)image
@@ -59,12 +66,17 @@
    
    if (self.molfile != nil)
    {
+      /*
       NSLog(self.molfile);
       
       NSError *error = nil;
       NSString *html = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ketcher" ofType:@"html"] encoding:NSUTF8StringEncoding error:&error];
       html = [html stringByReplacingOccurrencesOfString:@"MOLFILE_PLACEHOLDER" withString:self.molfile];
       [webView loadHTMLString:html baseURL:[NSURL fileURLWithPath: [[NSBundle mainBundle] bundlePath]]];
+       */
+      NSString *jsLoadMol = @"ketcher.setMolecule('MOLFILE_PLACEHOLDER');";
+      [self.webView performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject: [jsLoadMol stringByReplacingOccurrencesOfString:@"MOLFILE_PLACEHOLDER" withString:self.molfile] waitUntilDone: YES];
+      //[self.webView stringByEvaluatingJavaScriptFromString:[jsLoadMol stringByReplacingOccurrencesOfString:@"MOLFILE_PLACEHOLDER" withString:self.molfile]];
    } else {
       [webView loadHTMLString:@"<html><head></head><body>An error occured.</body></html>" baseURL:nil];
    }

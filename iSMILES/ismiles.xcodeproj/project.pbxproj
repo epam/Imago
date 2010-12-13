@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A71F9DFB12B2831B00B0A99F /* ContourSplit.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A71F9DF712B2831B00B0A99F /* ContourSplit.cpp */; };
+		A71F9DFC12B2831B00B0A99F /* ContourSplit.h in Headers */ = {isa = PBXBuildFile; fileRef = A71F9DF812B2831B00B0A99F /* ContourSplit.h */; };
+		A71F9DFD12B2831B00B0A99F /* SegmentParams.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A71F9DF912B2831B00B0A99F /* SegmentParams.cpp */; };
+		A71F9DFE12B2831B00B0A99F /* SegmentParams.h in Headers */ = {isa = PBXBuildFile; fileRef = A71F9DFA12B2831B00B0A99F /* SegmentParams.h */; };
 		A7D7D86C129F1291007133CD /* Bounds.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7D7D85B129F1291007133CD /* Bounds.cpp */; };
 		A7D7D86D129F1291007133CD /* Bounds.h in Headers */ = {isa = PBXBuildFile; fileRef = A7D7D85C129F1291007133CD /* Bounds.h */; };
 		A7D7D86E129F1291007133CD /* Contour.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7D7D85D129F1291007133CD /* Contour.cpp */; };
@@ -44,6 +48,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A71F9DF712B2831B00B0A99F /* ContourSplit.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = ContourSplit.cpp; path = src/Vectorization/ContourSplit.cpp; sourceTree = "<group>"; };
+		A71F9DF812B2831B00B0A99F /* ContourSplit.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ContourSplit.h; path = src/Vectorization/ContourSplit.h; sourceTree = "<group>"; };
+		A71F9DF912B2831B00B0A99F /* SegmentParams.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = SegmentParams.cpp; path = src/Vectorization/SegmentParams.cpp; sourceTree = "<group>"; };
+		A71F9DFA12B2831B00B0A99F /* SegmentParams.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = SegmentParams.h; path = src/Vectorization/SegmentParams.h; sourceTree = "<group>"; };
 		A7D7D85B129F1291007133CD /* Bounds.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Bounds.cpp; path = src/Vectorization/Bounds.cpp; sourceTree = "<group>"; };
 		A7D7D85C129F1291007133CD /* Bounds.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = Bounds.h; path = src/Vectorization/Bounds.h; sourceTree = "<group>"; };
 		A7D7D85D129F1291007133CD /* Contour.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = Contour.cpp; path = src/Vectorization/Contour.cpp; sourceTree = "<group>"; };
@@ -140,6 +148,10 @@
 		A7D7D85A129F101D007133CD /* Vectorization */ = {
 			isa = PBXGroup;
 			children = (
+				A71F9DF712B2831B00B0A99F /* ContourSplit.cpp */,
+				A71F9DF812B2831B00B0A99F /* ContourSplit.h */,
+				A71F9DF912B2831B00B0A99F /* SegmentParams.cpp */,
+				A71F9DFA12B2831B00B0A99F /* SegmentParams.h */,
 				A7D7D85B129F1291007133CD /* Bounds.cpp */,
 				A7D7D85C129F1291007133CD /* Bounds.h */,
 				A7D7D85D129F1291007133CD /* Contour.cpp */,
@@ -210,6 +222,8 @@
 				A7D7D878129F1291007133CD /* TriangleRecognize.h in Headers */,
 				A7D7D87A129F1291007133CD /* Vectorize.h in Headers */,
 				A7D7D87C129F1291007133CD /* VertexRegroup.h in Headers */,
+				A71F9DFC12B2831B00B0A99F /* ContourSplit.h in Headers */,
+				A71F9DFE12B2831B00B0A99F /* SegmentParams.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -276,6 +290,8 @@
 				A7D7D877129F1291007133CD /* TriangleRecognize.cpp in Sources */,
 				A7D7D879129F1291007133CD /* Vectorize.cpp in Sources */,
 				A7D7D87B129F1291007133CD /* VertexRegroup.cpp in Sources */,
+				A71F9DFB12B2831B00B0A99F /* ContourSplit.cpp in Sources */,
+				A71F9DFD12B2831B00B0A99F /* SegmentParams.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
