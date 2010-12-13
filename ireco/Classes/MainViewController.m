@@ -2,7 +2,7 @@
 
 @implementation MainViewController
 
-@synthesize imageView, toolbar, overlayViewController, ketcherViewController, capturedImages, recognizeButton;
+@synthesize imageView, toolbar, overlayViewController, ketcherViewController, capturedImage, recognizeButton;
 
 
 #pragma mark -
@@ -19,7 +19,7 @@
     self.ketcherViewController =
         [[[KetcherViewController alloc] initWithNibName:@"KetcherViewController" bundle:nil] autorelease];
 
-    self.capturedImages = [NSMutableArray array];
+    self.capturedImage = nil;
 
     if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
     {
@@ -37,7 +37,7 @@
     self.toolbar = nil;
     
     self.overlayViewController = nil;
-    self.capturedImages = nil;
+    self.capturedImage = nil;
 }
 
 - (void)dealloc
@@ -46,7 +46,9 @@
    [toolbar release];
     
    [overlayViewController release];
-   [capturedImages release];
+   [ketcherViewController release];
+   if (capturedImage != nil)
+      [capturedImage release];
     
    [super dealloc];
 }
@@ -60,8 +62,11 @@
     if (self.imageView.isAnimating)
         self.imageView.stopAnimating;
 	
-    if (self.capturedImages.count > 0)
-        [self.capturedImages removeAllObjects];
+    if (self.capturedImage != nil)
+    {
+        [self.capturedImage release];
+        self.capturedImage = nil;
+    }
     
     if ([UIImagePickerController isSourceTypeAvailable:sourceType])
     {
@@ -87,7 +92,7 @@
 {
    [self.navigationController pushViewController:ketcherViewController animated:YES]; 
    
-   [self.ketcherViewController setupKetcher: [self.capturedImages objectAtIndex:0]];
+   [self.ketcherViewController setupKetcher: self.capturedImage];
 }
    
 #pragma mark -
@@ -96,12 +101,13 @@
 // as a delegate we are being told a picture was taken
 - (void)didTakePicture:(UIImage *)picture
 {
-    if (self.capturedImages.count > 0)
-       [self.capturedImages removeAllObjects];
+    if (self.capturedImage != nil)
+       [self.capturedImage release];
     else
        self.recognizeButton.enabled = YES;
 
-    [self.capturedImages addObject:picture];
+    self.capturedImage = picture;
+   [self.capturedImage retain];
 }
 
 // as a delegate we are told to finished with the camera
@@ -109,26 +115,9 @@
 {
     [self dismissModalViewControllerAnimated:YES];
     
-    if ([self.capturedImages count] > 0)
+    if (self.capturedImage != nil)
     {
-        //if ([self.capturedImages count] == 1)
-        {
-            // we took a single shot
-            [self.imageView setImage:[self.capturedImages objectAtIndex:0]];
-        }/*
-        else
-        {
-            // we took multiple shots, use the list of images for animation
-            self.imageView.animationImages = self.capturedImages;
-            
-            if (self.capturedImages.count > 0)
-                // we are done with the image list until next time
-                [self.capturedImages removeAllObjects];  
-            
-            self.imageView.animationDuration = 5.0;    // show each captured photo for 5 seconds
-            self.imageView.animationRepeatCount = 0;   // animate forever (show all photos)
-            self.imageView.startAnimating;
-        }*/
+        [self.imageView setImage:self.capturedImage];
     }
 }
 

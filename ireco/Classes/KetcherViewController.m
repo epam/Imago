@@ -27,6 +27,7 @@
    NSError *error = nil;
    NSString *html = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ketcher" ofType:@"html"] encoding:NSUTF8StringEncoding error:&error];
    [webView loadHTMLString:html baseURL:[NSURL fileURLWithPath: [[NSBundle mainBundle] bundlePath]]];
+   [html release];
 }
 
 - (void)viewDidUnload
@@ -35,6 +36,13 @@
 
 - (void)dealloc
 {	
+   
+   [webView release];
+   [activityView release];
+   
+   if (self.molfile != nil)
+      [self.molfile release];
+
    [super dealloc];
 }
 
@@ -46,11 +54,7 @@
                                                         selector:@selector(recognizingProc:)
                                                           object:image];
    [recognizerThread start];
-   
-   /**/
-   //[webView loadRequest:[NSURLRequest requestWithURL: [NSURL fileURLWithPath: [[NSBundle mainBundle] pathForResource:@"ketcher" ofType:@"html"] isDirectory:NO]]];
-   
-   //NSLog([webView stringByEvaluatingJavaScriptFromString:@"ketcher.setMolecule();"]);
+   [recognizerThread autorelease];
 }
 
 - (void)recognizingProc:(UIImage *)image
@@ -59,24 +63,17 @@
    {
       Recognizer *recognizer = [Recognizer recognizerWithImage:image];
       
-      self.molfile = [recognizer recognize];
+      if (self.molfile != nil)
+         [self.molfile release];
+      self.molfile = [[recognizer recognize] retain];
    }
 
    self.prevImage = image;
    
    if (self.molfile != nil)
    {
-      /*
-      NSLog(self.molfile);
-      
-      NSError *error = nil;
-      NSString *html = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ketcher" ofType:@"html"] encoding:NSUTF8StringEncoding error:&error];
-      html = [html stringByReplacingOccurrencesOfString:@"MOLFILE_PLACEHOLDER" withString:self.molfile];
-      [webView loadHTMLString:html baseURL:[NSURL fileURLWithPath: [[NSBundle mainBundle] bundlePath]]];
-       */
-      NSString *jsLoadMol = @"ketcher.setMolecule('MOLFILE_PLACEHOLDER');";
-      [self.webView performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject: [jsLoadMol stringByReplacingOccurrencesOfString:@"MOLFILE_PLACEHOLDER" withString:self.molfile] waitUntilDone: YES];
-      //[self.webView stringByEvaluatingJavaScriptFromString:[jsLoadMol stringByReplacingOccurrencesOfString:@"MOLFILE_PLACEHOLDER" withString:self.molfile]];
+      NSString *jsLoadMol = [NSString stringWithFormat: @"ketcher.setMolecule('%@');", [self.molfile stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"]];
+      [self.webView performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject: jsLoadMol waitUntilDone: YES];
    } else {
       [webView loadHTMLString:@"<html><head></head><body>An error occured.</body></html>" baseURL:nil];
    }
@@ -86,16 +83,6 @@
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView
 {
-   /*
-   if (self.molfile != nil)
-   {
-      if ([self.webView stringByEvaluatingJavaScriptFromString:@"ui.initialized"] == @"true")
-      {
-         NSString *jsLoadMol = @"ketcher.setMolecule('MOLFILE_PLACEHOLDER');";
-         [self.webView stringByEvaluatingJavaScriptFromString:[jsLoadMol stringByReplacingOccurrencesOfString:@"MOLFILE_PLACEHOLDER" withString:self.molfile]];
-      }
-   }
-    */
 }
 
 // called when the parent application receives a memory warning

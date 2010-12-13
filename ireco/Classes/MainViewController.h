@@ -13,7 +13,7 @@
     OverlayViewController *overlayViewController; // the camera custom overlay view
     KetcherViewController *ketcherViewController;
 
-    NSMutableArray *capturedImages; // the list of images captures from the camera (either 1 or multiple)
+    UIImage *capturedImage;
 
 @private
     UIBarButtonItem *recognizeButton;
@@ -25,7 +25,7 @@
 @property (nonatomic, retain) OverlayViewController *overlayViewController;
 @property (nonatomic, retain) KetcherViewController *ketcherViewController;
 
-@property (nonatomic, retain) NSMutableArray *capturedImages;
+@property (nonatomic, retain) UIImage *capturedImage;
 
 @property (nonatomic, retain) IBOutlet UIBarButtonItem *recognizeButton;
 

@@ -11,8 +11,7 @@
 
 @implementation imago_iphoneAppDelegate
 
-@synthesize window;
-@synthesize navigationController;
+@synthesize window, navigationController;
 
 void recognize( const char *Filename, const char *output, const char *font_path );
 
@@ -109,20 +108,6 @@ void recognize( const char *Filename, const char *output, const char *font_path 
    }
 #endif
    
-   
-   /*
-    NSString *path = [[NSBundle mainBundle] pathForResource:@"test" ofType:@"_png"];
-    imagoLoadPngImageFromFile([path cStringUsingEncoding:NSASCIIStringEncoding]);
-    imagoRecognize();
-    char *buf;
-    int bs;
-    imagoSaveMolToBuffer(&buf, &bs);
-    NSLog([NSString stringWithCString:buf encoding:NSASCIIStringEncoding]);
-    NSLog(@"Done!");
-   */
-   
-    
-
     return YES;
 }
 

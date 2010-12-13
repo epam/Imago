@@ -33,7 +33,6 @@ ketcher.getMolfile = function ()
 
 ketcher.setMolecule = function (mol_string)
 {
-   alert("Hey HO!");
     if (!Object.isString(mol_string))
         return;
 

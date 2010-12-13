@@ -161,6 +161,7 @@ void convert( gga::Image &a, imago::Image &b )
    Recognizer *inst = [[self alloc] init];
    
    inst.image = image;
+   [inst autorelease];
    return inst;
 }
 
