@@ -1,0 +1,52 @@
+
+set(ZLIB_SRCS
+  src/zconf.h
+  src/zlib.h
+  src/crc32.h
+  src/deflate.h
+  src/gzguts.h
+  src/inffast.h
+  src/inffixed.h
+  src/inflate.h
+  src/inftrees.h
+  src/trees.h
+  src/zutil.h
+  src/adler32.c
+  src/compress.c
+  src/crc32.c
+  src/deflate.c
+  src/gzclose.c
+  src/gzlib.c
+  src/gzread.c
+  src/gzwrite.c
+  src/inflate.c
+  src/infback.c
+  src/inftrees.c
+  src/inffast.c
+  src/trees.c
+  src/uncompr.c
+  src/zutil.c
+  )
+
+set(LIBPNG_SRCS
+  src/png.c
+  src/pngconf.h
+  src/pngerror.c
+  src/pngget.c
+  src/png.h
+  src/pngmem.c
+  src/pngpread.c
+  src/pngpriv.h
+  src/pngread.c
+  src/pngrio.c
+  src/pngrtran.c
+  src/pngrutil.c
+  src/pngset.c
+  src/pngtrans.c
+  src/pngwio.c
+  src/pngwrite.c
+  src/pngwtran.c
+  src/pngwutil.c
+  )
+
+add_library(png_local STATIC ${ZLIB_SRCS} ${LIBPNG_SRCS})
