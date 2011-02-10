@@ -320,50 +320,88 @@ double Image::density() const
 
 #include "allheaders.h"
 
-void Image::rotate(float angle)
+void *Image::_toPIX()
 {
-   PIX *pix, *pixRot;
-   std::vector<l_uint32> pixdata(_width * _height);
-   std::copy(_data, _data + _width * _height, pixdata.begin());
-   
+   PIX *pix;
    pix = pixCreateNoInit(_width, _height, 8);
-   
-   l_uint32 *pixData = pixGetData(pix);
-   l_uint32 wpl = pixGetWpl(pix);
-   int bpl = (8 * _width + 7) / 8; //first 8 - depth
-   unsigned int *line;
-   unsigned char val8;
 
-   for(int y = 0; y < _height; y++)
+   l_uint32 *pixData = pixGetData(pix), *pixLine;
+   l_uint32 wpl = pixGetWpl(pix);
+   byte *imageLine;
+
+   for (int y = 0; y < _height; y++)
    {
-      line = pixData + y * wpl;
-      for(int x = 0; x < bpl; x++)
-	  {
-         val8 = _data[y * _width + x];
-         SET_DATA_BYTE(line, x, val8);
+      pixLine = pixData + y * wpl;
+      imageLine = _data + y * _width;
+      for (int x = 0; x < _width; x++)
+      {
+         SET_DATA_BYTE(pixLine, x, _data[y * _width + x]);
       }
    }
 
-   pixRot = pixRotate(pix, angle, L_ROTATE_SHEAR, L_BRING_IN_WHITE, _width, _height);
+   return pix;
+}
 
-   pixDestroy(&pix);
-
-   l_uint32 *pixRotData = pixGetData(pixRot);
-   l_uint32 w = pixGetWidth(pixRot), h = pixGetHeight(pixRot);
-   wpl = pixGetWpl(pixRot);
-   bpl = (8 * w + 7) / 8;
+void Image::_fromPIX( void *p )
+{
+   PIX *pix = (PIX*)p;
+   l_uint32 *pixData = pixGetData(pix), *pixLine;
+   l_uint32 w = pixGetWidth(pix), h = pixGetHeight(pix), wpl = pixGetWpl(pix);
+   byte *imageLine;
 
    clear();
    init(w, h);
 
-   for(int y = 0; y < _height; y++)
+   for (int y = 0; y < _height; y++)
    {
-      line = pixRotData + y * wpl;
-      for(int x = 0; x < bpl; x++)
-	  {
-         _data[y * _width + x] = GET_DATA_BYTE(line, x);
+      pixLine = pixData + y * wpl;
+      imageLine = _data + y * _width;
+      for (int x = 0; x < _width; x++)
+      {
+         imageLine[x] = GET_DATA_BYTE(pixLine, x);
       }
    }
-   
+}
+
+void Image::rotate( float angle )
+{
+   PIX *pix, *pixRot;
+
+   pix = (PIX*)_toPIX();
+   //pixWrite("lol1.bmp", pix, IFF_BMP);
+
+   pixRot = pixRotate(pix, angle, L_ROTATE_SAMPLING, L_BRING_IN_BLACK, _width, _height);
+   //pixWrite("lol2.bmp", pixRot, IFF_BMP);
+
+   _fromPIX(pixRot);
+
+   pixDestroy(&pix);
    pixDestroy(&pixRot);
+}
+
+void Image::rotate90( bool cw)
+{
+   PIX *pix, *pixRot;
+
+   pix = (PIX*)_toPIX();
+
+   pixRot = pixRotate90(pix, (cw ? 1:-1));
+
+   _fromPIX(pixRot);
+
+   pixDestroy(&pix);
+   pixDestroy(&pixRot);
+}
+
+void Image::rotate180()
+{
+   PIX *pix;
+
+   pix = (PIX*)_toPIX();
+
+   pixRotate180(pix, pix);
+
+   _fromPIX(pix);
+
+   pixDestroy(&pix);
 }

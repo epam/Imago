@@ -436,13 +436,13 @@ void testRotation()
    try
    {
       Image img;
-	  ImageUtils::loadImageFromFile(img, "K:\\usr\\vsmolov\\123\\rotate1.png");
-	  printf("Before: %d %d\n", img.getWidth(), img.getHeight());
-      img.rotate(imago::PI / 2);
+      ImageUtils::loadImageFromFile(img, "data/mol_images/image439.png");
+      printf("Before: %d %d\n", img.getWidth(), img.getHeight());
+      img.rotate90(false);
       printf("After: %d %d\n", img.getWidth(), img.getHeight());
       ImageUtils::saveImageToFile(img, "rot.png");
    }
-   catch(std::exception &e)
+   catch (std::exception &e)
    {
       puts(e.what());
    }

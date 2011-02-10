@@ -64,13 +64,14 @@ namespace imago
       void extract( int x1, int y1, int x2, int y2, Image &res );
       double density() const;
 
-	  void rotate(float angle);
-	  void rotate90();
-	  void rotate180();
-	  void rotate270();
+      void rotate( float angle );
+      void rotate90( bool cw = true );
+      void rotate180();
 
    protected:
       int _width, _height;
+      void *_toPIX();
+      void _fromPIX( void *p );
 
    private:
       Image( const Image & );
