@@ -55,6 +55,8 @@ endif(WIN32)
 
 include_directories(..)
 include_directories(../libpng/src/)
+include_directories(../libjpeg/src/)
+include_directories(../leptonlib/src/)
 
 if(EMBED_FONT)
   add_definitions("-DIMAGO_FONT_BUILT_IN")

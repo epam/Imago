@@ -2,6 +2,7 @@
 #include <deque>
 #include <vector>
 #include <list>
+#include <stdio.h>
 
 #include "skeleton.h"
 #include "molecule.h"
@@ -430,6 +431,22 @@ void testOCR2( const char *name )
    }
 }
 
+void testRotation()
+{
+   try
+   {
+      Image img;
+	  ImageUtils::loadImageFromFile(img, "K:\\usr\\vsmolov\\123\\rotate1.png");
+	  printf("Before: %d %d\n", img.getWidth(), img.getHeight());
+      img.rotate(imago::PI / 2);
+      printf("After: %d %d\n", img.getWidth(), img.getHeight());
+      ImageUtils::saveImageToFile(img, "rot.png");
+   }
+   catch(std::exception &e)
+   {
+      puts(e.what());
+   }
+}
 
 int main(int argc, char **argv)
 {
@@ -468,7 +485,10 @@ int main(int argc, char **argv)
    //testContour();
    //testRecognizer(num);
    //testOCR(argv[1]);
-   makeFont();
+   //makeFont();
    //testOCR2(argv[1]);
+
+   testRotation();
+
    return 0;
 }

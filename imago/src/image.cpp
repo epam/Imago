@@ -317,3 +317,53 @@ double Image::density() const
 
    return density;
 }
+
+#include "allheaders.h"
+
+void Image::rotate(float angle)
+{
+   PIX *pix, *pixRot;
+   std::vector<l_uint32> pixdata(_width * _height);
+   std::copy(_data, _data + _width * _height, pixdata.begin());
+   
+   pix = pixCreateNoInit(_width, _height, 8);
+   
+   l_uint32 *pixData = pixGetData(pix);
+   l_uint32 wpl = pixGetWpl(pix);
+   int bpl = (8 * _width + 7) / 8; //first 8 - depth
+   unsigned int *line;
+   unsigned char val8;
+
+   for(int y = 0; y < _height; y++)
+   {
+      line = pixData + y * wpl;
+      for(int x = 0; x < bpl; x++)
+	  {
+         val8 = _data[y * _width + x];
+         SET_DATA_BYTE(line, x, val8);
+      }
+   }
+
+   pixRot = pixRotate(pix, angle, L_ROTATE_SHEAR, L_BRING_IN_WHITE, _width, _height);
+
+   pixDestroy(&pix);
+
+   l_uint32 *pixRotData = pixGetData(pixRot);
+   l_uint32 w = pixGetWidth(pixRot), h = pixGetHeight(pixRot);
+   wpl = pixGetWpl(pixRot);
+   bpl = (8 * w + 7) / 8;
+
+   clear();
+   init(w, h);
+
+   for(int y = 0; y < _height; y++)
+   {
+      line = pixRotData + y * wpl;
+      for(int x = 0; x < bpl; x++)
+	  {
+         _data[y * _width + x] = GET_DATA_BYTE(line, x);
+      }
+   }
+   
+   pixDestroy(&pixRot);
+}
