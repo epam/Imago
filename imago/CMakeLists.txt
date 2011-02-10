@@ -56,5 +56,9 @@ endif(WIN32)
 include_directories(..)
 include_directories(../libpng/src/)
 
+if(EMBED_FONT)
+  add_definitions("-DIMAGO_FONT_BUILT_IN")
+endif(EMBED_FONT)
+
 add_library(imago_static STATIC ${SRC})
-target_link_libraries(imago_static png_local jpeg_local ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(imago_static png_local jpeg_local leptonica ${CMAKE_THREAD_LIBS_INIT})

@@ -204,6 +204,7 @@ void CharacterRecognizer::_loadFromFile( const std::string &filename )
 void CharacterRecognizer::_loadBuiltIn()
 {
 #ifdef IMAGO_FONT_BUILT_IN
+   #warning "Embedding font!"
    #include "TEST4.font.inc"
    _loaded = true;
 #endif

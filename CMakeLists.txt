@@ -11,11 +11,14 @@ if(CROSS32)
   SET(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -m32")
 endif(CROSS32)
 
+option(EMBED_FONT "Embed font file" ON)
+
 #message("CMAKE_CXX_FLAGS = ${CMAKE_CXX_FLAGS}")
 #message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 
 add_subdirectory(libpng)
 add_subdirectory(libjpeg)
+add_subdirectory(leptonlib)
 
 add_subdirectory(imago)
 add_subdirectory(imago_c)
