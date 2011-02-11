@@ -970,7 +970,7 @@ public class Ego extends javax.swing.JFrame {
 
     static {
         if (jarDir == null)
-            jarDir = "";
+            jarDir = ".";
 
         //DEBUG
         //Uncomment this line if you want to run Ego from NetBeans
