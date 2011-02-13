@@ -126,40 +126,41 @@ void PngLoader::loadImage( Image &I )
 
    data = png_get_rows(png, info);
 
-   I.init(info->width, info->height);
+   I.init(png_get_image_width(png, info), png_get_image_height(png, info));
 
    int w = I.getWidth(), h = I.getHeight();
+   int pd = info->pixel_depth;
 
    for (i = 0; i < h; i++)
    { 
       for (j = 0; j < w; j++)
       {
-         if (info->pixel_depth == 1)
+         if (pd == 1)
          {
             byte pix = ((data[i][j / 8]) & (1 << (7 - j % 8))) > 0;
             r = g = b = (pix) ? 255 : 0;
             I.getByte(j, i) = (byte)(0.299f * r + 0.114f * b + 0.587f * g);
          }
-         else if (info->pixel_depth == 8)
+         else if (pd == 8)
          {
             r = g = b = data[i][j];
             I.getByte(j, i) = (byte)(0.299f * r + 0.114f * b + 0.587f * g);
          }
-         else if (info->pixel_depth == 16)
+         else if (pd == 16)
          {
             int color = 
                (((data[i][2 * j] << 8) | data[i][2 * j + 1]) / (double)((1 << 16) - 1)) * 255.0;
 
             I.getByte(j, i) = (byte)(color);
          }
-         else if (info->pixel_depth == 24)
+         else if (pd == 24)
          {
             r = data[i][j * 3];
             g = data[i][j * 3 + 1];
             b = data[i][j * 3 + 2];
             I.getByte(j, i) = (byte)(0.299f * r + 0.114f * b + 0.587f * g);
          }
-         else if (info->pixel_depth == 32)
+         else if (pd == 32)
          {
             r = data[i][j * 4];
             g = data[i][j * 4 + 1];
