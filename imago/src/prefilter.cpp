@@ -206,7 +206,8 @@ void prefilterFile (const char *filename, Image &img)
                   disp += sqrdist;
                }
             }
-         if (radius < 1 || sqrt(disp) / radius < 2.5f)
+         disp /= npoints;
+         if (radius < 1 || (npoints < 20) || (npoints < 40 && sqrt(disp) / radius < 0.6f))
          {
             fprintf(stderr, "removing segment: npoints = %d, radius = %f, stddev = %f\n", npoints, radius, sqrt(disp));
             for (i = 0; i < sw; i++)
