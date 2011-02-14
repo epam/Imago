@@ -47,8 +47,6 @@ if(WIN32)
     src/thread_local_win.cpp
     src/lock_win.cpp
     )
-  include_directories(../libpng/src/)
-  target_link_libraries(imago_static png_local)
 else(WIN32)
   list(APPEND SRC
     src/thread_local_posix.cpp
@@ -57,7 +55,8 @@ else(WIN32)
 endif(WIN32)
 
 include_directories(..)
-include_directories(../libjpeg/src/)
+include_directories(${PNG_INCLUDE_DIR})
+include_directories(${JPEG_INCLUDE_DIR})
 include_directories(../leptonlib/src/)
 
 if(EMBED_FONT)
@@ -65,4 +64,4 @@ if(EMBED_FONT)
 endif(EMBED_FONT)
 
 add_library(imago_static STATIC ${SRC})
-target_link_libraries(imago_static jpeg_local leptonica ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(imago_static leptonica ${PNG_LIRARIES} ${JPEG_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
