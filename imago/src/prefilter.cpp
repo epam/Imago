@@ -3,6 +3,9 @@
 #include "log.h"
 #include "current_session.h"
 #include "exception.h"
+#include "segmentator.h"
+#include "output.h"
+#include "png_saver.h"
 
 namespace imago
 {
@@ -160,6 +163,65 @@ void prefilterFile (const char *filename, Image &img)
       }
 
    pixDestroy(&pix);
+
+   SegmentDeque segments;
+   Segmentator::segmentate(img, segments);
+   for (SegmentDeque::iterator it = segments.begin(); it != segments.end(); ++it)
+   {
+      Segment *seg = *it;
+      
+      int sw = seg->getWidth();
+      int sh = seg->getHeight();
+      
+      int sum_x = 0, sum_y = 0;
+      int npoints = 0;
+
+      for (i = 0; i < sw; i++)
+         for (j = 0; j < sh; j++)
+         {
+            byte val = seg->getByte(i, j);
+            if (val == 0)
+            {
+               sum_x += i;
+               sum_y += j;
+               npoints++;
+            }
+         }
+      if (npoints > 0) // (can not be zero)
+      {
+         float avg_x = sum_x / (float)npoints;
+         float avg_y = sum_y / (float)npoints;
+         float radius = 0;
+         float disp = 0;
+         
+         for (i = 0; i < sw; i++)
+            for (j = 0; j < sh; j++)
+            {
+               byte val = seg->getByte(i, j);
+               if (val == 0)
+               {
+                  float sqrdist = (i - avg_x) * (i - avg_x) + (j - avg_y) * (j - avg_y);
+                  if (radius < sqrt(sqrdist))
+                     radius = sqrt(sqrdist);
+                  disp += sqrdist;
+               }
+            }
+         if (radius < 1 || sqrt(disp) / radius < 2.5f)
+         {
+            fprintf(stderr, "removing segment: npoints = %d, radius = %f, stddev = %f\n", npoints, radius, sqrt(disp));
+            for (i = 0; i < sw; i++)
+               for (j = 0; j < sh; j++)
+               {
+                  byte val = seg->getByte(i, j);
+                  if (val == 0)
+                     img.getByte(seg->getX() + i, seg->getY() + j) = 255;
+               }
+         }
+      }
+   }
+   FileOutput output("06_after_spots_removal.png");
+   PngSaver saver(output);
+   saver.saveImage(img);
 }
 
 }
