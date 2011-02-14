@@ -220,7 +220,12 @@ JNICEXPORT void JNINAME(loadAndFilterJpgFile) ( JNIEnv *env, jobject thiz, jstri
 {
    setSession(env, thiz);
    const char *filename = env->GetStringUTFChars(jfilename, 0);
+   LogData data;
+   data.env = env;
+   data.thiz = thiz;
+   imagoSetSessionSpecificData(&data);
    int ret = imagoLoadAndFilterJpgFile(filename);
+   imagoSetSessionSpecificData(0);
    env->ReleaseStringUTFChars(jfilename, filename);
    if (!ret)
       throwImagoException(env);

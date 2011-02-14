@@ -73,7 +73,7 @@ void prefilterFile (const char *filename, Image &img)
       LPRINT(0, "converting to gray");
       PIX *newpix = pixConvertRGBToLuminance(pix);
       if (newpix == NULL)
-         throw Exception("pixScaleByIntSubsampling failed");
+         throw Exception("pixConvertRGBToLuminance failed");
       pixDestroy(&pix);
       pix = newpix;
       pixWritePng("01_after_subsampling.png", pix, 1);
@@ -83,75 +83,16 @@ void prefilterFile (const char *filename, Image &img)
    h = pixGetHeight(pix);
 
    {
-      _unsharpMask(pix, 7, 2.1, 0);
-      pixWritePng("02_after_unsharp.png", pix, 1);
+      LPRINT(0, "adding constant gray");
+      if (pixAddConstantGray(pix, 64) != 0)
+         throw Exception("pixAddConstantGray failed");
+      pixWritePng("03_after_adding_constant_gray.png", pix, 1);
    }
 
    {
-      int radius = 3;
-      LPRINT(0, "blurring");
-      PIX *newpix = pixBlockconvGray(pix, NULL, radius, radius);
-      if (newpix == NULL)
-         throw Exception("pixBlockconvGray failed");
-      pixDestroy(&pix);
-      pix = newpix;
-      pixWritePng("03_after_blur.png", pix, 1);
-   }
-
-   {
-      LPRINT(0, "increasing contrast");
-      NUMA *na = pixGetGrayHistogram(pix, 1);
-      int hsize = numaGetCount(na);
-      l_int32 * histogram = numaGetIArray(na);
-      int min_color = 0, max_color = hsize - 1, maxn = histogram[max_color];
-      int i, j;
-
-      for (i = 0; i < hsize; i++)
-      {
-         if (i > 32 && histogram[i] >= maxn)
-         {
-            max_color = i;
-            maxn = histogram[i];
-         }
-         if (min_color == 0 && histogram[i] >= 100)
-            min_color = i;
-      }
-      
-      if (max_color > min_color)
-      {
-         for (i = 0; i < w; i++)
-            for (j = 0; j < h; j++)
-            {
-               l_uint32 val;
-               if (pixGetPixel(pix, i, j, &val) != 0)
-                  throw Exception("leptonica getpixel (3)");
-               
-               if (val < min_color)
-                  val = 0;
-               if (val > max_color)
-                  val = 255;
-               else
-                  val = (l_uint32)(255.f * (val - min_color) / ((float)max_color - min_color));
-               pixSetPixel(pix, i, j, val);
-            }
-      }
-      pixWritePng("04_after_contrast.png", pix, 1);
-   }
-   
-   {
-      int radius = 3;
-      LPRINT(0, "blurring again");
-      PIX *newpix = pixBlockconvGray(pix, NULL, radius, radius);
-      if (newpix == NULL)
-         throw Exception("pixBlockconvGray failed");
-      pixDestroy(&pix);
-      pix = newpix;
-      pixWritePng("05_after_second_blur.png", pix, 1);
-   }
-
-   {
-      _unsharpMask(pix, 40, 9.f, 100);
-      pixWritePng("06_after_second_unsharp.png", pix, 1);
+      LPRINT(0, "unsharp mask");
+      _unsharpMask(pix, 10, 4, 0);
+      pixWritePng("04_after_unsharp_mask.png", pix, 1);
    }
 
    {
@@ -170,7 +111,7 @@ void prefilterFile (const char *filename, Image &img)
 
             pixSetPixel(pix, i, j, val);
          }
-      pixWritePng("07_after_binarization.png", pix, 1);
+      pixWritePng("05_after_binarization.png", pix, 1);
    }
 
    img.init(w, h);
