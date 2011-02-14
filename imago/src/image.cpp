@@ -271,16 +271,6 @@ void Image::init( int width, int height )
    _data = new byte[_width * _height];
 }
 
-const byte &Image::operator[]( int i ) const
-{
-   return _data[i];
-}
-
-byte &Image::operator[]( int i )
-{
-   return _data[i];
-}
-
 /**
  * @brief   Query if this object is initialized.
  * 

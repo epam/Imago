@@ -28,7 +28,7 @@ set(SRC
   src/convolver.cpp
   src/segment.cpp
   src/image.cpp
-  src/fourier_descriptors_extractor.cpp
+  src/fourier_descriptors.cpp
   src/separator.cpp
   src/image_draw_utils.cpp
   src/algebra.cpp
@@ -40,6 +40,8 @@ set(SRC
   src/rectangle.cpp
   src/character_recognizer.cpp
   src/prefilter.cpp
+  src/contour_extractor.cpp
+  src/orientation_finder.cpp
 )
 
 if(WIN32)

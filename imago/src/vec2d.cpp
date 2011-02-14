@@ -98,6 +98,11 @@ void Vec2d::middle( const Vec2d &b, const Vec2d &e )
    interpolate(b, e, 0.5);
 }
 
+bool Vec2d::operator ==( const Vec2d &other ) const
+{
+   return fabs(x - other.x) < EPS && fabs(y - other.y) < EPS;
+}
+
 void Vec2d::scale( double s )
 {
    x *= s;

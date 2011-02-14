@@ -12,7 +12,6 @@ namespace imago
    class CharacterRecognizer
    {
    public:
-      static std::string upper, lower, digits;
       CharacterRecognizer( int k );
       CharacterRecognizer( int k, const std::string &filename );
 
@@ -21,8 +20,10 @@ namespace imago
 
       char recognize( const Segment &seg, const std::string &candidates,
                       double *err = 0) const;
+      inline int getDescriptorsCount() const {return _count;}
       ~CharacterRecognizer();
 
+      static const std::string upper, lower, digits;
    private:
       bool _loaded;
       void _loadBuiltIn();

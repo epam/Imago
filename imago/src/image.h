@@ -49,9 +49,10 @@ namespace imago
       const int &getHeight() const;
       byte &getByte( int i, int j );
       const byte &getByte( int i, int j ) const;
-      const byte &operator[]( int i ) const;
-      byte &operator[]( int i );
-      byte *getData() { return _data; }
+      inline const byte &operator[]( int i ) const {return _data[i];}
+      inline byte &operator[]( int i ) {return _data[i];}
+      inline byte const * const getData() const {return _data;}
+      inline byte *getData() { return _data; }
 
       //Copy
       void copy( const Image &other );

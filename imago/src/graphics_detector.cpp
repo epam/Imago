@@ -29,7 +29,7 @@
 #include "convolver.h"
 #include "binarizer.h"
 #include "molecule.h"
-#include "fourier_descriptors_extractor.h"
+#include "fourier_descriptors.h"
 #include "recognition_settings.h"
 #include "font.h"
 #include "current_session.h"
@@ -201,7 +201,7 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring
    ImageDrawUtils::putCircle(circle, 50, 50, 40, 0);
    circle.crop();
    
-   FourierDescriptorsExtractor::getDescriptors(&circle, 10, circle_descriptors);
+   FourierDescriptors::calculate(&circle, 10, circle_descriptors);
    circle_count = _countBorderBlackPoints(circle);
 
    Image img;
@@ -227,7 +227,7 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring
          
          try 
          {
-            FourierDescriptorsExtractor::getDescriptors(&tmp, 5,
+            FourierDescriptors::calculate(&tmp, 5,
                                                         tmp_descriptors);
          }
          catch (Exception &e)

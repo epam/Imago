@@ -45,7 +45,7 @@ namespace imago
           init = other.init;
        }
        bool isInit() { return init; }
-    private:
+    //private:
        bool init;
     };
 }

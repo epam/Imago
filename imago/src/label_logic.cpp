@@ -246,8 +246,7 @@ void LabelLogic::process( Segment *seg, int line_y )
          if (_cur_atom->label_first == 0)
          {
             if (seg->getFeatures().recognizable)
-               index_val = _cr.recognize(*seg,
-                                         CharacterRecognizer::digits) - '0';
+               index_val = _cr.recognize(*seg, CharacterRecognizer::digits) - '0';
             else
                index_val = 0;
             _cur_atom->isotope = _cur_atom->isotope * 10 + index_val;

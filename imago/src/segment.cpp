@@ -19,7 +19,7 @@
 #include "rectangle.h"
 #include "segment.h"
 #include "vec2d.h"
-#include "fourier_descriptors_extractor.h"
+#include "fourier_descriptors.h"
 #include "segmentator.h"
 #include "output.h"
 #include "png_saver.h"
@@ -144,7 +144,7 @@ void Segment::initFeatures( int descriptorsCount ) const
 
    try
    {
-      FourierDescriptorsExtractor::getDescriptors(this, descriptorsCount,
+      FourierDescriptors::calculate(this, descriptorsCount,
                                                   _features.descriptors);
 
       //Searching for inner contours
@@ -183,7 +183,7 @@ void Segment::initFeatures( int descriptorsCount ) const
          if (seg != 0)
          {
             std::vector<double> &descr = _features.inner_descriptors[i++];
-            FourierDescriptorsExtractor::getDescriptors(seg, descriptorsCount, descr);
+            FourierDescriptors::calculate(seg, descriptorsCount, descr);
          }
       }
       _features.recognizable = true;

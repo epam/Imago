@@ -10,10 +10,9 @@
 #include "exception.h"
 
 using namespace imago;
-
-std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-std::string CharacterRecognizer::lower = "abcdefghijklmnopqrstuvwxyz";
-std::string CharacterRecognizer::digits = "0123456789";
+const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const std::string CharacterRecognizer::lower = "abcdefghijklmnopqrstuvwxyz";
+const std::string CharacterRecognizer::digits = "0123456789";
 
 CharacterRecognizer::CharacterRecognizer( int k ) : _loaded(false), _k(k)
 {
@@ -67,11 +66,14 @@ double CharacterRecognizer::_compareDescriptors( const std::vector<double> &d1,
 double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
                                               const SymbolFeatures &f2 )
 {
+   double d = _compareDescriptors(f1.descriptors, f2.descriptors);
+
+   if (f1.inner_contours_count == -1 || f2.inner_contours_count == -1)
+      return sqrt(d);
+
    if (f1.inner_contours_count != f2.inner_contours_count)
       return DBL_MAX;
    
-   double d = _compareDescriptors(f1.descriptors, f2.descriptors);
-
    for (int i = 0; i < f1.inner_contours_count; i++)
       d += _compareDescriptors(f1.inner_descriptors[i],
                                f2.inner_descriptors[i]);

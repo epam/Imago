@@ -109,6 +109,8 @@ namespace imago
 
       void middle( const Vec2d &b, const Vec2d &e );
 
+      bool operator== ( const Vec2d &other ) const;
+
       /**
        * @brief Scales vector
        *

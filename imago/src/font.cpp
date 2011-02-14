@@ -22,7 +22,7 @@
 
 #include "exception.h"
 #include "font.h"
-#include "fourier_descriptors_extractor.h"
+#include "fourier_descriptors.h"
 #include "png_loader.h"
 #include "image.h"
 #include "segment.h"

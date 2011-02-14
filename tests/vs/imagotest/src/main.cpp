@@ -11,7 +11,7 @@
 #include "image.h"
 #include "png_loader.h"
 #include "png_saver.h"
-#include "fourier_descriptors_extractor.h"
+#include "fourier_descriptors.h"
 #include "font.h"
 #include "superatom.h"
 #include "label_combiner.h"
@@ -32,6 +32,7 @@
 #include "session_manager.h"
 #include "current_session.h"
 #include "character_recognizer.h"
+#include "orientation_finder.h"
 
 using namespace imago;
 
@@ -93,11 +94,11 @@ void testFD()
    img1.crop();
    img2.crop();
 
-   FourierDescriptorsExtractor fde(&img1);
+   FourierDescriptors fde(&img1);
 
    try
    {
-      fde.getDescriptors(desc, 10);
+      fde.calculate(desc, 10);
       for(int i = 0; i < 10; i++)
       {
          printf("%lf %lf\n", desc[i * 2], desc[i * 2 + 1]);
@@ -106,7 +107,7 @@ void testFD()
 
       puts("");
       fde.resetImage(&img2);
-      fde.getDescriptors(desc, 10);
+      fde.calculate(desc, 10);
       for(int i = 0; i < 10; i++)
       {
          printf("%lf %lf\n", desc[i * 2], desc[i * 2 + 1]);
@@ -274,7 +275,7 @@ void testContour()
               end = segs.end(); it != end; ++it)
       {
          //Move FDE::_getContour from private to public if running this test
-         //FourierDescriptorsExtractor::_getContour(**it, contour);
+         //FourierDescriptors::_getContour(**it, contour);
          printf("Got contour. Size = %d\n", contour.size());
       }
       LPRINT(1, "Contours");
@@ -436,11 +437,21 @@ void testRotation()
    try
    {
       Image img;
-      ImageUtils::loadImageFromFile(img, "data/mol_images/image439.png");
-      printf("Before: %d %d\n", img.getWidth(), img.getHeight());
-      img.rotate90(false);
-      printf("After: %d %d\n", img.getWidth(), img.getHeight());
-      ImageUtils::saveImageToFile(img, "rot.png");
+      ImageUtils::loadImageFromFile(img, "/home/vsmolov/flamingo_test/rotate/rotate21.png");
+      CharacterRecognizer cr(3);
+
+      //printf("Before: %d %d\n", img.getWidth(), img.getHeight());
+      //img.rotate90(false);
+      //printf("After: %d %d\n", img.getWidth(), img.getHeight());
+      //ImageUtils::saveImageToFile(img, "rot.png");
+
+      SegmentDeque segs;
+      Segmentator::segmentate(img, segs);
+
+      OrientationFinder of(cr);
+      int rot = of.findFromSymbols(segs);
+
+      printf("Orientation %d\n", rot);
    }
    catch (std::exception &e)
    {

@@ -23,19 +23,16 @@ namespace imago
 {
    class Image;
 
-   class FourierDescriptorsExtractor
+   class FourierDescriptors
    {
    public:
       //TODO: change Segment to Contour
-      static void getDescriptors( const Segment *seg, int count,
-                                  std::vector<double> &descriptors );
+      static void calculate( const Segment *seg, int count,
+                             std::vector<double> &descriptors );
       
-   private:
-      static void _getContour( const Image &_img, IntDeque &cont );
-      static void _getBoundaryPolygon( const Image &_img,
-                                       std::vector<Vec2d> &poly );
-      static void _approximatePolygon( std::vector<Vec2d> &poly );
-      static void _drawPolygon( const Image &_img, std::vector<Vec2d> &poly );
+      static void calculate( const Points &contour, int count,
+                             std::vector<double> &descriptor );
+
    };
 }
 
