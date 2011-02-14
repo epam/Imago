@@ -36,6 +36,9 @@ void _unsharpMask (PIX *pix, int radius, float amount, int threshold)
          if (diff < threshold && diff > -threshold)
             diff = 0;
 
+         if (diff > 0)
+            diff = 0;
+         
          int newval = (int)val + diff * amount;
          if (newval > 255)
             newval = 255;
@@ -78,20 +81,49 @@ void prefilterFile (const char *filename, Image &img)
       pix = newpix;
       pixWritePng("01_after_subsampling.png", pix, 1);
    }
+   
+   {
+      LPRINT(0, "blurring");
+      PIX *newpix = pixBlockconvGray(pix, NULL, 1, 1);
+      if (newpix == NULL)
+         throw Exception("gaussian blur failed");
+      pixDestroy(&pix);
+      pix = newpix;
+      pixWritePng("02_after_blur.png", pix, 1);
+   }
 
    w = pixGetWidth(pix);
    h = pixGetHeight(pix);
 
    {
-      LPRINT(0, "adding constant gray");
-      if (pixAddConstantGray(pix, 64) != 0)
-         throw Exception("pixAddConstantGray failed");
-      pixWritePng("03_after_adding_constant_gray.png", pix, 1);
+      l_float32 avg;
+
+      if (pixGetAverageMasked(pix, 0, 0, 0, 1, L_MEAN_ABSVAL, &avg) != 0)
+         throw Exception("pixGetAverageMasked failed");
+      
+      fprintf(stderr, "average brightness = %f\n", avg);
+      if (avg < 164)
+      {
+         LPRINT(0, "adding constant gray");
+         if (pixAddConstantGray(pix, 164 - avg) != 0)
+            throw Exception("pixAddConstantGray failed");
+      }
    }
+   
+   /*{
+      LPRINT(0, "normalization");
+      PIX *newpix = pixBackgroundNorm(pix, NULL, NULL, 200, 200, 0, 40000, 164, 2, 2);
+      if (newpix == NULL)
+         throw Exception("background norm failed");
+      //pixDestroy(&pix);
+      pix = newpix;
+      }*/
+
+   pixWritePng("03_after_normalization.png", pix, 1);
 
    {
       LPRINT(0, "unsharp mask");
-      _unsharpMask(pix, 10, 4, 0);
+      _unsharpMask(pix, 20, 3, 0);
       pixWritePng("04_after_unsharp_mask.png", pix, 1);
    }
 
