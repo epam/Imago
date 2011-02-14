@@ -46,22 +46,9 @@ import java.nio.ByteBuffer;
 
 public class Ego extends javax.swing.JFrame {
 
-    public interface iSMILES extends Library
-    {
-        public Pointer loadAndProcessJPGImage( String filename, IntByReference width, IntByReference height);
-    }
-    
     /** Creates new form Main */
     public Ego() {
 
-        IsmilesHelper ismh = new IsmilesHelper();
-
-        try {
-            ism = (iSMILES)Native.loadLibrary(ismh.getiSMILESPath(jarDir + File.separator + "lib"),
-                iSMILES.class);
-        }
-        catch (Exception e) {
-        }
 
         initComponents();
         setVisible(true);
@@ -598,21 +585,26 @@ public class Ego extends javax.swing.JFrame {
 
             IntByReference w = new IntByReference(),
                     h = new IntByReference();
-            Pointer jpg_image =
-                    ism.loadAndProcessJPGImage(file.getAbsoluteFile().toString(), w, h);
 
-            byte[] arr = jpg_image.getByteArray(0, w.getValue() * h.getValue());
 
-            imago.loadGreyscaleRawImage(arr, w.getValue(), h.getValue());
+            try
+            {
+               imago.loadAndFilterJpgFile(file.getAbsoluteFile().toString());
+            }
+            catch (Exception e)
+            {
+               e.printStackTrace();
+               return;
+            }
 
             jpg_handwriting = true;
             BufferedImage filtered = new BufferedImage(w.getValue(), h.getValue(), BufferedImage.TYPE_BYTE_GRAY);
 
-            for (int i = 0; i < w.getValue(); i++)
+            /*for (int i = 0; i < w.getValue(); i++)
                 for (int j = 0; j < h.getValue(); j++)
                     filtered.setRGB(i, j, arr[j * w.getValue() + i]);
 
-            filteredImagePanel.setImage(filtered);
+            filteredImagePanel.setImage(filtered);*/
             jMainTabbedPane.setEnabledAt(1, true);
             //jMainTabbedPane.setEnabledAt(2, true);*/
         }
@@ -940,8 +932,6 @@ public class Ego extends javax.swing.JFrame {
     private javax.swing.JPanel jNoResultPanel;
     private javax.swing.JLabel jNoResultLabel;
 
-    private iSMILES ism;
-    
     private boolean recognizing = false;
     private static final Imago imago;
     private boolean jpg_handwriting = false;

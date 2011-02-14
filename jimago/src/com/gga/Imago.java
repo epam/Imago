@@ -78,8 +78,9 @@ public class Imago {
 
     public void setConfig(int num) throws Exception {
         currentConfigId = num;
-        if (setConfigNumber(num) == 0)
-            throw new Exception(getLastError());
+        setConfigNumber(num);
+        //if (setConfigNumber(num) == 0)
+        //    throw new Exception(getLastError());
     }
     
     public void setLogCallback(ImagoLogCallback callback) {
@@ -127,7 +128,7 @@ public class Imago {
 
     private static native void releaseSessionId(long id);
 
-    private native String getLastError();
+    //private native String getLastError();
 
     public native int setFilter(String filter);
 
@@ -147,6 +148,7 @@ public class Imago {
 
     private native void savePNGImageToFile(String filename);
     private native void loadPNGImageFromFile(String filename);
+    public native void loadAndFilterJpgFile (String filename);
 
     public native void recognize();
 

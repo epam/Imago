@@ -112,5 +112,6 @@ CEXPORT int imagoRecognize();
 CEXPORT int imagoSaveMolToBuffer( char **buf, int *buf_size );
 CEXPORT int imagoSaveMolToFile( const char *FileName );
 
+CEXPORT int imagoLoadAndFilterJpgFile( const char *filename );
 
 #endif /* _imago_c_h */

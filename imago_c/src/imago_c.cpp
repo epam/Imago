@@ -42,6 +42,11 @@
                     }                                                        \
                     return 1;
 
+namespace imago
+{
+   void prefilterFile (const char *filename, Image &img);
+}
+
 using namespace imago;
 
 struct RecognitionContext
@@ -159,6 +164,28 @@ CEXPORT int imagoLoadGreyscaleRawImage( const char *buf, const int width, const 
 
    IMAGO_END;
 }
+
+CEXPORT int imagoLoadAndFilterJpgFile( const char *filename )
+{
+   IMAGO_BEGIN;
+   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   Image &img = context->img;
+
+   img.clear();
+   prefilterFile(filename, img);
+} catch ( Exception &e )                                                
+  {                                                                     
+     RecognitionContext *context =                                      
+        (RecognitionContext*)gSession.get()->context();                 
+     std::string &error_buf = context->error_buf;                       
+     error_buf.erase();                                                 
+     ArrayOutput aout(error_buf);                                       
+     aout.writeStringZ(e.what());                                       
+     return 0;                                                          
+  }                                                                     
+return 1;
+}
+
 
 CEXPORT int imagoSavePngImageToFile( const char *filename )
 {

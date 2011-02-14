@@ -215,3 +215,13 @@ JNICEXPORT jstring JNINAME(getResult)( JNIEnv *env, jobject thiz )
    jstring mol = env->NewStringUTF(buf);
    return mol;
 }
+
+JNICEXPORT void JNINAME(loadAndFilterJpgFile) ( JNIEnv *env, jobject thiz, jstring jfilename)
+{
+   setSession(env, thiz);
+   const char *filename = env->GetStringUTFChars(jfilename, 0);
+   int ret = imagoLoadAndFilterJpgFile(filename);
+   env->ReleaseStringUTFChars(jfilename, filename);
+   if (!ret)
+      throwImagoException(env);
+}
