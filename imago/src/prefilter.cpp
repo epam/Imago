@@ -91,6 +91,69 @@ void _copyPixToImage (Image &img, PIX *pix)
       }
 }
 
+void _removeSpots (Image &img)
+{
+   SegmentDeque segments;
+   int i, j;
+   
+   Segmentator::segmentate(img, segments);
+   
+   for (SegmentDeque::iterator it = segments.begin(); it != segments.end(); ++it)
+   {
+      Segment *seg = *it;
+      
+      int sw = seg->getWidth();
+      int sh = seg->getHeight();
+      
+      int sum_x = 0, sum_y = 0;
+      int npoints = 0;
+
+      for (i = 0; i < sw; i++)
+         for (j = 0; j < sh; j++)
+         {
+            byte val = seg->getByte(i, j);
+            if (val == 0)
+            {
+               sum_x += i;
+               sum_y += j;
+               npoints++;
+            }
+         }
+      if (npoints > 0) // (can not be zero)
+      {
+         float avg_x = sum_x / (float)npoints;
+         float avg_y = sum_y / (float)npoints;
+         float radius = 0;
+         float disp = 0;
+         
+         for (i = 0; i < sw; i++)
+            for (j = 0; j < sh; j++)
+            {
+               byte val = seg->getByte(i, j);
+               if (val == 0)
+               {
+                  float sqrdist = (i - avg_x) * (i - avg_x) + (j - avg_y) * (j - avg_y);
+                  if (radius < sqrt(sqrdist))
+                     radius = sqrt(sqrdist);
+                  disp += sqrdist;
+               }
+            }
+         disp /= npoints;
+         if (npoints < 10)
+         {
+            fprintf(stderr, "removing segment: npoints = %d, radius = %f, stddev = %f\n", npoints, radius, sqrt(disp));
+            for (i = 0; i < sw; i++)
+               for (j = 0; j < sh; j++)
+               {
+                  byte val = seg->getByte(i, j);
+                  if (val == 0)
+                     img.getByte(seg->getX() + i, seg->getY() + j) = 255;
+               }
+         }
+      }
+   }
+}
+
 void prefilterFile (const char *filename, Image &img)
 {
    PIX * pix = pixReadJpeg(filename, 0, 1, 0);
@@ -142,10 +205,10 @@ void prefilterFile (const char *filename, Image &img)
          throw Exception("pixGetAverageMasked failed");
       
       fprintf(stderr, "average brightness = %f\n", avg);
-      if (avg < 164)
+      if (avg < 155)
       {
          LPRINT(0, "adding constant gray");
-         if (pixAddConstantGray(pix, 164 - avg) != 0)
+         if (pixAddConstantGray(pix, 155 - avg) != 0)
             throw Exception("pixAddConstantGray failed");
       }
    }
@@ -165,23 +228,24 @@ void prefilterFile (const char *filename, Image &img)
 
    {
       LPRINT(0, "unsharp mask (strong)");
-      _unsharpMask(pix, 10, 5, 0);
+      _unsharpMask(pix, 8, 4, 0);
       pixWritePng("04_after_strong_unsharp_mask.png", pix, 1);
    }
 
    {
-      _binarize(pix, 16);
+      _binarize(pix, 32);
       pixWritePng("05_after_strong_binarization.png", pix, 1);
    }
-   
+
+
    {
       LPRINT(0, "unsharp mask (weak)");
-      _unsharpMask(weakpix, 10, 10, 0);
+      _unsharpMask(weakpix, 10, 12, 0);
       pixWritePng("06_after_weak_unsharp_mask.png", weakpix, 1);
    }
 
    {
-      _binarize(weakpix, 128);
+      _binarize(weakpix, 80);
       pixWritePng("07_after_weak_binarization.png", weakpix, 1);
    }
 
@@ -189,6 +253,14 @@ void prefilterFile (const char *filename, Image &img)
    Image weakimg;
 
    _copyPixToImage(strongimg, pix);
+
+   _removeSpots(strongimg);
+   {
+      FileOutput output("08_after_spots_removal.png");
+      PngSaver saver(output);
+      saver.saveImage(strongimg);
+   }
+
    _copyPixToImage(weakimg, weakpix);
 
    SegmentDeque weak_segments;
@@ -267,66 +339,11 @@ void prefilterFile (const char *filename, Image &img)
       }
    }
 
-   /*
-   for (SegmentDeque::iterator it = segments.begin(); it != segments.end(); ++it)
    {
-      Segment *seg = *it;
-      
-      int sw = seg->getWidth();
-      int sh = seg->getHeight();
-      
-      int sum_x = 0, sum_y = 0;
-      int npoints = 0;
-
-      for (i = 0; i < sw; i++)
-         for (j = 0; j < sh; j++)
-         {
-            byte val = seg->getByte(i, j);
-            if (val == 0)
-            {
-               sum_x += i;
-               sum_y += j;
-               npoints++;
-            }
-         }
-      if (npoints > 0) // (can not be zero)
-      {
-         float avg_x = sum_x / (float)npoints;
-         float avg_y = sum_y / (float)npoints;
-         float radius = 0;
-         float disp = 0;
-         
-         for (i = 0; i < sw; i++)
-            for (j = 0; j < sh; j++)
-            {
-               byte val = seg->getByte(i, j);
-               if (val == 0)
-               {
-                  float sqrdist = (i - avg_x) * (i - avg_x) + (j - avg_y) * (j - avg_y);
-                  if (radius < sqrt(sqrdist))
-                     radius = sqrt(sqrdist);
-                  disp += sqrdist;
-               }
-            }
-         disp /= npoints;
-         if (radius < 1 || (npoints < 20))
-         {
-            fprintf(stderr, "removing segment: npoints = %d, radius = %f, stddev = %f\n", npoints, radius, sqrt(disp));
-            for (i = 0; i < sw; i++)
-               for (j = 0; j < sh; j++)
-               {
-                  byte val = seg->getByte(i, j);
-                  if (val == 0)
-                     img.getByte(seg->getX() + i, seg->getY() + j) = 255;
-               }
-         }
-      }
+      FileOutput output("09_final.png");
+      PngSaver saver(output);
+      saver.saveImage(img);
    }
-   FileOutput output("06_after_spots_removal.png");*/
-
-   FileOutput output("08_final.png");
-   PngSaver saver(output);
-   saver.saveImage(img);
 
 }
 
