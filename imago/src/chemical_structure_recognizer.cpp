@@ -43,6 +43,7 @@
 #include "wedge_bond_extractor.h"
 #include "current_session.h"
 #include "label_logic.h"
+#include "orientation_finder.h"
 
 using namespace imago;
 
@@ -135,11 +136,36 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          ImageUtils::saveImageToFile(_img, "output/real_img.png");
       }
 
+      OrientationFinder of(_cr);
+      int rotation = of.findFromImage(_img);
+      if (rotation != 0)
+         LPRINT(0, "Found rotation %d", 90 * (4 - rotation));
+
+      switch (rotation)
+      {
+         case 1:
+            _img.rotate90();
+            break;
+         case 2:
+            _img.rotate180();
+            break;
+         case 3:
+            _img.rotate90(false);
+      }
+
+      if (rs["DebugSession"])
+      {
+         ImageUtils::saveImageToFile(_img, "output/rotated.png");
+      }
+
       TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
 
-      WedgeBondExtractor wbe(segments, _img); 
-      TIME(wbe.singleDownFetch(mol), "Fetching single-down bonds");
-
+      WedgeBondExtractor wbe(segments, _img);
+      {
+         int sdb_count;
+         TIME(sdb_count = wbe.singleDownFetch(mol), "Fetching single-down bonds");
+         LPRINT(0, "Single-down bonds found: %d", sdb_count);
+      }
       Separator sep(segments, _img);
 
       //Settings for handwriting separation

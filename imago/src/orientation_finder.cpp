@@ -7,6 +7,10 @@
 #include "contour_extractor.h"
 #include "exception.h"
 #include "segmentator.h"
+#include "molecule.h"
+#include "current_session.h"
+#include "wedge_bond_extractor.h"
+#include "separator.h"
 
 namespace imago
 {
@@ -18,12 +22,73 @@ namespace imago
    {
    }
 
+   int OrientationFinder::findFromImage( const Image &img )
+   {
+      Image _img;
+      _img.copy(img);
+      int symbols[4] = {0};
+      double scores[4] = {0.0};
+      double err;
+      static const std::string candidates = CharacterRecognizer::upper +
+                                            CharacterRecognizer::lower +
+                                            "123456";
+
+
+      Molecule mol;
+      SegmentDeque segments, layer_symbols, layer_graphics;
+
+      RecognitionSettings &rs = getSettings();
+      
+      for (int i = 0; i < 4; i++)
+      {
+         if (i > 0)
+            _img.rotate90();
+
+         mol.clear();
+         segments.clear();
+         layer_symbols.clear();
+         layer_graphics.clear();
+
+         Segmentator::segmentate(_img, segments);
+         WedgeBondExtractor wbe(segments, _img);
+         wbe.singleDownFetch(mol);
+
+         Separator sep(segments, _img);
+
+         //Settings for handwriting separation
+         rs.set("SymHeightErr", 42);
+         rs.set("MaxSymRatio", 1.4);
+         sep.firstSeparation(layer_symbols, layer_graphics);
+         symbols[i] = layer_symbols.size();
+         BOOST_FOREACH(Segment *seg, layer_symbols)
+         {
+            _cr.recognize(*seg, candidates, &err);
+            scores[i] += err;
+            delete seg;
+         }
+
+         BOOST_FOREACH(Segment *seg, layer_graphics)
+            delete seg;
+
+         printf("%d %lf %lf\n", symbols[i], scores[i], scores[i] / symbols[i]);
+      }
+
+
+      int r = 0;
+      err = 1e16;
+      for (int i = 0; i < 4; i++)
+         if (symbols[i] > 0 && scores[i] / symbols[i] < err)
+            err = scores[i] / symbols[i], r = i;
+
+      return r;
+   }
+
    int OrientationFinder::findFromSymbols( const SegmentDeque &symbols )
    {
       int rotations[4] = {0};
       double dists[4] = {0.0};
-      int r; char c, cup; double d;
-      static const std::string bioriented = "BCDEHIKNPSUMWZbcdiklnpqsuz";
+      int r, nr; char c, cup; double d;
+      static const std::string bioriented = "BCDEHIKNPSMWZbcdiklnpqsuz";
       std::vector<boost::tuple<int, char, double> > skipped;
       BOOST_FOREACH(Segment *s, symbols)
       {
@@ -39,15 +104,31 @@ namespace imago
          rotations[r]++;
          dists[r] += d;
 
-         if (std::find(bioriented.begin(), bioriented.end(), c) != bioriented.end())
+         if (std::find(bioriented.begin(), bioriented.end(), c) !=
+             bioriented.end())
          {
-            r = (r + 2) % 4;
-            rotations[r]++;
-            dists[r] += d;
+            nr = (r + 2) % 4;
+            rotations[nr]++;
+            dists[nr] += d;
+         }
+         else if (c == 'U')
+         {
+            nr = (r + 1) % 4;
+            rotations[nr]++;
+            dists[nr] += d;
+            nr = (r + 4 - 1) % 4;
+            rotations[nr]++;
+            dists[nr] += d;
          }
       }
 
-      r = -1; d = 1e16;
+#ifndef NDEBUG
+      for (int i = 0; i < 4; i++)
+         printf("%d %lf %lf\n", rotations[i], dists[i],
+                dists[i] / rotations[i]);
+#endif
+
+      r = 0; d = 1e16;
       for (int i = 0; i < 4; i++)
          if (rotations[i] > 0 && dists[i] / rotations[i] < d)
             d = dists[i] / rotations[i], r = i;
@@ -134,6 +215,8 @@ namespace imago
       {
          int in_x = in_seg->getX(), in_y = in_seg->getY(), in_w =
              in_seg->getWidth(), in_h = in_seg->getHeight();
+         delete in_seg;
+         
          if (in_x == 0 || in_y == 0 || in_x + in_w == w || in_y + in_h == h)
             continue;
 
@@ -141,9 +224,11 @@ namespace imago
       }
       features.inner_descriptors.resize(features.inner_contours_count);
 
-      const std::string &candidates = CharacterRecognizer::upper +
-                                      CharacterRecognizer::lower +
-                                      "123456";
+      std::string candidates = CharacterRecognizer::upper +
+                               CharacterRecognizer::lower +
+                               "123456";
+      candidates.erase(candidates.find('U'));
+      candidates.erase(candidates.find('G'));
 
       //Not rotated
       approxContour = contour;

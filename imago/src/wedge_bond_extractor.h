@@ -56,7 +56,7 @@ namespace imago
 
       WedgeBondExtractor( SegmentDeque &segs, Image &img );
 
-      void singleDownFetch( Skeleton &g );
+      int singleDownFetch( Skeleton &g );
       void singleUpFetch( Skeleton &g );
 
       void fixStereoCenters( Molecule &mol ); 

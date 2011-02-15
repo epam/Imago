@@ -432,19 +432,22 @@ void testOCR2( const char *name )
    }
 }
 
-void testRotation()
+namespace imago
+{
+   void prefilterFile( const char *filename, Image &img );
+}
+void testRotation(const char *filename = 0)
 {
    try
    {
+      qword sid = SessionManager::getInstance().allocSID();
+      SessionManager::getInstance().setSID(sid);
+      
       Image img;
+      /*
       ImageUtils::loadImageFromFile(img, "/home/vsmolov/flamingo_test/rotate/rotate1.png");
       CharacterRecognizer cr(3);
-
-      //printf("Before: %d %d\n", img.getWidth(), img.getHeight());
-      //img.rotate90(false);
-      //printf("After: %d %d\n", img.getWidth(), img.getHeight());
-      //ImageUtils::saveImageToFile(img, "rot.png");
-
+      
       SegmentDeque segs;
       Segmentator::segmentate(img, segs);
 
@@ -452,6 +455,31 @@ void testRotation()
       int rot = of.findFromSymbols(segs);
 
       printf("Orientation %d\n", rot);
+      */
+      const char *f = filename ? filename :
+         "/home/vsmolov/flamingo_test/first-delivery-images/photo05.jpg";
+      prefilterFile(f, img);
+
+      img.rotate90();
+
+      getSettings()["DebugSession"] = true;
+      //getSettings()["Filter"] = "blur"; //for 34!
+      ChemicalStructureRecognizer &csr = getRecognizer();
+      Molecule mol;
+
+      csr.image2mol(img, mol);
+      //printf("Before: %d %d\n", img.getWidth(), img.getHeight());
+      //img.rotate90(false);
+      //printf("After: %d %d\n", img.getWidth(), img.getHeight());
+      //ImageUtils::saveImageToFile(img, "rot.png");
+
+      FileOutput fout("molecule.mol");
+      MolfileSaver saver(fout);
+      saver.saveMolecule(mol);
+
+      SessionManager::getInstance().releaseSID(sid);
+
+      
    }
    catch (std::exception &e)
    {
@@ -499,7 +527,7 @@ int main(int argc, char **argv)
    //makeFont();
    //testOCR2(argv[1]);
 
-   testRotation();
+   testRotation(argv[1]);
 
    return 0;
 }

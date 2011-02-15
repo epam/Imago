@@ -70,6 +70,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
       double susp_seg_density = rs["SuspSegDensity"],
              adequate_ratio_max = rs["MaxSymRatio"],
              adequate_ratio_min = rs["MinSymRatio"];
+      
       IntVector seg_marks, suspicious_segments;
       
       /* Classification procedure */

@@ -82,7 +82,7 @@ void WedgeBondExtractor::_fitSingleDownBorders( Vec2d &p1, Vec2d &p2, Vec2d &v1,
       p2 = ic.intersection_point;
 }
 
-void WedgeBondExtractor::singleDownFetch( Skeleton &g )
+int WedgeBondExtractor::singleDownFetch( Skeleton &g )
 {
    int sdb_count = 0;
    double eps = 3.3, angle;
@@ -101,7 +101,7 @@ void WedgeBondExtractor::singleDownFetch( Skeleton &g )
    }
 
    if (segs_info.empty())
-      return;
+      return 0;
 
    for (int i = 0; i != (int)segs_info.size(); i++)
    {
@@ -263,7 +263,7 @@ void WedgeBondExtractor::singleDownFetch( Skeleton &g )
    }
 
    g.recalcAvgBondLength();
-   LPRINT(0, "Single-down bonds found: %d", sdb_count);
+   return sdb_count;
 }
 
 int WedgeBondExtractor::_radiusFinder( const Vec2d &v )

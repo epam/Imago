@@ -15,7 +15,8 @@ namespace imago
    public:
       OrientationFinder( const CharacterRecognizer &cr );
       virtual ~OrientationFinder();
-      virtual int findFromSymbols( const SegmentDeque &symbols );
+      int findFromSymbols( const SegmentDeque &symbols );
+      int findFromImage( const Image &img );
    private:
       boost::tuple<int, char, double> _processSymbol( const Segment &seg );
       void _rotateContourTo( const Vec2d &p, Points &contour );
