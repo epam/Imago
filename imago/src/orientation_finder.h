@@ -19,7 +19,6 @@ namespace imago
    private:
       boost::tuple<int, char, double> _processSymbol( const Segment &seg );
       void _rotateContourTo( const Vec2d &p, Points &contour );
-      const std::string _letters;
       const CharacterRecognizer &_cr;
    };
 }

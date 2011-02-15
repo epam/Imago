@@ -437,7 +437,7 @@ void testRotation()
    try
    {
       Image img;
-      ImageUtils::loadImageFromFile(img, "/home/vsmolov/flamingo_test/rotate/rotate21.png");
+      ImageUtils::loadImageFromFile(img, "/home/vsmolov/flamingo_test/rotate/rotate1.png");
       CharacterRecognizer cr(3);
 
       //printf("Before: %d %d\n", img.getWidth(), img.getHeight());

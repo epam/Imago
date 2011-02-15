@@ -75,8 +75,10 @@ double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
       return DBL_MAX;
    
    for (int i = 0; i < f1.inner_contours_count; i++)
-      d += _compareDescriptors(f1.inner_descriptors[i],
-                               f2.inner_descriptors[i]);
+      if (f1.inner_descriptors[i].size() != 0 &&
+          f2.inner_descriptors[i].size() != 0)
+         d += _compareDescriptors(f1.inner_descriptors[i],
+                                  f2.inner_descriptors[i]);
 
    return sqrt(d);
 }

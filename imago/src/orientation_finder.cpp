@@ -6,10 +6,11 @@
 #include "fourier_descriptors.h"
 #include "contour_extractor.h"
 #include "exception.h"
+#include "segmentator.h"
 
 namespace imago
 {
-   OrientationFinder::OrientationFinder( const CharacterRecognizer &cr ) : _letters(""), _cr(cr)
+   OrientationFinder::OrientationFinder( const CharacterRecognizer &cr ) : _cr(cr)
    {
    }
 
@@ -19,15 +20,39 @@ namespace imago
 
    int OrientationFinder::findFromSymbols( const SegmentDeque &symbols )
    {
+      int rotations[4] = {0};
+      double dists[4] = {0.0};
+      int r; char c, cup; double d;
+      static const std::string bioriented = "BCDEHIKNPSUMWZbcdiklnpqsuz";
+      std::vector<boost::tuple<int, char, double> > skipped;
       BOOST_FOREACH(Segment *s, symbols)
       {
-         int r; char c; double d;
-         boost::tie(r, c, d) = _processSymbol(*s);
+         boost::tuple<int, char, double> tup = _processSymbol(*s);
+         boost::tie(r, c, d) = tup;
          if (r == -1)
             continue;
-         printf("%d %c %lf\n", r, c, d);
+
+         cup = toupper(c);
+         if (cup == 'O' || cup == '0' || cup == 'X')
+            continue;
+
+         rotations[r]++;
+         dists[r] += d;
+
+         if (std::find(bioriented.begin(), bioriented.end(), c) != bioriented.end())
+         {
+            r = (r + 2) % 4;
+            rotations[r]++;
+            dists[r] += d;
+         }
       }
-      return 123;
+
+      r = -1; d = 1e16;
+      for (int i = 0; i < 4; i++)
+         if (rotations[i] > 0 && dists[i] / rotations[i] < d)
+            d = dists[i] / rotations[i], r = i;
+
+      return r;
    }
 
    boost::tuple<int, char, double>
@@ -100,19 +125,32 @@ namespace imago
       assert(std::find(contour.begin(), contour.end(), dr) != contour.end());
 
       features.init = features.recognizable = 1;
-      features.inner_contours_count = -1;
+      //TODO:It's copied from Segment::initFeatures
+      //Segment's inner parts
+      features.inner_contours_count = 0;
+      SegmentDeque segments;
+      Segmentator::segmentate(seg, segments, 3, 255); //all white parts
+      BOOST_FOREACH(Segment *in_seg, segments)
+      {
+         int in_x = in_seg->getX(), in_y = in_seg->getY(), in_w =
+             in_seg->getWidth(), in_h = in_seg->getHeight();
+         if (in_x == 0 || in_y == 0 || in_x + in_w == w || in_y + in_h == h)
+            continue;
+
+         features.inner_contours_count++;
+      }
+      features.inner_descriptors.resize(features.inner_contours_count);
+
       const std::string &candidates = CharacterRecognizer::upper +
                                       CharacterRecognizer::lower +
-                                      CharacterRecognizer::digits;
+                                      "123456";
 
       //Not rotated
       approxContour = contour;
       contour_ext._approximize(approxContour);
       FourierDescriptors::calculate(approxContour, count, features.descriptors);
       c = _cr.recognize(features, candidates, &d);
-      best_r = 0;
-      best_c = c;
-      best_d = d;
+      best_r = 0, best_c = c, best_d = d;
 
       //Rotated 90 cw
       _rotateContourTo(ur, contour);
@@ -121,7 +159,7 @@ namespace imago
       FourierDescriptors::calculate(approxContour, count, features.descriptors);
       c = _cr.recognize(features, candidates, &d);
       if (d < best_d)
-         best_r = 90, best_c = c, best_d = d;
+         best_r = 1, best_c = c, best_d = d;
 
       //Rotated 180
       _rotateContourTo(dr, contour);
@@ -130,7 +168,7 @@ namespace imago
       FourierDescriptors::calculate(approxContour, count, features.descriptors);
       c = _cr.recognize(features, candidates, &d);
       if (d < best_d)
-         best_r = 180, best_c = c, best_d = d;
+         best_r = 2, best_c = c, best_d = d;
 
       //Rotated 90 ccw (270)
       _rotateContourTo(dl, contour);
@@ -139,7 +177,7 @@ namespace imago
       FourierDescriptors::calculate(approxContour, count, features.descriptors);
       c = _cr.recognize(features, candidates, &d);
       if (d < best_d)
-         best_r = 270, best_c = c, best_d = d;
+         best_r = 3, best_c = c, best_d = d;
 
       return boost::make_tuple(best_r, best_c, best_d);
    }
