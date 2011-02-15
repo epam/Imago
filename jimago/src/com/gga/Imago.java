@@ -149,6 +149,9 @@ public class Imago {
     private native void savePNGImageToFile(String filename);
     private native void loadPNGImageFromFile(String filename);
     public native void loadAndFilterJpgFile (String filename);
+    public native byte[] getPrefilteredImage ();
+    public native int getPrefilteredImageWidth ();
+    public native int getPrefilteredImageHeight ();
 
     public native void recognize();
 

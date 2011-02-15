@@ -583,13 +583,15 @@ public class Ego extends javax.swing.JFrame {
         {
             documentPanel.setCareful();
 
-            IntByReference w = new IntByReference(),
-                    h = new IntByReference();
-
+            byte[] arr;
+            int w, h;
 
             try
             {
                imago.loadAndFilterJpgFile(file.getAbsoluteFile().toString());
+               arr = imago.getPrefilteredImage();
+               w = imago.getPrefilteredImageWidth();
+               h = imago.getPrefilteredImageHeight();
             }
             catch (Exception e)
             {
@@ -598,13 +600,13 @@ public class Ego extends javax.swing.JFrame {
             }
 
             jpg_handwriting = true;
-            BufferedImage filtered = new BufferedImage(w.getValue(), h.getValue(), BufferedImage.TYPE_BYTE_GRAY);
+            BufferedImage filtered = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
 
-            /*for (int i = 0; i < w.getValue(); i++)
-                for (int j = 0; j < h.getValue(); j++)
-                    filtered.setRGB(i, j, arr[j * w.getValue() + i]);
+            for (int i = 0; i < w; i++)
+                for (int j = 0; j < h; j++)
+                    filtered.setRGB(i, j, arr[j * w + i]);
 
-            filteredImagePanel.setImage(filtered);*/
+            filteredImagePanel.setImage(filtered);
             jMainTabbedPane.setEnabledAt(1, true);
             //jMainTabbedPane.setEnabledAt(2, true);*/
         }

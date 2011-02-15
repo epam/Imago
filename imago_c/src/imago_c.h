@@ -113,5 +113,7 @@ CEXPORT int imagoSaveMolToBuffer( char **buf, int *buf_size );
 CEXPORT int imagoSaveMolToFile( const char *FileName );
 
 CEXPORT int imagoLoadAndFilterJpgFile( const char *filename );
+CEXPORT int imagoGetPrefilteredImageSize (int *width, int *height);
+CEXPORT int imagoGetPrefilteredImage (unsigned char **data, int *width, int *height);
 
 #endif /* _imago_c_h */

@@ -230,3 +230,34 @@ JNICEXPORT void JNINAME(loadAndFilterJpgFile) ( JNIEnv *env, jobject thiz, jstri
    if (!ret)
       throwImagoException(env);
 }
+
+JNICEXPORT jint JNINAME(getPrefilteredImageWidth)( JNIEnv *env, jobject thiz )
+{
+   setSession(env, thiz);
+   int w, h;
+   if (!imagoGetPrefilteredImageSize(&w, &h))
+      throwImagoException(env);
+   return w;
+}
+
+JNICEXPORT jint JNINAME(getPrefilteredImageHeight)( JNIEnv *env, jobject thiz )
+{
+   setSession(env, thiz);
+   int w, h;
+   if (!imagoGetPrefilteredImageSize(&w, &h))
+      throwImagoException(env);
+   return h;
+}
+
+JNICEXPORT jbyteArray JNINAME(getPrefilteredImage)( JNIEnv *env, jobject thiz )
+{
+   setSession(env, thiz);
+   unsigned char *buf;
+   int w, h;
+   if (!imagoGetPrefilteredImage(&buf, &w, &h))
+      throwImagoException(env);
+   jbyteArray jbuf = env->NewByteArray(w * h);
+   env->SetByteArrayRegion(jbuf, 0, w * h, (jbyte *)buf);
+   //free(buf);
+   return jbuf;
+}

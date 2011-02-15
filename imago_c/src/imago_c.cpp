@@ -173,19 +173,44 @@ CEXPORT int imagoLoadAndFilterJpgFile( const char *filename )
 
    img.clear();
    prefilterFile(filename, img);
-} catch ( Exception &e )                                                
-  {                                                                     
-     RecognitionContext *context =                                      
-        (RecognitionContext*)gSession.get()->context();                 
-     std::string &error_buf = context->error_buf;                       
-     error_buf.erase();                                                 
-     ArrayOutput aout(error_buf);                                       
-     aout.writeStringZ(e.what());                                       
-     return 0;                                                          
-  }                                                                     
-return 1;
+   IMAGO_END;
+   return 1;
 }
 
+CEXPORT int imagoGetPrefilteredImageSize (int *width, int *height)
+{
+   IMAGO_BEGIN;
+   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   Image &img = context->img;
+
+   *height = img.getHeight();
+   *width = img.getWidth();
+   IMAGO_END;
+}
+
+CEXPORT int imagoGetPrefilteredImage (unsigned char **data, int *width, int *height)
+{
+   IMAGO_BEGIN;
+   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   Image &img = context->img;
+   unsigned char *buf = new unsigned char[img.getWidth() * img.getHeight()];
+
+   *height = img.getHeight();
+   *width = img.getWidth();
+
+   for (int j = 0; j != img.getHeight(); j++)
+   {
+      int offset = j * img.getWidth();
+
+      for (int i = 0; i != img.getWidth(); i++)
+      {
+         buf[offset + i] = img.getByte(i, j);
+      }
+   }
+
+   *data = buf;
+   IMAGO_END;
+}
 
 CEXPORT int imagoSavePngImageToFile( const char *filename )
 {

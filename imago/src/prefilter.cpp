@@ -39,9 +39,6 @@ void _unsharpMask (PIX *pix, int radius, float amount, int threshold)
          if (diff < threshold && diff > -threshold)
             diff = 0;
 
-         if (diff > 0)
-            diff = 0;
-         
          int newval = (int)val + diff * amount;
          if (newval > 255)
             newval = 255;
@@ -53,6 +50,46 @@ void _unsharpMask (PIX *pix, int radius, float amount, int threshold)
    pixDestroy(&pixc);
 }
 
+void _binarize (PIX *pix, int threshold)
+{
+   int w = pixGetWidth(pix);
+   int h = pixGetHeight(pix);
+
+   int i, j;
+   for (i = 0; i < w; i++)
+      for (j = 0; j < h; j++)
+      {
+         l_uint32 val;
+         if (pixGetPixel(pix, i, j, &val) != 0)
+            throw Exception("leptonica getpixel (4)");
+         
+         if (val < threshold)
+            val = 0;
+         else
+            val = 255;
+         
+         pixSetPixel(pix, i, j, val);
+      }
+}
+
+void _copyPixToImage (Image &img, PIX *pix)
+{
+   int w = pixGetWidth(pix);
+   int h = pixGetHeight(pix);
+
+   img.init(w, h);
+   int i, j;
+
+   for (i = 0; i < w; i++)
+      for (j = 0; j < h; j++)
+      {
+         l_uint32 val;
+         if (pixGetPixel(pix, i, j, &val) != 0)
+            throw Exception("leptonica getpixel (3)");
+         
+         img.getByte(i, j) = val;
+      }
+}
 
 void prefilterFile (const char *filename, Image &img)
 {
@@ -124,48 +161,113 @@ void prefilterFile (const char *filename, Image &img)
 
    pixWritePng("03_after_normalization.png", pix, 1);
 
+   PIX *weakpix = pixCopy(NULL, pix);
+
    {
-      LPRINT(0, "unsharp mask");
-      _unsharpMask(pix, 20, 3, 0);
-      pixWritePng("04_after_unsharp_mask.png", pix, 1);
+      LPRINT(0, "unsharp mask (strong)");
+      _unsharpMask(pix, 10, 5, 0);
+      pixWritePng("04_after_strong_unsharp_mask.png", pix, 1);
    }
 
    {
-      int i, j;
-      for (i = 0; i < w; i++)
-         for (j = 0; j < h; j++)
-         {
-            l_uint32 val;
-            if (pixGetPixel(pix, i, j, &val) != 0)
-               throw Exception("leptonica getpixel (4)");
-            
-            if (val < 64)
-               val = 0;
-            else
-               val = 255;
-
-            pixSetPixel(pix, i, j, val);
-         }
-      pixWritePng("05_after_binarization.png", pix, 1);
+      _binarize(pix, 16);
+      pixWritePng("05_after_strong_binarization.png", pix, 1);
    }
+   
+   {
+      LPRINT(0, "unsharp mask (weak)");
+      _unsharpMask(weakpix, 10, 10, 0);
+      pixWritePng("06_after_weak_unsharp_mask.png", weakpix, 1);
+   }
+
+   {
+      _binarize(weakpix, 128);
+      pixWritePng("07_after_weak_binarization.png", weakpix, 1);
+   }
+
+   Image strongimg;
+   Image weakimg;
+
+   _copyPixToImage(strongimg, pix);
+   _copyPixToImage(weakimg, weakpix);
+
+   SegmentDeque weak_segments;
+   SegmentDeque strong_segments;
+   Segmentator::segmentate(weakimg, weak_segments);
+   Segmentator::segmentate(strongimg, strong_segments);
+
+   fprintf(stderr, "%d weak segments\n", weak_segments.size());
+   fprintf(stderr, "%d strong segments\n", strong_segments.size());
 
    img.init(w, h);
    int i, j;
 
    for (i = 0; i < w; i++)
       for (j = 0; j < h; j++)
+         img.getByte(i, j) = 255;
+
+   for (SegmentDeque::iterator it = strong_segments.begin();
+        it != strong_segments.end(); ++it)
+   {
+      Segment *seg = *it;
+      
+      int sw = seg->getWidth();
+      int sh = seg->getHeight();
+      
+      int sum_x = 0, sum_y = 0;
+      int npoints = 0;
+      bool found = false;
+
+      for (i = 0; i < sw; i++)
       {
-         l_uint32 val;
-         if (pixGetPixel(pix, i, j, &val) != 0)
-            throw Exception("leptonica getpixel (3)");
-         
-         img.getByte(i, j) = val;
+         for (j = 0; j < sh; j++)
+         {
+            byte val = seg->getByte(i, j);
+            if (val == 0)
+            {
+               int xpos = seg->getX() + i;
+               int ypos = seg->getY() + j;
+               for (SegmentDeque::iterator wit = weak_segments.begin();
+                    wit != weak_segments.end(); ++wit)
+               {
+                  Segment *wseg = *wit;
+                  int wxpos = xpos - wseg->getX();
+                  int wypos = ypos - wseg->getY();
+                  
+                  if (wxpos >= 0 && 
+                      wxpos < wseg->getWidth() &&
+                      wypos >= 0 && wypos < wseg->getHeight())
+                  {
+                     if (wseg->getByte(wxpos, wypos) == 0)
+                     {
+                        int wi, wj;
+                        for (wi = 0; wi < wseg->getWidth(); wi++)
+                           for (wj = 0; wj < wseg->getHeight(); wj++)
+                           {
+                              if (wseg->getByte(wi, wj) == 0)
+                                 img.getByte(wi + wseg->getX(),
+                                             wj + wseg->getY()) = 0;
+                           }
+                        found = true;
+                        break;
+                     }
+                  }
+               }
+            }
+            if (found)
+               break;
+         }
+         if (found)
+            break;
       }
+      if (!found)
+      {
+         // should not happen
+         fprintf(stderr, "weak segment not found\n");
+      }
+   }
 
-   pixDestroy(&pix);
-
-   SegmentDeque segments;
-   Segmentator::segmentate(img, segments);
+   /*
    for (SegmentDeque::iterator it = segments.begin(); it != segments.end(); ++it)
    {
       Segment *seg = *it;
@@ -220,9 +322,12 @@ void prefilterFile (const char *filename, Image &img)
          }
       }
    }
-   FileOutput output("06_after_spots_removal.png");
+   FileOutput output("06_after_spots_removal.png");*/
+
+   FileOutput output("08_final.png");
    PngSaver saver(output);
    saver.saveImage(img);
+
 }
 
 }
