@@ -60,7 +60,7 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
 {
    double space;
    double bl = bondLength();
-   if (bl > 125.0)
+   if (bl > 100.0)
       space = 0.3 * bl;
    else if (bl > 85)
       space = 0.5 * bl;

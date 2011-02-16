@@ -457,7 +457,7 @@ void testRotation(const char *filename = 0)
       printf("Orientation %d\n", rot);
       */
       const char *f = filename ? filename :
-         "/home/vsmolov/flamingo_test/from_caduff_2/IMG_0035.JPG";
+         "/home/vsmolov/flamingo_test/from_caduff_2/IMG_0019.JPG";
       prefilterFile(f, img);
 
       getSettings()["DebugSession"] = true;

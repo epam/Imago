@@ -43,13 +43,14 @@ void Skeleton::setInitialAvgBondLength( double avg_length )
 
    double mult = 0.1;
 
+   printf("S%lf\n", _avg_bond_length);
    //TODO: Stupid temporary fix. We should think about it carefully.
    if (_avg_bond_length < 20)
-      mult = 0.2;
+      mult = 0.3;
    else if (_avg_bond_length < 85)
-      mult = 0.35; //2
-   else if (_avg_bond_length < 110)
-      mult = 0.25; //TODO: handwriting //15
+      mult = 0.175;
+   else if (_avg_bond_length < 100)
+      mult = 0.15; //TODO: handwriting
    else
       mult = 0.3; //TODO: handwriting
 
@@ -70,6 +71,22 @@ void Skeleton::recalcAvgBondLength()
       _avg_bond_length += (boost::get(boost::edge_type, _g, e)).length;
 
    _avg_bond_length /= bonds_num;
+
+   printf("R%lf\n", _avg_bond_length);
+   double mult;
+   //TODO: Desparate copy-paste from above
+   if (_avg_bond_length < 20)
+      mult = 0.3;
+   else if (_avg_bond_length < 85)
+      mult = 0.27;
+   else if (_avg_bond_length < 100)
+      mult = 0.23; //TODO: handwriting
+   else
+      mult = 0.3; //TODO: handwriting
+
+   RecognitionSettings &rs = getSettings();
+   rs.set("AddVertexEps", mult * _avg_bond_length);
+   _addVertexEps = rs["AddVertexEps"];
 }
 
 Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
@@ -180,9 +197,10 @@ void Skeleton::_repairBroken()
    double coef;
    recalcAvgBondLength();
 
+   printf("%lf\n", _avg_bond_length);
    double toSmallErr;
-   if (_avg_bond_length > 125)
-      toSmallErr = 0.08;
+   if (_avg_bond_length > 115)
+      toSmallErr = 0.06;
    else if (_avg_bond_length > 85)
       toSmallErr = 0.13;
    else
@@ -230,7 +248,7 @@ void Skeleton::_repairBroken()
       {
          double angle = Vec2d::angle(v1, v2);
          printf("%lf %lf\n", angle, PI - coef * _parLinesEps);
-         if (angle > PI - coef * _parLinesEps)
+         if (angle > PI - coef * 0.2) // _parLinesEps)
             found = true;
       }
       catch (DivizionByZeroException &)
@@ -564,8 +582,7 @@ void Skeleton::modifyGraph()
     }
 
    recalcAvgBondLength();
-
-   rs.set("AddVertexEps", 0.2 * _avg_bond_length);
+   
    _joinVertices();
    
     if (getSettings()["DebugSession"])

@@ -21,12 +21,13 @@ using namespace imago;
 MultipleBondChecker::MultipleBondChecker( Skeleton &s ) : _s(s), _g(_s.getGraph())
 {
    _avgBondLength = _s.bondLength();
+   printf("B%lf\n", _avgBondLength);
    if (_avgBondLength > 125)
       _multiBondErr = 0.35; //0.18; //handwriting
    else if (_avgBondLength > 85)
       _multiBondErr = 0.4;
    else
-      _multiBondErr = 0.5; //TODO: handwriting, original: 0.4
+      _multiBondErr = 0.7; //TODO: handwriting, original: 0.4
    _parLinesEps = getSettings()["ParLinesEps"];
 }
 
