@@ -47,9 +47,9 @@ void Skeleton::setInitialAvgBondLength( double avg_length )
    if (_avg_bond_length < 20)
       mult = 0.2;
    else if (_avg_bond_length < 85)
-      mult = 0.2;
+      mult = 0.35; //2
    else if (_avg_bond_length < 110)
-      mult = 0.15; //TODO: handwriting
+      mult = 0.25; //TODO: handwriting //15
    else
       mult = 0.3; //TODO: handwriting
 
@@ -180,6 +180,14 @@ void Skeleton::_repairBroken()
    double coef;
    recalcAvgBondLength();
 
+   double toSmallErr;
+   if (_avg_bond_length > 125)
+      toSmallErr = 0.08;
+   else if (_avg_bond_length > 85)
+      toSmallErr = 0.13;
+   else
+      toSmallErr = 0.153;
+
    std::deque<Vertex> toRemove;
 
    BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
@@ -200,14 +208,14 @@ void Skeleton::_repairBroken()
       e2b = getBondInfo(e2);
 
       //changed in "handwriting" to 0.37
-      if (e1b.length < 0.37 * _avg_bond_length &&
-          e2b.length < 0.37 * _avg_bond_length)
+      if (e1b.length < toSmallErr * _avg_bond_length &&
+          e2b.length < toSmallErr * _avg_bond_length)
          continue;
 
       coef = 1.0;
-      if (e1b.length < 0.4 * _avg_bond_length ||
-          e2b.length < 0.4 * _avg_bond_length)
-         coef = 2.5;
+      if (e1b.length < 3 * toSmallErr * _avg_bond_length ||
+          e2b.length < 3 * toSmallErr * _avg_bond_length)
+         coef = 2.7;
 
       Vec2d x_pos, y_pos, v_pos;
       x_pos = boost::get(boost::vertex_pos, _g, x);
@@ -221,6 +229,7 @@ void Skeleton::_repairBroken()
       try
       {
          double angle = Vec2d::angle(v1, v2);
+         printf("%lf %lf\n", angle, PI - coef * _parLinesEps);
          if (angle > PI - coef * _parLinesEps)
             found = true;
       }
@@ -546,6 +555,14 @@ void Skeleton::modifyGraph()
 
     _findMultiple();
     
+    if (getSettings()["DebugSession"])
+    {
+       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+       img.fillWhite();
+       ImageDrawUtils::putGraph(img, _g);
+       ImageUtils::saveImageToFile(img, "output/ggg2z.png");
+    }
+
    recalcAvgBondLength();
 
    rs.set("AddVertexEps", 0.2 * _avg_bond_length);

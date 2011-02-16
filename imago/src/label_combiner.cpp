@@ -107,8 +107,8 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
    {
       next_s = cur_s + 1;
 
-      if (getSettings()["DebugSession"])
-         ImageUtils::saveImageToFile(**cur_s, "output/tmp_fetch.png");
+//      if (getSettings()["DebugSession"])
+//         ImageUtils::saveImageToFile(**cur_s, "output/tmp_fetch.png");
 
       if ((*cur_s)->getHeight() > _cap_height + (int)getSettings()["SymHeightErr"])
          continue;

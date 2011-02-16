@@ -457,10 +457,8 @@ void testRotation(const char *filename = 0)
       printf("Orientation %d\n", rot);
       */
       const char *f = filename ? filename :
-         "/home/vsmolov/flamingo_test/first-delivery-images/photo05.jpg";
+         "/home/vsmolov/flamingo_test/from_caduff_2/IMG_0035.JPG";
       prefilterFile(f, img);
-
-      img.rotate90();
 
       getSettings()["DebugSession"] = true;
       //getSettings()["Filter"] = "blur"; //for 34!

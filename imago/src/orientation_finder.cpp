@@ -70,7 +70,9 @@ namespace imago
          BOOST_FOREACH(Segment *seg, layer_graphics)
             delete seg;
 
+#ifndef NDEBUG
          printf("%d %lf %lf\n", symbols[i], scores[i], scores[i] / symbols[i]);
+#endif
       }
 
 

@@ -22,11 +22,11 @@ MultipleBondChecker::MultipleBondChecker( Skeleton &s ) : _s(s), _g(_s.getGraph(
 {
    _avgBondLength = _s.bondLength();
    if (_avgBondLength > 125)
-      _multiBondErr = 0.18;
+      _multiBondErr = 0.35; //0.18; //handwriting
    else if (_avgBondLength > 85)
       _multiBondErr = 0.4;
    else
-      _multiBondErr = 0.41; //TODO: handwriting, original: 0.4
+      _multiBondErr = 0.5; //TODO: handwriting, original: 0.4
    _parLinesEps = getSettings()["ParLinesEps"];
 }
 
@@ -114,6 +114,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       d = 0.5 * (Algebra::distance2segment(sb_pos, fb_pos, fe_pos) +
                  Algebra::distance2segment(se_pos, fb_pos, fe_pos));
 
+   printf("%lf %lf\n", d,  _multiBondErr * _avgBondLength);
    if (d > _multiBondErr * _avgBondLength)
       return false;
 

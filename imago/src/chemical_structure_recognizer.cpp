@@ -128,6 +128,8 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       //Notice, that there is no supersegmentation procedure
       Image &_img = _origImage;
 
+      _img.crop();
+
       rs.set("imgHeight", _img.getHeight());
       rs.set("imgWidth", _img.getWidth());
 
@@ -135,7 +137,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       {
          ImageUtils::saveImageToFile(_img, "output/real_img.png");
       }
-
+/*
       OrientationFinder of(_cr);
       int rotation = of.findFromImage(_img);
       if (rotation != 0)
@@ -157,7 +159,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       {
          ImageUtils::saveImageToFile(_img, "output/rotated.png");
       }
-
+*/
       TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
 
       WedgeBondExtractor wbe(segments, _img);
@@ -171,7 +173,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       //Settings for handwriting separation
       rs.set("SymHeightErr", 42);      
       rs.set("MaxSymRatio", 1.4);   
-      //rs.set("ParLinesEps", 0.34);
+      rs.set("ParLinesEps", 0.41);
 
       TIME(sep.firstSeparation(layer_symbols, layer_graphics), 
          "Symbols/Graphics elements separation");

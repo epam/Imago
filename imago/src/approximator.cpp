@@ -19,6 +19,7 @@
 #include "approximator.h"
 #include "vec2d.h"
 #include "algebra.h"
+#include "image_utils.h"
 #include "image_draw_utils.h"
 
 using namespace imago;
@@ -27,24 +28,18 @@ void Approximator::apply( const Points &input,Points &output )
 {
    IntVector sample;
    std::vector<_Line> lines;
-
+   std::vector<double> lengths;
+   double ratio, mult;
    output.clear();
 
    _prepare(input, sample);
 
-/*   for (int i = 0; i < (int)sample.size(); i++)
-   {
-      output.push_back(input[sample[i]]);
-   }
-   output.push_back(input.back());
-
-   return;
-printf("wow");*/
- 
    lines.resize(sample.size() - 1);
+   lengths.resize(sample.size() - 1);
    for (int i = 0; i < (int)sample.size() - 1; i++)
    {
       _calc_line(input, sample[i], sample[i + 1], lines[i]);
+      lengths[i] = Vec2d::distance(input[sample[i]], input[sample[i + 1]]);
    }
 
    output.push_back(input[0]);
@@ -53,12 +48,21 @@ printf("wow");*/
       _Line &l1 = lines[i];
       _Line &l2 = lines[i + 1];
 
+      ratio = lengths[i] / lengths[i + 1];
+      if (ratio < 0.3 || ratio > 3.3)
+         mult = 0.6;
+      else if (ratio < 0.7 || ratio > 10.0 / 7)
+         mult = 0.485;
+      else
+         mult = 0.27;
+
       //changed in "handwriting"
-      if (absolute<double>(l1.a * l2.b - l2.a * l1.b) < 0.65) //"Constants"
+      if (absolute<double>(l1.a * l2.b - l2.a * l1.b) < mult) //"Constants" //0.65
       {
          l2.a = (l1.a + l2.a) / 2;
          l2.b = (l1.b + l2.b) / 2;
          l2.c = (l1.c + l2.c) / 2;
+         lengths[i + 1] += lengths[i];
          continue;
       }
       Vec2d v;
@@ -71,7 +75,7 @@ printf("wow");*/
 
 void Approximator::_prepare( const Points &poly, IntVector &sample )
 {
-   double epsilons[2] = {1.33, 1.2}; //"Constants"
+   double epsilons[2] = {1.13, 0.8}; //"Constants" //1.33, 1.2
    double dist = 0;
    sample.push_back(0);
 

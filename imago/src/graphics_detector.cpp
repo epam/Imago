@@ -227,8 +227,7 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring
          
          try 
          {
-            FourierDescriptors::calculate(&tmp, 5,
-                                                        tmp_descriptors);
+            FourierDescriptors::calculate(&tmp, 5, tmp_descriptors);
          }
          catch (Exception &e)
          {
