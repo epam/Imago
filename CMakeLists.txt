@@ -43,3 +43,4 @@ add_subdirectory(alter-ego)
 add_subdirectory(jimago)
 
 add_subdirectory(tests/vs/imagotest)
+add_subdirectory(tests/dp)

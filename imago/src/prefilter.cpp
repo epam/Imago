@@ -349,4 +349,72 @@ void prefilterFile (const char *filename, Image &img)
 
 }
 
+// NOTE: the input image must be thinned
+bool isCircle (Image &seg)
+{
+   int w = seg.getWidth();
+   int h = seg.getHeight();
+   int i, j;
+   float centerx = 0, centery = 0;
+   int npoints = 0;
+      
+   for (i = 0; i < w; i++)
+      for (j = 0; j < h; j++)
+      {
+         if (seg.getByte(i, j) == 0)
+         {
+            centerx += i;
+            centery += j;
+            npoints++;
+         }
+      }
+
+   if (npoints == 0)
+      throw Exception("empty fragment?");
+      
+   centerx /= npoints;
+   centery /= npoints;
+   
+   float *radii = new float[npoints];
+   int k = 0;
+   float avg_radius = 0;
+      
+   for (i = 0; i < w; i++)
+      for (j = 0; j < h; j++)
+      {
+         if (seg.getByte(i, j) == 0)
+         {
+            float radius = sqrt((i - centerx) * (i - centerx) +
+                                (j - centery) * (j - centery));
+            radii[k++] = radius;
+            avg_radius += radius;
+         }
+      }
+
+   avg_radius /= npoints;
+   
+   if (avg_radius < 0.0001)
+   {
+      printf("degenerate\n");
+      return false;
+   }
+
+   float disp = 0;
+   
+   for (i = 0; i < npoints; i++)
+      disp += (radii[i] - avg_radius) * (radii[i] - avg_radius);
+   
+   disp /= npoints;
+   float ratio = sqrt(disp) / avg_radius;
+      
+   printf("avg radius = %f, stddev radius = %f, ratio = %f\n",
+          avg_radius, sqrt(disp), ratio);
+   free(radii);
+   if (ratio < 0.25)
+      return true;
+   //printf("not a circle\n");
+   return false;
+}
+
+
 }
