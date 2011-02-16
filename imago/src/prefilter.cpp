@@ -91,12 +91,12 @@ void _copyPixToImage (Image &img, PIX *pix)
       }
 }
 
-void _removeSpots (Image &img)
+void _removeSpots (Image &img, int validcolor, int max_size)
 {
    SegmentDeque segments;
    int i, j;
    
-   Segmentator::segmentate(img, segments);
+   Segmentator::segmentate(img, segments, 3, validcolor);
    
    for (SegmentDeque::iterator it = segments.begin(); it != segments.end(); ++it)
    {
@@ -121,7 +121,7 @@ void _removeSpots (Image &img)
          }
       if (npoints > 0) // (can not be zero)
       {
-         float avg_x = sum_x / (float)npoints;
+         /*float avg_x = sum_x / (float)npoints;
          float avg_y = sum_y / (float)npoints;
          float radius = 0;
          float disp = 0;
@@ -138,16 +138,17 @@ void _removeSpots (Image &img)
                   disp += sqrdist;
                }
             }
-         disp /= npoints;
-         if (npoints < 10)
+            disp /= npoints;*/
+         if (npoints < max_size)
          {
-            fprintf(stderr, "removing segment: npoints = %d, radius = %f, stddev = %f\n", npoints, radius, sqrt(disp));
+            fprintf(stderr, "removing segment of color %d, npoints = %d\n",
+                    validcolor, npoints);
             for (i = 0; i < sw; i++)
                for (j = 0; j < sh; j++)
                {
                   byte val = seg->getByte(i, j);
                   if (val == 0)
-                     img.getByte(seg->getX() + i, seg->getY() + j) = 255;
+                     img.getByte(seg->getX() + i, seg->getY() + j) = 255 - validcolor;
                }
          }
       }
@@ -237,30 +238,30 @@ void prefilterFile (const char *filename, Image &img)
       pixWritePng("05_after_strong_binarization.png", pix, 1);
    }
 
-
-   {
-      LPRINT(0, "unsharp mask (weak)");
-      _unsharpMask(weakpix, 10, 12, 0);
-      pixWritePng("06_after_weak_unsharp_mask.png", weakpix, 1);
-   }
-
-   {
-      _binarize(weakpix, 80);
-      pixWritePng("07_after_weak_binarization.png", weakpix, 1);
-   }
-
    Image strongimg;
-   Image weakimg;
 
    _copyPixToImage(strongimg, pix);
 
-   _removeSpots(strongimg);
+   _removeSpots(strongimg, 0, 10);
    {
-      FileOutput output("08_after_spots_removal.png");
+      FileOutput output("06_after_spots_removal.png");
       PngSaver saver(output);
       saver.saveImage(strongimg);
    }
 
+
+   {
+      LPRINT(0, "unsharp mask (weak)");
+      _unsharpMask(weakpix, 10, 12, 0);
+      pixWritePng("07_after_weak_unsharp_mask.png", weakpix, 1);
+   }
+
+   {
+      _binarize(weakpix, 80);
+      pixWritePng("08_after_weak_binarization.png", weakpix, 1);
+   }
+
+   Image weakimg;
    _copyPixToImage(weakimg, weakpix);
 
    SegmentDeque weak_segments;
@@ -339,6 +340,7 @@ void prefilterFile (const char *filename, Image &img)
       }
    }
 
+   _removeSpots(img, 255, 2);
    {
       FileOutput output("09_final.png");
       PngSaver saver(output);
