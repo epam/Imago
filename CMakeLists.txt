@@ -17,7 +17,7 @@ else(NOT WIN32)
   set(PNG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/libpng/src)
   set(PNG_LIBRARIES png_local)
   
-  set(JPEG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/libjpeg/src)
+  set(JPEG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/libjpeg)
   set(JPEG_LIBRARIES jpeg_local)
 endif(NOT WIN32)
 

@@ -11,9 +11,13 @@
 #include "current_session.h"
 #include "wedge_bond_extractor.h"
 #include "separator.h"
+#include "image_utils.h"
+#include "thin_filter2.h"
 
 namespace imago
 {
+   bool isCircle (Image &seg);
+
    OrientationFinder::OrientationFinder( const CharacterRecognizer &cr ) : _cr(cr)
    {
    }
@@ -59,11 +63,47 @@ namespace imago
          rs.set("SymHeightErr", 42);
          rs.set("MaxSymRatio", 1.4);
          sep.firstSeparation(layer_symbols, layer_graphics);
-         symbols[i] = layer_symbols.size();
+
+         //printf("ROTATED %d\n", i * 90, layer_symbols.size());
+         //rs.set("MinSymRatio", 0.34);
+         rs.set("MaxSymRatio", 1.81);
          BOOST_FOREACH(Segment *seg, layer_symbols)
          {
-            _cr.recognize(*seg, candidates, &err);
+            double r = seg->getRatio();
+            printf("Ratio %lf\n", r);
+            if (r < (double)rs["MinSymRatio"] || r > (double)rs["MaxSymRatio"])
+            {
+               //printf("Bad ratio! Not a symbol!\n");
+               continue;
+            }
+            if ((double)seg->getHeight() > (int)rs["CapitalHeight"] * 1.7)
+            {
+               //printf("Too height! Not a symbol! %d %lf\n", seg->getHeight(), (int)rs["CapitalHeight"] * 1.7);
+               continue;
+            }
+            char c = _cr.recognize(*seg, candidates, &err);
+
+            if (c != 'C' || c != 'c')
+            {
+               ThinFilter2 tf(*seg);
+               tf.apply();
+
+               if (isCircle(*seg))
+               {
+                  //printf("CIRCLE\n");
+                  continue;
+               }
+            }
+            if (c == '0' || c == 'o' || c == 'O')
+               continue; //Somehow we can reach this place
+
+            //printf("CHAR %c %lf\n", c, err);
+
+            if (err > 2.5)
+               continue;
+
             scores[i] += err;
+            symbols[i]++;
             delete seg;
          }
 
@@ -71,7 +111,7 @@ namespace imago
             delete seg;
 
 #ifndef NDEBUG
-         printf("%d %lf %lf\n", symbols[i], scores[i], scores[i] / symbols[i]);
+         printf("SCORE %d %lf %lf\n", symbols[i], scores[i], scores[i] / symbols[i]);
 #endif
       }
 

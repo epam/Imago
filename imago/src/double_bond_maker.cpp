@@ -242,15 +242,15 @@ DoubleBondMaker::Result DoubleBondMaker::operator()( std::pair<Edge,Edge> edges 
    double fl = bf.length,
           sl = bs.length;
    double mult;
-   printf("A%lf\n", _avgBondLength);
+
    if (_avgBondLength > 100)
       mult = 0.5;
    else if (_avgBondLength > 85)
-      mult = 0.7;
+      mult = 0.75;
    else
       mult = 0.95;
 
-   printf("A%lf %lf\n", fl - sl, mult * _avgBondLength);
+   //printf("SIMPLE OR HARD %lf %lf\n", fl - sl, mult * _avgBondLength);
    if ( fl - sl < mult * _avgBondLength)
       return _simple();
    else

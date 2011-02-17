@@ -43,7 +43,6 @@ void Skeleton::setInitialAvgBondLength( double avg_length )
 
    double mult = 0.1;
 
-   printf("S%lf\n", _avg_bond_length);
    //TODO: Stupid temporary fix. We should think about it carefully.
    if (_avg_bond_length < 20)
       mult = 0.3;
@@ -72,7 +71,6 @@ void Skeleton::recalcAvgBondLength()
 
    _avg_bond_length /= bonds_num;
 
-   printf("R%lf\n", _avg_bond_length);
    double mult;
    //TODO: Desparate copy-paste from above
    if (_avg_bond_length < 20)
@@ -197,7 +195,7 @@ void Skeleton::_repairBroken()
    double coef;
    recalcAvgBondLength();
 
-   printf("%lf\n", _avg_bond_length);
+   //TODO: Tuning here?
    double toSmallErr;
    if (_avg_bond_length > 115)
       toSmallErr = 0.06;
@@ -247,7 +245,6 @@ void Skeleton::_repairBroken()
       try
       {
          double angle = Vec2d::angle(v1, v2);
-         printf("%lf %lf\n", angle, PI - coef * _parLinesEps);
          if (angle > PI - coef * 0.2) // _parLinesEps)
             found = true;
       }

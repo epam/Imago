@@ -137,9 +137,9 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       {
          ImageUtils::saveImageToFile(_img, "output/real_img.png");
       }
-/*
+
       OrientationFinder of(_cr);
-      int rotation = of.findFromImage(_img);
+      int rotation = 0; //of.findFromImage(_img);
       if (rotation != 0)
          LPRINT(0, "Found rotation %d", 90 * (4 - rotation));
 
@@ -159,7 +159,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       {
          ImageUtils::saveImageToFile(_img, "output/rotated.png");
       }
-*/
+
       TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
 
       WedgeBondExtractor wbe(segments, _img);

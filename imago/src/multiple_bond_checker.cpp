@@ -21,7 +21,7 @@ using namespace imago;
 MultipleBondChecker::MultipleBondChecker( Skeleton &s ) : _s(s), _g(_s.getGraph())
 {
    _avgBondLength = _s.bondLength();
-   printf("B%lf\n", _avgBondLength);
+
    if (_avgBondLength > 125)
       _multiBondErr = 0.35; //0.18; //handwriting
    else if (_avgBondLength > 85)
@@ -115,7 +115,6 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       d = 0.5 * (Algebra::distance2segment(sb_pos, fb_pos, fe_pos) +
                  Algebra::distance2segment(se_pos, fb_pos, fe_pos));
 
-   printf("%lf %lf\n", d,  _multiBondErr * _avgBondLength);
    if (d > _multiBondErr * _avgBondLength)
       return false;
 
