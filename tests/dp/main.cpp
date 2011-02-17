@@ -78,12 +78,17 @@ int main(int argc, char **argv)
       qword sid = SessionManager::getInstance().allocSID();
       SessionManager::getInstance().setSID(sid);
 
+      if (argc < 2)
+         throw Exception("no filename given");
+      
+      prefilterFile(argv[1], img);
+
       // all OK
       //prefilterFile("../../../data/from_caduff_2/IMG_0019.JPG", img);
 
       // one false negative at 0.25 threshold
-      // prefilterFile("../../../data/from_caduff_2/IMG_0020.JPG", img);
-
+      //prefilterFile("../../../data/from_caduff_2/IMG_0020.JPG", img);
+      
       // one false negative at 0.25 threshold
       //prefilterFile("../../../data/from_caduff_2/IMG_0021.JPG", img);
 
@@ -102,7 +107,7 @@ int main(int argc, char **argv)
       //prefilterFile("../../../data/from_caduff_2/IMG_0027.JPG", img);
 
       // 1 false negative at 0.25 threshold, 1 false positive (carbon)
-      prefilterFile("../../../data/from_caduff_2/IMG_0028.JPG", img);
+      //prefilterFile("../../../data/from_caduff_2/IMG_0028.JPG", img);
       
       // 1 false positive (carbon)
       // another false positive at 0.3 threshold

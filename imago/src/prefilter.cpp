@@ -357,17 +357,66 @@ bool isCircle (Image &seg)
    int i, j;
    float centerx = 0, centery = 0;
    int npoints = 0;
-      
-   for (i = 0; i < w; i++)
-      for (j = 0; j < h; j++)
+   int max_width = 0, top_width = 0;
+   int *upper_mask = new int[w];
+
+   memset(upper_mask, 0, w * sizeof(int));
+
+   for (j = 0; j < h; j++)
+   {
+      int first_black = -1, last_black = -1;
+      for (i = 0; i < w; i++)
       {
          if (seg.getByte(i, j) == 0)
          {
             centerx += i;
             centery += j;
             npoints++;
+            if (first_black == -1)
+               first_black = i;
+            last_black = i;
+            if (j < h / 2)
+               upper_mask[i] = 1;
          }
       }
+      if (last_black > first_black)
+      {
+         int width_black = last_black - first_black;
+         if (max_width < width_black)
+            max_width = width_black;
+      }
+   }
+
+   //for (i = 0; i < w; i++)
+   //   printf("%d ", upper_mask[i]);
+   //printf("\n");
+
+
+   for (i = 0; i < w; i++)
+      if (upper_mask[i] == 1)
+         break;
+
+   j = i;
+   int width = 0;
+   for (; i < w; i++)
+   {
+      if (upper_mask[i] == 0)
+      {
+         if (i == j + width)
+            width++;
+         else
+         {
+            j = i;
+            width = 1;
+         }
+      }
+      else
+      {
+         if (width > top_width)
+            top_width = width;
+      }
+         
+   }
 
    if (npoints == 0)
       throw Exception("empty fragment?");
@@ -378,6 +427,8 @@ bool isCircle (Image &seg)
    float *radii = new float[npoints];
    int k = 0;
    float avg_radius = 0;
+   int npoints_westquad = 0;
+   int npoints_northquad = 0;
       
    for (i = 0; i < w; i++)
       for (j = 0; j < h; j++)
@@ -388,6 +439,12 @@ bool isCircle (Image &seg)
                                 (j - centery) * (j - centery));
             radii[k++] = radius;
             avg_radius += radius;
+            float cosine = (i - centerx) / radius;
+            float sine = (j - centery) / radius;
+            if (cosine > sqrt(2) / 2 && sine < 0)
+               npoints_westquad++;
+            if (sine > sqrt(2) / 2)
+               npoints_northquad++;
          }
       }
 
@@ -406,14 +463,22 @@ bool isCircle (Image &seg)
    
    disp /= npoints;
    float ratio = sqrt(disp) / avg_radius;
+   float wq_ratio = (float)npoints_westquad / npoints;
+   float nq_ratio = (float)npoints_northquad / npoints;
+   float width_ratio = (float)(top_width + 1) / (max_width + 1);
       
-   printf("avg radius = %f, stddev radius = %f, ratio = %f\n",
-          avg_radius, sqrt(disp), ratio);
-   free(radii);
-   if (ratio < 0.25)
-      return true;
-   //printf("not a circle\n");
-   return false;
+   printf("avgr %.3f dev %.3f ratio %.3f np %d npwq=%d ratio %.3f topw %d maxw %d ratio %.3f\n",
+          avg_radius, sqrt(disp), ratio, npoints, npoints_westquad,
+          wq_ratio, top_width, max_width, width_ratio);
+
+   delete[] radii;
+   if (ratio > 0.3) 
+      return false; // not a circle
+   if (wq_ratio < 0.1) // probably a "C"
+      return false;
+   if (width_ratio > 0.6) // probably an "U" or artistic "N" 
+      return false;
+   return true;
 }
 
 
