@@ -19,6 +19,7 @@
 #include <vector>
 
 #include "segment.h"
+#include "separator.h"
 
 namespace imago
 {

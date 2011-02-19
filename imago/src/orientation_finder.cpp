@@ -33,17 +33,18 @@ namespace imago
       int symbols[4] = {0};
       double scores[4] = {0.0};
       double err;
-      static const std::string candidates = CharacterRecognizer::upper +
-                                            CharacterRecognizer::lower +
-                                            "123456";
-
+      static const std::string candidates =
+         "ABCDFGHIKMNPRSTZ"
+         "abehiklnru"
+         "12356";
 
       Molecule mol;
       SegmentDeque segments, layer_symbols, layer_graphics;
 
       RecognitionSettings &rs = getSettings();
-      
-      for (int i = 0; i < 4; i++)
+      int i;
+
+      for (i = 0; i < 4; i++)
       {
          if (i > 0)
             _img.rotate90();
@@ -70,59 +71,53 @@ namespace imago
          BOOST_FOREACH(Segment *seg, layer_symbols)
          {
             double r = seg->getRatio();
-            printf("Ratio %lf\n", r);
+            printf("  got a segment, ratio %lf: ", r);
             if (r < (double)rs["MinSymRatio"] || r > (double)rs["MaxSymRatio"])
             {
-               //printf("Bad ratio! Not a symbol!\n");
+               printf("bad ratio, not a symbol\n");
                continue;
             }
-            if ((double)seg->getHeight() > (int)rs["CapitalHeight"] * 1.7)
+            /*if ((double)seg->getHeight() > (int)rs["CapitalHeight"] * 1.7)
             {
                //printf("Too height! Not a symbol! %d %lf\n", seg->getHeight(), (int)rs["CapitalHeight"] * 1.7);
                continue;
-            }
-            char c = _cr.recognize(*seg, candidates, &err);
+              }*/
 
-            if (c != 'C' || c != 'c')
-            {
-               ThinFilter2 tf(*seg);
-               tf.apply();
+            char c = _hwcr.recognize(*seg);
 
-               if (isCircle(*seg))
-               {
-                  //printf("CIRCLE\n");
-                  continue;
-               }
-            }
-            if (c == '0' || c == 'o' || c == 'O')
-               continue; //Somehow we can reach this place
+            if (c == -1)
+               printf(" not recognized\n");
+            else
+               printf(" '%c'\n", c);
+           
+            if (c == 'O')
+               scores[i] += 0.9;
+            else if (strchr("CNPSF", c) != NULL)
+               scores[i] += 1.0;
+            else if (strchr("23456", c) != NULL)
+               scores[i] += 0.3;
+            else if (c != -1)
+               scores[i] += 0.5;
 
-            //printf("CHAR %c %lf\n", c, err);
-
-            if (err > 2.5)
-               continue;
-
-            scores[i] += err;
-            symbols[i]++;
+            //scores[i] += err;
+            //symbols[i]++;
             delete seg;
          }
 
          BOOST_FOREACH(Segment *seg, layer_graphics)
             delete seg;
 
-#ifndef NDEBUG
-         printf("SCORE %d %lf %lf\n", symbols[i], scores[i], scores[i] / symbols[i]);
-#endif
+         printf("  score: %lf\n", scores[i]);
       }
 
+      int max = 0;
+      for (i = 1; i < 4; i++)
+      {
+         if (scores[i] > scores[max] + 0.001)
+            max = i;
+      }
 
-      int r = 0;
-      err = 1e16;
-      for (int i = 0; i < 4; i++)
-         if (symbols[i] > 0 && scores[i] / symbols[i] < err)
-            err = scores[i] / symbols[i], r = i;
-
-      return r;
+      return max;
    }
 
    int OrientationFinder::findFromSymbols( const SegmentDeque &symbols )

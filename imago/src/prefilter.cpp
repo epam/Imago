@@ -6,6 +6,9 @@
 #include "segmentator.h"
 #include "output.h"
 #include "png_saver.h"
+#include "orientation_finder.h"
+
+#undef DEBUG
 
 namespace imago
 {
@@ -152,8 +155,10 @@ void _removeSpots (Image &img, int validcolor, int max_size)
             disp /= npoints;*/
          if (npoints < max_size)
          {
+            #ifdef DEBUG
             fprintf(stderr, "removing segment of color %d, npoints = %d\n",
                     validcolor, npoints);
+            #endif
             for (i = 0; i < sw; i++)
                for (j = 0; j < sh; j++)
                {
@@ -165,6 +170,8 @@ void _removeSpots (Image &img, int validcolor, int max_size)
       }
    }
 }
+
+   static CharacterRecognizer _cr(3); // not really used
 
 void prefilterFile (const char *filename, Image &img)
 {
@@ -216,7 +223,9 @@ void prefilterFile (const char *filename, Image &img)
       if (pixGetAverageMasked(pix, 0, 0, 0, 1, L_MEAN_ABSVAL, &avg) != 0)
          throw Exception("pixGetAverageMasked failed");
       
+      #ifdef DEBUG
       fprintf(stderr, "average brightness = %f\n", avg);
+      #endif
       if (avg < 155)
       {
          LPRINT(0, "adding constant gray");
@@ -280,8 +289,10 @@ void prefilterFile (const char *filename, Image &img)
    Segmentator::segmentate(weakimg, weak_segments);
    Segmentator::segmentate(strongimg, strong_segments);
 
+   #ifdef DEBUG
    fprintf(stderr, "%d weak segments\n", weak_segments.size());
    fprintf(stderr, "%d strong segments\n", strong_segments.size());
+   #endif
 
    img.init(w, h);
    int i, j;
@@ -347,11 +358,33 @@ void prefilterFile (const char *filename, Image &img)
       if (!found)
       {
          // should not happen
+         #ifdef DEBUG
          fprintf(stderr, "weak segment not found\n");
+         #endif
       }
    }
 
    _removeSpots(img, 255, 2);
+   
+   OrientationFinder of(_cr);
+   int rotation = of.findFromImage(img);
+   if (rotation != 0)
+   {
+      LPRINT(0, "Found rotation %d", 90 * (4 - rotation));
+      switch (rotation)
+      {
+         case 1:
+            img.rotate90();
+            break;
+         case 2:
+            img.rotate180();
+            break;
+         case 3:
+            img.rotate90(false);
+      }
+   
+   }
+
    {
       FileOutput output("09_final.png");
       PngSaver saver(output);
@@ -420,12 +453,16 @@ bool isCircle (Image &seg)
       float gap = angles[i + 1] - angles[i];
       if (gap > 1.0)
       {
+         #ifdef DEBUG
          printf("large gap: %3f at %3f\n", gap, angles[i]);
+         #endif
          return false;
       }
       if (gap > M_PI / 8 && (angles[i] < M_PI / 8 || angles[i] > 7 * M_PI / 4))
       {
+         #ifdef DEBUG
          printf("C-like gap: %3f at %3f\n", gap, angles[i]);
+         #endif
          return false;
       }
    }
@@ -434,7 +471,9 @@ bool isCircle (Image &seg)
    
    if (avg_radius < 0.0001)
    {
+      #ifdef DEBUG
       printf("degenerate\n");
+      #endif
       return false;
    }
 
@@ -446,8 +485,10 @@ bool isCircle (Image &seg)
    disp /= npoints;
    float ratio = sqrt(disp) / avg_radius;
       
+   #ifdef DEBUG
    printf("avgr %.3f dev %.3f ratio %.3f\n",
           avg_radius, sqrt(disp), ratio);
+   #endif
 
    delete[] radii;
    if (ratio > 0.3) 

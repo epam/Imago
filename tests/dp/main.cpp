@@ -39,9 +39,9 @@ using namespace imago;
 namespace imago
 {
    void prefilterFile (const char *filename, Image &img);
-   bool isCircle (Image &seg);
 }
 
+HWCharacterRecognizer hwcr;
 
 void _findCircles (Image &img)
 {
@@ -54,21 +54,29 @@ void _findCircles (Image &img)
    for (SegmentDeque::iterator it = segments.begin(); it != segments.end(); ++it, ++count)
    {
       Segment &seg = **it;
-      ThinFilter2 tf(seg);
-      
-      tf.apply();
-      
       
       printf("segment #%d: ", count);
-      if (isCircle(seg))
-         printf("  CIRCLE!\n");
       {
          FileOutput output("seg_%02d.png", count);
          PngSaver saver(output);
          saver.saveImage(seg);
       }
+
+      int c = hwcr.recognize(seg);
+
+      if (c == -1)
+         printf(" not recognized\n");
+      else
+         printf(" '%c'\n", c);
+
+      //ThinFilter2 tf(seg);
+      //tf.apply();
+
+      //if (isCircle(seg))
+      //   printf("  CIRCLE!\n");
    }
 }
+
 
 int main(int argc, char **argv)
 {
@@ -118,9 +126,13 @@ int main(int argc, char **argv)
 
       // all OK
       //prefilterFile("../../../data/from_caduff_2/IMG_0051.JPG", img);
-
       
-      _findCircles(img);
+      
+      //ChemicalStructureRecognizer &csr = getRecognizer();
+      //CharacterRecognizer cr(3);
+      //_findCircles(img);
+      //OrientationFinder of(cr);
+      //of.findFromImage(img);
    }
    catch (Exception &e)
    {

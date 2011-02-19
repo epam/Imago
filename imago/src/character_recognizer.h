@@ -6,8 +6,13 @@
 
 #include "symbol_features.h"
 
+#include "segment.h"
+#include "stl_fwd.h"
+
 namespace imago
 {
+   bool isCircle (Image &seg);
+
    class Segment;
    class CharacterRecognizer
    {
@@ -24,6 +29,8 @@ namespace imago
       ~CharacterRecognizer();
 
       static const std::string upper, lower, digits;
+      static double _compareFeatures( const SymbolFeatures &f1,
+                                      const SymbolFeatures &f2 );
    private:
       bool _loaded;
       void _loadBuiltIn();
@@ -31,8 +38,6 @@ namespace imago
       static double _compareDescriptors( const std::vector<double> &d1,
                                          const std::vector<double> &d2 );
 
-      static double _compareFeatures( const SymbolFeatures &f1,
-                                      const SymbolFeatures &f2 );
       struct SymbolClass
       {
          char sym;
@@ -44,6 +49,25 @@ namespace imago
       std::vector<SymbolClass> _classes;
       std::vector<int> _mapping;
    };
+
+   class HWCharacterRecognizer
+   {
+   public:
+      SymbolFeatures features_h1;
+      SymbolFeatures features_h2; 
+      SymbolFeatures features_h3;
+      SymbolFeatures features_n1;
+      SymbolFeatures features_n2;
+      SymbolFeatures features_n3;
+      HWCharacterRecognizer ();
+
+      int recognize (Segment &seg);
+   protected:
+      CharacterRecognizer _cr;
+      void _readFile(const char *filename, SymbolFeatures &features);
+};
+
+
 }
 
 #endif /* _character_recognizer_h */

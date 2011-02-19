@@ -138,11 +138,12 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          ImageUtils::saveImageToFile(_img, "output/real_img.png");
       }
 
-      OrientationFinder of(_cr);
-      int rotation = 0; //of.findFromImage(_img);
+      /*
+        OrientationFinder of(_cr);
+      int rotation = of.findFromImage(_img);
+      rotation = 0;
       if (rotation != 0)
          LPRINT(0, "Found rotation %d", 90 * (4 - rotation));
-
       switch (rotation)
       {
          case 1:
@@ -154,6 +155,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          case 3:
             _img.rotate90(false);
       }
+      */
 
       if (rs["DebugSession"])
       {

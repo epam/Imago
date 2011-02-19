@@ -4,10 +4,16 @@
 #include <cmath>
 #include <cfloat>
 #include <cstdio>
+#include <deque>
 
 #include "character_recognizer.h"
 #include "segment.h"
 #include "exception.h"
+#include "scanner.h"
+#include "png_loader.h"
+#include "segmentator.h"
+#include "stl_fwd.h"
+#include "thin_filter2.h"
 
 using namespace imago;
 const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -211,4 +217,115 @@ void CharacterRecognizer::_loadBuiltIn()
    #include "TEST4.font.inc"
    _loaded = true;
 #endif
+}
+
+HWCharacterRecognizer::HWCharacterRecognizer () : _cr(3)
+{
+   try
+   {
+      {
+         _readFile("h1.png", features_h1);
+         _readFile("h2.png", features_h2);
+         _readFile("h3.png", features_h3);
+         _readFile("n1.png", features_n1);
+         _readFile("n2.png", features_n2);
+         _readFile("n3.png", features_n3);
+      }
+   }
+   catch (Exception &e)
+   {
+      fprintf(stderr, "%s\n", e.what());
+      return;
+   }
+}
+
+void HWCharacterRecognizer::_readFile(const char *filename, SymbolFeatures &features)
+{
+   FileScanner scanner(filename);
+   PngLoader loader(scanner);
+   Image img;
+      
+   loader.loadImage(img);
+   SegmentDeque segments;
+      
+   Segmentator::segmentate(img, segments, 3, 0);
+   Segment &seg = **segments.begin();
+   seg.initFeatures(25);
+   features = seg.getFeatures();
+}
+
+int HWCharacterRecognizer::recognize (Segment &seg)
+{
+   seg.initFeatures(25);
+   SymbolFeatures &features = seg.getFeatures();
+
+   Segment thinseg;
+   thinseg.copy(seg);
+   ThinFilter2 tf(thinseg);
+   tf.apply();
+
+   printf(" (%d ic)", features.inner_contours_count);
+   
+   if (isCircle(thinseg))
+   {
+      printf(" circle ");
+      return 'O';
+   }
+
+   double errh1 = CharacterRecognizer::_compareFeatures(features, features_h1);
+   double errh2 = CharacterRecognizer::_compareFeatures(features, features_h2);
+   double errh3 = CharacterRecognizer::_compareFeatures(features, features_h3);
+   double errn1 = CharacterRecognizer::_compareFeatures(features, features_n1);
+   double errn2 = CharacterRecognizer::_compareFeatures(features, features_n2);
+   double errn3 = CharacterRecognizer::_compareFeatures(features, features_n3);
+
+   if (errh1 > 10)
+      errh1 = 10;
+   if (errh2 > 10)
+      errh2 = 10;
+   if (errh3 > 10)
+      errh3 = 10;
+   if (errn1 > 10)
+      errn1 = 10;
+   if (errn2 > 10)
+      errn2 = 10;
+   if (errn3 > 10)
+      errn3 = 10;
+   
+   printf(" h1 %.2lf", errh1);
+   printf(" h2 %.2lf", errh2);
+   printf(" h3 %.2lf", errh3);
+   printf(" n1 %.2lf", errn1);
+   printf(" n2 %.2lf", errn2);
+   printf(" n3 %.2lf", errn3);
+   
+   if (errn1 < 1.8 || errn2 < 1.8 || errn3 < 1.8)
+      return 'N';
+   if (errh1 < 1.9 || errh2 < 1.9 || errh3 < 1.9) 
+      return 'H';
+
+   static const std::string candidates =
+      "ABCDFGHIKMNPRST"
+      "aehiklnru"
+      "1236";
+   
+   double err;
+   char c = _cr.recognize(seg, candidates, &err);
+
+   if (c != 0)
+      printf(" [%c] %.2lf ", c, err);
+
+   bool line = (c == 'l' || c == 'i' || c == '1');
+   bool tricky = (c == 'r' || c == 'S');
+
+   if (line && err < 0.5)
+      return c;
+
+   if (tricky && err < 1.0)
+      return c;
+
+   if (!line && !tricky && err < 1.8)
+      return c;
+
+   return -1;
 }
