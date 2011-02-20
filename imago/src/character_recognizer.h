@@ -56,9 +56,11 @@ namespace imago
       SymbolFeatures features_h1;
       SymbolFeatures features_h2; 
       SymbolFeatures features_h3;
+      SymbolFeatures features_h4;
       SymbolFeatures features_n1;
       SymbolFeatures features_n2;
       SymbolFeatures features_n3;
+      SymbolFeatures features_n4;
       HWCharacterRecognizer ();
 
       int recognize (Segment &seg);

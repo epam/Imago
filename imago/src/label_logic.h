@@ -16,6 +16,7 @@
 #define	_label_logic_h
 
 #include "superatom.h"
+#include "character_recognizer.h"
 
 namespace imago
 {
@@ -36,6 +37,7 @@ namespace imago
       void recognizeLabel( Label &label );
 
    private:
+      HWCharacterRecognizer _hwcr;
       int _cap_height;
       const CharacterRecognizer &_cr;
       double cap_height_error;

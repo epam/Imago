@@ -227,9 +227,11 @@ HWCharacterRecognizer::HWCharacterRecognizer () : _cr(3)
          _readFile("h1.png", features_h1);
          _readFile("h2.png", features_h2);
          _readFile("h3.png", features_h3);
+         _readFile("h4.png", features_h4);
          _readFile("n1.png", features_n1);
          _readFile("n2.png", features_n2);
          _readFile("n3.png", features_n3);
+         _readFile("n4.png", features_n4);
       }
    }
    catch (Exception &e)
@@ -275,34 +277,39 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    double errh1 = CharacterRecognizer::_compareFeatures(features, features_h1);
    double errh2 = CharacterRecognizer::_compareFeatures(features, features_h2);
    double errh3 = CharacterRecognizer::_compareFeatures(features, features_h3);
+   double errh4 = CharacterRecognizer::_compareFeatures(features, features_h4);
    double errn1 = CharacterRecognizer::_compareFeatures(features, features_n1);
    double errn2 = CharacterRecognizer::_compareFeatures(features, features_n2);
    double errn3 = CharacterRecognizer::_compareFeatures(features, features_n3);
+   double errn4 = CharacterRecognizer::_compareFeatures(features, features_n4);
 
-   if (errh1 > 10)
-      errh1 = 10;
-   if (errh2 > 10)
-      errh2 = 10;
-   if (errh3 > 10)
-      errh3 = 10;
-   if (errn1 > 10)
-      errn1 = 10;
-   if (errn2 > 10)
-      errn2 = 10;
-   if (errn3 > 10)
-      errn3 = 10;
+   double err_h[] = {errh1, errh2, errh3, errh4};
+   double err_n[] = {errn1, errn2, errn3, errn4};
+
+   int min_h = 0, min_n = 0;
+
+   for (int i = 1; i < 4; i++)
+   {
+      if (err_h[i] < err_h[min_h])
+         min_h = i;
+      if (err_n[i] < err_n[min_n])
+         min_n = i;
+   }
+
+   if (err_h[min_h] > 100)
+      err_h[min_h] = 100;
+   if (err_n[min_n] > 100)
+      err_n[min_n] = 100;
+
+   printf(" h %.2lf", err_h[min_h]);
+   printf(" n %.2lf", err_n[min_n]);
    
-   printf(" h1 %.2lf", errh1);
-   printf(" h2 %.2lf", errh2);
-   printf(" h3 %.2lf", errh3);
-   printf(" n1 %.2lf", errn1);
-   printf(" n2 %.2lf", errn2);
-   printf(" n3 %.2lf", errn3);
-   
-   if (errn1 < 1.8 || errn2 < 1.8 || errn3 < 1.8)
+   if (err_n[min_n] < 1.8)
+   {
+      if (err_h[min_h] < err_n[min_n])
+         return 'H';
       return 'N';
-   if (errh1 < 1.9 || errh2 < 1.9 || errh3 < 1.9) 
-      return 'H';
+   }
 
    static const std::string candidates =
       "ABCDFGHIKMNPRST"

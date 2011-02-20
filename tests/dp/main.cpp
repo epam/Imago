@@ -130,7 +130,7 @@ int main(int argc, char **argv)
       
       //ChemicalStructureRecognizer &csr = getRecognizer();
       //CharacterRecognizer cr(3);
-      //_findCircles(img);
+      _findCircles(img);
       //OrientationFinder of(cr);
       //of.findFromImage(img);
    }

@@ -134,24 +134,38 @@ void LabelLogic::process( Segment *seg, int line_y )
    //TODO: This can slowdown recognition process! Check this!
    if (seg->getHeight() > 0.9 * _cap_height)
       capital = true;
-   else if (seg->getFeatures().recognizable)
+   else
    {
       double d_big, d_small, d_digit;
       char c_big, c_small, c_digit;
+      
+      // No time to combine the recognizers properly. 
+      // Just use one on top of another for now.
+      char hwc = 
+_hwcr.recognize(*seg);
 
-      c_big = _cr.recognize(*seg, CharacterRecognizer::upper, &d_big);
-      c_small = _cr.recognize(*seg, CharacterRecognizer::lower, &d_small);
-      c_digit = _cr.recognize(*seg, CharacterRecognizer::digits, &d_digit);
-      if (d_big < d_small && d_big < d_digit)
+      if (hwc == 'N')
          capital = true;
-      else
+      else if (hwc == 'H')
+         capital = true;
+      else if (hwc == 'O')
+         capital = true; // can be O or o or 0
+      else if (seg->getFeatures().recognizable)
       {
-         if (c_small == 'o' || c_small == 'c' || c_small == 's' ||
-             c_small == 'i' || c_small == 'p' || c_small == 'u' ||
-             c_small == 'v' || c_small == 'w')
+         c_big = _cr.recognize(*seg, CharacterRecognizer::upper, &d_big);
+         c_small = _cr.recognize(*seg, CharacterRecognizer::lower, &d_small);
+         c_digit = _cr.recognize(*seg, CharacterRecognizer::digits, &d_digit);
+         if (d_big < d_small + 0.00001 && d_big < d_digit + 0.00001)
             capital = true;
          else
-            capital = false;
+         {
+            if (c_small == 'o' || c_small == 'c' || c_small == 's' ||
+                c_small == 'i' || c_small == 'p' || c_small == 'u' ||
+                c_small == 'v' || c_small == 'w')
+               capital = true;
+            else
+               capital = false;
+         }
       }
    }
    
@@ -159,8 +173,15 @@ void LabelLogic::process( Segment *seg, int line_y )
    {
       //Check for tall small letters
       _predict(seg, letters);
-      char sym;
-      if (seg->getFeatures().recognizable)
+      char sym = _hwcr.recognize(*seg);
+
+      if (sym == 'N')
+         ;
+      else if (sym == 'H')
+         ;
+      else if (sym == 'O')
+         ;
+      else if (seg->getFeatures().recognizable)
          sym = _cr.recognize(*seg, letters); //TODO: Can use c_big here
       else
          sym = '?';
