@@ -312,7 +312,7 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    }
 
    static const std::string candidates =
-      "ABCDFGHIKMNPRST"
+      "ABCDFGHIKMNPRS"
       "aehiklnru"
       "1236";
    
@@ -324,6 +324,7 @@ int HWCharacterRecognizer::recognize (Segment &seg)
 
    bool line = (c == 'l' || c == 'i' || c == '1');
    bool tricky = (c == 'r' || c == 'S');
+   bool hard = (c == 'R');
 
    if (line && err < 0.5)
       return c;
@@ -332,6 +333,9 @@ int HWCharacterRecognizer::recognize (Segment &seg)
       return c;
 
    if (!line && !tricky && err < 1.8)
+      return c;
+
+   if (hard && err < 2.5)
       return c;
 
    return -1;

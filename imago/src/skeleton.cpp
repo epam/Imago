@@ -444,7 +444,7 @@ bool Skeleton::_dissolveIntermediateVertices ()
       }
    }
    
-   if (min_err < 0.25)
+   if (min_err < 0.28)
    {
       LPRINT(0, "dissolving vertex, err = %.2lf", min_err);
       std::deque<Vertex> neighbors;
@@ -619,13 +619,6 @@ void Skeleton::_findMultiple()
          } 
       }
 
-      // if (getSettings()["DebugSession"])
-      // {
-      //    Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-      //    img.fillWhite();
-      //    ImageDrawUtils::putGraph(img, _g);
-      //    ImageUtils::saveImageToFile(img, "output/ggg2.png");
-      // }
       types = boost::get(boost::edge_type, _g);
    } while (false);
    //} while (toProcess.size() != 0);

@@ -367,7 +367,7 @@ void prefilterFile (const char *filename, Image &img)
    _removeSpots(img, 255, 2);
    
    OrientationFinder of(_cr);
-   int rotation = 0;//of.findFromImage(img);
+   int rotation = of.findFromImage(img);
    if (rotation != 0)
    {
       LPRINT(0, "Found rotation %d", 90 * (4 - rotation));

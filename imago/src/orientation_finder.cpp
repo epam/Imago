@@ -63,13 +63,13 @@ namespace imago
          //Settings for handwriting separation
          rs.set("SymHeightErr", 42);
          rs.set("MaxSymRatio", 1.4);
-         //sep.firstSeparation(layer_symbols, layer_graphics);
+         sep.firstSeparation(layer_symbols, layer_graphics);
 
          //printf("ROTATED %d\n", i * 90, layer_symbols.size());
          //rs.set("MinSymRatio", 0.34);
          rs.set("MaxSymRatio", 1.81);
-         //BOOST_FOREACH(Segment *seg, layer_symbols)
-         BOOST_FOREACH(Segment *seg, segments)
+         BOOST_FOREACH(Segment *seg, layer_symbols)
+         //BOOST_FOREACH(Segment *seg, segments)
          {
             double r = seg->getRatio();
             printf("  got a segment, ratio %lf: ", r);
@@ -97,6 +97,8 @@ namespace imago
                scores[i] += 1.0;
             else if (strchr("23456", c) != NULL)
                scores[i] += 0.3;
+            else if (strchr("iIl1", c) != NULL)
+               ;
             else if (c != -1)
                scores[i] += 0.5;
 
