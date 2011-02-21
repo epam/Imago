@@ -364,6 +364,9 @@ bool Skeleton::_dissolveIntermediateVertices ()
    std::set<Vertex> vertices;
    boost::graph_traits<SkeletonGraph>::vertex_iterator vi, vi_end;
    boost::tie(vi, vi_end) = boost::vertices(_g);
+
+   Vertex to_dissolve;
+   double min_err = 10000;
    
    for (; vi != vi_end; ++vi)
    {
@@ -409,19 +412,39 @@ bool Skeleton::_dissolveIntermediateVertices ()
       double d = Vec2d::dot(dir1, dir2);
       double n1 = dir1.norm();
       double n2 = dir2.norm();
+      double maxn = __max(n1, n2);
       
       if (n1 * n2 > 0.00001)
          d /= n1 * n2;
+      
+      double ang = acos(d);
 
-      if (d < -0.95)
+      if (ang < M_PI / 2)
+         continue;
+
+      double err = n1 * n2 * sin(ang) / (maxn * maxn);
+
+      //if (d < -0.92)
+      if (err < min_err)
       {
-         LPRINT(0, "dissolving vertex, cos(a) = %.2lf", d);
-         addBond(neighbors[0], neighbors[1], SINGLE);
-         boost::clear_vertex(vertex, _g); 
-         boost::remove_vertex(vertex, _g);
-         return true;
+         min_err = err;
+         to_dissolve = vertex;
       }
    }
+   
+   if (min_err < 0.3)
+   {
+      LPRINT(0, "dissolving vertex, err = %.2lf", min_err);
+      std::deque<Vertex> neighbors;
+      boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
+      boost::tie(b, e) = boost::adjacent_vertices(to_dissolve, _g);
+      neighbors.assign(b, e);
+      addBond(neighbors[0], neighbors[1], SINGLE);
+      boost::clear_vertex(to_dissolve, _g); 
+      boost::remove_vertex(to_dissolve, _g);
+      return true;
+   }
+
    return false;
 }
 
@@ -592,7 +615,8 @@ void Skeleton::_findMultiple()
       //    ImageUtils::saveImageToFile(img, "output/ggg2.png");
       // }
       types = boost::get(boost::edge_type, _g);
-   } while (toProcess.size() != 0);
+   } while (false);
+   //} while (toProcess.size() != 0);
 }
 
 void Skeleton::_reconnectBonds( Vertex from, Vertex to )

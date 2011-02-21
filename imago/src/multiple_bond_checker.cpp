@@ -15,6 +15,9 @@
 #include "multiple_bond_checker.h"
 #include "algebra.h"
 #include "current_session.h"
+#include "boost/graph/graph_traits.hpp"
+#include "boost/graph/iteration_macros.hpp"
+#include "boost/foreach.hpp"
 
 using namespace imago;
 
@@ -116,15 +119,42 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       d = 0.5 * (Algebra::distance2segment(sb_pos, fb_pos, fe_pos) +
                  Algebra::distance2segment(se_pos, fb_pos, fe_pos));
 
-   if (d > bf.length * 0.9)
+   if (d > __min(bf.length, bs.length))
       return false;
-   if (d > bs.length * 0.9)
-      return false;
+
+   BGL_FORALL_VERTICES(v, _g, Graph)
+   {
+      if (v == fb || v == fe || v == sb || v == se)
+         continue;
+
+      Vec2d v_pos = boost::get(boost::vertex_pos, _g, v);
+      double d1 = Algebra::distance2segment(v_pos, fb_pos, fe_pos);
+      double d2 = Algebra::distance2segment(v_pos, sb_pos, se_pos);
+
+      double coef;
+      if (bf.length < bs.length)
+         coef = Algebra::pointProjectionCoef(v_pos, fb_pos, fe_pos);
+      else
+         coef = Algebra::pointProjectionCoef(v_pos, sb_pos, se_pos);
+
+      //LPRINT(0, "checking (%.1lf %.1lf): d1=%.1lf, d2=%.1lf, coef=%.1lf",
+      //       v_pos.x, v_pos.y, d1, d2, coef);
+
+      if (d1 > d || d2 > d)
+         continue;
+      
+      if (coef > 0 && coef < 1)
+         return false;
+   }
+
 
   //if (d > _multiBondErr * _avgBondLength)
     //return false;
 
-   return true;
+   LPRINT(0, "found double boud:"); 
+   LPRINT(0, "(%.1lf %.1lf) - (%.1lf %.1lf)", fb_pos.x, fb_pos.y, fe_pos.x, fe_pos.y);
+   LPRINT(0, "(%.1lf %.1lf) - (%.1lf %.1lf)", sb_pos.x, sb_pos.y, se_pos.x, se_pos.y);
+  return true;
 }
 
 bool MultipleBondChecker::checkTriple( Edge thrd )

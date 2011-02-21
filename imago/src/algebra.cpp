@@ -135,6 +135,23 @@ double Algebra::slope( const Vec2d &b, const Vec2d &e )
       return atan((double) dxdy.y / dxdy.x);
 }
 
+double Algebra::pointProjectionCoef(const Vec2d &orig,
+                                    const Vec2d &to_begin, const Vec2d &to_end )
+{
+   Vec2d a, b;
+   a.diff(to_end, to_begin);
+   b.diff(orig, to_begin);
+
+   double ab = Vec2d::dot(a, b);
+   double aa = Vec2d::dot(a, a);
+
+   if (aa < EPS)
+      throw DivizionByZeroException("pointProjectionCoef");
+
+   return ab / aa;
+}
+
+
 std::pair<Vec2d, Vec2d> Algebra::segmentProjection(
                         const Vec2d &orig_begin, const Vec2d &orig_end,
                         const Vec2d &to_begin, const Vec2d &to_end )

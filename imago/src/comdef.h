@@ -65,5 +65,7 @@ namespace boost
    BOOST_INSTALL_PROPERTY(edge, type);
 }
 
+#define __max(a, b) (((a) < (b)) ? (b) : (a))
+#define __min(a, b) (((a) < (b)) ? (a) : (b))
 
 #endif /* _comdef_h */

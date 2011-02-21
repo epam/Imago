@@ -281,7 +281,8 @@ DoubleBondMaker::Result DoubleBondMaker::operator()( std::pair<Edge,Edge> edges 
       mult = 0.95;
 
    //printf("SIMPLE OR HARD %lf %lf\n", fl - sl, mult * _avgBondLength);
-   if ( fl - sl < mult * _avgBondLength)
+   // DP: using only the 'Simple' mode now
+   if (1 || fl - sl < mult * _avgBondLength)
       return _simple();
    else
       return _hard();
