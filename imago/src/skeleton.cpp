@@ -857,7 +857,7 @@ void Skeleton::modifyGraph()
        Vec2d beg_pos = boost::get(boost::vertex_pos, _g, beg);
        const Vec2d &end_pos = boost::get(boost::vertex_pos, _g, end);
        if (boost::degree(beg, _g) == 1 && boost::degree(end, _g) == 1 &&
-             Vec2d::distance(beg_pos, end_pos) < 5.0)
+           boost::get(boost::edge_type, _g, edge).length < 0.13 * _avg_bond_length)
        {
           beg_pos.add(end_pos);
           beg_pos.scale(0.5);
