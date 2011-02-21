@@ -37,6 +37,7 @@ Skeleton::Skeleton()
 
 void Skeleton::setInitialAvgBondLength( double avg_length )
 {
+   // DP: NOT USING WHAT IS SET HERE
    RecognitionSettings &rs = getSettings();
 
    _avg_bond_length = avg_length;
@@ -65,12 +66,19 @@ void Skeleton::recalcAvgBondLength()
       return;
 
    _avg_bond_length = 0;
+   _min_bond_length = 1000;
 
    BGL_FORALL_EDGES(e, _g, SkeletonGraph)
-      _avg_bond_length += (boost::get(boost::edge_type, _g, e)).length;
+   {
+      double len = (boost::get(boost::edge_type, _g, e)).length;
+      _avg_bond_length += len;
+      if (_min_bond_length > len)
+         _min_bond_length = len;
+   }
 
    _avg_bond_length /= bonds_num;
-
+   
+   /*
    double mult;
    //TODO: Desparate copy-paste from above
    if (_avg_bond_length < 20)
@@ -84,7 +92,7 @@ void Skeleton::recalcAvgBondLength()
 
    RecognitionSettings &rs = getSettings();
    rs.set("AddVertexEps", mult * _avg_bond_length);
-   _addVertexEps = rs["AddVertexEps"];
+   _addVertexEps = rs["AddVertexEps"];*/
 }
 
 Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
@@ -279,6 +287,144 @@ bool Skeleton::_isParallel( const Edge &first, const Edge &second ) const
                     fabs(fabs(f.k - s.k) - PI) < _parLinesEps);
 }
 
+bool Skeleton::_dissolveShortEdges (double coeff)
+{
+   std::vector<Edge> toProcess;
+   boost::graph_traits<SkeletonGraph>::edge_iterator ei, ei_e;
+   boost::tie(ei, ei_e) = boost::edges(_g);
+
+   for (; ei != ei_e; ++ei)
+   {
+      const Edge &edge = *ei;
+      const Vertex &beg = boost::source(edge, _g);
+      const Vertex &end = boost::target(edge, _g);
+
+      double edge_len = boost::get(boost::edge_type, _g, edge).length;
+      double max_edge_beg = 0, max_edge_end = 0;
+
+      // find the longest edge going from the beginning of our edge
+      {
+         std::deque<Vertex> neighbors;
+         boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
+         boost::tie(b, e) = boost::adjacent_vertices(beg, _g);
+         neighbors.assign(b, e);
+
+         for (int i = 0; i < (int)neighbors.size(); i++)
+         {
+            Edge e = boost::edge(beg, neighbors[i], _g).first;
+            double len = boost::get(boost::edge_type, _g, e).length;
+
+            if (len > max_edge_beg)
+               max_edge_beg = len;
+         }
+      }
+
+      // find the longest edge going from the end of our edge
+      {
+         std::deque<Vertex> neighbors;
+         boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
+         boost::tie(b, e) = boost::adjacent_vertices(end, _g);
+         neighbors.assign(b, e);
+
+         for (int i = 0; i < (int)neighbors.size(); i++)
+         {
+            Edge e = boost::edge(end, neighbors[i], _g).first;
+            double len = boost::get(boost::edge_type, _g, e).length;
+
+            if (len > max_edge_end)
+               max_edge_end = len;
+         }
+      }
+      
+
+      if (edge_len < max_edge_beg * coeff ||
+          edge_len < max_edge_end * coeff)
+      {
+         LPRINT(0, "dissolving edge len: %.2lf, max_edge_beg: %.2lf, max_edge_end: %.2lf",
+                edge_len, max_edge_beg, max_edge_end);
+         // dissolve the edge
+         if (max_edge_end < max_edge_beg)
+         {
+            _reconnectBonds(end, beg);
+            boost::remove_vertex(end, _g);
+         }
+         else
+         {
+            _reconnectBonds(beg, end);
+            boost::remove_vertex(beg, _g);
+         }
+         return true;
+      }
+   }
+   return false;
+}
+
+bool Skeleton::_dissolveIntermediateVertices ()
+{
+   std::set<Vertex> vertices;
+   boost::graph_traits<SkeletonGraph>::vertex_iterator vi, vi_end;
+   boost::tie(vi, vi_end) = boost::vertices(_g);
+   
+   for (; vi != vi_end; ++vi)
+   {
+      const Vertex &vertex = *vi;
+
+      std::deque<Vertex> neighbors;
+      boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
+      boost::tie(b, e) = boost::adjacent_vertices(vertex, _g);
+      neighbors.assign(b, e);
+
+      if (neighbors.size() != 2)
+         continue;
+
+      const Edge &edge1 = boost::edge(vertex, neighbors[0], _g).first;
+      const Edge &edge2 = boost::edge(vertex, neighbors[1], _g).first;
+
+      const Vertex &beg1 = boost::source(edge1, _g);
+      const Vertex &beg2 = boost::source(edge2, _g);
+      const Vertex &end1 = boost::target(edge1, _g);
+      const Vertex &end2 = boost::target(edge2, _g);
+      
+      Vec2d dir1, dir2;
+
+      if (beg1 == beg2 || end1 == end2)
+      {
+         dir1.diff(boost::get(boost::vertex_pos, _g, end1),
+                   boost::get(boost::vertex_pos, _g, beg1));
+         dir2.diff(boost::get(boost::vertex_pos, _g, end2),
+                   boost::get(boost::vertex_pos, _g, beg2));
+      }
+      else if (beg1 == end2 || beg2 == end1)
+      {
+         dir1.diff(boost::get(boost::vertex_pos, _g, end1),
+                   boost::get(boost::vertex_pos, _g, beg1));
+         dir2.diff(boost::get(boost::vertex_pos, _g, beg2),
+                   boost::get(boost::vertex_pos, _g, end2));
+      }
+      else
+      {
+         throw Exception("internal error: edges not adjacent");
+      }
+
+      double d = Vec2d::dot(dir1, dir2);
+      double n1 = dir1.norm();
+      double n2 = dir2.norm();
+      
+      if (n1 * n2 > 0.00001)
+         d /= n1 * n2;
+
+      if (d < -0.95)
+      {
+         LPRINT(0, "dissolving vertex, cos(a) = %.2lf", d);
+         addBond(neighbors[0], neighbors[1], SINGLE);
+         boost::clear_vertex(vertex, _g); 
+         boost::remove_vertex(vertex, _g);
+         return true;
+      }
+   }
+   return false;
+}
+
 void Skeleton::_findMultiple()
 {
    DoubleBondMaker _makeDouble(*this);
@@ -470,7 +616,27 @@ void Skeleton::_reconnectBonds( Vertex from, Vertex to )
    }
 }
 
-void Skeleton::_joinVertices()
+double Skeleton::_avgEdgeLendth (const Vertex &v)
+{
+   std::deque<Vertex> neighbors;
+   boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
+   boost::tie(b, e) = boost::adjacent_vertices(v, _g);
+   neighbors.assign(b, e);
+
+   if (neighbors.size() < 1)
+      return 0;
+
+   double avg = 0;
+
+   for (int i = 0; i < (int)neighbors.size(); i++)
+   {
+      Edge e = boost::edge(v, neighbors[i], _g).first;
+      avg += boost::get(boost::edge_type, _g, e).length;
+   }
+   return avg / neighbors.size();
+}
+
+void Skeleton::_joinVertices(double eps)
 {
    std::deque<std::deque<Vertex> > nearVertices;
    std::deque<int> join_ind;
@@ -478,15 +644,23 @@ void Skeleton::_joinVertices()
            boost::get(boost::vertex_pos, _g);
 
    //recalcAvgBondSize?
-   double _addEps = getSettings().get("AddVertexEps");
+   //double _addEps = getSettings().get("AddVertexEps");
+   //double _addEps = _min_bond_length * 0.7;
+   LPRINT(0, "joining vertices, eps = %lf", eps);
    BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
    {
       Vec2d v_pos = pos[v];
+      double v_avg_edge_len = _avgEdgeLendth(v);;
+
       for (int i = 0; i < (int)nearVertices.size(); i++)
       {
          for (int j = 0; j < (int)nearVertices[i].size(); j++)
          {
-            if (Vec2d::distance(v_pos, pos[nearVertices[i][j]]) < _addEps)
+            const Vertex &nei = nearVertices[i][j];
+            double nei_avg_edge_len = _avgEdgeLendth(nei);
+            
+            if (Vec2d::distance(v_pos, pos[nei]) <
+                eps * (nei_avg_edge_len + v_avg_edge_len) / 2)
             {
                join_ind.push_back(i);
                break;
@@ -544,50 +718,106 @@ void Skeleton::modifyGraph()
 
    _parLinesEps = getSettings()["ParLinesEps"];
 
-   _joinVertices();
-      
    recalcAvgBondLength();
 
-    if (getSettings()["DebugSession"])
+   if (1 || getSettings()["DebugSession"])
+    {
+       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+       img.fillWhite();
+       ImageDrawUtils::putGraph(img, _g);
+       ImageUtils::saveImageToFile(img, "output/ggg0.png");
+    
+    }
+
+   _joinVertices(0.1);
+
+   recalcAvgBondLength();
+
+   if (1 || getSettings()["DebugSession"])
     {
        Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
        img.fillWhite();
        ImageDrawUtils::putGraph(img, _g);
        ImageUtils::saveImageToFile(img, "output/ggg1.png");
+    
     }
 
-    _repairBroken();
-   
-   recalcAvgBondLength();
+   while (_dissolveShortEdges(0.1))
+      ;
 
-    if (getSettings()["DebugSession"])
+   if (1 || getSettings()["DebugSession"])
     {
        Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
        img.fillWhite();
        ImageDrawUtils::putGraph(img, _g);
        ImageUtils::saveImageToFile(img, "output/ggg2.png");
+    
     }
 
-    _findMultiple();
-    
-    if (getSettings()["DebugSession"])
-    {
-       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-       img.fillWhite();
-       ImageDrawUtils::putGraph(img, _g);
-       ImageUtils::saveImageToFile(img, "output/ggg2z.png");
-    }
+   while (_dissolveIntermediateVertices())
+      ;
 
    recalcAvgBondLength();
-   
-   _joinVertices();
-   
-    if (getSettings()["DebugSession"])
+
+   if (1 || getSettings()["DebugSession"])
     {
        Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
        img.fillWhite();
        ImageDrawUtils::putGraph(img, _g);
        ImageUtils::saveImageToFile(img, "output/ggg3.png");
+    
+    }
+
+   /*
+    //_repairBroken(); // DP: disabled
+   
+
+   if (getSettings()["DebugSession"])
+    {
+       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+       img.fillWhite();
+       ImageDrawUtils::putGraph(img, _g);
+       ImageUtils::saveImageToFile(img, "output/ggg2.png");
+       }*/
+
+    recalcAvgBondLength();
+
+    _findMultiple();
+    //while (_dissolveIntermediateVertices())
+    //   ;
+    
+    if (1 || getSettings()["DebugSession"])
+    {
+       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+       img.fillWhite();
+       ImageDrawUtils::putGraph(img, _g);
+       ImageUtils::saveImageToFile(img, "output/ggg4.png");
+    }
+
+    recalcAvgBondLength();
+   
+    while (_dissolveShortEdges(0.3))
+       ;
+
+    if (1 || getSettings()["DebugSession"])
+    {
+       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+       img.fillWhite();
+       ImageDrawUtils::putGraph(img, _g);
+       ImageUtils::saveImageToFile(img, "output/ggg5.png");
+    }
+
+    recalcAvgBondLength();
+
+    _joinVertices(0.5);
+   
+
+    if (1 || getSettings()["DebugSession"])
+    {
+       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+       img.fillWhite();
+       ImageDrawUtils::putGraph(img, _g);
+       ImageUtils::saveImageToFile(img, "output/ggg6.png");
     }
 
    
