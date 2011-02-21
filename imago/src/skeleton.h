@@ -110,6 +110,7 @@ namespace imago
              _parLinesEps,
          _addVertexEps,
          _min_bond_length;
+      std::vector<Vec2d> _vertices_big_degree;
 
       Skeleton( const Skeleton &g );
    };

@@ -380,6 +380,18 @@ bool Skeleton::_dissolveIntermediateVertices ()
       if (neighbors.size() != 2)
          continue;
 
+      // DP: will learn how to use STL iterators another day
+      int k;
+      Vec2d vpos = boost::get(boost::vertex_pos, _g, vertex);
+      for (k = 0; k < _vertices_big_degree.size(); k++)
+      {
+         if (Vec2d::distance(_vertices_big_degree[k], vpos) < 0.0001)
+            break;
+       }
+
+      if (k != _vertices_big_degree.size())
+         continue;
+      
       const Edge &edge1 = boost::edge(vertex, neighbors[0], _g).first;
       const Edge &edge2 = boost::edge(vertex, neighbors[1], _g).first;
 
@@ -757,6 +769,17 @@ void Skeleton::modifyGraph()
 
    recalcAvgBondLength();
 
+   _vertices_big_degree.clear();
+   
+   BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
+   {
+      if (boost::degree(v, _g) > 2)
+      {
+         Vec2d pos = boost::get(boost::vertex_pos, _g, v);
+         _vertices_big_degree.push_back(pos);
+      }
+   }
+
    if (1 || getSettings()["DebugSession"])
     {
        Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
@@ -833,7 +856,7 @@ void Skeleton::modifyGraph()
 
     recalcAvgBondLength();
 
-    _joinVertices(0.5);
+    _joinVertices(0.3);
    
 
     if (1 || getSettings()["DebugSession"])
