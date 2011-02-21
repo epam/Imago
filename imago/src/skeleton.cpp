@@ -431,7 +431,7 @@ bool Skeleton::_dissolveIntermediateVertices ()
       
       double ang = acos(d);
 
-      if (ang < M_PI / 2)
+      if (ang < M_PI * 3 / 4)
          continue;
 
       double err = n1 * n2 * sin(ang) / (maxn * maxn);
@@ -444,7 +444,7 @@ bool Skeleton::_dissolveIntermediateVertices ()
       }
    }
    
-   if (min_err < 0.3)
+   if (min_err < 0.25)
    {
       LPRINT(0, "dissolving vertex, err = %.2lf", min_err);
       std::deque<Vertex> neighbors;
@@ -821,18 +821,8 @@ void Skeleton::modifyGraph()
     
     }
 
-   /*
     //_repairBroken(); // DP: disabled
    
-
-   if (getSettings()["DebugSession"])
-    {
-       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-       img.fillWhite();
-       ImageDrawUtils::putGraph(img, _g);
-       ImageUtils::saveImageToFile(img, "output/ggg2.png");
-       }*/
-
     recalcAvgBondLength();
 
     _findMultiple();
@@ -863,7 +853,7 @@ void Skeleton::modifyGraph()
     recalcAvgBondLength();
 
     _joinVertices(0.3);
-    //_joinVertices(0.2); // TODO: see IMG_0022
+    _joinVertices(0.2); // TODO: see IMG_0022
 
     if (1 || getSettings()["DebugSession"])
     {
