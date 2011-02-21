@@ -235,8 +235,10 @@ void Molecule::aromatize( Points &aromatic_centers )
 
       } while (cur_vertex != begin_vertex);
 
-      BOOST_FOREACH( Edge e, aromatized_bonds )
-         setBondType(e, AROMATIC);
+      //TODO: Aromatizing only closed contours! Not sure if it's true.
+      if (cur_vertex == begin_vertex)
+         BOOST_FOREACH( Edge e, aromatized_bonds )
+            setBondType(e, AROMATIC);
 
       aromatized_bonds.clear();
    }
