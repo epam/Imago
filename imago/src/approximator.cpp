@@ -48,6 +48,7 @@ void Approximator::apply( const Points &input,Points &output )
       _Line &l1 = lines[i];
       _Line &l2 = lines[i + 1];
 
+      /*
       ratio = lengths[i] / lengths[i + 1];
       if (ratio < 0.3 || ratio > 3.3)
          mult = 0.6;
@@ -55,14 +56,15 @@ void Approximator::apply( const Points &input,Points &output )
          mult = 0.485;
       else
          mult = 0.27;
+      */
 
       //changed in "handwriting"
-      if (absolute<double>(l1.a * l2.b - l2.a * l1.b) < mult) //"Constants" //0.65
+      if (absolute<double>(l1.a * l2.b - l2.a * l1.b) < 0.35) //"Constants" //0.65
       {
          l2.a = (l1.a + l2.a) / 2;
          l2.b = (l1.b + l2.b) / 2;
          l2.c = (l1.c + l2.c) / 2;
-         lengths[i + 1] += lengths[i];
+         //lengths[i + 1] += lengths[i];
          continue;
       }
       Vec2d v;
