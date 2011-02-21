@@ -855,6 +855,33 @@ void Skeleton::modifyGraph()
     _joinVertices(0.3);
     _joinVertices(0.2); // TODO: see IMG_0022
 
+    //Shrinking short bonds (dots)
+    std::vector<Edge> edgesToRemove;
+    BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
+    {
+       const Vertex &beg = boost::source(edge, _g);
+       const Vertex &end = boost::target(edge, _g);
+       Vec2d beg_pos = boost::get(boost::vertex_pos, _g, beg);
+       const Vec2d &end_pos = boost::get(boost::vertex_pos, _g, end);
+       if (boost::degree(beg, _g) == 1 && boost::degree(end, _g) == 1 &&
+             Vec2d::distance(beg_pos, end_pos) < 5.0)
+       {
+          beg_pos.add(end_pos);
+          beg_pos.scale(0.5);
+          addVertex(beg_pos);
+          edgesToRemove.push_back(edge);
+       }
+    }
+    BOOST_FOREACH(Edge e, edgesToRemove)
+    {
+       Vertex beg = boost::source(e, _g);
+       Vertex end = boost::target(e, _g);
+       boost::remove_edge(e, _g);
+       boost::remove_vertex(beg, _g);
+       boost::remove_vertex(end, _g);
+    }
+
+
     if (1 || getSettings()["DebugSession"])
     {
        Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);

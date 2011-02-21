@@ -167,9 +167,14 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
       _mapping[newVertex] = &l;
    }
 
-   //_graph.deleteUnnecessaryBonds();
-   //   if (*g_saveImages.get())
-   //      _graph.drawGraph(1000, 1000, "output/graph_labels.png");
+   //Removing dots without labels
+   VertexIterator vi, vi_next, vi_end;
+   boost::tie(vi, vi_end) = boost::vertices(_g);
+   for (vi_next = vi, ++vi_next; vi != vi_end; vi = vi_next, ++vi_next)
+   {
+      if (boost::degree(*vi, _g) == 0 && _mapping.find(*vi) == _mapping.end())
+         boost::remove_vertex(*vi, _g);
+   }
 }
 
 void Molecule::aromatize( Points &aromatic_centers )
