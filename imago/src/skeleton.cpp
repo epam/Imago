@@ -652,12 +652,14 @@ void Skeleton::_reconnectBonds( Vertex from, Vertex to )
    }
 }
 
-double Skeleton::_avgEdgeLendth (const Vertex &v)
+double Skeleton::_avgEdgeLendth (const Vertex &v, int &nnei)
 {
    std::deque<Vertex> neighbors;
    boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
    boost::tie(b, e) = boost::adjacent_vertices(v, _g);
    neighbors.assign(b, e);
+
+   nnei = neighbors.size();
 
    if (neighbors.size() < 1)
       return 0;
@@ -686,17 +688,21 @@ void Skeleton::_joinVertices(double eps)
    BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
    {
       Vec2d v_pos = pos[v];
-      double v_avg_edge_len = _avgEdgeLendth(v);;
+      int v_nnei;
+      double v_avg_edge_len = _avgEdgeLendth(v, v_nnei);
 
       for (int i = 0; i < (int)nearVertices.size(); i++)
       {
          for (int j = 0; j < (int)nearVertices[i].size(); j++)
          {
             const Vertex &nei = nearVertices[i][j];
-            double nei_avg_edge_len = _avgEdgeLendth(nei);
-            
-            if (Vec2d::distance(v_pos, pos[nei]) <
-                eps * (nei_avg_edge_len + v_avg_edge_len) / 2)
+            int nei_nnei;
+            double nei_avg_edge_len = _avgEdgeLendth(nei, nei_nnei);
+            double thresh = eps * (nei_nnei * nei_avg_edge_len + v_nnei * v_avg_edge_len) /
+               (v_nnei + nei_nnei);
+
+            if (v_nnei + nei_nnei > 0 &&
+                Vec2d::distance(v_pos, pos[nei]) < thresh)
             {
                join_ind.push_back(i);
                break;
@@ -857,7 +863,7 @@ void Skeleton::modifyGraph()
     recalcAvgBondLength();
 
     _joinVertices(0.3);
-   
+    //_joinVertices(0.2); // TODO: see IMG_0022
 
     if (1 || getSettings()["DebugSession"])
     {

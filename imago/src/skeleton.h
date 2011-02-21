@@ -101,7 +101,7 @@ namespace imago
       void _findMultiple();
       bool _dissolveShortEdges (double coeff);
       bool _dissolveIntermediateVertices ();
-      double _avgEdgeLendth (const Vertex &v);
+      double _avgEdgeLendth (const Vertex &v, int &nnei);
       typedef boost::tuple<bool, Edge, Edge> MakersReturn;
       //MakersReturn _makeDouble( std::pair<Edge, Edge> edges );
       MakersReturn _makeTriple( boost::tuple<Edge, Edge, Edge> edges );
