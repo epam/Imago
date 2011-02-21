@@ -323,8 +323,8 @@ int HWCharacterRecognizer::recognize (Segment &seg)
       printf(" [%c] %.2lf ", c, err);
 
    bool line = (c == 'l' || c == 'i' || c == '1');
-   bool tricky = (c == 'r' || c == 'S');
-   bool hard = (c == 'R');
+   bool tricky = (c == 'r');
+   bool hard = (c == 'R' || c == 'S');
 
    if (line && err < 0.5)
       return c;
