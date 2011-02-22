@@ -44,6 +44,7 @@
 #include "current_session.h"
 #include "label_logic.h"
 #include "orientation_finder.h"
+#include "approximator.h"
 
 using namespace imago;
 
@@ -224,14 +225,22 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       Points ringCenters;
 
-      TIME(GraphicsDetector().extractRingsCenters(layer_graphics, ringCenters), 
-         "Extracting aromatic rings");
+      {
+#if 1
+         CvApproximator cvApprox;
+         GraphicsDetector gd(&cvApprox, 11.0);
+#else
+         SimpleApproximator sApprox;
+         GraphicsDetector gd(&sApprox, 0.3);
+#endif
+         TIME(gd.extractRingsCenters(layer_graphics, ringCenters),
+            "Extracting aromatic rings");
 
-      
 
-      TIME(GraphExtractor::extract(layer_graphics, mol), 
-         "Extracting molecular graph");
 
+         TIME(GraphExtractor::extract(gd, layer_graphics, mol),
+            "Extracting molecular graph");
+         }
       //TIME(wbe.singleUpFetch(mol), "Fetching single-up bonds");
 
       if (!layer_symbols.empty())

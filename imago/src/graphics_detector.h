@@ -30,20 +30,24 @@ namespace imago
    class Segment;
    class Image;
    class Molecule;
+   class BaseApproximator;
 
    class GraphicsDetector
    {
    public:
       GraphicsDetector();
-      void extractRingsCenters( SegmentDeque &segments, Points &ring_centers );
+      GraphicsDetector( const BaseApproximator *approximator, double eps );
+      void extractRingsCenters( SegmentDeque &segments, Points &ring_centers ) const;
       void analyzeUnmappedLabels( std::deque<Label> &unmapped_labels, 
          Points &ring_centers );
-      void detect( const Image &img, Points &lsegments );
+      void detect( const Image &img, Points &lsegments ) const;
       ~GraphicsDetector();
-   private:
 
-      void _decorner( Image &img );
-      void _extractPolygon( const Segment &seg, Points &poly );
+   private:
+      const BaseApproximator *_approximator;
+      double _approx_eps;
+      void _decorner( Image &img ) const;
+      void _extractPolygon( const Segment &seg, Points &poly ) const;
       int _countBorderBlackPoints( const Image &img ) const;
       GraphicsDetector( const GraphicsDetector & );
    };

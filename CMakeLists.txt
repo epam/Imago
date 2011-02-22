@@ -7,6 +7,8 @@ if(NOT WIN32)
   
   find_package(PNG REQUIRED)
   find_package(JPEG REQUIRED)
+
+  find_package(OpenCV REQUIRED)
   
   set(IMAGO_C_FLAGS "-fPIC")
 else(NOT WIN32)

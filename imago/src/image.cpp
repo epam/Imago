@@ -308,90 +308,28 @@ double Image::density() const
    return density;
 }
 
-#include "allheaders.h"
-
-void *Image::_toPIX()
+void Image::rotate90( bool cw )
 {
-   PIX *pix;
-   pix = pixCreateNoInit(_width, _height, 8);
+   std::auto_ptr<byte> temp_ptr(new byte[_width * _height]);
+   byte *temp = temp_ptr.get();
+   int a, b, c;
+   if (cw)
+      a = _height, b = -1, c = _height - 1;
+   else
+      a = -_height, b = 1, c = (_width - 1) * _height;
 
-   l_uint32 *pixData = pixGetData(pix), *pixLine;
-   l_uint32 wpl = pixGetWpl(pix);
-   byte *imageLine;
-
-   for (int y = 0; y < _height; y++)
+   for (int i = 0; i < _width * _height; i++)
    {
-      pixLine = pixData + y * wpl;
-      imageLine = _data + y * _width;
-      for (int x = 0; x < _width; x++)
-      {
-         SET_DATA_BYTE(pixLine, x, _data[y * _width + x]);
-      }
+      int x = i % _width, y = i / _width;
+      int npos = a * x + b * y + c;
+      temp[npos] = _data[i];
    }
-
-   return pix;
-}
-
-void Image::_fromPIX( void *p )
-{
-   PIX *pix = (PIX*)p;
-   l_uint32 *pixData = pixGetData(pix), *pixLine;
-   l_uint32 w = pixGetWidth(pix), h = pixGetHeight(pix), wpl = pixGetWpl(pix);
-   byte *imageLine;
-
-   clear();
-   init(w, h);
-
-   for (int y = 0; y < _height; y++)
-   {
-      pixLine = pixData + y * wpl;
-      imageLine = _data + y * _width;
-      for (int x = 0; x < _width; x++)
-      {
-         imageLine[x] = GET_DATA_BYTE(pixLine, x);
-      }
-   }
-}
-
-void Image::rotate( float angle )
-{
-   PIX *pix, *pixRot;
-
-   pix = (PIX*)_toPIX();
-   //pixWrite("lol1.bmp", pix, IFF_BMP);
-
-   pixRot = pixRotate(pix, angle, L_ROTATE_SAMPLING, L_BRING_IN_BLACK, _width, _height);
-   //pixWrite("lol2.bmp", pixRot, IFF_BMP);
-
-   _fromPIX(pixRot);
-
-   pixDestroy(&pix);
-   pixDestroy(&pixRot);
-}
-
-void Image::rotate90( bool cw)
-{
-   PIX *pix, *pixRot;
-
-   pix = (PIX*)_toPIX();
-
-   pixRot = pixRotate90(pix, (cw ? 1:-1));
-
-   _fromPIX(pixRot);
-
-   pixDestroy(&pix);
-   pixDestroy(&pixRot);
+   delete[] _data;
+   std::swap(_width, _height);
+   _data = temp_ptr.release();
 }
 
 void Image::rotate180()
 {
-   PIX *pix;
-
-   pix = (PIX*)_toPIX();
-
-   pixRotate180(pix, pix);
-
-   _fromPIX(pix);
-
-   pixDestroy(&pix);
+   std::reverse(_data, _data + _width * _height);
 }

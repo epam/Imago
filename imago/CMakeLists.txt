@@ -66,4 +66,4 @@ if(EMBED_FONT)
 endif(EMBED_FONT)
 
 add_library(imago_static STATIC ${SRC})
-target_link_libraries(imago_static leptonica ${PNG_LIRARIES} ${JPEG_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(imago_static leptonica ${OpenCV_LIBS} ${PNG_LIRARIES} ${JPEG_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})

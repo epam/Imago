@@ -28,12 +28,10 @@
 
 using namespace imago;
 
-void GraphExtractor::extract( const SegmentDeque &segments, Skeleton &graph )
+void GraphExtractor::extract( const GraphicsDetector &gd, const SegmentDeque &segments, Skeleton &graph )
 {
    Image tmp;
    int w = 0, h = 0;
-
-   GraphicsDetector gd;
 
    //TODO: New image here. Is this really necessary? 
    BOOST_FOREACH( Segment *s, segments )
@@ -59,13 +57,12 @@ void GraphExtractor::extract( const SegmentDeque &segments, Skeleton &graph )
    }
 
    //TODO: We were thinking about refactoring it.
-   extract(tmp, graph);
+   extract(gd, tmp, graph);
 }
 
-void GraphExtractor::extract( const Image &img, Skeleton &graph )
+void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skeleton &graph )
 {
    double avg_size = 0;
-   GraphicsDetector gd;
    Points lsegments;
 
    gd.detect(img, lsegments);

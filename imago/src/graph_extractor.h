@@ -22,11 +22,14 @@ namespace imago
    class Graph;
    class Skeleton;
    class Image;
+   class GraphicsDetector;
    
    struct GraphExtractor
    {
-      static void extract( const SegmentDeque &segments, Skeleton &graph );
-      static void extract( const Image &img, Skeleton &graph );
+      static void extract( const GraphicsDetector &gd,
+                           const SegmentDeque &segments, Skeleton &graph );
+      static void extract( const GraphicsDetector &gd,
+                           const Image &img, Skeleton &graph );
    };
 }
 

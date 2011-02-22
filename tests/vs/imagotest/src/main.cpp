@@ -444,8 +444,8 @@ void testRotation(const char *filename = 0)
       SessionManager::getInstance().setSID(sid);
       
       Image img;
-      /*
-      ImageUtils::loadImageFromFile(img, "/home/vsmolov/flamingo_test/rotate/rotate1.png");
+
+      /*ImageUtils::loadImageFromFile(img, "/home/winkie/flamingo_test/rotate/rotate1.png");
       CharacterRecognizer cr(3);
       
       SegmentDeque segs;
@@ -457,7 +457,8 @@ void testRotation(const char *filename = 0)
       printf("Orientation %d\n", rot);
       */
       const char *f = filename ? filename :
-         "/home/vsmolov/flamingo_test/from_caduff_2/IMG_0021.JPG";
+           "/home/winkie/flamingo_test/from_caduff_2/IMG_0024.JPG";
+         //"/home/vsmolov/flamingo_test/from_caduff_2/IMG_0021.JPG";
       prefilterFile(f, img);
 
       getSettings()["DebugSession"] = true;
@@ -466,6 +467,7 @@ void testRotation(const char *filename = 0)
       Molecule mol;
 
       csr.image2mol(img, mol);
+
       //printf("Before: %d %d\n", img.getWidth(), img.getHeight());
       //img.rotate90(false);
       //printf("After: %d %d\n", img.getWidth(), img.getHeight());

@@ -24,7 +24,7 @@
 
 using namespace imago;
 
-void Approximator::apply( const Points &input,Points &output )
+void SimpleApproximator::apply( double eps, const Points &input,Points &output ) const
 {
    IntVector sample;
    std::vector<_Line> lines;
@@ -59,7 +59,7 @@ void Approximator::apply( const Points &input,Points &output )
       */
 
       //changed in "handwriting"
-      if (absolute<double>(l1.a * l2.b - l2.a * l1.b) < 0.35) //"Constants" //0.65
+      if (absolute<double>(l1.a * l2.b - l2.a * l1.b) < eps) //"Constants" //0.65
       {
          l2.a = (l1.a + l2.a) / 2;
          l2.b = (l1.b + l2.b) / 2;
@@ -75,7 +75,7 @@ void Approximator::apply( const Points &input,Points &output )
    output.push_back(input.back());
 }
 
-void Approximator::_prepare( const Points &poly, IntVector &sample )
+void SimpleApproximator::_prepare( const Points &poly, IntVector &sample ) const
 {
    double epsilons[2] = {1.13, 0.8}; //"Constants" //1.33, 1.2
    double dist = 0;
@@ -114,7 +114,7 @@ void Approximator::_prepare( const Points &poly, IntVector &sample )
    }
 }
 
-void Approximator::_calc_line( const Points &input, int begin, int end, _Line &res )
+void SimpleApproximator::_calc_line( const Points &input, int begin, int end, _Line &res ) const
 {
    double Sx = 0, Sy = 0, Sx2 = 0, Sxy = 0;
    
@@ -142,4 +142,22 @@ void Approximator::_calc_line( const Points &input, int begin, int end, _Line &r
       res.b = -1;
       res.c = (Sy * Sx2 - Sx * Sxy) / (n * Sx2 - Sx * Sx);
    }
+}
+
+#include <opencv/cv.h>
+
+void CvApproximator::apply( double eps, const Points &input, Points &output ) const
+{
+   std::vector<cv::Point> vcurve;
+   for (int i = 0; i < (int)input.size(); i++)
+      vcurve.push_back(cv::Point(input[i].x, input[i].y));
+
+   bool closed = (vcurve[0] == vcurve[vcurve.size() - 1]);
+   cv::Mat curve(vcurve);
+   std::vector<cv::Point> approxCurve;
+   cv::approxPolyDP(curve, approxCurve, eps, closed);
+
+   output.clear();
+   for (int i = 0; i < (int)approxCurve.size(); i++)
+      output.push_back(Vec2d(approxCurve[i].x, approxCurve[i].y));
 }

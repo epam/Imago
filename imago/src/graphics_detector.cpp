@@ -37,15 +37,21 @@
 
 using namespace imago;
 
-GraphicsDetector::GraphicsDetector()
+GraphicsDetector::GraphicsDetector() : _approximator(0), _approx_eps(0.0)
 {
 }
+
+GraphicsDetector::GraphicsDetector( const BaseApproximator *approximator, double eps ) :
+      _approximator(approximator), _approx_eps(eps)
+{
+}
+
 
 GraphicsDetector::~GraphicsDetector()
 {
 }
 
-void GraphicsDetector::_decorner( Image &img )
+void GraphicsDetector::_decorner( Image &img ) const
 {
    int x, y, i, j;
    RecognitionSettings &rs = getSettings();
@@ -76,7 +82,7 @@ void GraphicsDetector::_decorner( Image &img )
       ImageUtils::saveImageToFile(img, "output/decornered.png");
 }
 
-void GraphicsDetector::_extractPolygon( const Segment &seg, Points &poly )
+void GraphicsDetector::_extractPolygon( const Segment &seg, Points &poly ) const
 {
    int begin = -1;
    bool closed = true;
@@ -155,7 +161,8 @@ void GraphicsDetector::_extractPolygon( const Segment &seg, Points &poly )
       contour.push_back(tmp); //WATCH
    }
 
-   Approximator::apply(contour, poly);
+   if (_approximator)
+      _approximator->apply(_approx_eps, contour, poly);
 
    for (i = 0; i < (int)poly.size(); i++)
    {
@@ -189,7 +196,7 @@ int GraphicsDetector::_countBorderBlackPoints( const Image &img ) const
    return count;
 }
 
-void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring_centers )
+void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring_centers ) const
 {
    int circle_count;
    Segment circle;
@@ -282,7 +289,7 @@ void GraphicsDetector::analyzeUnmappedLabels( std::deque<Label> &unmapped_labels
    }
 }
 
-void GraphicsDetector::detect( const Image &img, Points &lsegments )
+void GraphicsDetector::detect( const Image &img, Points &lsegments ) const
 {
    SegmentDeque segs;
    Points poly;

@@ -21,17 +21,29 @@ namespace imago
 {
    class Vec2d;
 
-   class Approximator
+   class BaseApproximator
    {
    public:
-       static void apply( const Points &input, Points &output );
+       virtual void apply( double eps, const Points &input, Points &output ) const = 0;
+   };
+
+   class SimpleApproximator : public BaseApproximator
+   {
+   public:
+      void apply( double eps, const Points &input, Points &output ) const;
    private:
-       struct _Line
-       {
-           double a, b, c;
-       };
-       static void _calc_line( const Points &input, int begin, int end, _Line &res );
-       static void _prepare( const Points &poly, IntVector &sample );
+      struct _Line
+      {
+         double a, b, c;
+      };
+      void _calc_line( const Points &input, int begin, int end, _Line &res ) const;
+      void _prepare( const Points &poly, IntVector &sample ) const;
+   };
+
+
+   class CvApproximator : public BaseApproximator
+   {
+      void apply( double eps, const Points &input, Points &output ) const;
    };
 }
 #endif /* _approximator_h */
