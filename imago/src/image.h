@@ -21,6 +21,7 @@
 #define _image_h
 
 #include "comdef.h"
+#include "exception.h"
 
 namespace imago
 {
@@ -47,8 +48,20 @@ namespace imago
       //Get functions
       const int &getWidth() const;
       const int &getHeight() const;
-      byte &getByte( int i, int j );
-      const byte &getByte( int i, int j ) const;
+      inline byte &getByte( int i, int j )
+      {
+         int ind = _width * j + i;
+         if (ind < 0 || ind >= _width * _height)
+            throw OutOfBoundsException("Image::getByte(%d, %d)", i, j);
+         return _data[ind];
+      }
+      inline const byte &getByte( int i, int j ) const
+      {
+         int ind = _width * j + i;
+         if (ind < 0 || ind >= _width * _height)
+            throw OutOfBoundsException("Image::getByte(%d, %d)", i, j);
+         return _data[ind];
+      }
       inline const byte &operator[]( int i ) const {return _data[i];}
       inline byte &operator[]( int i ) {return _data[i];}
       inline byte const * const getData() const {return _data;}
@@ -64,6 +77,7 @@ namespace imago
       void splitVert( int x, Image &left, Image &right ) const;
       void extract( int x1, int y1, int x2, int y2, Image &res );
       double density() const;
+      int mean() const;
 
       void rotate90( bool cw = true );
       void rotate180();

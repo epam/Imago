@@ -27,6 +27,7 @@ namespace imago
       bool isInit();
       void deInit();
 
+      void initBlur( int rx, int ry );
       void initSharp();
       void initGauss();
       void initSobelX();

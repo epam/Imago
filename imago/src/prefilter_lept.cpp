@@ -1,6 +1,4 @@
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
-
+#include "allheaders.h"
 #include "image.h"
 #include "log.h"
 #include "current_session.h"
@@ -9,9 +7,6 @@
 #include "output.h"
 #include "png_saver.h"
 #include "orientation_finder.h"
-#include "convolver.h"
-#include "image_utils.h"
-#include "binarizer.h"
 
 #undef DEBUG
 
@@ -28,28 +23,31 @@ static int _cmp_float (const void *p1, const void *p2)
    return 1;
 }
 
-static void _blur (Image &img, int radius);
-void _unsharpMask (Image &img, int radius, float amount, int threshold)
+
+void _unsharpMask (PIX *pix, int radius, float amount, int threshold)
 {
-   int  w, h;
+   l_int32  w, h, d;
+   PIX     *pixc;
+   
+   pixGetDimensions(pix, &w, &h, &d);
 
-   w = img.getWidth();
-   h = img.getHeight();
-
-   Image blur;
-   blur.copy(img);
-
-   TIME(_blur(blur, radius), "Blur");
+   if (d != 8)
+      throw Exception("image not 8bpp, unsharp mask failed");
+   
+   if ((pixc = pixBlockconvGray(pix, NULL, radius, radius)) == NULL)
+      throw Exception("gaussian blur failed");
 
    int i, j;
-
+   
    for (i = 0; i < w; i++)
       for (j = 0; j < h; j++)
       {
-         unsigned char val, valc;
-         val = img.getByte(i, j);
-         valc = blur.getByte(i, j);
-
+         l_uint32 val, valc;
+         if (pixGetPixel(pix, i, j, &val) != 0)
+            throw Exception("leptonica getpixel");
+         if (pixGetPixel(pixc, i, j, &valc) != 0)
+            throw Exception("leptonica getpixel (2)");
+         
          int diff = (int)val - (int)valc;
 
          if (diff < threshold && diff > -threshold)
@@ -60,89 +58,67 @@ void _unsharpMask (Image &img, int radius, float amount, int threshold)
             newval = 255;
          if (newval < 0)
             newval = 0;
+            
+         pixSetPixel(pix, i, j, newval);
+      }
+   pixDestroy(&pixc);
+}
 
-         img.getByte(i, j) = newval;
+void _binarize (PIX *pix, int threshold)
+{
+   int w = pixGetWidth(pix);
+   int h = pixGetHeight(pix);
+
+   int i, j;
+   for (i = 0; i < w; i++)
+      for (j = 0; j < h; j++)
+      {
+         l_uint32 val;
+         if (pixGetPixel(pix, i, j, &val) != 0)
+            throw Exception("leptonica getpixel (4)");
+         
+         if (val < threshold)
+            val = 0;
+         else
+            val = 255;
+         
+         pixSetPixel(pix, i, j, val);
       }
 }
 
-void _copyMatToImage (Image &img, const cv::Mat &mat)
+void _copyPixToImage (Image &img, PIX *pix)
 {
-   int w = mat.cols;
-   int h = mat.rows;
+   int w = pixGetWidth(pix);
+   int h = pixGetHeight(pix);
 
    img.init(w, h);
    int i, j;
 
    for (i = 0; i < w; i++)
       for (j = 0; j < h; j++)
-         img.getByte(i, j) = mat.at<unsigned char>(j, i);
-}
-
-inline static void _blur (Image &img, int radius)
-{
-   int w = img.getWidth(), h = img.getHeight();
-   cv::Mat mat(h, w, CV_8U);
-   for (int i = 0; i < w; i++)
-      for (int j = 0; j < h; j++)
-         mat.at<unsigned char>(j, i) = img.getByte(i, j);
-
-   cv::Mat dst;
-   radius = 2 * radius + 1;
-   cv::blur(mat, dst, cv::Size(radius, radius));
-   img.clear();
-   _copyMatToImage(img, dst);
-}
-/*
-inline static void _blur (Image &img, int radius)
-{
-   int w = img.getWidth(), h = img.getHeight();
-   Image blur;
-   blur.copy(img);
-   double bias = 1.0 / (4 * radius * radius + 4 * radius + 1);
-   byte *dblur = blur.getData();
-   for (int y = 0; y < h; y++)
-   {
-      for (int x = 0; x < w; x++)
       {
-         double total = 0;
-         for (int k = -radius; k <= radius; k++)
-         {
-            for (int l = -radius; l <= radius; l++)
-            {
-               int xx = x + l, yy = y + k;
-               if (xx >= 0 && xx < w && yy >= 0 && yy < h)
-                  total += dblur[(y + k) * w + x + l];
-               else
-                  total += dblur[y * w + x];
-            }
-         }
-         total *= bias;
-
-         if (total < 0)
-            total = 0;
-         if (total > 255)
-            total = 255;
-
-         img.getByte(x, y) = (byte)total;
+         l_uint32 val;
+         if (pixGetPixel(pix, i, j, &val) != 0)
+            throw Exception("leptonica getpixel (3)");
+         
+         img.getByte(i, j) = val;
       }
-   }
-}*/
-
+}
 
 void _removeSpots (Image &img, int validcolor, int max_size)
 {
    SegmentDeque segments;
    int i, j;
-
+   
    Segmentator::segmentate(img, segments, 3, validcolor);
-
+   
    for (SegmentDeque::iterator it = segments.begin(); it != segments.end(); ++it)
    {
       Segment *seg = *it;
-
+      
       int sw = seg->getWidth();
       int sh = seg->getHeight();
-
+      
       int sum_x = 0, sum_y = 0;
       int npoints = 0;
 
@@ -163,7 +139,7 @@ void _removeSpots (Image &img, int validcolor, int max_size)
          float avg_y = sum_y / (float)npoints;
          float radius = 0;
          float disp = 0;
-
+         
          for (i = 0; i < sw; i++)
             for (j = 0; j < sh; j++)
             {
@@ -195,59 +171,69 @@ void _removeSpots (Image &img, int validcolor, int max_size)
    }
 }
 
-static CharacterRecognizer _cr(3); // not really used
+   static CharacterRecognizer _cr(3); // not really used
 
-void prefilterFile (const char *filename, Image &image)
+void prefilterFile (const char *filename, Image &img)
 {
-   //Imago cannot load and resize!
-   cv::Mat mat = cv::imread(filename, 0); //load and make grayscale
+   PIX * pix = pixReadJpeg(filename, 0, 1, 0);
 
-   if (mat.data == NULL)
-      throw Exception("imload failed");
-
-   int w = mat.cols;
-   int h = mat.rows;
+   if (pix == NULL)
+      throw Exception("pixReadJpeg failed");
+   
+   int w = pixGetWidth(pix);
+   int h = pixGetHeight(pix);
    LPRINT(0, "loaded image %d x %d", w, h);
    int maxside = (w < h) ? h : w;
    int n = maxside / 800;
    if (n > 1)
    {
       LPRINT(0, "resizing down %d times", n);
-      cv::Mat dst;
-      cv::resize(mat, dst, cv::Size(), 1.0 / n, 1.0 / n);
-      mat = dst;
-      cv::imwrite("01_after_subsampling.png", mat);
+      PIX *newpix = pixScaleByIntSubsampling(pix, n);
+      if (newpix == NULL)
+         throw Exception("pixScaleByIntSubsampling failed");
+      pixDestroy(&pix);
+      pix = newpix;
    }
-
-   Image img;
-   _copyMatToImage(img, mat);
-
-
+   {
+      LPRINT(0, "converting to gray");
+      PIX *newpix = pixConvertRGBToLuminance(pix);
+      if (newpix == NULL)
+         throw Exception("pixConvertRGBToLuminance failed");
+      pixDestroy(&pix);
+      pix = newpix;
+      pixWritePng("01_after_subsampling.png", pix, 1);
+   }
+   
    {
       LPRINT(0, "blurring");
-      _blur(img, 1);
-      ImageUtils::saveImageToFile(img, "02_after_blur.png");
+      PIX *newpix = pixBlockconvGray(pix, NULL, 1, 1);
+      if (newpix == NULL)
+         throw Exception("gaussian blur failed");
+      pixDestroy(&pix);
+      pix = newpix;
+      pixWritePng("02_after_blur.png", pix, 1);
    }
 
-
-   w = img.getWidth();
-   h = img.getHeight();
+   w = pixGetWidth(pix);
+   h = pixGetHeight(pix);
 
    {
-      int avg = img.mean();
+      l_float32 avg;
 
-      #ifndef NDEBUG
-      fprintf(stderr, "average brightness = %d\n", avg);
+      if (pixGetAverageMasked(pix, 0, 0, 0, 1, L_MEAN_ABSVAL, &avg) != 0)
+         throw Exception("pixGetAverageMasked failed");
+      
+      #ifdef DEBUG
+      fprintf(stderr, "average brightness = %f\n", avg);
       #endif
       if (avg < 155)
       {
          LPRINT(0, "adding constant gray");
-         byte *data = img.getData();
-         for (int i = 0; i < w * h; i++)
-            data[i] += 155 - avg;
+         if (pixAddConstantGray(pix, 155 - avg) != 0)
+            throw Exception("pixAddConstantGray failed");
       }
    }
-
+   
    /*{
       LPRINT(0, "normalization");
       PIX *newpix = pixBackgroundNorm(pix, NULL, NULL, 200, 200, 0, 40000, 164, 2, 2);
@@ -257,41 +243,46 @@ void prefilterFile (const char *filename, Image &image)
       pix = newpix;
       }*/
 
-   ImageUtils::saveImageToFile(img, "03_after_normalization.png");
+   pixWritePng("03_after_normalization.png", pix, 1);
 
-
-   Image weakimg;
-   weakimg.copy(img);
+   PIX *weakpix = pixCopy(NULL, pix);
 
    {
       LPRINT(0, "unsharp mask (strong)");
-
-      _unsharpMask(img, 8, 4, 0);
-      ImageUtils::saveImageToFile(img, "04_after_strong_unsharp_mask.png");
+      _unsharpMask(pix, 8, 4, 0);
+      pixWritePng("04_after_strong_unsharp_mask.png", pix, 1);
    }
 
    {
-      Binarizer b(img, 32);
-      b.apply();
-      ImageUtils::saveImageToFile(img, "05_after_strong_binarization.png");
+      _binarize(pix, 32);
+      pixWritePng("05_after_strong_binarization.png", pix, 1);
    }
 
    Image strongimg;
-   strongimg.copy(img);
+
+   _copyPixToImage(strongimg, pix);
+
    _removeSpots(strongimg, 0, 10);
-   ImageUtils::saveImageToFile(img, "06_after_spots_removal.png");
+   {
+      FileOutput output("06_after_spots_removal.png");
+      PngSaver saver(output);
+      saver.saveImage(strongimg);
+   }
+
 
    {
       LPRINT(0, "unsharp mask (weak)");
-      _unsharpMask(weakimg, 10, 12, 0);
-      ImageUtils::saveImageToFile(weakimg, "07_after_weak_unsharp_mask.png");
+      _unsharpMask(weakpix, 10, 12, 0);
+      pixWritePng("07_after_weak_unsharp_mask.png", weakpix, 1);
    }
 
    {
-      Binarizer b(weakimg, 80);
-      b.apply();
-      ImageUtils::saveImageToFile(weakimg, "08_after_weak_binarization.png");
+      _binarize(weakpix, 80);
+      pixWritePng("08_after_weak_binarization.png", weakpix, 1);
    }
+
+   Image weakimg;
+   _copyPixToImage(weakimg, weakpix);
 
    SegmentDeque weak_segments;
    SegmentDeque strong_segments;
@@ -303,18 +294,21 @@ void prefilterFile (const char *filename, Image &image)
    fprintf(stderr, "%d strong segments\n", strong_segments.size());
    #endif
 
-   image.init(w, h);
-   image.fillWhite();
-
+   img.init(w, h);
    int i, j;
+
+   for (i = 0; i < w; i++)
+      for (j = 0; j < h; j++)
+         img.getByte(i, j) = 255;
+
    for (SegmentDeque::iterator it = strong_segments.begin();
         it != strong_segments.end(); ++it)
    {
       Segment *seg = *it;
-
+      
       int sw = seg->getWidth();
       int sh = seg->getHeight();
-
+      
       int sum_x = 0, sum_y = 0;
       int npoints = 0;
       bool found = false;
@@ -334,8 +328,8 @@ void prefilterFile (const char *filename, Image &image)
                   Segment *wseg = *wit;
                   int wxpos = xpos - wseg->getX();
                   int wypos = ypos - wseg->getY();
-
-                  if (wxpos >= 0 &&
+                  
+                  if (wxpos >= 0 && 
                       wxpos < wseg->getWidth() &&
                       wypos >= 0 && wypos < wseg->getHeight())
                   {
@@ -346,8 +340,8 @@ void prefilterFile (const char *filename, Image &image)
                            for (wj = 0; wj < wseg->getHeight(); wj++)
                            {
                               if (wseg->getByte(wi, wj) == 0)
-                                 image.getByte(wi + wseg->getX(),
-                                               wj + wseg->getY()) = 0;
+                                 img.getByte(wi + wseg->getX(),
+                                             wj + wseg->getY()) = 0;
                            }
                         found = true;
                         break;
@@ -370,29 +364,33 @@ void prefilterFile (const char *filename, Image &image)
       }
    }
 
-   _removeSpots(image, 255, 2);
-
+   _removeSpots(img, 255, 2);
+   
    OrientationFinder of(_cr);
-   int rotation = of.findFromImage(image);
+   int rotation = of.findFromImage(img);
    if (rotation != 0)
    {
       LPRINT(0, "Found rotation %d", 90 * (4 - rotation));
       switch (rotation)
       {
          case 1:
-            image.rotate90();
+            img.rotate90();
             break;
          case 2:
-            image.rotate180();
+            img.rotate180();
             break;
          case 3:
-            image.rotate90(false);
+            img.rotate90(false);
       }
-
+   
    }
 
-   LPRINT(0, "Filtering done");
-   ImageUtils::saveImageToFile(image, "09_final.png");
+   {
+      FileOutput output("09_final.png");
+      PngSaver saver(output);
+      saver.saveImage(img);
+   }
+
 }
 
 // NOTE: the input image must be thinned
@@ -419,15 +417,15 @@ bool isCircle (Image &seg)
 
    if (npoints == 0)
       throw Exception("empty fragment?");
-
+      
    centerx /= npoints;
    centery /= npoints;
-
+   
    float *angles = new float[npoints + 1];
    float *radii = new float[npoints];
    int k = 0;
    float avg_radius = 0;
-
+      
    for (i = 0; i < w; i++)
       for (j = 0; j < h; j++)
       {
@@ -470,7 +468,7 @@ bool isCircle (Image &seg)
    }
 
    avg_radius /= npoints;
-
+   
    if (avg_radius < 0.0001)
    {
       #ifdef DEBUG
@@ -480,23 +478,22 @@ bool isCircle (Image &seg)
    }
 
    float disp = 0;
-
+   
    for (i = 0; i < npoints; i++)
       disp += (radii[i] - avg_radius) * (radii[i] - avg_radius);
-
+   
    disp /= npoints;
    float ratio = sqrt(disp) / avg_radius;
-
+      
    #ifdef DEBUG
    printf("avgr %.3f dev %.3f ratio %.3f\n",
           avg_radius, sqrt(disp), ratio);
    #endif
 
    delete[] radii;
-   if (ratio > 0.3)
+   if (ratio > 0.3) 
       return false; // not a circle
    return true;
 }
 
 }
-

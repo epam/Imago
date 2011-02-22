@@ -55,7 +55,14 @@ void Convolver::initGauss()
                                             1,  4,  7,  4, 1 };
    _init(5, 5, 1.0 / 273, gauss_kernel); 
 }
- 
+
+void Convolver::initBlur( int rx, int ry )
+{
+   int sx = 2 * rx + 1, sy = 2 * ry + 1;
+   std::vector<int> kernel(sx * sy, 1);
+   _init(sx, sy, 1.0 / (sx * sy), &kernel[0]);
+}
+
 void Convolver::initSobelX()
 {
    /* Sobel discrete differential operator value (x value) */

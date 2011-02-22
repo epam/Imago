@@ -99,13 +99,6 @@ const int &Image::getHeight() const
  * 
  * @return reference to needed byte
  */
-byte &Image::getByte( int i, int j )
-{
-   int ind = _width * j + i;
-   if (ind < 0 || ind >= _width * _height)
-      throw OutOfBoundsException("Image::getByte(%d, %d)", i, j);
-   return _data[ind];
-}
 
 /** 
  * @brief Constant getter to (i,j) byte of image
@@ -115,13 +108,6 @@ byte &Image::getByte( int i, int j )
  * 
  * @return constant reference
  */
-const byte &Image::getByte( int i, int j ) const
-{
-   int ind = _width * j + i;
-   if (ind < 0 || ind >= _width * _height)
-     throw OutOfBoundsException("Image::getByte(%d, %d)", i, j);
-   return _data[ind];
-}
 
 /** 
  * @brief Copies image from @a other
@@ -306,6 +292,15 @@ double Image::density() const
    density /= (double)n;
 
    return density;
+}
+
+int Image::mean() const
+{
+   double total = 0;
+   double den = 1.0 / (_width * _height);
+   for (int i = 0; i < _width * _height; i++)
+      total += _data[i] * den;
+   return (int)total;
 }
 
 void Image::rotate90( bool cw )
