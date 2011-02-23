@@ -3,6 +3,7 @@
 #include <vector>
 #include <list>
 #include <stdio.h>
+#include <opencv/cv.h>
 
 #include "skeleton.h"
 #include "molecule.h"
@@ -33,6 +34,7 @@
 #include "current_session.h"
 #include "character_recognizer.h"
 #include "orientation_finder.h"
+#include "graphics_detector.h"
 
 using namespace imago;
 
@@ -394,7 +396,7 @@ void testOCR2( const char *name )
       SessionManager::getInstance().setSID(sid);
       Image img;
 
-      CharacterRecognizer cr(2, "../../../data/fonts/TEST4.font");
+      CharacterRecognizer cr(3, "../../../data/fonts/TEST4.font");
 
       const char *filename;
       filename = name?name:"../../../../flamingo_test/sym/n/IMG_0052.JPG.out.png";
@@ -486,6 +488,158 @@ void testRotation(const char *filename = 0)
       puts(e.what());
    }
 }
+void _ImageToMat(const Image &img, cv::Mat mat)
+{
+   int w = img.getWidth(), h = img.getHeight();
+   cv::Mat res(h, w, CV_8U);
+   for (int k = 0; k < h; k++)
+   {
+      for (int l = 0; l < w; l++)
+      {
+         res.at<byte>(k, l) = img.getByte(l, k);
+      }
+   }
+   mat = res;
+}
+
+void _getHuMoments(const Image &img, double hu[7])
+{
+   int w = img.getWidth(), h = img.getHeight();
+   cv::Mat mat(h, w, CV_8U);
+   for (int k = 0; k < h; k++)
+   {
+      for (int l = 0; l < w; l++)
+      {
+         mat.at<byte > (k, l) = img.getByte(l, k);
+      }
+   }
+   cv::Moments moments = cv::moments(mat, true);
+   cv::HuMoments(moments, hu);
+}
+
+void makeCVFont( )
+{
+  try
+  {
+     const int fonts_count = 5;
+     char font_names[fonts_count][1024] = {//"../../../data/fonts/png/arial2.png",
+                                           "../../../data/fonts/png/serif.png",
+                                           //"../../../data/fonts/png/MarkerSD_it.png",
+                                           //"../../../data/fonts/png/Writing_Stuff.png",
+                                           "../../../data/fonts/png/MarkerSD.png",
+                                           "../../../data/fonts/png/desyrel.png",
+                                           "../../../data/fonts/png/budhand.png",
+                                           "../../../data/fonts/png/annifont.png"};
+     
+     FileOutput fout("../../../data/fonts/1.cvfont");
+     fout.printf("%d %d\n", fonts_count, 62);
+
+     for (int i = 0; i < fonts_count; i++)
+     {
+        Image img;
+        ImageUtils::loadImageFromFile(img, font_names[i]);
+        SegmentDeque segs;
+        Segmentator::segmentate(img, segs);
+
+        printf("%s: %d segments\n", font_names[i], segs.size());
+        SegmentDeque::iterator it = segs.begin();
+        for (int j = 0; j < (int)segs.size() - 2; j++)
+        {
+           if (j == 34 || j == 35)
+              ++it;
+           
+           Image *img = *it;
+           ++it;
+           
+           char sym;
+           if (j < 26)
+              sym = 'A' + j;
+           else if (j < 52)
+              sym = 'a' + (j - 26);
+           else if (j < 62)
+              sym = '0' + (j - 52);
+           
+           double hu[7];
+           _getHuMoments(*img, hu);
+           
+           fout.printf("%c ", sym);
+           for (int k = 0; k < 7; k++)
+              fout.printf("%lf ", hu[k]);
+           fout.writeCR();
+        }
+     }
+  }
+  catch(Exception &e)
+  {
+     puts(e.what());
+  }
+}
+
+void testCvOCR( const char *_filename = 0)
+{
+   FILE *f = fopen("../../../data/fonts/1.cvfont", "r");
+   int font_count, sym_count;
+   fscanf(f, "%d %d\n", &font_count, &sym_count);
+   std::vector<std::pair<char, std::vector<double> > > hus;
+   hus.resize(font_count * sym_count);
+   for (int i = 0; i < font_count * sym_count; i++)
+   {
+      fscanf(f, "%c ", &hus[i].first);
+      hus[i].second.resize(7);
+      for (int j = 0; j < 7; j++)
+         fscanf(f, "%lf ", &hus[i].second[j]);
+   }
+   fclose(f);
+   
+   const char *filename = _filename ? _filename:
+      "../../../data/fonts/png/desyrel.png";
+      //"../../../../flamingo_test/sym/n/IMG_0054.JPG.out.png";
+
+   qword sid = SessionManager::getInstance().allocSID();
+   SessionManager::getInstance().setSID(sid);
+
+   Image img;
+   ImageUtils::loadImageFromFile(img, filename);
+   SegmentDeque segs;
+   Segmentator::segmentate(img, segs);
+
+   Image &imgN = *segs[4];
+
+   ThinFilter2 tf(imgN);
+   tf.apply();
+/*
+   CvApproximator cvApprox;
+   GraphicsDetector gd(&cvApprox, 11.0);
+   Points poly;
+   gd.detect(imgN, poly);
+   Image lol;
+   lol.emptyCopy(imgN);
+   lol.fillWhite();
+   for (int i = 0; i < poly.size(); i += 2)
+   {
+      ImageDrawUtils::putLineSegment(lol, poly[i], poly[i + 1], 0);
+   }
+   ImageUtils::saveImageToFile(lol, "lol.png");
+   printf("LINES COUNT = %d\n", poly.size());
+   */
+   imgN.invert();
+   Image lol;
+   lol.emptyCopy(imgN);
+   lol.fillWhite();
+
+   cv::Mat mat;
+   _ImageToMat(imgN, mat);
+   std::vector<cv::Vec4i> lines;
+   printf("%d\n", mat.channels());
+   cv::HoughLinesP(mat, lines, 1, CV_PI / 180, 13, 30, 100);
+   printf("LINES COUNT = %d\n", lines.size());
+   for (int i = 0; i < lines.size(); i += 2)
+   {
+      cv::Vec4i &v = lines[i];
+      ImageDrawUtils::putLineSegment(lol, Vec2d(v[0], v[1]), Vec2d(v[2], v[3]), 0);
+   }
+   ImageUtils::saveImageToFile(lol, "lol.png");
+}
 
 int main(int argc, char **argv)
 {
@@ -525,9 +679,12 @@ int main(int argc, char **argv)
    //testRecognizer(num);
    //testOCR(argv[1]);
    //makeFont();
-   //testOCR2(argv[1]);
+   testOCR2(argv[1]);
 
-   testRotation(argv[1]);
+   //testRotation(argv[1]);
+   //makeCVFont();
 
+   //testCvOCR(argv[1]);
+   
    return 0;
 }

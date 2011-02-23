@@ -160,4 +160,6 @@ void CvApproximator::apply( double eps, const Points &input, Points &output ) co
    output.clear();
    for (int i = 0; i < (int)approxCurve.size(); i++)
       output.push_back(Vec2d(approxCurve[i].x, approxCurve[i].y));
+   if (closed)
+      output.push_back(Vec2d(output[0]));
 }

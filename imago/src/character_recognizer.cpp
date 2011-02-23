@@ -63,7 +63,7 @@ double CharacterRecognizer::_compareDescriptors( const std::vector<double> &d1,
          else
             weight = 0.3;
       }
-      d += weight * r * r;
+      d += fabs(weight * r); // * r;
    }
 
    return d;
@@ -221,6 +221,7 @@ void CharacterRecognizer::_loadBuiltIn()
 
 HWCharacterRecognizer::HWCharacterRecognizer () : _cr(3)
 {
+   /*
    try
    {
       {
@@ -239,6 +240,7 @@ HWCharacterRecognizer::HWCharacterRecognizer () : _cr(3)
       fprintf(stderr, "%s\n", e.what());
       return;
    }
+   */
 }
 
 void HWCharacterRecognizer::_readFile(const char *filename, SymbolFeatures &features)
@@ -274,6 +276,7 @@ int HWCharacterRecognizer::recognize (Segment &seg)
       return 'O';
    }
 
+   /*
    double errh1 = CharacterRecognizer::_compareFeatures(features, features_h1);
    double errh2 = CharacterRecognizer::_compareFeatures(features, features_h2);
    double errh3 = CharacterRecognizer::_compareFeatures(features, features_h3);
@@ -310,7 +313,7 @@ int HWCharacterRecognizer::recognize (Segment &seg)
          return 'H';
       return 'N';
    }
-
+   */
    static const std::string candidates =
       "ABCDFGHIKMNPRS"
       "aehiklnru"

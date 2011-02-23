@@ -144,11 +144,11 @@ void LabelLogic::process( Segment *seg, int line_y )
       char hwc = 
 _hwcr.recognize(*seg);
 
-      if (hwc == 'N')
+      /*if (hwc == 'N')
          capital = true;
       else if (hwc == 'H')
          capital = true;
-      else if (hwc == 'O')
+      else*/ if (hwc == 'O')
          capital = true; // can be O or o or 0
       else if (seg->getFeatures().recognizable)
       {
@@ -175,11 +175,11 @@ _hwcr.recognize(*seg);
       _predict(seg, letters);
       char sym = _hwcr.recognize(*seg);
 
-      if (sym == 'N')
+      /*if (sym == 'N')
          ;
       else if (sym == 'H')
          ;
-      else if (sym == 'O')
+      else*/ if (sym == 'O')
          ;
       else if (seg->getFeatures().recognizable)
          sym = _cr.recognize(*seg, letters); //TODO: Can use c_big here

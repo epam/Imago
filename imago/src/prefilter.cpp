@@ -111,7 +111,7 @@ inline static void _blur (Image &img, int radius)
             {
                int xx = x + l, yy = y + k;
                if (xx >= 0 && xx < w && yy >= 0 && yy < h)
-                  total += dblur[(y + k) * w + x + l];
+                  total += dblur[yy * w + xx];
                else
                   total += dblur[y * w + x];
             }
