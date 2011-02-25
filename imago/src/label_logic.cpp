@@ -141,8 +141,7 @@ void LabelLogic::process( Segment *seg, int line_y )
       
       // No time to combine the recognizers properly. 
       // Just use one on top of another for now.
-      char hwc = 
-_hwcr.recognize(*seg);
+      char hwc = _hwcr.recognize(*seg);
 
       /*if (hwc == 'N')
          capital = true;

@@ -14,6 +14,7 @@
 #include "segmentator.h"
 #include "stl_fwd.h"
 #include "thin_filter2.h"
+#include "image_utils.h"
 
 using namespace imago;
 const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
@@ -159,7 +160,7 @@ char CharacterRecognizer::recognize( const SymbolFeatures &features,
          boost::get<1>(it->second) = std::min(boost::get<1>(it->second),
                                               boost::get<2>(t));
       }
-      //printf("%c %lf %d\n", c, boost::get<2>(t), boost::get<1>(t));
+      //printf("***%c %lf %d\n", c, boost::get<2>(t), boost::get<1>(t));
    }
 
    char res = 0;
@@ -268,11 +269,15 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    ThinFilter2 tf(thinseg);
    tf.apply();
 
+#ifndef NDEBUG
    printf(" (%d ic)", features.inner_contours_count);
+#endif
    
    if (isCircle(thinseg))
    {
+#ifndef NDEBUG
       printf(" circle ");
+#endif
       return 'O';
    }
 
@@ -316,29 +321,37 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    */
    static const std::string candidates =
       "ABCDFGHIKMNPRS"
-      "aehiklnru"
+      "aehiklnr" //u
       "1236";
    
    double err;
    char c = _cr.recognize(seg, candidates, &err);
 
+   if (c == 'N' || c == 'H')
+      return c;
+
+#ifndef NDEBUG
    if (c != 0)
       printf(" [%c] %.2lf ", c, err);
+#endif
 
    bool line = (c == 'l' || c == 'i' || c == '1');
    bool tricky = (c == 'r');
    bool hard = (c == 'R' || c == 'S');
 
-   if (line && err < 0.5)
+   if (c == 'F' && err < 3.4)
       return c;
 
-   if (tricky && err < 1.0)
+   if (line && err < 1.9) //0.5
       return c;
 
-   if (!line && !tricky && err < 1.8)
+   if (tricky && err < 2.8) //1.0
       return c;
 
-   if (hard && err < 2.5)
+   if (!line && !tricky && err < 3.3) //1.8
+      return c;
+
+   if (hard && err < 4.5) //2.5
       return c;
 
    return -1;

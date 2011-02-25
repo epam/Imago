@@ -345,14 +345,14 @@ void makeFont( )
                                            //"../../../data/fonts/png/Writing_Stuff.png",
                                            "../../../data/fonts/png/MarkerSD.png",
                                            "../../../data/fonts/png/desyrel.png",
-                                           "../../../data/fonts/png/budhand.png",
+                                           "../../../data/fonts/png/budhand3.png",
                                            "../../../data/fonts/png/annifont.png"};
      int count = 25;
      std::vector<Font *> fonts(fonts_count);
      for (int i = 0; i < fonts_count; i++)
         fonts[i]= new Font(font_names[i], count);
      
-     FileOutput fout("../../../data/fonts/TEST4.font");
+     FileOutput fout("../../../data/fonts/TEST5.font");
      fout.printf("%d %d %d\n", count, fonts_count, 62);
 
      for (int i = 0; i < fonts_count; i++)
@@ -459,8 +459,8 @@ void testRotation(const char *filename = 0)
       printf("Orientation %d\n", rot);
       */
       const char *f = filename ? filename :
-           "/home/winkie/flamingo_test/from_caduff_2/IMG_0024.JPG";
-         //"/home/vsmolov/flamingo_test/from_caduff_2/IMG_0021.JPG";
+         "../../../data/from_caduff_2/IMG_0019.JPG";
+         //"../../../ireco/first-delivery-images/photo09.jpg";
       prefilterFile(f, img);
 
       getSettings()["DebugSession"] = true;
@@ -630,6 +630,7 @@ void testCvOCR( const char *_filename = 0)
    cv::Mat mat;
    _ImageToMat(imgN, mat);
    std::vector<cv::Vec4i> lines;
+
    printf("%d\n", mat.channels());
    cv::HoughLinesP(mat, lines, 1, CV_PI / 180, 13, 30, 100);
    printf("LINES COUNT = %d\n", lines.size());
@@ -678,8 +679,8 @@ int main(int argc, char **argv)
    //testContour();
    //testRecognizer(num);
    //testOCR(argv[1]);
-   //makeFont();
-   testOCR2(argv[1]);
+   makeFont();
+   //testOCR2(argv[1]);
 
    //testRotation(argv[1]);
    //makeCVFont();

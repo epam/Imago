@@ -72,10 +72,14 @@ namespace imago
          //BOOST_FOREACH(Segment *seg, segments)
          {
             double r = seg->getRatio();
+#ifndef NDEBUG
             printf("  got a segment, ratio %lf: ", r);
+#endif
             if (r < (double)rs["MinSymRatio"] || r > (double)rs["MaxSymRatio"])
             {
+#ifndef NDEBUG
                printf("bad ratio, not a symbol\n");
+#endif
                continue;
             }
             /*if ((double)seg->getHeight() > (int)rs["CapitalHeight"] * 1.7)
@@ -86,11 +90,12 @@ namespace imago
 
             char c = _hwcr.recognize(*seg);
 
+#ifndef NDEBUG
             if (c == -1)
                printf(" not recognized\n");
             else
                printf(" '%c'\n", c);
-           
+#endif
             if (c == 'O')
                scores[i] += 0.9;
             else if (strchr("CNPSF", c) != NULL)
@@ -110,7 +115,9 @@ namespace imago
          BOOST_FOREACH(Segment *seg, layer_graphics)
             delete seg;
 
+#ifndef NDEBUG
          printf("  score: %lf\n", scores[i]);
+#endif
       }
 
       int max = 0;

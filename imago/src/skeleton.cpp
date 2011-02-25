@@ -380,6 +380,8 @@ bool Skeleton::_dissolveIntermediateVertices ()
       if (neighbors.size() != 2)
          continue;
 
+      //TODO: Need something more accurate
+/*
       // DP: will learn how to use STL iterators another day
       int k;
       Vec2d vpos = boost::get(boost::vertex_pos, _g, vertex);
@@ -387,11 +389,11 @@ bool Skeleton::_dissolveIntermediateVertices ()
       {
          if (Vec2d::distance(_vertices_big_degree[k], vpos) < 0.0001)
             break;
-       }
+      }
 
       if (k != _vertices_big_degree.size())
          continue;
-      
+*/
       const Edge &edge1 = boost::edge(vertex, neighbors[0], _g).first;
       const Edge &edge2 = boost::edge(vertex, neighbors[1], _g).first;
 
@@ -444,7 +446,7 @@ bool Skeleton::_dissolveIntermediateVertices ()
       }
    }
    
-   if (min_err < 0.28)
+   if (min_err < 0.22) //0.28 //0.22
    {
       LPRINT(0, "dissolving vertex, err = %.2lf", min_err);
       std::deque<Vertex> neighbors;
@@ -755,14 +757,14 @@ void Skeleton::modifyGraph()
 
    recalcAvgBondLength();
 
-   if (1 || getSettings()["DebugSession"])
-    {
-       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-       img.fillWhite();
-       ImageDrawUtils::putGraph(img, _g);
-       ImageUtils::saveImageToFile(img, "output/ggg0.png");
+   if (getSettings()["DebugSession"])
+   {
+      Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+      img.fillWhite();
+      ImageDrawUtils::putGraph(img, _g);
+      ImageUtils::saveImageToFile(img, "output/ggg0.png");
     
-    }
+   }
 
    _joinVertices(0.1);
 
@@ -779,7 +781,7 @@ void Skeleton::modifyGraph()
       }
    }
 
-   if (1 || getSettings()["DebugSession"])
+   if (getSettings()["DebugSession"])
     {
        Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
        img.fillWhite();
@@ -791,7 +793,7 @@ void Skeleton::modifyGraph()
    while (_dissolveShortEdges(0.1))
       ;
 
-   if (1 || getSettings()["DebugSession"])
+   if (getSettings()["DebugSession"])
     {
        Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
        img.fillWhite();
@@ -802,10 +804,11 @@ void Skeleton::modifyGraph()
 
    while (_dissolveIntermediateVertices())
       ;
+   //_repairBroken();
 
    recalcAvgBondLength();
 
-   if (1 || getSettings()["DebugSession"])
+   if (getSettings()["DebugSession"])
     {
        Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
        img.fillWhite();
@@ -822,7 +825,7 @@ void Skeleton::modifyGraph()
     //while (_dissolveIntermediateVertices())
     //   ;
     
-    if (1 || getSettings()["DebugSession"])
+    if (getSettings()["DebugSession"])
     {
        Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
        img.fillWhite();
@@ -832,10 +835,10 @@ void Skeleton::modifyGraph()
 
     recalcAvgBondLength();
    
-    while (_dissolveShortEdges(0.3))
        ;
+    while (_dissolveShortEdges(0.25))
 
-    if (1 || getSettings()["DebugSession"])
+    if (getSettings()["DebugSession"])
     {
        Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
        img.fillWhite();
@@ -875,7 +878,7 @@ void Skeleton::modifyGraph()
     }
 
 
-    if (1 || getSettings()["DebugSession"])
+    if (getSettings()["DebugSession"])
     {
        Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
        img.fillWhite();

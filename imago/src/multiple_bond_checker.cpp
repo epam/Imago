@@ -30,7 +30,7 @@ MultipleBondChecker::MultipleBondChecker( Skeleton &s ) : _s(s), _g(_s.getGraph(
    else if (_avgBondLength > 85)
       _multiBondErr = 0.4;
    else
-      _multiBondErr = 0.7; //TODO: handwriting, original: 0.4
+      _multiBondErr = 0.65; //TODO: handwriting, original: 0.4
    _parLinesEps = getSettings()["ParLinesEps"];
 }
 
@@ -119,8 +119,8 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       d = 0.5 * (Algebra::distance2segment(sb_pos, fb_pos, fe_pos) +
                  Algebra::distance2segment(se_pos, fb_pos, fe_pos));
 
-   if (d > __min(bf.length, bs.length))
-      return false;
+   //if (d > __min(bf.length, bs.length))
+   //   return false;
 
    BGL_FORALL_VERTICES(v, _g, Graph)
    {
@@ -148,13 +148,13 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
    }
 
 
-  //if (d > _multiBondErr * _avgBondLength)
-    //return false;
+   if (d > _multiBondErr * _avgBondLength)
+      return false;
 
    LPRINT(0, "found double boud:"); 
    LPRINT(0, "(%.1lf %.1lf) - (%.1lf %.1lf)", fb_pos.x, fb_pos.y, fe_pos.x, fe_pos.y);
    LPRINT(0, "(%.1lf %.1lf) - (%.1lf %.1lf)", sb_pos.x, sb_pos.y, se_pos.x, se_pos.y);
-  return true;
+   return true;
 }
 
 bool MultipleBondChecker::checkTriple( Edge thrd )
