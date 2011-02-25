@@ -39,6 +39,7 @@ set(SRC
   src/skeleton.cpp
   src/rectangle.cpp
   src/character_recognizer.cpp
+  src/character_recognizer_font.cpp
   src/prefilter.cpp
   src/contour_extractor.cpp
   src/orientation_finder.cpp

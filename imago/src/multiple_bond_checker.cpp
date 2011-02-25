@@ -95,7 +95,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       return false;
 
    // DP: DID NOT UNDERSTAND AND COMMENTED OUT
-   /*if (fe != se && fb != sb)
+   if (fe != se && fb != sb)
    {
       if (boost::edge(fb, se, _g).second ||
           boost::edge(fe, sb, _g).second)
@@ -104,7 +104,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       dd = Vec2d::distance(m1, m2); 
       if (dd < 0.09 * _avgBondLength)
          return false;
-         }*/
+   }
 
    if (db < de)
       std::swap(db, de);

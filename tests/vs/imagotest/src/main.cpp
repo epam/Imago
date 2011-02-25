@@ -459,7 +459,7 @@ void testRotation(const char *filename = 0)
       printf("Orientation %d\n", rot);
       */
       const char *f = filename ? filename :
-         "../../../data/from_caduff_2/IMG_0019.JPG";
+         "../../../data/from_caduff_2/IMG_0043.JPG";
          //"../../../ireco/first-delivery-images/photo09.jpg";
       prefilterFile(f, img);
 
@@ -679,10 +679,10 @@ int main(int argc, char **argv)
    //testContour();
    //testRecognizer(num);
    //testOCR(argv[1]);
-   makeFont();
+   //makeFont();
    //testOCR2(argv[1]);
 
-   //testRotation(argv[1]);
+   testRotation(argv[1]);
    //makeCVFont();
 
    //testCvOCR(argv[1]);
