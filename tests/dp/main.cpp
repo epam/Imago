@@ -56,24 +56,25 @@ void _findCircles (Image &img)
       Segment &seg = **it;
       
       printf("segment #%d: ", count);
+
+      /*int c = hwcr.recognize(seg);
+
+      if (c == -1)
+         printf(" not recognized\n");
+      else
+         printf(" '%c'\n", c);
+      */
+      ThinFilter2 tf(seg);
+      tf.apply();
+
       {
          FileOutput output("seg_%02d.png", count);
          PngSaver saver(output);
          saver.saveImage(seg);
       }
 
-      int c = hwcr.recognize(seg);
-
-      if (c == -1)
-         printf(" not recognized\n");
-      else
-         printf(" '%c'\n", c);
-
-      //ThinFilter2 tf(seg);
-      //tf.apply();
-
-      //if (isCircle(seg))
-      //   printf("  CIRCLE!\n");
+      if (isCircle(seg))
+         printf("  CIRCLE!\n");
    }
 }
 

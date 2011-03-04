@@ -13,17 +13,23 @@
 #include "image_utils.h"
 #include "binarizer.h"
 
-#undef DEBUG
+#define DEBUG
 
 namespace imago
 {
 
-static int _cmp_float (const void *p1, const void *p2)
+struct _AngRadius
 {
-   float f1 = *(const float *)p1;
-   float f2 = *(const float *)p2;
+   float ang;
+   float radius;
+};
 
-   if (f1 < f2)
+static int _cmp_ang (const void *p1, const void *p2)
+{
+   const _AngRadius &f1 = *(const _AngRadius *)p1;
+   const _AngRadius &f2 = *(const _AngRadius *)p2;
+
+   if (f1.ang < f2.ang)
       return -1;
    return 1;
 }
@@ -423,8 +429,7 @@ bool isCircle (Image &seg)
    centerx /= npoints;
    centery /= npoints;
 
-   float *angles = new float[npoints + 1];
-   float *radii = new float[npoints];
+   _AngRadius *points = new _AngRadius[npoints + 1];
    int k = 0;
    float avg_radius = 0;
 
@@ -435,36 +440,58 @@ bool isCircle (Image &seg)
          {
             float radius = sqrt((i - centerx) * (i - centerx) +
                                 (j - centery) * (j - centery));
-            radii[k] = radius;
+            points[k].radius = radius;
             avg_radius += radius;
             float cosine = (i - centerx) / radius;
             float sine = (centery - j) / radius;
             float ang = (float)atan2(sine, cosine);
             if (ang < 0)
                ang += 2 * M_PI;
-            angles[k] = ang;
+            points[k].ang = ang;
             k++;
          }
       }
 
-   qsort(angles, npoints, sizeof(float), _cmp_float);
-   angles[npoints] = angles[0] + 2 * M_PI;
+   qsort(points, npoints, sizeof(_AngRadius), _cmp_ang);
+   
+   points[npoints].ang = points[0].ang + 2 * M_PI;
+   points[npoints].radius = points[0].radius;
 
    for (i = 0; i < npoints; i++)
    {
-      float gap = angles[i + 1] - angles[i];
+      float gap = points[i + 1].ang - points[i].ang;
+      float r1 = fabs(points[i].radius);
+      float r2 = fabs(points[i + 1].radius);
+      float gapr = 1.f;
+
+      if (r1 > r2 && r2 > 0.00001)
+         gapr = r1 / r2;
+      else if (r2 < r1 && r1 > 0.00001)
+         gapr = r2 / r1;
+
+      if (gap < 0.1 && gapr > 2)
+      {
+         #ifdef DEBUG
+         printf("large radios gap: %3f -> %3f at %3f\n", r1, r2, points[i].ang);
+         #endif
+         delete[] points;
+         return false;
+      }
+
       if (gap > 1.0)
       {
          #ifdef DEBUG
-         printf("large gap: %3f at %3f\n", gap, angles[i]);
+         printf("large gap: %3f at %3f\n", gap, points[i].ang);
          #endif
+         delete[] points;
          return false;
       }
-      if (gap > M_PI / 8 && (angles[i] < M_PI / 8 || angles[i] > 7 * M_PI / 4))
+      if (gap > M_PI / 8 && (points[i].ang < M_PI / 8 || points[i].ang > 7 * M_PI / 4))
       {
          #ifdef DEBUG
-         printf("C-like gap: %3f at %3f\n", gap, angles[i]);
+         printf("C-like gap: %3f at %3f\n", gap, points[i].ang);
          #endif
+         delete[] points;
          return false;
       }
    }
@@ -476,13 +503,14 @@ bool isCircle (Image &seg)
       #ifdef DEBUG
       printf("degenerate\n");
       #endif
+      delete[] points;
       return false;
    }
 
    float disp = 0;
 
    for (i = 0; i < npoints; i++)
-      disp += (radii[i] - avg_radius) * (radii[i] - avg_radius);
+      disp += (points[i].radius - avg_radius) * (points[i].radius - avg_radius);
 
    disp /= npoints;
    float ratio = sqrt(disp) / avg_radius;
@@ -492,7 +520,7 @@ bool isCircle (Image &seg)
           avg_radius, sqrt(disp), ratio);
    #endif
 
-   delete[] radii;
+   delete[] points;
    if (ratio > 0.3)
       return false; // not a circle
    return true;
