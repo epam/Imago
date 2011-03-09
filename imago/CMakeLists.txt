@@ -43,6 +43,8 @@ set(SRC
   src/prefilter.cpp
   src/contour_extractor.cpp
   src/orientation_finder.cpp
+  src/features_compare_method.cpp
+  src/fourier_features.cpp
 )
 
 if(WIN32)

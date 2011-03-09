@@ -29,7 +29,7 @@
 
 using namespace imago;
 
-void FourierDescriptors::calculate( const Segment *seg, int count,
+void FourierDescriptors::calculate( const Image *seg, int count,
                                     std::vector<double> &d)
 {
    std::vector<Vec2d> contour;

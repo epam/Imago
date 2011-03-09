@@ -27,7 +27,7 @@ namespace imago
    {
    public:
       //TODO: change Segment to Contour
-      static void calculate( const Segment *seg, int count,
+      static void calculate( const Image *seg, int count,
                              std::vector<double> &descriptors );
       
       static void calculate( const Points &contour, int count,
