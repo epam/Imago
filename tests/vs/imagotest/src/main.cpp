@@ -36,6 +36,9 @@
 #include "orientation_finder.h"
 #include "graphics_detector.h"
 
+#include "ocr.h"
+#include "fourier_features.h"
+
 using namespace imago;
 
 int readCL( int argc, char **argv )
@@ -642,6 +645,70 @@ void testCvOCR( const char *_filename = 0)
    ImageUtils::saveImageToFile(lol, "lol.png");
 }
 
+void createTrainSet(std::vector<std::string> fonts, IOCRClassification::TrainSet &ts)
+{
+   for (int i = 0; i < (int)fonts.size(); i++)
+   {
+      Image img;
+      ImageUtils::loadImageFromFile(img, fonts[i].c_str());
+      SegmentDeque segs;
+      Segmentator::segmentate(img, segs);
+
+      printf("%s: %d segments\n", fonts[i].c_str(), segs.size());
+      SegmentDeque::iterator it = segs.begin();
+      for (int j = 0; j < (int)segs.size() - 2; j++)
+      {
+         if (j == 34 || j == 35)
+            ++it;
+
+         Image *img = *it;
+         ++it;
+
+         char sym;
+         if (j < 26)
+            sym = 'A' + j;
+         else if (j < 52)
+            sym = 'a' + (j - 26);
+         else if (j < 62)
+            sym = '0' + (j - 52);
+
+         ts.push_back(std::make_pair(img, sym));
+      }
+   }
+}
+
+void testClassifier()
+{
+   IOCRClassification *classificator = new FourierFeaturesCompareMethod(3, 25);
+   std::vector<std::string> fonts;
+   IOCRClassification::TrainSet ts;
+   fonts.push_back("../../../data/fonts/png/serif.png");
+   //"../../../data/fonts/png/MarkerSD_it.png",
+   //"../../../data/fonts/png/Writing_Stuff.png",
+   fonts.push_back("../../../data/fonts/png/MarkerSD.png");
+   fonts.push_back("../../../data/fonts/png/desyrel.png");
+   fonts.push_back("../../../data/fonts/png/budhand.png");
+   fonts.push_back("../../../data/fonts/png/annifont.png");
+   createTrainSet(fonts, ts);
+
+   //classificator->train(ts);
+   //FileOutput fout("fdc.dump");
+   //classificator->save(fout);
+   classificator->load("fdc.dump");
+
+   bool b; char c; double err;
+   Image img;
+
+   ImageUtils::loadImageFromFile(img, "letter_n.png");
+
+   b = classificator->getBest(img, c, &err);
+
+   printf("%d %c %lf\n", (int)b, c, err);
+
+   for (int i = 0; i < (int)ts.size(); i++)
+      delete ts[i].first;
+}
+
 int main(int argc, char **argv)
 {
    //graphTest();
@@ -682,8 +749,10 @@ int main(int argc, char **argv)
    //makeFont();
    //testOCR2(argv[1]);
 
-   testRotation(argv[1]);
+   //testRotation(argv[1]);
    //makeCVFont();
+
+   testClassifier();
 
    //testCvOCR(argv[1]);
    

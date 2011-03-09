@@ -7,11 +7,11 @@
 #include "segment.h"
 #include "segmentator.h"
 #include "fourier_descriptors.h"
+#include "output.h"
 
 namespace imago
 {
-   FourierFeatures::FourierFeatures( int count ) : _count(count),
-         _has_inner(0)
+   FourierFeatures::FourierFeatures( int count ) : _count(count)
    {
 
    }
@@ -48,7 +48,7 @@ namespace imago
 
       double d = _distance(_outer, fothers->_outer);
 
-      if (!_has_inner || !fothers->_has_inner)
+      if (_inner.size() == 0 || fothers->_inner.size() == 0)
          return sqrt(d);
 
       if (_inner.size() != fothers->_inner.size())
@@ -86,14 +86,74 @@ namespace imago
             total++;
       }
 
-      _has_inner = (total > 0);
+      if (total == 0)
+         return;
+
       _inner.resize(total);
 
       i = 0;
       BOOST_FOREACH(Segment * &seg, segments)
       {
          if (seg != 0)
-            FourierDescriptors::calculate(seg, _count, _inner[i]);
+            FourierDescriptors::calculate(seg, _count, _inner[i++]);
       }
+   }
+
+   void FourierFeatures::write( Output &o ) const
+   {
+      o.printf("%d %d\n", _count, _inner.size());
+      for (int i = 0; i < 2 * _count; i++)
+         o.printf("%lf ", _outer[i]);
+      o.writeCR();
+
+      for (int j = 0; j < (int)_inner.size(); j++)
+      {
+         for (int i = 0; i < 2 * _count; i++)
+            o.printf("%lf ", _inner[j][i]);
+         o.writeCR();
+      }
+   }
+
+   void FourierFeatures::read( FILE *fi )
+   {
+      int s;
+      fscanf(fi, "%d %d\n", &_count, &s);
+      _outer.resize(2 * _count);
+      if (s > 0)
+         _inner.resize(s);
+
+      for (int i = 0; i < 2 * _count; i++)
+         fscanf(fi, "%lf", &_outer[i]);
+
+      for (int j = 0; j < s; j++)
+      {
+         _inner[j].resize(2 * _count);
+         for (int i = 0; i < 2 * _count; i++)
+            fscanf(fi, "%lf", &_inner[j][i]);
+      }
+   }
+
+   IFeatures *FourierFeaturesCompareMethod::_extract( const Image &img ) const
+   {
+      FourierFeatures *f = new FourierFeatures(_count);
+      f->extract(img);
+      return f;
+   }
+
+   void FourierFeaturesCompareMethod::_writeHeader( Output &o ) const
+   {
+      o.printf("%d\n", _count);
+   }
+
+   void FourierFeaturesCompareMethod::_readHeader( /*Input*/ FILE *fi )
+   {
+      fscanf(fi, "%d\n", &_count);
+   }
+
+   IFeatures *FourierFeaturesCompareMethod::_readFeatures( /*Input*/ FILE *fi ) const
+   {
+      FourierFeatures *f = new FourierFeatures(_count);
+      f->read(fi);
+      return f;
    }
 }

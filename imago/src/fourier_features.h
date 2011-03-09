@@ -4,6 +4,7 @@
 #include <vector>
 
 #include "ocr.h"
+#include "features_compare_method.h"
 
 namespace imago
 {
@@ -31,8 +32,29 @@ namespace imago
       int _count;
 
       Descriptors _outer;
-      bool _has_inner;
       std::vector<Descriptors> _inner;
+   };
+
+   class FourierFeaturesCompareMethod: public FeaturesCompareMethod
+   {
+   public:
+      FourierFeaturesCompareMethod( int k, int count ):
+         FeaturesCompareMethod(k), _count(count)
+      {};
+      FourierFeaturesCompareMethod(): FeaturesCompareMethod()
+      {};
+      ~FourierFeaturesCompareMethod()
+      {};
+
+   private:
+      int _count;
+
+   protected:
+      virtual IFeatures *_extract( const Image &img ) const;
+
+      virtual void _readHeader( /*Input*/FILE *fi );
+      virtual IFeatures* _readFeatures( /*Input*/FILE *fi ) const;
+      virtual void _writeHeader( Output &o ) const;
    };
 }
 
