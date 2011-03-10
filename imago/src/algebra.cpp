@@ -166,7 +166,7 @@ std::pair<Vec2d, Vec2d> Algebra::segmentProjection(
 
    a1 = Vec2d::dot(v1, v2) / l1;
    a2 = Vec2d::dot(v1, v3) / l1;
-   v1.normalize();
+   v1 = v1.getNormalized();
    v2.scaled(v1, a1);
    v3.scaled(v1, a2);
 

@@ -17,14 +17,13 @@
 
 #include "image.h"
 #include "approximator.h"
-#include "vec2d.h"
 #include "algebra.h"
 #include "image_utils.h"
 #include "image_draw_utils.h"
 
 using namespace imago;
 
-void SimpleApproximator::apply( double eps, const Points &input,Points &output ) const
+void SimpleApproximator::apply( double eps, const Points2d &input,Points2d &output ) const
 {
    IntVector sample;
    std::vector<_Line> lines;
@@ -75,7 +74,7 @@ void SimpleApproximator::apply( double eps, const Points &input,Points &output )
    output.push_back(input.back());
 }
 
-void SimpleApproximator::_prepare( const Points &poly, IntVector &sample ) const
+void SimpleApproximator::_prepare( const Points2d &poly, IntVector &sample ) const
 {
    double epsilons[2] = {1.13, 0.8}; //"Constants" //1.33, 1.2
    double dist = 0;
@@ -114,7 +113,7 @@ void SimpleApproximator::_prepare( const Points &poly, IntVector &sample ) const
    }
 }
 
-void SimpleApproximator::_calc_line( const Points &input, int begin, int end, _Line &res ) const
+void SimpleApproximator::_calc_line( const Points2d &input, int begin, int end, _Line &res ) const
 {
    double Sx = 0, Sy = 0, Sx2 = 0, Sxy = 0;
    
@@ -146,7 +145,7 @@ void SimpleApproximator::_calc_line( const Points &input, int begin, int end, _L
 
 #include <opencv/cv.h>
 
-void CvApproximator::apply( double eps, const Points &input, Points &output ) const
+void CvApproximator::apply( double eps, const Points2d &input, Points2d &output ) const
 {
    std::vector<cv::Point> vcurve;
    for (int i = 0; i < (int)input.size(); i++)

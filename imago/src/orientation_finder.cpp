@@ -191,7 +191,7 @@ namespace imago
       int w = seg.getWidth(), h = seg.getHeight();
       double d = 0, dist_ul, dist_ur, dist_dl, dist_dr;
       dist_ul = dist_ur = dist_dl = dist_dr = 1e16;
-      Vec2d ul, ur, dl, dr;
+      Vec2i ul, ur, dl, dr;
       char c, best_c;
       double best_d;
       int best_r;
@@ -199,7 +199,7 @@ namespace imago
       SymbolFeatures features;
       int count = _cr.getDescriptorsCount();
       ContourExtractor contour_ext;
-      Points approxContour, contour;
+      Points2i approxContour, contour;
 
       try
       {
@@ -315,10 +315,10 @@ namespace imago
       return boost::make_tuple(best_r, best_c, best_d);
    }
 
-   void OrientationFinder::_rotateContourTo( const Vec2d &p, Points &contour )
+   void OrientationFinder::_rotateContourTo( const Vec2i &p, Points2i &contour )
    {
-      Points ncontour;
-      Points::iterator it = find(contour.begin(), contour.end(), p);
+      Points2i ncontour;
+      Points2i::iterator it = find(contour.begin(), contour.end(), p);
 
       ncontour.insert(ncontour.begin(), it, contour.end());
       ncontour.insert(ncontour.end(), contour.begin() + 1, it + 1);

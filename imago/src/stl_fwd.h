@@ -16,6 +16,7 @@
 #define _std_fwd_h
 
 #include "comdef.h"
+#include "vec2d.h"
 
 namespace std
 {
@@ -29,7 +30,6 @@ namespace std
 namespace imago
 {
    class Segment;
-   class Vec2d;
 
 #define FWD_DECL(Container, Type, Name) typedef std::Container<Type, std::allocator<Type> > Name
    FWD_DECL(list, int, IntList);
@@ -39,7 +39,8 @@ namespace imago
    FWD_DECL(vector, double, DoubleVector);
    FWD_DECL(list, Segment *, SegmentList);
    FWD_DECL(deque, Segment *, SegmentDeque);
-   FWD_DECL(vector, Vec2d, Points);
+   FWD_DECL(vector, Vec2d, Points2d);
+   FWD_DECL(vector, Vec2i, Points2i);
    typedef std::pair<int, int> IntPair;
 }
 

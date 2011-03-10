@@ -36,7 +36,7 @@
 #include "orientation_finder.h"
 #include "graphics_detector.h"
 
-#include "ocr.h"
+#include "classification.h"
 #include "fourier_features.h"
 
 using namespace imago;
@@ -679,7 +679,7 @@ void createTrainSet(std::vector<std::string> fonts, IOCRClassification::TrainSet
 
 void testClassifier()
 {
-   IOCRClassification *classificator = new FourierFeaturesCompareMethod(3, 25);
+   IOCRClassification *classificator = new FourierFeaturesCompareMethod(25, 3);
    std::vector<std::string> fonts;
    IOCRClassification::TrainSet ts;
    fonts.push_back("../../../data/fonts/png/serif.png");

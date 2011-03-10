@@ -69,6 +69,7 @@ namespace imago
          fscanf(fi, "%c %d ", &c, &d);
          _classes[i].first = c;
          _classes[i].second.resize(d);
+         _mapping[c] = i;
       }
 
       for (int i = 0; i < n; i++)
@@ -79,8 +80,10 @@ namespace imago
       _trained = true;
    }
 
-   void FeaturesCompareMethod::_getSuspects( const Image &img, int count,
-                                             std::deque<Suspect> &s ) const
+   void FeaturesCompareMethod::_getSuspectsFrom( const Image &img,
+                                                 const std::deque<char> &valid,
+                                                 int count,
+                                                 std::deque<Suspect> &s ) const
    {
       if (!_trained)
          throw LogicException("Classifier is not trained!");
@@ -89,28 +92,38 @@ namespace imago
 
       IFeatures *features = _extract(img);
 
-      std::vector<SymbolClass>::const_iterator cit;
+      std::deque<char>::const_iterator vit;
       std::deque<IFeatures*>::const_iterator fit;
       std::deque<Suspect>::iterator sit;
-      double max_d = 1e16;
 
-      for (cit = _classes.begin(); cit != _classes.end(); ++cit)
+      for (vit = valid.begin(); vit != valid.end(); ++vit)
       {
-         for (fit = cit->second.begin(); fit != cit->second.end(); ++fit)
+         const SymbolClass &cls = _classes[_mapping[*vit]];
+         for (fit = cls.second.begin(); fit != cls.second.end(); ++fit)
          {
             double d = features->compare(*fit);
             if (s.size() == 0)
-               s.push_back(std::make_pair(cit->first, d));
+               s.push_back(std::make_pair(cls.first, d));
             else if (d < s.back().second)
             {
                for (sit = s.begin(); sit != s.end(); ++sit)
                   if (d < sit->second)
-                     s.insert(sit, std::make_pair(cit->first, d));
+                     s.insert(sit, std::make_pair(cls.first, d));
 
                if (s.size() > count)
                   s.pop_back();
             }
          }
       }
+   }
+
+   void FeaturesCompareMethod::_getSuspects( const Image &img, int count,
+                                             std::deque<Suspect> &s ) const
+   {
+      std::deque<char> all;
+      std::vector<SymbolClass>::const_iterator cit;
+      for (cit = _classes.begin(); cit != _classes.end(); ++cit)
+         all.push_back(cit->first);
+      _getSuspectsFrom(img, all, count, s);
    }
 }

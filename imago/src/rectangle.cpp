@@ -33,7 +33,7 @@ Rectangle::Rectangle( int _x, int _y, int _width, int _height )
    height = _height;
 }
 
-Rectangle::Rectangle( const Vec2d &top_left, const Vec2d &bottom_right )
+Rectangle::Rectangle( const Vec2i &top_left, const Vec2i &bottom_right )
 {
    x = top_left.x;
    y = top_left.y;
@@ -41,7 +41,7 @@ Rectangle::Rectangle( const Vec2d &top_left, const Vec2d &bottom_right )
    height = bottom_right.y - y;
 }
 
-Rectangle::Rectangle( const Vec2d &pos, int _width, int _height )
+Rectangle::Rectangle( const Vec2i &pos, int _width, int _height )
 {
    x = pos.x;
    y = pos.y;

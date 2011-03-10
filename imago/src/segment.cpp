@@ -105,9 +105,9 @@ double Segment::getRatio()
    return _ratio;
 }
 
-Vec2d Segment::getCenter() const
+Vec2i Segment::getCenter() const
 {
-   return Vec2d(_x + (_width >> 1), _y + (_height >> 1));
+   return Vec2i(_x + (_width >> 1), _y + (_height >> 1));
 }
 
 double Segment::getDensity() const

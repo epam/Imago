@@ -15,12 +15,12 @@
 #ifndef _segment_h
 #define _segment_h
 
+#include "vec2d.h"
 #include "image.h"
 #include "symbol_features.h"
 
 namespace imago
 {
-   class Vec2d;
    class Rectangle;
 
    class Segment : public Image
@@ -35,7 +35,7 @@ namespace imago
       int &getX();
       int &getY();
       Rectangle getRectangle() const;
-      Vec2d getCenter() const;
+      Vec2i getCenter() const;
 
       void splitVert( int x, Segment &left, Segment &right ) const;
       void crop();

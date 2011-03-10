@@ -223,7 +223,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          LPRINT(1, "No symbols found in image");
       }
 
-      Points ringCenters;
+      Points2d ringCenters;
 
       {
 #if 1

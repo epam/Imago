@@ -40,7 +40,7 @@ namespace imago
       const SkeletonGraph &getSkeleton() const;
       SkeletonGraph &getSkeleton();
 
-      void aromatize( Points &p );
+      void aromatize( Points2d &p );
 
       void mapLabels( std::deque<Label> &unmapped_labels );
 

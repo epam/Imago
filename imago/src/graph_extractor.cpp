@@ -63,7 +63,7 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const SegmentDeque &se
 void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skeleton &graph )
 {
    double avg_size = 0;
-   Points lsegments;
+   Points2d lsegments;
 
    gd.detect(img, lsegments);
 

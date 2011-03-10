@@ -177,7 +177,7 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
    }
 }
 
-void Molecule::aromatize( Points &aromatic_centers )
+void Molecule::aromatize( Points2d &aromatic_centers )
 {      
    BOOST_FOREACH( Vec2d arom_center, aromatic_centers )
    {

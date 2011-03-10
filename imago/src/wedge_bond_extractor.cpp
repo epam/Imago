@@ -221,7 +221,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
                      length = Vec2d::distance(p1, p2);
 
                      orient.diff(p2, p1);
-                     orient.normalize();
+                     orient = orient.getNormalized();
 
                      orient.scale(length);
 
@@ -558,7 +558,7 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
    A2 = -B0; B2 = A0;
    C2 = -A2 * e.x - B2 * e.y;
 
-   Points visited;
+   Points2d visited;
    std::deque<Vec2d> queue;
    bool border;
 

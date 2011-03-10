@@ -19,7 +19,7 @@ namespace imago
       int findFromImage( const Image &img );
    private:
       boost::tuple<int, char, double> _processSymbol( const Segment &seg );
-      void _rotateContourTo( const Vec2d &p, Points &contour );
+      void _rotateContourTo( const Vec2i &p, Points2i &contour );
       const CharacterRecognizer &_cr;
       HWCharacterRecognizer _hwcr;
    };

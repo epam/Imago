@@ -15,17 +15,18 @@
 #ifndef _rectangle_h
 #define _rectangle_h
 
+#include "vec2d.h"
+
 namespace imago
 {
-   class Vec2d;
    class Rectangle
    {
    public:
 
       Rectangle();
       Rectangle( int _x, int _y, int _width, int _height );
-      Rectangle( const Vec2d &top_left, const Vec2d &bottom_right );
-      Rectangle( const Vec2d &pos, int _width, int _height );
+      Rectangle( const Vec2i &top_left, const Vec2i &bottom_right );
+      Rectangle( const Vec2i &pos, int _width, int _height );
       
       double diagLength2() const;
       double diagLength() const;

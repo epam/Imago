@@ -15,11 +15,11 @@ namespace imago
       ContourExtractor();
       virtual ~ContourExtractor();
 
-      void getRawContour( const Image &i, Points &contour );
-      void getApproxContour( const Image &i, Points &contour );
+      void getRawContour( const Image &i, Points2i &contour );
+      void getApproxContour( const Image &i, Points2i &contour );
 
       //TODO: move it to private and eventually remove
-      void _approximize( Points &contour );
+      void _approximize( Points2i &contour );
    private:
    };
 }

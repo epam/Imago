@@ -82,14 +82,14 @@ void GraphicsDetector::_decorner( Image &img ) const
       ImageUtils::saveImageToFile(img, "output/decornered.png");
 }
 
-void GraphicsDetector::_extractPolygon( const Segment &seg, Points &poly ) const
+void GraphicsDetector::_extractPolygon( const Segment &seg, Points2d &poly ) const
 {
    int begin = -1;
    bool closed = true;
    int i, j, x, y, c;
    int cur, prev, next;
    int h = seg.getHeight(), w = seg.getWidth();
-   Points contour;
+   Points2d contour;
 
    if (w * h == 1)
       return;
@@ -196,7 +196,7 @@ int GraphicsDetector::_countBorderBlackPoints( const Image &img ) const
    return count;
 }
 
-void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring_centers ) const
+void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ring_centers ) const
 {
    int circle_count;
    Segment circle;
@@ -276,7 +276,7 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points &ring
 
 
 void GraphicsDetector::analyzeUnmappedLabels( std::deque<Label> &unmapped_labels, 
-                                             Points &ring_centers )
+                                              Points2d &ring_centers )
 {
    BOOST_FOREACH( Label &l, unmapped_labels )
    {
@@ -289,10 +289,10 @@ void GraphicsDetector::analyzeUnmappedLabels( std::deque<Label> &unmapped_labels
    }
 }
 
-void GraphicsDetector::detect( const Image &img, Points &lsegments ) const
+void GraphicsDetector::detect( const Image &img, Points2d &lsegments ) const
 {
    SegmentDeque segs;
-   Points poly;
+   Points2d poly;
    Image tmp;
    tmp.copy(img);
 

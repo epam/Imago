@@ -32,12 +32,12 @@ using namespace imago;
 void FourierDescriptors::calculate( const Image *seg, int count,
                                     std::vector<double> &d)
 {
-   std::vector<Vec2d> contour;
+   Points2i contour;
    ContourExtractor().getApproxContour(*seg, contour);
    calculate(contour, count, d);
 }
 
-void FourierDescriptors::calculate( const Points &contour, int count,
+void FourierDescriptors::calculate( const Points2i &contour, int count,
                                     std::vector<double> &d)
 {
    std::vector<double> &_desc = d;
@@ -48,8 +48,8 @@ void FourierDescriptors::calculate( const Points &contour, int count,
 
    double length = 0; //length of polygon
    double square;
-   Vec2d p1, p2, p3;
-   Vec2d v1, v2;
+   Vec2i p1, p2, p3;
+   Vec2i v1, v2;
 
    for (int i = 1; i < (int)contour.size(); i++)
    {
@@ -80,7 +80,7 @@ void FourierDescriptors::calculate( const Points &contour, int count,
          v1.diff(p3, p2);
          v2.diff(p2, p1);
 
-         phi = Vec2d::angle(v1, v2);
+         phi = Vec2i::angle(v1, v2);
 
          square = p1.x * p2.y - p2.x * p1.y +
                   p2.x * p3.y - p3.x * p2.y +

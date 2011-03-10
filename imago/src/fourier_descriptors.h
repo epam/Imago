@@ -30,7 +30,7 @@ namespace imago
       static void calculate( const Image *seg, int count,
                              std::vector<double> &descriptors );
       
-      static void calculate( const Points &contour, int count,
+      static void calculate( const Points2i &contour, int count,
                              std::vector<double> &descriptor );
 
    };

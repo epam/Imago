@@ -19,7 +19,7 @@ namespace imago
    {
    }
 
-   void ContourExtractor::getRawContour( const Image &image, Points &contour )
+   void ContourExtractor::getRawContour( const Image &image, Points2i &contour )
    {
       Image img;
       img.copy(image);
@@ -189,18 +189,18 @@ namespace imago
       for (IntDeque::reverse_iterator it = pts.rbegin();
            it != pts.rend(); ++it)
       {
-         contour.push_back(Vec2d(*it % (w + 1), *it / (w + 1)));
+         contour.push_back(Vec2i(*it % (w + 1), *it / (w + 1)));
       }
-      contour.push_back(Vec2d(contour[0])); //TODO: Vec2d needed?
+      contour.push_back(Vec2i(contour[0]));
    }
 
-   void ContourExtractor::getApproxContour( const Image &i, Points &contour )
+   void ContourExtractor::getApproxContour( const Image &i, Points2i &contour )
    {
       getRawContour(i, contour);
       _approximize(contour);
    }
 
-   void ContourExtractor::_approximize( Points &contour )
+   void ContourExtractor::_approximize( Points2i &contour )
    {
       double epsilons[2] = { 1.047, 0.8 }; //"Constants" ?
       for (int l = 0; l < 2; l++)

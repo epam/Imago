@@ -15,35 +15,34 @@
 #ifndef _approximator_h
 #define	_approximator_h
 
+#include "vec2d.h"
 #include "stl_fwd.h"
 
 namespace imago
 {
-   class Vec2d;
-
    class BaseApproximator
    {
    public:
-       virtual void apply( double eps, const Points &input, Points &output ) const = 0;
+       virtual void apply( double eps, const Points2d &input, Points2d &output ) const = 0;
    };
 
    class SimpleApproximator : public BaseApproximator
    {
    public:
-      void apply( double eps, const Points &input, Points &output ) const;
+      void apply( double eps, const Points2d &input, Points2d &output ) const;
    private:
       struct _Line
       {
          double a, b, c;
       };
-      void _calc_line( const Points &input, int begin, int end, _Line &res ) const;
-      void _prepare( const Points &poly, IntVector &sample ) const;
+      void _calc_line( const Points2d &input, int begin, int end, _Line &res ) const;
+      void _prepare( const Points2d &poly, IntVector &sample ) const;
    };
 
 
    class CvApproximator : public BaseApproximator
    {
-      void apply( double eps, const Points &input, Points &output ) const;
+      void apply( double eps, const Points2d &input, Points2d &output ) const;
    };
 }
 #endif /* _approximator_h */

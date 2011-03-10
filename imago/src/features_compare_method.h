@@ -1,7 +1,7 @@
 #ifndef _fourier_desc_method_h
 #define _fourier_desc_method_h
 
-#include "ocr.h"
+#include "classification.h"
 
 #include <vector>
 #include <deque>
@@ -48,6 +48,8 @@ namespace imago
 
    private:
       int _k;
+      void _getSuspectsFrom( const Image &img, const std::deque<char> &valid,
+                             int count, std::deque<Suspect> &s ) const;
       void _getSuspects( const Image &img, int count,
                          std::deque<Suspect> &s ) const;
 

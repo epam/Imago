@@ -15,7 +15,7 @@ set(SRC
   src/image_utils.cpp
   src/molfile_saver.cpp
   src/segmentator.cpp
-  src/vec2d.cpp
+  #src/vec2d.cpp
   src/approximator.cpp
   src/label_combiner.cpp
   src/graphics_detector.cpp

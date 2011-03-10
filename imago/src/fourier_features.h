@@ -3,7 +3,7 @@
 
 #include <vector>
 
-#include "ocr.h"
+#include "classification.h"
 #include "features_compare_method.h"
 
 namespace imago
@@ -38,7 +38,7 @@ namespace imago
    class FourierFeaturesCompareMethod: public FeaturesCompareMethod
    {
    public:
-      FourierFeaturesCompareMethod( int k, int count ):
+      FourierFeaturesCompareMethod( int count, int k ):
          FeaturesCompareMethod(k), _count(count)
       {};
       FourierFeaturesCompareMethod(): FeaturesCompareMethod()
