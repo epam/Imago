@@ -45,6 +45,7 @@ set(SRC
   src/orientation_finder.cpp
   src/features_compare_method.cpp
   src/fourier_features.cpp
+  src/shape_context.cpp
 )
 
 if(WIN32)
