@@ -23,6 +23,12 @@
 
 #define DO_LOG
 
+#ifndef NDEBUG
+#define DEBUG
+#else
+#undef DEBUG
+#endif
+
 #ifdef _WIN32
 
 #define DLLEXPORT __declspec(dllexport)

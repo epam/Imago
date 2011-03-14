@@ -4,6 +4,7 @@
 #include <list>
 #include <stdio.h>
 #include <opencv/cv.h>
+#include "boost/smart_ptr.hpp"
 
 #include "skeleton.h"
 #include "molecule.h"
@@ -35,6 +36,7 @@
 #include "character_recognizer.h"
 #include "orientation_finder.h"
 #include "graphics_detector.h"
+#include "shape_context.h"
 
 #include "classification.h"
 #include "fourier_features.h"
@@ -709,6 +711,22 @@ void testClassifier()
       delete ts[i].first;
 }
 
+
+
+void testShapeContext( const char *filename )
+{
+   qword sid = SessionManager::getInstance().allocSID();
+   SessionManager::getInstance().setSID(sid);
+
+   boost::shared_ptr<IFeatures> f(new ShapeContextFeatures(50, 10, 10));
+   Image img;
+   ImageUtils::loadImageFromFile(img, "../../../../flamingo_test/As.png");
+
+   TIME(f->extract(img), "Extract");
+
+   SessionManager::getInstance().releaseSID(sid);
+}
+
 int main(int argc, char **argv)
 {
    //graphTest();
@@ -727,7 +745,7 @@ int main(int argc, char **argv)
    LOG123 << "123\n";
    LOG123 << "x = " << x << "\n";
    */
-#ifndef NDEBUG
+#ifdef DEBUG
    puts("DEBUG");
 #endif
    
@@ -752,7 +770,8 @@ int main(int argc, char **argv)
    //testRotation(argv[1]);
    //makeCVFont();
 
-   testClassifier();
+   //testClassifier();
+   testShapeContext(argv[1]);
 
    //testCvOCR(argv[1]);
    

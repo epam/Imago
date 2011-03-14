@@ -4,6 +4,8 @@
 #include "features_compare_method.h"
 #include "vec2d.h"
 #include "stl_fwd.h"
+#include <opencv/cv.h>
+
 
 namespace imago
 {
@@ -21,9 +23,10 @@ namespace imago
       void write( Output &o ) const;
       void read( /*Input*/FILE *fi );
    private:
+      cv::Mat _img;
       int _rBins, _thetaBins, _count;
 
-      typedef std::vector<int> Context;
+      typedef std::vector<double> Context;
       struct PointWithContext
       {
          Vec2i p;
@@ -31,9 +34,11 @@ namespace imago
       };
       typedef std::vector<PointWithContext> ShapeContext;
 
-      void _extractContourPoints( Points2i &sample ) const;
+      Points2i _sample;
+      double _meanR;
+      void _extractContourPoints();
       void _calcShapeContext( const Vec2i &point,
-                              ShapeContext &contexts ) const;
+                              Context &context ) const;
 
       double _contextDistance( const Context &a, const Context &b ) const;
       double _distance( const ShapeContext &a, const ShapeContext &b,
@@ -50,8 +55,8 @@ namespace imago
 
       ShapeContext _sc;
 
-      inline int _ii2i( int a, int b );
-      inline void _i2ii( int a, int b );
+      inline int _ii2i( int r, int t ) const;
+      inline std::pair<int, int> _i2ii( int v ) const;
    };
 
    class ShapeContextCompareMethod: public FeaturesCompareMethod

@@ -13,8 +13,6 @@
 #include "image_utils.h"
 #include "binarizer.h"
 
-#define DEBUG
-
 namespace imago
 {
 
@@ -222,7 +220,9 @@ void prefilterFile (const char *filename, Image &image)
       cv::Mat dst;
       cv::resize(mat, dst, cv::Size(), 1.0 / n, 1.0 / n);
       mat = dst;
+#ifdef DEBUG
       cv::imwrite("01_after_subsampling.png", mat);
+#endif
    }
 
    Image img;
@@ -232,7 +232,9 @@ void prefilterFile (const char *filename, Image &image)
    {
       LPRINT(0, "blurring");
       _blur(img, 1);
+#ifdef DEBUG
       ImageUtils::saveImageToFile(img, "02_after_blur.png");
+#endif
    }
 
 
@@ -242,7 +244,7 @@ void prefilterFile (const char *filename, Image &image)
    {
       int avg = img.mean();
 
-      #ifndef NDEBUG
+      #ifdef DEBUG
       fprintf(stderr, "average brightness = %d\n", avg);
       #endif
       if (avg < 155)
@@ -262,8 +264,9 @@ void prefilterFile (const char *filename, Image &image)
       //pixDestroy(&pix);
       pix = newpix;
       }*/
-
+#ifdef DEBUG
    ImageUtils::saveImageToFile(img, "03_after_normalization.png");
+#endif
 
 
    Image weakimg;
@@ -273,30 +276,40 @@ void prefilterFile (const char *filename, Image &image)
       LPRINT(0, "unsharp mask (strong)");
 
       _unsharpMask(img, 8, 4, 0);
+#ifdef DEBUG
       ImageUtils::saveImageToFile(img, "04_after_strong_unsharp_mask.png");
+#endif
    }
 
    {
       Binarizer b(img, 32);
       b.apply();
+#ifdef DEBUG
       ImageUtils::saveImageToFile(img, "05_after_strong_binarization.png");
+#endif
    }
 
    Image strongimg;
    strongimg.copy(img);
    _removeSpots(strongimg, 0, 10);
+#ifdef DEBUG
    ImageUtils::saveImageToFile(img, "06_after_spots_removal.png");
+#endif
 
    {
       LPRINT(0, "unsharp mask (weak)");
       _unsharpMask(weakimg, 10, 12, 0);
+#ifdef DEBUG
       ImageUtils::saveImageToFile(weakimg, "07_after_weak_unsharp_mask.png");
+#endif
    }
 
    {
       Binarizer b(weakimg, 80);
       b.apply();
+#ifdef DEBUG
       ImageUtils::saveImageToFile(weakimg, "08_after_weak_binarization.png");
+#endif
    }
 
    SegmentDeque weak_segments;
@@ -398,7 +411,9 @@ void prefilterFile (const char *filename, Image &image)
    }
 
    LPRINT(0, "Filtering done");
+#ifdef DEBUG
    ImageUtils::saveImageToFile(image, "09_final.png");
+#endif
 }
 
 // NOTE: the input image must be thinned
