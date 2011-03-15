@@ -24,7 +24,7 @@ namespace imago
       void read( /*Input*/FILE *fi );
    private:
       cv::Mat _img;
-      int _rBins, _thetaBins, _count;
+      int _binsR, _binsT, _count;
 
       typedef std::vector<double> Context;
       struct PointWithContext
@@ -34,15 +34,19 @@ namespace imago
       };
       typedef std::vector<PointWithContext> ShapeContext;
 
-      Points2i _sample;
-      double _meanR;
-      void _extractContourPoints();
-      void _calcShapeContext( const Vec2i &point,
+      struct Sample
+      {
+         Point2i points;
+         double meanR;
+      };
+
+      void _extractContourPoints( Sample &sample ) const;
+      void _calcShapeContext( const Sample &sample, ShapeContext &sc ) const;
+      void _calcPointContext( const Sample &sample, const Vec2i &point,
                               Context &context ) const;
 
       double _contextDistance( const Context &a, const Context &b ) const;
-      double _distance( const ShapeContext &a, const ShapeContext &b,
-                        const std::vector<int> *mapping = 0) const;
+
       void _calcBestMapping( const ShapeContext &a,
                              const ShapeContext &b,
                              std::vector<int> &mapping ) const;
@@ -52,8 +56,6 @@ namespace imago
       //Copy of the Image?
 
       //Three distances
-
-      ShapeContext _sc;
 
       inline int _ii2i( int r, int t ) const;
       inline std::pair<int, int> _i2ii( int v ) const;

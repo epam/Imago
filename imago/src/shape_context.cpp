@@ -7,7 +7,7 @@ namespace imago
 {
 
    ShapeContextFeatures::ShapeContextFeatures( int count, int rBins, int thetaBins ):
-         _count(count), _rBins(rBins), _thetaBins(thetaBins)
+         _count(count), _binsR(rBins), _binsT(thetaBins)
    {
    }
 
@@ -27,22 +27,34 @@ namespace imago
             _img.at<byte>(k, l) = img.getByte(l, k);
          }
       }
-
-      _extractContourPoints();
-
-      Points2i::iterator pit;
-      _sc.resize(_sample.size());
-      ShapeContext::iterator sit;
-      for (pit = _sample.begin(), sit = _sc.begin(); pit != _sample.end(); ++pit)
-      {
-         sit->p = *pit;
-         _calcShapeContext(sit->p, sit->context);
-      }
    }
 
    double ShapeContextFeatures::compare( const IFeatures *other ) const
    {
-      const ShapeContextFeatures *fothers = static_cast<const ShapeContextFeatures*>(other);
+      const ShapeContextFeatures *fothers =
+            static_cast<const ShapeContextFeatures*>(other);
+
+      if (this->_count != fothers->_count)
+         throw LogicException("Cannot compare ShapeContext "
+                              "with different sample size");
+      if (this->_binsR != fothers->_binsR || this->_binsT != fothers->_binsT)
+         throw LogicException("Cannot compare Contexts with different size!"
+                              " Not implemented!");
+
+      //TODO: Move it to "extract"?
+      Sample my_sample, o_sample;
+      _extractContourPoints(my_sample);
+      fothers->_extractContourPoints(o_sample);
+
+      ShapeContext my_sc, o_sc;
+      _calcShapeContext(my_sample, my_sc);
+      fothers->_calcShapeContext(o_sample, o_sc);
+
+      assert(my_sc.size() == o_sc.size());
+
+      std::vector<int> mapping;
+      _calcBestMapping(my_sc, o_sc, mapping);
+
       return 0;
    }
 
@@ -118,23 +130,35 @@ namespace imago
 
    inline int ShapeContextFeatures::_ii2i( int r, int t ) const
    {
-      return t * _rBins + r;
+      return t * _binsR + r;
    }
 
    inline std::pair<int, int> ShapeContextFeatures::_i2ii( int i ) const
    {
-      int r = i % _rBins;
-      int t = i / _rBins;
+      int r = i % _binsR;
+      int t = i / _binsR;
       return std::make_pair(r, t);
    }
 
-   void ShapeContextFeatures::_calcShapeContext( const Vec2i &point, Context &context ) const
+   void ShapeContextFeatures::_calcShapeContext( const Sample &sample, ShapeContext &sc ) const
    {
-      context.resize(_rBins * _thetaBins, 0);
+      Points2i::iterator pit;
+      sc.resize(sample.points.size());
+      ShapeContext::iterator sit;
+      for (pit = sample.points.begin(), sit = sc.begin(); pit != sample.points.end(); ++pit, ++sit)
+      {
+         sit->p = *pit;
+         _calcPointContext(sit->p, sit->context);
+      }
+   }
+
+   void ShapeContextFeatures::_calcPointContext( const Sample &sample, const Vec2i &point, Context &context ) const
+   {
+      context.resize(_binsR * _binsT, 0);
 
       double minR = 1e16, maxR = 0;
 
-      for (Points2i::const_iterator it = _sample.begin(); it != _sample.end(); ++it)
+      for (Points2i::const_iterator it = sample.points.begin(); it != sample.points.end(); ++it)
       {
          if (*it == point)
             continue;
@@ -147,43 +171,43 @@ namespace imago
       }
 
       maxR += 1;
-      double leftR = log(minR / _meanR), rightR = log(maxR / _meanR);
+      double leftR = log(minR / sample.meanR), rightR = log(maxR / sample.meanR);
 
-      double stepR = (rightR - leftR) / (_rBins - 1);
-      double stepT = (2 * PI - 0) / (_thetaBins - 1);
+      double stepR = (rightR - leftR) / (_binsR - 1);
+      double stepT = (2 * PI - 0) / (_binsT - 1);
 
 #ifdef DEBUG
       printf("R: %lf %lf\nSteps:%lf %lf\n***\n", leftR, rightR, stepR, stepT);
 #endif
 
       const Vec2i UP(0, 1);
-      for (Points2i::const_iterator it = _sample.begin(); it != _sample.end(); ++it)
+      for (Points2i::const_iterator it = sample.points.begin(); it != sample.points.end(); ++it)
       {
          if (*it == point)
             continue;
 
          Vec2i v;
          v.diff(*it, point);
-         double logRscaled = log(v.norm() / _meanR);
+         double logRscaled = log(v.norm() / sample.meanR);
          double t = Vec2i::angle(v, UP);
 
          if (v.x < 0)
             t += PI;
 
 //         int binR = 0;
-//         for (binR = 0; binR < _rBins - 1; ++binR)
+//         for (binR = 0; binR < _binsR - 1; ++binR)
 //            if (leftR + binR * stepR <= logRscaled && logRscaled < leftR + (binR + 1) * stepR)
 //               break;
 
          int binR = (int)floor((logRscaled - leftR) / stepR);
          int binT = (int)floor(t / stepT);
 
-         assert(binR >= 0 && binR < _rBins);
-         assert(binT >= 0 && binT < _thetaBins);
+         assert(binR >= 0 && binR < _binsR);
+         assert(binT >= 0 && binT < _binsT);
 
 #ifdef DEBUG
          //printf("   %lf %lf %lf", leftR, logRscaled, rightR);
-         printf("   Bins: %d %d %d\n", binR, binT);
+         printf("   Bins: %d %d\n", binR, binT);
 #endif
          context[_ii2i(binR, binT)]++;
       }
@@ -199,7 +223,7 @@ namespace imago
 
    double ShapeContextFeatures::_contextDistance( const Context &a, const Context &b ) const
    {
-      if (a.size() != b.size()) //TODO: Need to check equality of _rBins and _thetaBins!
+      if (a.size() != b.size()) //TODO: Need to check equality of _binsR and _binsT!
          throw LogicException("Cannot compare Contexts with different size!");
 
       double d = 0;
