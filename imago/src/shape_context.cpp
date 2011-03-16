@@ -2,7 +2,6 @@
 
 #include "munkres.h"
 #include "tpsinterpolate.h"
-#include "affine_transform.h"
 
 #include "shape_context.h"
 #include "output.h"
@@ -88,7 +87,7 @@ namespace imago
          ImageUtils::saveImageToFile(img, "mapping.png");
       }
 #endif
-/*
+
       std::vector<boost::array<double, 2> > positions(mapping.size());
       //std::vector<boost::array<double, 1> > values_x(mapping.size());
       //std::vector<boost::array<double, 1> > values_y(mapping.size());
@@ -98,34 +97,40 @@ namespace imago
       {
          positions[i][0] = my_sample.points[i].x;
          positions[i][1] = my_sample.points[i].y;
-         values[i][0] = o_sample.points[i].x;
-         values[i][1] = o_sample.points[i].y;
+         values[i][0] = o_sample.points[mapping[i]].x;
+         values[i][1] = o_sample.points[mapping[i]].y;
       }
 
       tps::ThinPlateSpline<2, 2> tpsX(positions, values);
       //tps::ThinPlateSpline<2, 1> tpsY(positions, values_y);
-*/
 
-      affine::AffineTransform at(my_sample.points, o_sample.points, mapping);
 
 #ifdef DEBUG
       {
          Image img(__max(_img.cols, fothers->_img.cols),
                    __max(_img.rows, fothers->_img.rows));
-
          img.fillWhite();
+
+         for (int i = 0; i < fothers->_img.rows; ++i)
+         {
+            for (int j = 0; j < fothers->_img.cols; ++j)
+            {
+               img.getByte(j, i) = fothers->_img.at<byte>(i, j);
+            }
+         }
+
          Sample sss;
          _extractContourPoints(sss);
          for (int i = 0; i < my_sample.points.size(); ++i)
          {
             Vec2i &a = sss.points[i];
-            //boost::array<double, 2> pos;
-            //pos[0] = a.x, pos[1] = a.y;
-            //pos = tpsX.interpolate(pos);
-            Vec2i b = at.interpolate(a); //(pos[0], pos[1]);
-            ImageDrawUtils::putCircle(img, a.x, a.y, 2, 0);
+            boost::array<double, 2> pos;
+            pos[0] = a.x, pos[1] = a.y;
+            pos = tpsX.interpolate(pos);
+            Vec2i b(pos[0], pos[1]);
+            //ImageDrawUtils::putCircle(img, a.x, a.y, 2, 0);
             ImageDrawUtils::putCircle(img, b.x, b.y, 7, 50);
-            ImageDrawUtils::putLineSegment(img, a, b, 128);
+            //ImageDrawUtils::putLineSegment(img, a, b, 128);
          }
 
          ImageUtils::saveImageToFile(img, "spline.png");
