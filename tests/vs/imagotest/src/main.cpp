@@ -40,6 +40,7 @@
 
 #include "classification.h"
 #include "fourier_features.h"
+#include "munkres.h"
 
 using namespace imago;
 
@@ -718,11 +719,23 @@ void testShapeContext( const char *filename )
    qword sid = SessionManager::getInstance().allocSID();
    SessionManager::getInstance().setSID(sid);
 
-   boost::shared_ptr<IFeatures> f(new ShapeContextFeatures(50, 10, 10));
-   Image img;
-   ImageUtils::loadImageFromFile(img, "../../../../flamingo_test/As.png");
+   boost::shared_ptr<IFeatures> f1(new ShapeContextFeatures(200, 10, 10));
+   boost::shared_ptr<IFeatures> f2(new ShapeContextFeatures(200, 10, 10));
+   Image img1, img2;
+   ImageUtils::loadImageFromFile(img1, "../../../../flamingo_test/A.png");
+   ImageUtils::loadImageFromFile(img2, "../../../../flamingo_test/A2.png");
 
-   TIME(f->extract(img), "Extract");
+   TIME(f1->extract(img1), "Extract1");
+   TIME(f2->extract(img2), "Extract2");
+
+   TIME(f1->compare(f2.get()), "Compare");
+
+//   munkres::Matrix<double> matr(3, 3);
+//   matr(0, 0) = 1.59; matr(0, 1) = 2; matr(0, 2) = 1.7;
+//   matr(1, 0) = 3; matr(1, 1) = 3; matr(1, 2) = 1;
+//   matr(2, 0) = 3; matr(2, 1) = 3; matr(2, 2) = 2;
+//   munkres::Munkres mk;
+//   mk.solve(matr);
 
    SessionManager::getInstance().releaseSID(sid);
 }

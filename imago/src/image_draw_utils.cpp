@@ -43,9 +43,9 @@ void ImageDrawUtils::putLine( Image &img, double thetha, double r, double eps, b
       }
 }
 
-void ImageDrawUtils::putLineSegment( const Vec2d &p1, const Vec2d &p2, int color, void *userdata, bool (*plot)( int x, int y, int color, void *userdata ) )
+void ImageDrawUtils::putLineSegment( const Vec2i &p1, const Vec2i &p2, int color, void *userdata, bool (*plot)( int x, int y, int color, void *userdata ) )
 {
-   Vec2d P0 = p1, P1 = p2;
+   Vec2i P0 = p1, P1 = p2;
 
    int steep = absolute(P1.y - P0.y) > absolute(P1.x - P0.x);
 
@@ -79,7 +79,7 @@ void ImageDrawUtils::putLineSegment( const Vec2d &p1, const Vec2d &p2, int color
    }
 }
 
-void ImageDrawUtils::putLineSegment( Image &img, const Vec2d &p1, const Vec2d &p2, byte color )
+void ImageDrawUtils::putLineSegment( Image &img, const Vec2i &p1, const Vec2i &p2, byte color )
 {
    putLineSegment(p1, p2, color, &img, _imagePlot);
 }

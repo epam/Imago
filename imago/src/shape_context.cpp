@@ -1,7 +1,17 @@
+#include <opencv/highgui.h>
+
+#include "munkres.h"
+#include "tpsinterpolate.h"
+#include "affine_transform.h"
+
 #include "shape_context.h"
 #include "output.h"
 #include "image.h"
-#include "opencv/highgui.h"
+
+#ifdef DEBUG
+#include "image_draw_utils.h"
+#include "image_utils.h"
+#endif
 
 namespace imago
 {
@@ -51,9 +61,76 @@ namespace imago
       fothers->_calcShapeContext(o_sample, o_sc);
 
       assert(my_sc.size() == o_sc.size());
-
       std::vector<int> mapping;
+#ifdef DEBUG
+      puts("Mapping");
+#endif
       _calcBestMapping(my_sc, o_sc, mapping);
+#ifdef DEBUG
+      puts("Mapping done");
+#endif
+
+
+#ifdef DEBUG
+      {
+         Image img(__max(_img.cols, fothers->_img.cols),
+                   __max(_img.rows, fothers->_img.rows));
+
+         img.fillWhite();
+         for (int i = 0; i < mapping.size(); ++i)
+         {
+            Vec2i &a = my_sample.points[i], &b = o_sample.points[mapping[i]];
+            ImageDrawUtils::putCircle(img, a.x, a.y, 2, 0);
+            ImageDrawUtils::putCircle(img, b.x, b.y, 7, 50);
+            ImageDrawUtils::putLineSegment(img, a, b, 128);
+         }
+
+         ImageUtils::saveImageToFile(img, "mapping.png");
+      }
+#endif
+/*
+      std::vector<boost::array<double, 2> > positions(mapping.size());
+      //std::vector<boost::array<double, 1> > values_x(mapping.size());
+      //std::vector<boost::array<double, 1> > values_y(mapping.size());
+      std::vector<boost::array<double, 2> > values(mapping.size());
+
+      for (int i = 0; i < my_sample.points.size(); ++i)
+      {
+         positions[i][0] = my_sample.points[i].x;
+         positions[i][1] = my_sample.points[i].y;
+         values[i][0] = o_sample.points[i].x;
+         values[i][1] = o_sample.points[i].y;
+      }
+
+      tps::ThinPlateSpline<2, 2> tpsX(positions, values);
+      //tps::ThinPlateSpline<2, 1> tpsY(positions, values_y);
+*/
+
+      affine::AffineTransform at(my_sample.points, o_sample.points, mapping);
+
+#ifdef DEBUG
+      {
+         Image img(__max(_img.cols, fothers->_img.cols),
+                   __max(_img.rows, fothers->_img.rows));
+
+         img.fillWhite();
+         Sample sss;
+         _extractContourPoints(sss);
+         for (int i = 0; i < my_sample.points.size(); ++i)
+         {
+            Vec2i &a = sss.points[i];
+            //boost::array<double, 2> pos;
+            //pos[0] = a.x, pos[1] = a.y;
+            //pos = tpsX.interpolate(pos);
+            Vec2i b = at.interpolate(a); //(pos[0], pos[1]);
+            ImageDrawUtils::putCircle(img, a.x, a.y, 2, 0);
+            ImageDrawUtils::putCircle(img, b.x, b.y, 7, 50);
+            ImageDrawUtils::putLineSegment(img, a, b, 128);
+         }
+
+         ImageUtils::saveImageToFile(img, "spline.png");
+      }
+#endif
 
       return 0;
    }
@@ -68,7 +145,7 @@ namespace imago
       throw LogicException("Not implemented");
    }
 
-   void ShapeContextFeatures::_extractContourPoints()
+   void ShapeContextFeatures::_extractContourPoints( Sample &sample ) const
    {
       cv::Mat res;
       cv::Canny(_img, res, 1.0, 3.0, 3);
@@ -89,7 +166,7 @@ namespace imago
       if (total == 0)
          throw LogicException("Cannot extract contour points!");
       else if (total < _count)
-         _sample.assign(all.begin(), all.end());
+         sample.points.assign(all.begin(), all.end());
       else
       {
          Points2i all_shuffled = all;
@@ -102,10 +179,10 @@ namespace imago
             }
          }
 
-         _sample.assign(all_shuffled.begin(), all_shuffled.begin() + _count);
+         sample.points.assign(all_shuffled.begin(), all_shuffled.begin() + _count);
 
-         _meanR = 0;
-         Points2i::const_iterator b = _sample.begin(), e = _sample.end();
+         sample.meanR = 0;
+         Points2i::const_iterator b = sample.points.begin(), e = sample.points.end();
          for (Points2i::const_iterator it = b; it != e; ++it)
          {
             for (Points2i::const_iterator it2 = b; it2 != e; ++it2)
@@ -113,15 +190,15 @@ namespace imago
                if (it2 == it)
                   continue;
 
-               _meanR += Vec2i::distance(*it, *it2);
+               sample.meanR += Vec2i::distance(*it, *it2);
             }
          }
-         _meanR /= _sample.size() * (_sample.size() - 1);
+         sample.meanR /= sample.points.size() * (sample.points.size() - 1);
 
 #ifdef DEBUG
-         for (int i = 0; i < (int)_sample.size(); ++i)
+         for (int i = 0; i < (int)sample.points.size(); ++i)
          {
-            res.at<byte>(_sample[i].y, _sample[i].x) = 0;
+            res.at<byte>(sample.points[i].y, sample.points[i].x) = 0;
          }
          cv::imwrite("edges.png", res);
 #endif
@@ -142,13 +219,13 @@ namespace imago
 
    void ShapeContextFeatures::_calcShapeContext( const Sample &sample, ShapeContext &sc ) const
    {
-      Points2i::iterator pit;
+      Points2i::const_iterator pit;
       sc.resize(sample.points.size());
       ShapeContext::iterator sit;
       for (pit = sample.points.begin(), sit = sc.begin(); pit != sample.points.end(); ++pit, ++sit)
       {
          sit->p = *pit;
-         _calcPointContext(sit->p, sit->context);
+         _calcPointContext(sample, sit->p, sit->context);
       }
    }
 
@@ -231,11 +308,45 @@ namespace imago
       {
          double diff = a[i] - b[i];
          double sum = a[i] + b[i];
-         assert(sum > 0);
+         //assert(sum > 0);
+         if (sum < 1e-6)
+         {
+#ifdef DEBUG
+            //printf("\t***SKIPPING ZERO IN DISTANCE***\n", sum);
+#endif
+            continue;
+         }
          d += diff * diff / sum;
       }
       d /= 2;
 
       return d;
+   }
+
+   void ShapeContextFeatures::_calcBestMapping( const ShapeContext &a, const ShapeContext &b, std::vector<int> &mapping ) const
+   {
+      assert(a.size() == b.size());
+      munkres::Matrix<double> m(a.size(), a.size());
+      for (int i = 0; i < (int)a.size(); ++i)
+      {
+         for (int j = 0; j < (int)a.size(); ++j)
+         {
+            m(i, j) = _contextDistance(a[i].context, b[j].context);
+         }
+      }
+
+      munkres::Munkres solver;
+      solver.solve(m);
+
+      mapping.assign(a.size(), -1);
+      for (int i = 0; i < a.size(); ++i)
+      {
+         for (int j = 0; mapping[i] == -1 && j < a.size(); ++j)
+            if (m(i, j) == 0)
+               mapping[i] = j;
+
+         if (mapping[i] == -1)
+            throw LogicException("Cannot calculate best mapping!");
+      }
    }
 }

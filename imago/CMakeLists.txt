@@ -46,6 +46,7 @@ set(SRC
   src/features_compare_method.cpp
   src/fourier_features.cpp
   src/shape_context.cpp
+  src/munkres.cpp
 )
 
 if(WIN32)

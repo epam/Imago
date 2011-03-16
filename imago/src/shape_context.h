@@ -36,7 +36,7 @@ namespace imago
 
       struct Sample
       {
-         Point2i points;
+         Points2i points;
          double meanR;
       };
 

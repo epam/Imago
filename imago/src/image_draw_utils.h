@@ -30,8 +30,8 @@ namespace imago
     public:
         static void putLine( Image &img, double thetha, double r, double eps, byte color );
 
-        static void putLineSegment( const Vec2d &p1, const Vec2d &p2, int color, void *userdata, bool (*plot)( int x, int y, int color, void *userdata ) );
-        static void putLineSegment( Image &img, const Vec2d &p1, const Vec2d &p2, byte color );
+        static void putLineSegment( const Vec2i &p1, const Vec2i &p2, int color, void *userdata, bool (*plot)( int x, int y, int color, void *userdata ) );
+        static void putLineSegment( Image &img, const Vec2i &p1, const Vec2i &p2, byte color );
         
         static void putCircle( Image &img, int cx, int cy, int r, byte color );
         static void putCircle( int cx, int cy, int r, byte color, void *userdata, bool (*plot)( int x, int y, int color, void *userdata ) );
