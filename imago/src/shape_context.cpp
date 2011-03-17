@@ -1,4 +1,5 @@
 #include <opencv/highgui.h>
+#include "boost/foreach.hpp"
 
 #include "munkres.h"
 #include "tpsinterpolate.h"
@@ -6,10 +7,12 @@
 #include "shape_context.h"
 #include "output.h"
 #include "image.h"
+#include "contour_extractor.h"
+#include "segmentator.h"
 
+#include "image_utils.h"
 #ifdef DEBUG
 #include "image_draw_utils.h"
-#include "image_utils.h"
 #endif
 
 namespace imago
@@ -36,6 +39,8 @@ namespace imago
             _img.at<byte>(k, l) = img.getByte(l, k);
          }
       }
+
+      _extractContourPoints();
    }
 
    double ShapeContextFeatures::compare( const IFeatures *other ) const
@@ -50,25 +55,16 @@ namespace imago
          throw LogicException("Cannot compare Contexts with different size!"
                               " Not implemented!");
 
-      //TODO: Move it to "extract"?
-      Sample my_sample, o_sample;
-      _extractContourPoints(my_sample);
-      fothers->_extractContourPoints(o_sample);
-
       ShapeContext my_sc, o_sc;
-      _calcShapeContext(my_sample, my_sc);
-      fothers->_calcShapeContext(o_sample, o_sc);
+      _calcShapeContext(my_sc);
+      fothers->_calcShapeContext(o_sc);
 
       assert(my_sc.size() == o_sc.size());
       std::vector<int> mapping;
-#ifdef DEBUG
-      puts("Mapping");
-#endif
-      _calcBestMapping(my_sc, o_sc, mapping);
-#ifdef DEBUG
-      puts("Mapping done");
-#endif
 
+      DPRINTF("Mapping\n");
+      _calcBestMapping(my_sc, o_sc, mapping);
+      DPRINTF("Mapping done\n");
 
 #ifdef DEBUG
       {
@@ -78,7 +74,7 @@ namespace imago
          img.fillWhite();
          for (int i = 0; i < mapping.size(); ++i)
          {
-            Vec2i &a = my_sample.points[i], &b = o_sample.points[mapping[i]];
+            const Vec2i &a = _sample.points[i], &b = fothers->_sample.points[mapping[i]];
             ImageDrawUtils::putCircle(img, a.x, a.y, 2, 0);
             ImageDrawUtils::putCircle(img, b.x, b.y, 7, 50);
             ImageDrawUtils::putLineSegment(img, a, b, 128);
@@ -89,55 +85,75 @@ namespace imago
 #endif
 
       std::vector<boost::array<double, 2> > positions(mapping.size());
-      //std::vector<boost::array<double, 1> > values_x(mapping.size());
-      //std::vector<boost::array<double, 1> > values_y(mapping.size());
       std::vector<boost::array<double, 2> > values(mapping.size());
 
-      for (int i = 0; i < my_sample.points.size(); ++i)
+      for (int i = 0; i < _sample.points.size(); ++i)
       {
-         positions[i][0] = my_sample.points[i].x;
-         positions[i][1] = my_sample.points[i].y;
-         values[i][0] = o_sample.points[mapping[i]].x;
-         values[i][1] = o_sample.points[mapping[i]].y;
+         positions[i][0] = _sample.points[i].x;
+         positions[i][1] = _sample.points[i].y;
+         values[i][0] = fothers->_sample.points[mapping[i]].x;
+         values[i][1] = fothers->_sample.points[mapping[i]].y;
       }
 
-      tps::ThinPlateSpline<2, 2> tpsX(positions, values);
-      //tps::ThinPlateSpline<2, 1> tpsY(positions, values_y);
+      tps::ThinPlateSpline<2, 2> tps(positions, values);
 
-
-#ifdef DEBUG
+#if 1//def DEBUG
       {
          Image img(__max(_img.cols, fothers->_img.cols),
                    __max(_img.rows, fothers->_img.rows));
          img.fillWhite();
 
-         for (int i = 0; i < fothers->_img.rows; ++i)
+         for (int i = 0; i < _img.rows; ++i)
          {
-            for (int j = 0; j < fothers->_img.cols; ++j)
+            for (int j = 0; j < _img.cols; ++j)
             {
-               img.getByte(j, i) = fothers->_img.at<byte>(i, j);
+               if (_img.at<byte>(i, j) == 255)
+                  continue;
+
+               boost::array<double, 2> pos;
+               pos[0] = j, pos[1] = i;
+               pos = tps.interpolate(pos);
+               Vec2i t(pos[0], pos[1]);
+               if (t.x < 0 || t.x >= img.getWidth() ||
+                   t.y < 0 || t.y >= img.getHeight())
+                  continue;
+
+               img.getByte(t.x, t.y) = _img.at<byte>(i, j);
             }
          }
 
-         Sample sss;
-         _extractContourPoints(sss);
-         for (int i = 0; i < my_sample.points.size(); ++i)
-         {
-            Vec2i &a = sss.points[i];
-            boost::array<double, 2> pos;
-            pos[0] = a.x, pos[1] = a.y;
-            pos = tpsX.interpolate(pos);
-            Vec2i b(pos[0], pos[1]);
-            //ImageDrawUtils::putCircle(img, a.x, a.y, 2, 0);
-            ImageDrawUtils::putCircle(img, b.x, b.y, 7, 50);
-            //ImageDrawUtils::putLineSegment(img, a, b, 128);
-         }
-
-         ImageUtils::saveImageToFile(img, "spline.png");
+         ImageUtils::saveImageToFile(img, "spline2.png");
       }
 #endif
 
-      return 0;
+      //Comparing images
+      const ShapeContextFeatures *f1, *f2;
+      double dist;
+      for (f1 = this, f2 = fothers; false && f1 != fothers; std::swap(f1, f2))
+      {
+         Points2i pixels; //select some
+         Points2i::iterator pit;
+         Context f1_con, f2_con;
+         double local_dist = 0;
+         for (pit = pixels.begin(); pit != pixels.end(); ++pit)
+         {
+            f1->_calcPointContext(*pit, f1_con);
+
+            //Dis is not correct!
+            boost::array<double, 2> pos;
+            pos[0] = pit->x, pos[1] = pit->y;
+            pos = tps.interpolate(pos);
+            Vec2i t(pos[0], pos[1]);
+
+            f2->_calcPointContext(t, f2_con);
+
+            local_dist += _contextDistance(f1_con, f2_con);
+         }
+         //local_dist /= pixels.size();
+
+         dist += local_dist;
+      }
+      return dist;
    }
 
    void ShapeContextFeatures::read( /*Input*/ FILE *fi )
@@ -150,6 +166,100 @@ namespace imago
       throw LogicException("Not implemented");
    }
 
+   void ShapeContextFeatures::_extractContourPoints()
+   {
+      Image img(_img.cols, _img.rows);
+      for (int i = 0; i < _img.rows; ++i)
+      {
+         for (int j = 0; j < _img.cols; ++j)
+         {
+            img.getByte(j, i) = _img.at<byte>(i, j);
+         }
+      }
+
+      Points2i contourA;
+      ContourExtractor CE;
+      CE.getRawContour(img, contourA);
+
+      Points2i contour;
+      for (int i = 0; i < (int)contourA.size() - 1 ; ++i)
+      {
+         int dx = contourA[i + 1].x - contourA[i].x;
+         int dy = contourA[i + 1].y - contourA[i].y;
+         if (dx == 0 && dy > 0)
+            contour.push_back(Vec2i(contourA[i].x - 1, contourA[i].y));
+         else if (dx == 0 && dy < 0)
+            contour.push_back(contourA[i + 1]);
+         else if (dy == 0 && dx > 0)
+            contour.push_back(contourA[i]);
+         else if (dy == 0 && dx < 0)
+            contour.push_back(Vec2i(contourA[i].x - 1, contourA[i].y - 1));
+      }
+
+      //Inner contours processing
+      {
+         SegmentDeque segments;
+         Segmentator::segmentate(img, segments, 3, 255); //all white parts
+
+         int x, y, sw, sh;
+         int _width = img.getWidth(), _height = img.getHeight();
+         int total = 0;
+         int i = 0;
+         BOOST_FOREACH(Segment * &seg, segments)
+         {
+            x = seg->getX(), y = seg->getY();
+            sw = seg->getWidth(), sh = seg->getHeight();
+
+            if (x == 0 || y == 0 || x + sw == _width || y + sh == _height)
+            {
+               delete seg;
+               continue;
+            }
+
+            CE.getRawContour(*seg, contourA);
+            for (int i = 0; i < (int)contourA.size() - 1; ++i)
+            {
+               int dx = contourA[i + 1].x - contourA[i].x;
+               int dy = contourA[i + 1].y - contourA[i].y;
+               if (dx == 0 && dy > 0)
+                  contour.push_back(contourA[i]);
+               else if (dx == 0 && dy < 0)
+                  contour.push_back(Vec2i(contourA[i].x - 1, contourA[i].y - 1));
+               else if (dy == 0 && dx > 0)
+                  contour.push_back(Vec2i(contourA[i].x, contourA[i].y - 1));
+               else if (dy == 0 && dx < 0)
+                  contour.push_back(contourA[i + 1]);
+               contour.back().add(Vec2i(x, y));
+            }
+            delete seg;
+         }
+      }
+
+      double h = 1.0 * (contour.size() - 1) / (_count - 1);
+      for (int j = 0; j < _count; j++)
+         _sample.points.push_back(contour[(int)(h * j)]);
+
+#ifdef DEBUG
+      for (int i = 0; i < (int)_sample.points.size(); ++i)
+      {
+         ImageDrawUtils::putCircle(img, _sample.points[i].x, _sample.points[i].y, 3, 128);
+      }
+      ImageUtils::saveImageToFile(img, "sample.png");
+#endif
+
+      _sample.meanR = 0;
+      Points2i::const_iterator b = _sample.points.begin(),
+            e = _sample.points.end();
+      for (Points2i::const_iterator it = b; it != e; ++it)
+      {
+         for (Points2i::const_iterator it2 = it; it2 != e; ++it2)
+         {
+            _sample.meanR += 2 * Vec2i::distance(*it, *it2);
+         }
+      }
+      _sample.meanR /= _sample.points.size() * _sample.points.size();
+   }
+   /*
    void ShapeContextFeatures::_extractContourPoints( Sample &sample ) const
    {
       cv::Mat res;
@@ -209,6 +319,7 @@ namespace imago
 #endif
       }
    }
+   */
 
    inline int ShapeContextFeatures::_ii2i( int r, int t ) const
    {
@@ -222,25 +333,25 @@ namespace imago
       return std::make_pair(r, t);
    }
 
-   void ShapeContextFeatures::_calcShapeContext( const Sample &sample, ShapeContext &sc ) const
+   void ShapeContextFeatures::_calcShapeContext( ShapeContext &sc ) const
    {
       Points2i::const_iterator pit;
-      sc.resize(sample.points.size());
+      sc.resize(_sample.points.size());
       ShapeContext::iterator sit;
-      for (pit = sample.points.begin(), sit = sc.begin(); pit != sample.points.end(); ++pit, ++sit)
+      for (pit = _sample.points.begin(), sit = sc.begin(); pit != _sample.points.end(); ++pit, ++sit)
       {
          sit->p = *pit;
-         _calcPointContext(sample, sit->p, sit->context);
+         _calcPointContext(sit->p, sit->context);
       }
    }
 
-   void ShapeContextFeatures::_calcPointContext( const Sample &sample, const Vec2i &point, Context &context ) const
+   void ShapeContextFeatures::_calcPointContext( const Vec2i &point, Context &context ) const
    {
       context.resize(_binsR * _binsT, 0);
 
       double minR = 1e16, maxR = 0;
 
-      for (Points2i::const_iterator it = sample.points.begin(); it != sample.points.end(); ++it)
+      for (Points2i::const_iterator it = _sample.points.begin(); it != _sample.points.end(); ++it)
       {
          if (*it == point)
             continue;
@@ -253,24 +364,22 @@ namespace imago
       }
 
       maxR += 1;
-      double leftR = log(minR / sample.meanR), rightR = log(maxR / sample.meanR);
+      double leftR = log(minR / _sample.meanR), rightR = log(maxR / _sample.meanR);
 
       double stepR = (rightR - leftR) / (_binsR - 1);
       double stepT = (2 * PI - 0) / (_binsT - 1);
 
-#ifdef DEBUG
-      printf("R: %lf %lf\nSteps:%lf %lf\n***\n", leftR, rightR, stepR, stepT);
-#endif
+      DPRINTF("R: %lf %lf\nSteps:%lf %lf\n***\n", leftR, rightR, stepR, stepT);
 
       const Vec2i UP(0, 1);
-      for (Points2i::const_iterator it = sample.points.begin(); it != sample.points.end(); ++it)
+      for (Points2i::const_iterator it = _sample.points.begin(); it != _sample.points.end(); ++it)
       {
          if (*it == point)
             continue;
 
          Vec2i v;
          v.diff(*it, point);
-         double logRscaled = log(v.norm() / sample.meanR);
+         double logRscaled = log(v.norm() / _sample.meanR);
          double t = Vec2i::angle(v, UP);
 
          if (v.x < 0)
@@ -287,10 +396,9 @@ namespace imago
          assert(binR >= 0 && binR < _binsR);
          assert(binT >= 0 && binT < _binsT);
 
-#ifdef DEBUG
-         //printf("   %lf %lf %lf", leftR, logRscaled, rightR);
-         printf("   Bins: %d %d\n", binR, binT);
-#endif
+         //DPRINTF("   %lf %lf %lf", leftR, logRscaled, rightR);
+         DPRINTF("   Bins: %d %d\n", binR, binT);
+
          context[_ii2i(binR, binT)]++;
       }
 
@@ -313,14 +421,10 @@ namespace imago
       {
          double diff = a[i] - b[i];
          double sum = a[i] + b[i];
-         //assert(sum > 0);
+
          if (sum < 1e-6)
-         {
-#ifdef DEBUG
-            //printf("\t***SKIPPING ZERO IN DISTANCE***\n", sum);
-#endif
             continue;
-         }
+
          d += diff * diff / sum;
       }
       d /= 2;

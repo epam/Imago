@@ -719,8 +719,10 @@ void testShapeContext( const char *filename )
    qword sid = SessionManager::getInstance().allocSID();
    SessionManager::getInstance().setSID(sid);
 
-   boost::shared_ptr<IFeatures> f1(new ShapeContextFeatures(200, 10, 10));
-   boost::shared_ptr<IFeatures> f2(new ShapeContextFeatures(200, 10, 10));
+   srand(time(0));
+
+   boost::shared_ptr<IFeatures> f1(new ShapeContextFeatures(60, 5, 12));
+   boost::shared_ptr<IFeatures> f2(new ShapeContextFeatures(60, 5, 12));
    Image img1, img2;
    ImageUtils::loadImageFromFile(img1, "../../../../flamingo_test/A.png");
    ImageUtils::loadImageFromFile(img2, "../../../../flamingo_test/A2.png");

@@ -25,8 +25,12 @@
 
 #ifndef NDEBUG
 #define DEBUG
+#define DPRINTF printf
+#define DFPRINTF fprintf
 #else
 #undef DEBUG
+#define DPRINTF(...)
+#define DFPRINTF(...)
 #endif
 
 #ifdef _WIN32

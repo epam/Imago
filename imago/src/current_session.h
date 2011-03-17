@@ -25,7 +25,7 @@
 #define TIME(a, msg) do { LMARK; a; LPRINT(1, msg); } while(0);
 #else
 #define LMARK 
-#define LPRINT 
+#define LPRINT(...)
 #define TIME(a, msg) do {a;} while(0);
 #endif
 

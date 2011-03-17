@@ -40,10 +40,10 @@ namespace imago
          double meanR;
       };
 
-      void _extractContourPoints( Sample &sample ) const;
-      void _calcShapeContext( const Sample &sample, ShapeContext &sc ) const;
-      void _calcPointContext( const Sample &sample, const Vec2i &point,
-                              Context &context ) const;
+      Sample _sample;
+      void _extractContourPoints();
+      void _calcShapeContext( ShapeContext &sc ) const;
+      void _calcPointContext( const Vec2i &point, Context &context ) const;
 
       double _contextDistance( const Context &a, const Context &b ) const;
 
