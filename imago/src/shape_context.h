@@ -25,6 +25,11 @@ namespace imago
    private:
       cv::Mat _img;
       int _binsR, _binsT, _count;
+      enum CONTEXT_TYPE
+      {
+         SAMPLE,
+         IMAGE
+      };
 
       typedef std::vector<double> Context;
       struct PointWithContext
@@ -41,9 +46,10 @@ namespace imago
       };
 
       Sample _sample;
+      Sample _image_sample;
       void _extractContourPoints();
       void _calcShapeContext( ShapeContext &sc ) const;
-      void _calcPointContext( const Vec2i &point, Context &context ) const;
+      void _calcPointContext( const Vec2i &point, Context &context, CONTEXT_TYPE type = SAMPLE ) const;
 
       double _contextDistance( const Context &a, const Context &b ) const;
 
@@ -51,6 +57,7 @@ namespace imago
                              const ShapeContext &b,
                              std::vector<int> &mapping ) const;
 
+      void _calcSampleMean( Sample &sample ) const;
       //Spline
 
       //Copy of the Image?

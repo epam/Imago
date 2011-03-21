@@ -724,14 +724,19 @@ void testShapeContext( const char *filename )
    boost::shared_ptr<IFeatures> f1(new ShapeContextFeatures(60, 5, 12));
    boost::shared_ptr<IFeatures> f2(new ShapeContextFeatures(60, 5, 12));
    Image img1, img2;
-   ImageUtils::loadImageFromFile(img1, "../../../../flamingo_test/A.png");
-   ImageUtils::loadImageFromFile(img2, "../../../../flamingo_test/A2.png");
+   ImageUtils::loadImageFromFile(img1, "n2.png");
+   ImageUtils::loadImageFromFile(img2, "n3.png");
+   //ImageUtils::loadImageFromFile(img1, "../../../../flamingo_test/n1.png");
+   //ImageUtils::loadImageFromFile(img2, "../../../../flamingo_test/n2.png");
 
    TIME(f1->extract(img1), "Extract1");
    TIME(f2->extract(img2), "Extract2");
 
-   TIME(f1->compare(f2.get()), "Compare");
-
+   double d;
+   TIME(d = f1->compare(f2.get()), "Compare 1 to 2");
+   printf("Distance = %lf\n", d);
+   TIME(d = f2->compare(f1.get()), "Compare 2 to 1");
+   printf("Distance = %lf\n", d);
 //   munkres::Matrix<double> matr(3, 3);
 //   matr(0, 0) = 1.59; matr(0, 1) = 2; matr(0, 2) = 1.7;
 //   matr(1, 0) = 3; matr(1, 1) = 3; matr(1, 2) = 1;

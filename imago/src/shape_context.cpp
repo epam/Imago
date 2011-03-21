@@ -1,5 +1,6 @@
 #include <opencv/highgui.h>
 #include "boost/foreach.hpp"
+#include "boost/scoped_ptr.hpp"
 
 #include "munkres.h"
 #include "tpsinterpolate.h"
@@ -11,6 +12,7 @@
 #include "segmentator.h"
 
 #include "image_utils.h"
+
 #ifdef DEBUG
 #include "image_draw_utils.h"
 #endif
@@ -36,10 +38,14 @@ namespace imago
       {
          for (int l = 0; l < img.getWidth(); l++)
          {
-            _img.at<byte>(k, l) = img.getByte(l, k);
+            byte v = img.getByte(l, k);
+            _img.at<byte>(k, l) = v;
+            if (v != 255)
+               _image_sample.points.push_back(Vec2i(l, k));
          }
       }
 
+      _calcSampleMean(_image_sample);
       _extractContourPoints();
    }
 
@@ -95,7 +101,17 @@ namespace imago
          values[i][1] = fothers->_sample.points[mapping[i]].y;
       }
 
-      tps::ThinPlateSpline<2, 2> tps(positions, values);
+      boost::scoped_ptr<tps::ThinPlateSpline<2, 2> > tps;
+      try
+      {
+         tps.reset(new tps::ThinPlateSpline<2, 2>(positions, values));
+      }
+      catch(boost::numeric::ublas::singular &e)
+      {
+         puts("Cannot calculate TPS. Singular matrix.");
+         fflush(stdout);
+         return -1.0f;
+      }
 
 #if 1//def DEBUG
       {
@@ -112,7 +128,7 @@ namespace imago
 
                boost::array<double, 2> pos;
                pos[0] = j, pos[1] = i;
-               pos = tps.interpolate(pos);
+               pos = tps->interpolate(pos);
                Vec2i t(pos[0], pos[1]);
                if (t.x < 0 || t.x >= img.getWidth() ||
                    t.y < 0 || t.y >= img.getHeight())
@@ -127,32 +143,37 @@ namespace imago
 #endif
 
       //Comparing images
-      const ShapeContextFeatures *f1, *f2;
-      double dist;
-      for (f1 = this, f2 = fothers; false && f1 != fothers; std::swap(f1, f2))
+      double dist = 0;
+      Points2i::const_iterator pit;
+      Context f1_con, f2_con;
+      int s = _image_sample.points.size();
+      for (pit = _image_sample.points.begin(); pit != _image_sample.points.end(); ++pit)
       {
-         Points2i pixels; //select some
-         Points2i::iterator pit;
-         Context f1_con, f2_con;
-         double local_dist = 0;
-         for (pit = pixels.begin(); pit != pixels.end(); ++pit)
+         _calcPointContext(*pit, f1_con, IMAGE);
+
+         boost::array<double, 2> pos;
+         pos[0] = pit->x, pos[1] = pit->y;
+         pos = tps->interpolate(pos);
+         Vec2i t(pos[0], pos[1]);
+         if (t.x < 0 || t.x >= fothers->_img.cols ||
+             t.y < 0 || t.y >= fothers->_img.rows)
          {
-            f1->_calcPointContext(*pit, f1_con);
-
-            //Dis is not correct!
-            boost::array<double, 2> pos;
-            pos[0] = pit->x, pos[1] = pit->y;
-            pos = tps.interpolate(pos);
-            Vec2i t(pos[0], pos[1]);
-
-            f2->_calcPointContext(t, f2_con);
-
-            local_dist += _contextDistance(f1_con, f2_con);
+            s--;
+            continue;
          }
-         //local_dist /= pixels.size();
 
-         dist += local_dist;
+         fothers->_calcPointContext(t, f2_con, IMAGE);
+         dist += _contextDistance(f1_con, f2_con);
+
+         //if (fothers->_img.at<byte>(t.y, t.x) != 255)
+         //   dist += 1;
       }
+      //dist = 2 * dist / _image_sample.points.size() / fothers->_image_sample.points.size();
+      if (s <= 0)
+         dist = 0;
+      else
+         dist /= s;
+
       return dist;
    }
 
@@ -165,6 +186,22 @@ namespace imago
    {
       throw LogicException("Not implemented");
    }
+
+   void ShapeContextFeatures::_calcSampleMean( Sample &sample ) const
+   {
+      sample.meanR = 0;
+      Points2i::const_iterator b = sample.points.begin(),
+            e = sample.points.end();
+      for (Points2i::const_iterator it = b; it != e; ++it)
+      {
+         for (Points2i::const_iterator it2 = it; it2 != e; ++it2)
+         {
+            sample.meanR += 2 * Vec2i::distance(*it, *it2);
+         }
+      }
+      sample.meanR /= sample.points.size() * sample.points.size();
+   }
+
 
    void ShapeContextFeatures::_extractContourPoints()
    {
@@ -247,17 +284,7 @@ namespace imago
       ImageUtils::saveImageToFile(img, "sample.png");
 #endif
 
-      _sample.meanR = 0;
-      Points2i::const_iterator b = _sample.points.begin(),
-            e = _sample.points.end();
-      for (Points2i::const_iterator it = b; it != e; ++it)
-      {
-         for (Points2i::const_iterator it2 = it; it2 != e; ++it2)
-         {
-            _sample.meanR += 2 * Vec2i::distance(*it, *it2);
-         }
-      }
-      _sample.meanR /= _sample.points.size() * _sample.points.size();
+      _calcSampleMean(_sample);
    }
    /*
    void ShapeContextFeatures::_extractContourPoints( Sample &sample ) const
@@ -345,13 +372,24 @@ namespace imago
       }
    }
 
-   void ShapeContextFeatures::_calcPointContext( const Vec2i &point, Context &context ) const
+   void ShapeContextFeatures::_calcPointContext( const Vec2i &point, Context &context, CONTEXT_TYPE type ) const
    {
+      const Sample *sample = 0;
+      switch(type)
+      {
+         case SAMPLE:
+            sample = &_sample;
+            break;
+         case IMAGE:
+            sample = &_image_sample;
+            break;
+      }
+      assert(sample != 0);
       context.resize(_binsR * _binsT, 0);
 
       double minR = 1e16, maxR = 0;
 
-      for (Points2i::const_iterator it = _sample.points.begin(); it != _sample.points.end(); ++it)
+      for (Points2i::const_iterator it = sample->points.begin(); it != sample->points.end(); ++it)
       {
          if (*it == point)
             continue;
@@ -364,22 +402,22 @@ namespace imago
       }
 
       maxR += 1;
-      double leftR = log(minR / _sample.meanR), rightR = log(maxR / _sample.meanR);
+      double leftR = log(minR / sample->meanR), rightR = log(maxR / sample->meanR);
 
       double stepR = (rightR - leftR) / (_binsR - 1);
       double stepT = (2 * PI - 0) / (_binsT - 1);
 
-      DPRINTF("R: %lf %lf\nSteps:%lf %lf\n***\n", leftR, rightR, stepR, stepT);
+      //DPRINTF("R: %lf %lf\nSteps:%lf %lf\n***\n", leftR, rightR, stepR, stepT);
 
       const Vec2i UP(0, 1);
-      for (Points2i::const_iterator it = _sample.points.begin(); it != _sample.points.end(); ++it)
+      for (Points2i::const_iterator it = sample->points.begin(); it != sample->points.end(); ++it)
       {
          if (*it == point)
             continue;
 
          Vec2i v;
          v.diff(*it, point);
-         double logRscaled = log(v.norm() / _sample.meanR);
+         double logRscaled = log(v.norm() / sample->meanR);
          double t = Vec2i::angle(v, UP);
 
          if (v.x < 0)
@@ -397,7 +435,7 @@ namespace imago
          assert(binT >= 0 && binT < _binsT);
 
          //DPRINTF("   %lf %lf %lf", leftR, logRscaled, rightR);
-         DPRINTF("   Bins: %d %d\n", binR, binT);
+         //DPRINTF("   Bins: %d %d\n", binR, binT);
 
          context[_ii2i(binR, binT)]++;
       }
