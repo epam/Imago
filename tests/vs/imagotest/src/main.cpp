@@ -724,10 +724,10 @@ void testShapeContext( const char *filename )
    boost::shared_ptr<IFeatures> f1(new ShapeContextFeatures(60, 5, 12));
    boost::shared_ptr<IFeatures> f2(new ShapeContextFeatures(60, 5, 12));
    Image img1, img2;
-   ImageUtils::loadImageFromFile(img1, "n2.png");
+   ImageUtils::loadImageFromFile(img1, "n1.png");
    ImageUtils::loadImageFromFile(img2, "n3.png");
-   //ImageUtils::loadImageFromFile(img1, "../../../../flamingo_test/n1.png");
-   //ImageUtils::loadImageFromFile(img2, "../../../../flamingo_test/n2.png");
+   //ImageUtils::loadImageFromFile(img1, "../../../../flamingo_test/As.png");
+   //ImageUtils::loadImageFromFile(img2, "../../../../flamingo_test/A2s.png");
 
    TIME(f1->extract(img1), "Extract1");
    TIME(f2->extract(img2), "Extract2");

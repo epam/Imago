@@ -31,7 +31,7 @@ namespace tps
    {
       if (r == 0.0)
          return 0.0;
-      return pow(r, 2) * log(r);
+      return 2 * pow(r, 2) * log(r);
    }
 
    template<typename T1, typename T2, int Dim>
@@ -49,6 +49,7 @@ namespace tps
    class ThinPlateSpline
    {
    public:
+      bool init;
       matrix<WorkingType> Wa;
       std::vector<array<WorkingType, PosDim> > refPositions;
 
@@ -57,7 +58,7 @@ namespace tps
       }
 
       ThinPlateSpline( std::vector<array<WorkingType, PosDim> > positions,
-                       std::vector<array<WorkingType, ValDim> > values )
+                       std::vector<array<WorkingType, ValDim> > values ) : init(false)
       {
          matrix<WorkingType> L;
 
@@ -105,7 +106,15 @@ namespace tps
             ;//TODO catch this error
 
          matrix<WorkingType> invL(identity_matrix<WorkingType> (A.size1()));
-         lu_substitute(A, pm, invL);
+         try
+         {
+            lu_substitute(A, pm, invL);
+         }
+         catch (boost::numeric::ublas::singular &e)
+         {
+            std::cerr << "Cannot calculate TPS. Singular matrix." << std::endl;
+            return;
+         }
 
          Wa = matrix<WorkingType> (WaLength, ValDim);
 
@@ -121,10 +130,13 @@ namespace tps
 
          Wa = prod(invL, Y);
 
+         init = true;
       }
 
       array<WorkingType, ValDim> interpolate( const array<WorkingType, PosDim> &position ) const
       {
+         if (!init)
+            throw std::logic_error("TPS is not init!");
          array<WorkingType, ValDim> result;
          // Init result
          for (int j(0); j < ValDim; ++j)

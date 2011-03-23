@@ -1,4 +1,5 @@
 #include <opencv/highgui.h>
+#include <numeric>
 #include "boost/foreach.hpp"
 #include "boost/scoped_ptr.hpp"
 
@@ -95,21 +96,18 @@ namespace imago
 
       for (int i = 0; i < _sample.points.size(); ++i)
       {
-         positions[i][0] = _sample.points[i].x;
-         positions[i][1] = _sample.points[i].y;
-         values[i][0] = fothers->_sample.points[mapping[i]].x;
-         values[i][1] = fothers->_sample.points[mapping[i]].y;
+         positions[i][0] = fothers->_sample.points[mapping[i]].x;
+         positions[i][1] = fothers->_sample.points[mapping[i]].y;
+         values[i][0] = _sample.points[i].x;
+         values[i][1] = _sample.points[i].y;
       }
 
       boost::scoped_ptr<tps::ThinPlateSpline<2, 2> > tps;
-      try
+
+      tps.reset(new tps::ThinPlateSpline<2, 2>(positions, values));
+      if (!tps->init)
       {
-         tps.reset(new tps::ThinPlateSpline<2, 2>(positions, values));
-      }
-      catch(boost::numeric::ublas::singular &e)
-      {
-         puts("Cannot calculate TPS. Singular matrix.");
-         fflush(stdout);
+         //throw LogicException("Cannot calculate TPS!");
          return -1.0f;
       }
 
@@ -119,11 +117,11 @@ namespace imago
                    __max(_img.rows, fothers->_img.rows));
          img.fillWhite();
 
-         for (int i = 0; i < _img.rows; ++i)
+         for (int i = 0; i < fothers->_img.rows; ++i)
          {
-            for (int j = 0; j < _img.cols; ++j)
+            for (int j = 0; j < fothers->_img.cols; ++j)
             {
-               if (_img.at<byte>(i, j) == 255)
+               if (fothers->_img.at<byte>(i, j) == 255)
                   continue;
 
                boost::array<double, 2> pos;
@@ -134,7 +132,7 @@ namespace imago
                    t.y < 0 || t.y >= img.getHeight())
                   continue;
 
-               img.getByte(t.x, t.y) = _img.at<byte>(i, j);
+               img.getByte(t.x, t.y) = fothers->_img.at<byte>(i, j);
             }
          }
 
@@ -142,37 +140,57 @@ namespace imago
       }
 #endif
 
-      //Comparing images
-      double dist = 0;
+      ShapeContext q;
       Points2i::const_iterator pit;
-      Context f1_con, f2_con;
-      int s = _image_sample.points.size();
-      for (pit = _image_sample.points.begin(); pit != _image_sample.points.end(); ++pit)
+      for (pit = fothers->_sample.points.begin(); pit != fothers->_sample.points.end(); ++pit)
       {
-         _calcPointContext(*pit, f1_con, IMAGE);
-
          boost::array<double, 2> pos;
          pos[0] = pit->x, pos[1] = pit->y;
          pos = tps->interpolate(pos);
          Vec2i t(pos[0], pos[1]);
-         if (t.x < 0 || t.x >= fothers->_img.cols ||
-             t.y < 0 || t.y >= fothers->_img.rows)
-         {
-            s--;
+         if (t.x < 0 || t.x >= _img.cols ||
+             t.y < 0 || t.y >= _img.rows)
             continue;
-         }
+         else
+            q.push_back(PointWithContext());
 
-         fothers->_calcPointContext(t, f2_con, IMAGE);
-         dist += _contextDistance(f1_con, f2_con);
-
-         //if (fothers->_img.at<byte>(t.y, t.x) != 255)
-         //   dist += 1;
+         PointWithContext &pwc = q.back();
+         pwc.p = t;
+         _calcPointContext(t, pwc.context);
       }
-      //dist = 2 * dist / _image_sample.points.size() / fothers->_image_sample.points.size();
-      if (s <= 0)
-         dist = 0;
-      else
-         dist /= s;
+
+      if (q.size() <= 0)
+         return 0;
+
+      std::vector<std::vector<double> > m(_sample.points.size());
+      Context p_con, q_con;
+      int ps = _sample.points.size(), qs = q.size();
+      for (int i = 0; i < ps; ++i)
+      {
+         m[i].resize(qs, 0.0);
+         for (int j = 0; j < qs; ++j)
+         {
+            m[i][j] = _contextDistance(my_sc[i].context, q[j].context);
+         }
+      }
+
+      double dist = 0;
+
+      std::vector<double> pd(ps, 1e16), qd(qs, 1e16);
+      for (int i = 0; i < ps; ++i)
+      {
+         for (int j = 0; j < qs; ++j)
+         {
+            double v = m[i][j];
+            if (v < pd[i])
+               pd[i] = v;
+            if (v < qd[j])
+               qd[j] = v;
+         }
+      }
+
+      dist = std::accumulate(pd.begin(), pd.end(), 0.0) / pd.size() +
+             std::accumulate(qd.begin(), qd.end(), 0.0) / qd.size();
 
       return dist;
    }
