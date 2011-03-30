@@ -17,10 +17,11 @@ if(NOT WIN32)
   find_package(JPEG REQUIRED)
 
   find_package(OpenCV REQUIRED)
-
-  set(OpenCV_LIBS_REL ${OpenCV_LIBS})
-  set(OpenCV_LIBS_DBG ${OpenCV_LIBS})
 else(NOT WIN32)
+  set(IMAGO_C_FLAGS "/GL- /GR- /EHsc /Gy /W3 /nologo /c /wd4345 /wd4244 /D _CRT_SECURE_NO_DEPRECATE")
+  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IMAGO_C_FLAGS}")
+  set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IMAGO_C_FLAGS}")
+  
   add_subdirectory(libpng)
   add_subdirectory(libjpeg)
   
@@ -38,15 +39,12 @@ else(NOT WIN32)
     set(OpenCV_LIBS_DIR ${CMAKE_SOURCE_DIR}/opencv/x64/lib)    
   endif(${CMAKE_SIZEOF_VOID_P} EQUAL 4)
 
-  set(OpenCV_LIBS_REL ${OpenCV_LIBS_DIR}/opencv_core220.lib
-                      ${OpenCV_LIBS_DIR}/opencv_imgproc220.lib
-                      ${OpenCV_LIBS_DIR}/opencv_highgui220.lib)
-
-  set(OpenCV_LIBS_DBG ${OpenCV_LIBS_DIR}/opencv_core220d.lib
-                      ${OpenCV_LIBS_DIR}/opencv_imgproc220d.lib
-                      ${OpenCV_LIBS_DIR}/opencv_highgui220d.lib)
-
-  set(IMAGO_C_FLAGS "/GL- /GR- /EHsc /Gy /W3 /nologo /c /wd4345 /wd4244 /D _CRT_SECURE_NO_DEPRECATE")
+  set(OpenCV_LIBS optimize ${OpenCV_LIBS_DIR}/opencv_core220.lib
+                  debug    ${OpenCV_LIBS_DIR}/opencv_core220d.lib
+                  optimize ${OpenCV_LIBS_DIR}/opencv_imgproc220.lib
+                  debug    ${OpenCV_LIBS_DIR}/opencv_imgproc220d.lib
+                  optimize ${OpenCV_LIBS_DIR}/opencv_highgui220.lib
+                  debug ${OpenCV_LIBS_DIR}/opencv_highgui220d.lib)
 endif(NOT WIN32)
 
 option(EMBED_FONT "Embed font file" ON)

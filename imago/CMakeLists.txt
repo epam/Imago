@@ -72,11 +72,4 @@ endif(EMBED_FONT)
 
 add_library(imago_static STATIC ${SRC})
 target_link_libraries(imago_static ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-
-foreach(lib ${OpenCV_LIBS_DBG})
-  target_link_libraries(imago_static debug ${lib})
-endforeach(lib)
-
-foreach(lib ${OpenCV_LIBS_REL})
-  target_link_libraries(imago_static optimized ${lib})
-endforeach(lib)
+target_link_libraries(imago_static ${OpenCV_LIBS}) 
