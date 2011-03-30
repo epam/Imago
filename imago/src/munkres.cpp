@@ -4,10 +4,15 @@
  *
  */
 
-#include "munkres.h"
-#include "comdef.h"
 #include <iostream>
 #include <cmath>
+
+#include "munkres.h"
+#include "comdef.h"
+
+#ifdef _WIN32
+#define INFINITY ((1U << 31) - 1)
+#endif
 
 #ifdef DEBUG
 //#define MDEBUG

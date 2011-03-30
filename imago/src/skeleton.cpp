@@ -433,7 +433,7 @@ bool Skeleton::_dissolveIntermediateVertices ()
       
       double ang = acos(d);
 
-      if (ang < M_PI * 3 / 4)
+      if (ang < PI * 3 / 4)
          continue;
 
       double err = n1 * n2 * sin(ang) / (maxn * maxn);

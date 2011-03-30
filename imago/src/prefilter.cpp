@@ -461,7 +461,7 @@ bool isCircle (Image &seg)
             float sine = (centery - j) / radius;
             float ang = (float)atan2(sine, cosine);
             if (ang < 0)
-               ang += 2 * M_PI;
+               ang += 2 * PI;
             points[k].ang = ang;
             k++;
          }
@@ -469,7 +469,7 @@ bool isCircle (Image &seg)
 
    qsort(points, npoints, sizeof(_AngRadius), _cmp_ang);
    
-   points[npoints].ang = points[0].ang + 2 * M_PI;
+   points[npoints].ang = points[0].ang + 2 * PI;
    points[npoints].radius = points[0].radius;
 
    for (i = 0; i < npoints; i++)
@@ -501,7 +501,7 @@ bool isCircle (Image &seg)
          delete[] points;
          return false;
       }
-      if (gap > M_PI / 8 && (points[i].ang < M_PI / 8 || points[i].ang > 7 * M_PI / 4))
+      if (gap > PI / 8 && (points[i].ang < PI / 8 || points[i].ang > 7 * PI / 4))
       {
          #ifdef DEBUG
          printf("C-like gap: %3f at %3f\n", gap, points[i].ang);

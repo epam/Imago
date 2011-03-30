@@ -19,6 +19,7 @@
  */
 
 #include <cstdio>
+#include <png.h>
 
 #include "exception.h"
 #include "image.h"
@@ -27,6 +28,7 @@
 
 using namespace imago;
 
+static void _writer( png_structp png_ptr, png_bytep bytes, png_size_t size );
 
 PngSaver::PngSaver( Output &out ) : _out(out)
 {
@@ -95,7 +97,7 @@ void PngSaver::saveImage( const Image &_img )
    delete[] data;
 }
 
-void PngSaver::_writer( png_structp png_ptr, png_bytep bytes, png_size_t size )
+void _writer( png_structp png_ptr, png_bytep bytes, png_size_t size )
 {
    Output *out = (Output *)png_get_progressive_ptr(png_ptr);
    out->write(bytes, size);

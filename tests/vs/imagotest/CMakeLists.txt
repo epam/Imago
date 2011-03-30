@@ -1,7 +1,7 @@
 include_directories(
   ../../../
   ../../../imago/src
-  ../../../libpng/src
+  ${OpenCV_INCLUDE_DIRS}
   )
 
 set(SRC

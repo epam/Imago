@@ -20,7 +20,6 @@
 #ifndef _png_loader_h
 #define _png_loader_h
 
-#include "png.h"
 #include "comdef.h"
 
 namespace imago
@@ -41,8 +40,6 @@ namespace imago
 
    private:
       PngLoader();
-
-      static void _reader( png_structp png_ptr, png_bytep bytes, png_size_t size );
 
       Scanner &_scan;
    };

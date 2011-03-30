@@ -14,6 +14,7 @@
 
 #include <cmath>
 #include <vector>
+#include <opencv/cv.h>
 
 #include "image.h"
 #include "approximator.h"
@@ -142,8 +143,6 @@ void SimpleApproximator::_calc_line( const Points2d &input, int begin, int end, 
       res.c = (Sy * Sx2 - Sx * Sxy) / (n * Sx2 - Sx * Sx);
    }
 }
-
-#include <opencv/cv.h>
 
 void CvApproximator::apply( double eps, const Points2d &input, Points2d &output ) const
 {

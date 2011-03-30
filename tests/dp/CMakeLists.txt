@@ -1,7 +1,6 @@
 include_directories(
   ../../
   ../../imago/src
-  ../../libpng/src
   )
 
 set(SRC

@@ -17,15 +17,16 @@
  * 
  * @brief   Implements the png loader Class. 
  */
+#include <png.h>
 
 #include "exception.h"
 #include "scanner.h"
-#include "png.h"
 #include "png_loader.h"
 #include "image.h"
 
 using namespace imago;
 
+static void _reader( png_structp png_ptr, png_bytep bytes, png_size_t size );
 /**
  * @exception  ERROR Thrown when @c filename is @c null, or an error occured during file opening 
  * 
@@ -176,7 +177,7 @@ void PngLoader::loadImage( Image &I )
    png_destroy_read_struct(&png, &info, &end_info);
 }
 
-void PngLoader::_reader( png_structp png_ptr, png_bytep bytes, png_size_t size )
+void _reader( png_structp png_ptr, png_bytep bytes, png_size_t size )
 {
    Scanner *scan = (Scanner *)png_get_progressive_ptr(png_ptr);
    scan->read(size, bytes);

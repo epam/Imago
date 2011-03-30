@@ -20,7 +20,6 @@
 #ifndef _png_saver_h
 #define _png_saver_h
 
-#include "png.h"
 #include "comdef.h"
 
 namespace imago
@@ -41,8 +40,6 @@ namespace imago
 
    private:
       PngSaver();
-
-      static void _writer( png_structp png_ptr, png_bytep bytes, png_size_t size );
 
       Output &_out;
    };

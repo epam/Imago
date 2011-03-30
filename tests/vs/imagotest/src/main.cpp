@@ -502,7 +502,7 @@ void _ImageToMat(const Image &img, cv::Mat mat)
    {
       for (int l = 0; l < w; l++)
       {
-         res.at<byte>(k, l) = img.getByte(l, k);
+         res.at<imago::byte>(k, l) = img.getByte(l, k);
       }
    }
    mat = res;
@@ -516,7 +516,7 @@ void _getHuMoments(const Image &img, double hu[7])
    {
       for (int l = 0; l < w; l++)
       {
-         mat.at<byte > (k, l) = img.getByte(l, k);
+         mat.at<imago::byte> (k, l) = img.getByte(l, k);
       }
    }
    cv::Moments moments = cv::moments(mat, true);
