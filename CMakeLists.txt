@@ -14,9 +14,28 @@ if(NOT WIN32)
   find_package(Threads REQUIRED)
   
   find_package(PNG REQUIRED)
-  find_package(JPEG REQUIRED)
+  if(NOT APPLE)
+    find_package(JPEG REQUIRED)
 
-  find_package(OpenCV REQUIRED)
+    find_package(OpenCV REQUIRED)
+  else(NOT APPLE)
+    option(IPHONE "Cross-compile for IPHONE" OFF)
+
+    set(JPEG_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/libjpeg)
+    set(OpenCV_INCLUDE_DIRS ${CMAKE_SOURCE_DIR}/opencv/include)
+
+    if(NOT IPHONE)
+      set(OpenCV_LIBS 
+          /Users/vsmolov/opencv/opencv/Output3/tmp/mac-install/lib/libopencv_core.a
+          /Users/vsmolov/opencv/opencv/Output3/tmp/mac-install/lib/libopencv_imgproc.a
+          /Users/vsmolov/opencv/opencv/Output3/tmp/mac-install/lib/libopencv_highgui.a
+          /Users/vsmolov/opencv/opencv/Output3/tmp/mac-build/3rdparty/lib/Release/liblibjpeg.a
+          /Users/vsmolov/opencv/opencv/Output3/tmp/mac-build/3rdparty/lib/Release/libopencv_lapack.a
+         )
+    endif(NOT IPHONE)
+ 
+    
+  endif(NOT APPLE)
 else(NOT WIN32)
   set(IMAGO_C_FLAGS "/GL- /GR- /EHsc /Gy /W3 /nologo /c /wd4345 /wd4244 /D _CRT_SECURE_NO_DEPRECATE")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IMAGO_C_FLAGS}")
@@ -55,9 +74,11 @@ option(EMBED_FONT "Embed font file" ON)
 message(${CMAKE_SIZEOF_VOID_P})
 
 add_subdirectory(imago)
+if(NOT IPHONE)
 add_subdirectory(imago_c)
 add_subdirectory(alter-ego)
 add_subdirectory(jimago)
 
 add_subdirectory(tests/vs/imagotest)
 add_subdirectory(tests/dp)
+endif(NOT IPHONE)
