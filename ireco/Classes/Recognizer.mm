@@ -87,8 +87,6 @@
    }
    
    return [NSString stringWithCString:molfileStr.c_str()];
-
-   return nil;
 }
 
 + (Recognizer *)recognizerWithImage:(UIImage *)image
