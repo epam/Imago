@@ -13,6 +13,8 @@
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		2892E4100DC94CBA00A64D0F /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2892E40F0DC94CBA00A64D0F /* CoreGraphics.framework */; };
 		A704F75C1271BED80006F5C5 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A704F75B1271BED80006F5C5 /* libz.dylib */; };
+		A71E321D13462DF3006D4D50 /* libpng_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6728F13461AA40030A6E1 /* libpng_local.a */; };
+		A71E321E13462DF3006D4D50 /* libjpeg_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6729113461AA40030A6E1 /* libjpeg_local.a */; };
 		A732667012AD20B3001F7D75 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A732666F12AD20B3001F7D75 /* MainViewController.m */; };
 		A75C26A712AD496900EBBC45 /* ireco.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A512AD496900EBBC45 /* ireco.png */; };
 		A75C26A812AD496900EBBC45 /* irecohd.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A612AD496900EBBC45 /* irecohd.png */; };
@@ -123,7 +125,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1010A73401010A73401010A7;
+			remoteGlobalIDString = 1010A71801010A71801010A7 /* imago_static */;
 			remoteInfo = imago_static;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -144,14 +146,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 10102D8A010102D8A010102D;
+			remoteGlobalIDString = 10102D72010102D72010102D /* png_local */;
 			remoteInfo = png_local;
 		};
 		A7D672B3134625E90030A6E1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 101069300101069300101069;
+			remoteGlobalIDString = 101069140101069140101069 /* jpeg_local */;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -274,6 +276,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A71E321D13462DF3006D4D50 /* libpng_local.a in Frameworks */,
+				A71E321E13462DF3006D4D50 /* libjpeg_local.a in Frameworks */,
 				A7D672AC1346227C0030A6E1 /* libopencv_lapack.a in Frameworks */,
 				A7D672AA134620020030A6E1 /* libopencv_imgproc.a in Frameworks */,
 				A7D672A813461F8B0030A6E1 /* libopencv_core.a in Frameworks */,
