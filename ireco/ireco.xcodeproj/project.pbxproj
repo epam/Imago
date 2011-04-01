@@ -97,16 +97,14 @@
 		A7D5CC4312ADC82200C60C51 /* visel.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0412ADC82200C60C51 /* visel.js */; };
 		A7D5CC4412ADC82200C60C51 /* log.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0612ADC82200C60C51 /* log.js */; };
 		A7D5CC4512ADC82200C60C51 /* ui.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0712ADC82200C60C51 /* ui.js */; };
+		A7D9A9CC1343B6A0004B0AF0 /* libimago_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7988AA91343ADB800D37855 /* libimago_static.a */; };
 		A7DB91D312804B8E00B51670 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7DB91D212804B8E00B51670 /* AudioToolbox.framework */; };
 		A7E234981281B61400C7CDC4 /* OverlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7E234971281B61400C7CDC4 /* OverlayViewController.m */; };
-		A7E2B8081296C9B300F3BB6E /* libismiles.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E2B7FC1296C99300F3BB6E /* libismiles.a */; };
-		A7E2B8091296C9B900F3BB6E /* libjpeg.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E2B8071296C9A600F3BB6E /* libjpeg.a */; };
 		A7E2B8A01296EA0000F3BB6E /* photo11.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A7E2B8951296EA0000F3BB6E /* photo11.jpg */; };
 		A7E2B8A11296EA0000F3BB6E /* photo12.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A7E2B8961296EA0000F3BB6E /* photo12.jpg */; };
 		A7E2B8A31296EA0000F3BB6E /* photo14.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A7E2B8981296EA0000F3BB6E /* photo14.jpg */; };
 		A7E2B8A41296EA0000F3BB6E /* photo15.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A7E2B8991296EA0000F3BB6E /* photo15.jpg */; };
 		A7E2B8A51296EA0000F3BB6E /* photo16.jpg in Resources */ = {isa = PBXBuildFile; fileRef = A7E2B89A1296EA0000F3BB6E /* photo16.jpg */; };
-		A7E60C45126E0C1700BA2EFD /* libimago.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E60C44126E0C0C00BA2EFD /* libimago.a */; };
 		A7E60C6C126E15F600BA2EFD /* libstdc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E60C6B126E15F600BA2EFD /* libstdc++.dylib */; };
 /* End PBXBuildFile section */
 
@@ -125,46 +123,25 @@
 			remoteGlobalIDString = D2AAC07D0554694100DB518D;
 			remoteInfo = libpng;
 		};
-		A7E2B7FB1296C99300F3BB6E /* PBXContainerItemProxy */ = {
+		A7988AA81343ADB800D37855 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = A7E2B7F41296C99300F3BB6E /* ismiles.xcodeproj */;
+			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 2;
-			remoteGlobalIDString = D2AAC07E0554694100DB518D;
-			remoteInfo = ismiles;
+			remoteGlobalIDString = 1006F12001006F12001006F1;
+			remoteInfo = imago_static;
 		};
-		A7E2B8061296C9A600F3BB6E /* PBXContainerItemProxy */ = {
+		A7988AAB1343ADCF00D37855 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
-			containerPortal = A7E2B7FF1296C9A600F3BB6E /* libjpeg.xcodeproj */;
-			proxyType = 2;
-			remoteGlobalIDString = D2AAC07E0554694100DB518D;
-			remoteInfo = libjpeg;
-		};
-		A7E2B8161296CA3A00F3BB6E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A7E2B7FF1296C9A600F3BB6E /* libjpeg.xcodeproj */;
+			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = D2AAC07D0554694100DB518D;
-			remoteInfo = libjpeg;
-		};
-		A7E2B8181296CA3A00F3BB6E /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A7E2B7F41296C99300F3BB6E /* ismiles.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = D2AAC07D0554694100DB518D;
-			remoteInfo = ismiles;
+			remoteGlobalIDString = 1006E40601006E40601006E4;
+			remoteInfo = imago_static;
 		};
 		A7E60C43126E0C0C00BA2EFD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7E60C3F126E0C0C00BA2EFD /* imago.xcodeproj */;
 			proxyType = 2;
 			remoteGlobalIDString = D2AAC07E0554694100DB518D;
-			remoteInfo = imago;
-		};
-		A7E60C46126E0C2700BA2EFD /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A7E60C3F126E0C0C00BA2EFD /* imago.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = D2AAC07D0554694100DB518D;
 			remoteInfo = imago;
 		};
 /* End PBXContainerItemProxy section */
@@ -185,6 +162,7 @@
 		A732666F12AD20B3001F7D75 /* MainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
 		A75C26A512AD496900EBBC45 /* ireco.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ireco.png; sourceTree = "<group>"; };
 		A75C26A612AD496900EBBC45 /* irecohd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = irecohd.png; sourceTree = "<group>"; };
+		A7988AA21343ADB800D37855 /* imago.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = imago.xcodeproj; path = ../build/imago.xcodeproj; sourceTree = "<group>"; };
 		A79D4C0012AE849000A3C3DA /* Recognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Recognizer.h; sourceTree = "<group>"; };
 		A79D4C0112AE849000A3C3DA /* Recognizer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Recognizer.mm; sourceTree = "<group>"; };
 		A7BB124712A411FD0006780D /* photo01.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; name = photo01.jpg; path = "first-delivery-images/photo01.jpg"; sourceTree = "<group>"; };
@@ -270,8 +248,6 @@
 		A7DB91D212804B8E00B51670 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		A7E234961281B61400C7CDC4 /* OverlayViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OverlayViewController.h; sourceTree = "<group>"; };
 		A7E234971281B61400C7CDC4 /* OverlayViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OverlayViewController.m; sourceTree = "<group>"; };
-		A7E2B7F41296C99300F3BB6E /* ismiles.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = ismiles.xcodeproj; path = ../iSMILES/ismiles.xcodeproj; sourceTree = SOURCE_ROOT; };
-		A7E2B7FF1296C9A600F3BB6E /* libjpeg.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = libjpeg.xcodeproj; path = ../libjpeg/libjpeg.xcodeproj; sourceTree = SOURCE_ROOT; };
 		A7E2B8951296EA0000F3BB6E /* photo11.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = photo11.jpg; sourceTree = "<group>"; };
 		A7E2B8961296EA0000F3BB6E /* photo12.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = photo12.jpg; sourceTree = "<group>"; };
 		A7E2B8981296EA0000F3BB6E /* photo14.jpg */ = {isa = PBXFileReference; lastKnownFileType = image.jpeg; path = photo14.jpg; sourceTree = "<group>"; };
@@ -286,10 +262,8 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				A7E2B8091296C9B900F3BB6E /* libjpeg.a in Frameworks */,
-				A7E2B8081296C9B300F3BB6E /* libismiles.a in Frameworks */,
+				A7D9A9CC1343B6A0004B0AF0 /* libimago_static.a in Frameworks */,
 				A704F74E1271BEAC0006F5C5 /* libpng.a in Frameworks */,
-				A7E60C45126E0C1700BA2EFD /* libimago.a in Frameworks */,
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
 				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
 				2892E4100DC94CBA00A64D0F /* CoreGraphics.framework in Frameworks */,
@@ -330,8 +304,7 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
-				A7E2B7FF1296C9A600F3BB6E /* libjpeg.xcodeproj */,
-				A7E2B7F41296C99300F3BB6E /* ismiles.xcodeproj */,
+				A7988AA21343ADB800D37855 /* imago.xcodeproj */,
 				A704F7401271BE4E0006F5C5 /* libpng.xcodeproj */,
 				A7E60C3F126E0C0C00BA2EFD /* imago.xcodeproj */,
 				080E96DDFE201D6D7F000001 /* Classes */,
@@ -390,6 +363,14 @@
 			isa = PBXGroup;
 			children = (
 				A704F7481271BE4E0006F5C5 /* libpng.a */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A7988AA31343ADB800D37855 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				A7988AA91343ADB800D37855 /* libimago_static.a */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -518,22 +499,6 @@
 			path = Ketcher/ui;
 			sourceTree = "<group>";
 		};
-		A7E2B7F51296C99300F3BB6E /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				A7E2B7FC1296C99300F3BB6E /* libismiles.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		A7E2B8001296C9A600F3BB6E /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				A7E2B8071296C9A600F3BB6E /* libjpeg.a */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
 		A7E60C40126E0C0C00BA2EFD /* Products */ = {
 			isa = PBXGroup;
 			children = (
@@ -556,10 +521,8 @@
 			buildRules = (
 			);
 			dependencies = (
-				A7E60C47126E0C2700BA2EFD /* PBXTargetDependency */,
+				A7988AAC1343ADCF00D37855 /* PBXTargetDependency */,
 				A704F7501271BEB40006F5C5 /* PBXTargetDependency */,
-				A7E2B8171296CA3A00F3BB6E /* PBXTargetDependency */,
-				A7E2B8191296CA3A00F3BB6E /* PBXTargetDependency */,
 			);
 			name = ireco;
 			productName = "imago-iphone";
@@ -590,12 +553,8 @@
 					ProjectRef = A7E60C3F126E0C0C00BA2EFD /* imago.xcodeproj */;
 				},
 				{
-					ProductGroup = A7E2B7F51296C99300F3BB6E /* Products */;
-					ProjectRef = A7E2B7F41296C99300F3BB6E /* ismiles.xcodeproj */;
-				},
-				{
-					ProductGroup = A7E2B8001296C9A600F3BB6E /* Products */;
-					ProjectRef = A7E2B7FF1296C9A600F3BB6E /* libjpeg.xcodeproj */;
+					ProductGroup = A7988AA31343ADB800D37855 /* Products */;
+					ProjectRef = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 				},
 				{
 					ProductGroup = A704F7411271BE4E0006F5C5 /* Products */;
@@ -617,18 +576,11 @@
 			remoteRef = A704F7471271BE4E0006F5C5 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
-		A7E2B7FC1296C99300F3BB6E /* libismiles.a */ = {
+		A7988AA91343ADB800D37855 /* libimago_static.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
-			path = libismiles.a;
-			remoteRef = A7E2B7FB1296C99300F3BB6E /* PBXContainerItemProxy */;
-			sourceTree = BUILT_PRODUCTS_DIR;
-		};
-		A7E2B8071296C9A600F3BB6E /* libjpeg.a */ = {
-			isa = PBXReferenceProxy;
-			fileType = archive.ar;
-			path = libjpeg.a;
-			remoteRef = A7E2B8061296C9A600F3BB6E /* PBXContainerItemProxy */;
+			path = libimago_static.a;
+			remoteRef = A7988AA81343ADB800D37855 /* PBXContainerItemProxy */;
 			sourceTree = BUILT_PRODUCTS_DIR;
 		};
 		A7E60C44126E0C0C00BA2EFD /* libimago.a */ = {
@@ -757,20 +709,10 @@
 			name = libpng;
 			targetProxy = A704F74F1271BEB40006F5C5 /* PBXContainerItemProxy */;
 		};
-		A7E2B8171296CA3A00F3BB6E /* PBXTargetDependency */ = {
+		A7988AAC1343ADCF00D37855 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
-			name = libjpeg;
-			targetProxy = A7E2B8161296CA3A00F3BB6E /* PBXContainerItemProxy */;
-		};
-		A7E2B8191296CA3A00F3BB6E /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = ismiles;
-			targetProxy = A7E2B8181296CA3A00F3BB6E /* PBXContainerItemProxy */;
-		};
-		A7E60C47126E0C2700BA2EFD /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = imago;
-			targetProxy = A7E60C46126E0C2700BA2EFD /* PBXContainerItemProxy */;
+			name = imago_static;
+			targetProxy = A7988AAB1343ADCF00D37855 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -784,13 +726,18 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = imago_iphone_Prefix.pch;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = (
 					../imago/src,
 					../iSMILES/src,
 					..,
 				);
 				INFOPLIST_FILE = "imago_iphone-Info.plist";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../opencv/iphone/release-universal\"",
+				);
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "imago-iphone";
 			};
@@ -803,13 +750,18 @@
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = imago_iphone_Prefix.pch;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = (
 					../imago/src,
 					../iSMILES/src,
 					..,
 				);
 				INFOPLIST_FILE = "imago_iphone-Info.plist";
-				LIBRARY_SEARCH_PATHS = "$(inherited)";
+				LIBRARY_SEARCH_PATHS = (
+					"$(inherited)",
+					"\"$(SRCROOT)\"",
+					"\"$(SRCROOT)/../opencv/iphone/release-universal\"",
+				);
 				PRODUCT_NAME = "imago-iphone";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;

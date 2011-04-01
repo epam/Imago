@@ -7,6 +7,25 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		A7988A6D1343825D00D37855 /* character_recognizer_font.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7988A511343825D00D37855 /* character_recognizer_font.cpp */; };
+		A7988A6E1343825D00D37855 /* classification.h in Headers */ = {isa = PBXBuildFile; fileRef = A7988A521343825D00D37855 /* classification.h */; };
+		A7988A6F1343825D00D37855 /* contour_extractor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7988A531343825D00D37855 /* contour_extractor.cpp */; };
+		A7988A701343825D00D37855 /* contour_extractor.h in Headers */ = {isa = PBXBuildFile; fileRef = A7988A541343825D00D37855 /* contour_extractor.h */; };
+		A7988A711343825D00D37855 /* features_compare_method.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7988A551343825D00D37855 /* features_compare_method.cpp */; };
+		A7988A721343825D00D37855 /* features_compare_method.h in Headers */ = {isa = PBXBuildFile; fileRef = A7988A561343825D00D37855 /* features_compare_method.h */; };
+		A7988A731343825D00D37855 /* fourier_descriptors.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7988A571343825D00D37855 /* fourier_descriptors.cpp */; };
+		A7988A741343825D00D37855 /* fourier_descriptors.h in Headers */ = {isa = PBXBuildFile; fileRef = A7988A581343825D00D37855 /* fourier_descriptors.h */; };
+		A7988A751343825D00D37855 /* fourier_features.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7988A591343825D00D37855 /* fourier_features.cpp */; };
+		A7988A761343825D00D37855 /* fourier_features.h in Headers */ = {isa = PBXBuildFile; fileRef = A7988A5A1343825D00D37855 /* fourier_features.h */; };
+		A7988A781343825E00D37855 /* munkres.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7988A5C1343825D00D37855 /* munkres.cpp */; };
+		A7988A791343825E00D37855 /* munkres.h in Headers */ = {isa = PBXBuildFile; fileRef = A7988A5D1343825D00D37855 /* munkres.h */; };
+		A7988A7A1343825E00D37855 /* orientation_finder.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7988A5E1343825D00D37855 /* orientation_finder.cpp */; };
+		A7988A7B1343825E00D37855 /* orientation_finder.h in Headers */ = {isa = PBXBuildFile; fileRef = A7988A5F1343825D00D37855 /* orientation_finder.h */; };
+		A7988A7C1343825E00D37855 /* prefilter_lept.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7988A601343825D00D37855 /* prefilter_lept.cpp */; };
+		A7988A7D1343825E00D37855 /* prefilter.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7988A611343825D00D37855 /* prefilter.cpp */; };
+		A7988A7F1343825E00D37855 /* shape_context.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7988A631343825D00D37855 /* shape_context.cpp */; };
+		A7988A801343825E00D37855 /* shape_context.h in Headers */ = {isa = PBXBuildFile; fileRef = A7988A641343825D00D37855 /* shape_context.h */; };
+		A7988A861343825E00D37855 /* tpsinterpolate.h in Headers */ = {isa = PBXBuildFile; fileRef = A7988A6A1343825D00D37855 /* tpsinterpolate.h */; };
 		A7AC39AB128DDA4A00158F63 /* algebra.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7AC3997128DDA4A00158F63 /* algebra.cpp */; };
 		A7AC39AC128DDA4A00158F63 /* algebra.h in Headers */ = {isa = PBXBuildFile; fileRef = A7AC3998128DDA4A00158F63 /* algebra.h */; };
 		A7AC39AD128DDA4A00158F63 /* current_session.h in Headers */ = {isa = PBXBuildFile; fileRef = A7AC3999128DDA4A00158F63 /* current_session.h */; };
@@ -45,8 +64,6 @@
 		A7E60BC6126DEBC100BA2EFD /* filter.h in Headers */ = {isa = PBXBuildFile; fileRef = A7E60B71126DEBC100BA2EFD /* filter.h */; };
 		A7E60BC7126DEBC100BA2EFD /* font.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7E60B72126DEBC100BA2EFD /* font.cpp */; };
 		A7E60BC8126DEBC100BA2EFD /* font.h in Headers */ = {isa = PBXBuildFile; fileRef = A7E60B73126DEBC100BA2EFD /* font.h */; };
-		A7E60BC9126DEBC100BA2EFD /* fourier_descriptors_extractor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7E60B74126DEBC100BA2EFD /* fourier_descriptors_extractor.cpp */; };
-		A7E60BCA126DEBC100BA2EFD /* fourier_descriptors_extractor.h in Headers */ = {isa = PBXBuildFile; fileRef = A7E60B75126DEBC100BA2EFD /* fourier_descriptors_extractor.h */; };
 		A7E60BCB126DEBC100BA2EFD /* graph_extractor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7E60B76126DEBC100BA2EFD /* graph_extractor.cpp */; };
 		A7E60BCC126DEBC100BA2EFD /* graph_extractor.h in Headers */ = {isa = PBXBuildFile; fileRef = A7E60B77126DEBC100BA2EFD /* graph_extractor.h */; };
 		A7E60BCF126DEBC100BA2EFD /* graphics_detector.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7E60B7A126DEBC100BA2EFD /* graphics_detector.cpp */; };
@@ -95,7 +112,6 @@
 		A7E60C01126DEBC100BA2EFD /* thin_filter2.h in Headers */ = {isa = PBXBuildFile; fileRef = A7E60BAC126DEBC100BA2EFD /* thin_filter2.h */; };
 		A7E60C02126DEBC100BA2EFD /* thread_local_posix.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7E60BAD126DEBC100BA2EFD /* thread_local_posix.cpp */; };
 		A7E60C03126DEBC100BA2EFD /* thread_local_ptr.h in Headers */ = {isa = PBXBuildFile; fileRef = A7E60BAE126DEBC100BA2EFD /* thread_local_ptr.h */; };
-		A7E60C05126DEBC100BA2EFD /* vec2d.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7E60BB0126DEBC100BA2EFD /* vec2d.cpp */; };
 		A7E60C06126DEBC100BA2EFD /* vec2d.h in Headers */ = {isa = PBXBuildFile; fileRef = A7E60BB1126DEBC100BA2EFD /* vec2d.h */; };
 		A7E60C07126DEBC100BA2EFD /* wedge_bond_extractor.cpp in Sources */ = {isa = PBXBuildFile; fileRef = A7E60BB2126DEBC100BA2EFD /* wedge_bond_extractor.cpp */; };
 		A7E60C08126DEBC100BA2EFD /* wedge_bond_extractor.h in Headers */ = {isa = PBXBuildFile; fileRef = A7E60BB3126DEBC100BA2EFD /* wedge_bond_extractor.h */; };
@@ -106,6 +122,32 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		A7988A4F1343825D00D37855 /* arial_bold.font.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = arial_bold.font.inc; path = src/arial_bold.font.inc; sourceTree = "<group>"; };
+		A7988A501343825D00D37855 /* arial.font.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = arial.font.inc; path = src/arial.font.inc; sourceTree = "<group>"; };
+		A7988A511343825D00D37855 /* character_recognizer_font.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = character_recognizer_font.cpp; path = src/character_recognizer_font.cpp; sourceTree = "<group>"; };
+		A7988A521343825D00D37855 /* classification.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = classification.h; path = src/classification.h; sourceTree = "<group>"; };
+		A7988A531343825D00D37855 /* contour_extractor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = contour_extractor.cpp; path = src/contour_extractor.cpp; sourceTree = "<group>"; };
+		A7988A541343825D00D37855 /* contour_extractor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = contour_extractor.h; path = src/contour_extractor.h; sourceTree = "<group>"; };
+		A7988A551343825D00D37855 /* features_compare_method.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = features_compare_method.cpp; path = src/features_compare_method.cpp; sourceTree = "<group>"; };
+		A7988A561343825D00D37855 /* features_compare_method.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = features_compare_method.h; path = src/features_compare_method.h; sourceTree = "<group>"; };
+		A7988A571343825D00D37855 /* fourier_descriptors.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = fourier_descriptors.cpp; path = src/fourier_descriptors.cpp; sourceTree = "<group>"; };
+		A7988A581343825D00D37855 /* fourier_descriptors.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fourier_descriptors.h; path = src/fourier_descriptors.h; sourceTree = "<group>"; };
+		A7988A591343825D00D37855 /* fourier_features.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = fourier_features.cpp; path = src/fourier_features.cpp; sourceTree = "<group>"; };
+		A7988A5A1343825D00D37855 /* fourier_features.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fourier_features.h; path = src/fourier_features.h; sourceTree = "<group>"; };
+		A7988A5C1343825D00D37855 /* munkres.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = munkres.cpp; path = src/munkres.cpp; sourceTree = "<group>"; };
+		A7988A5D1343825D00D37855 /* munkres.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = munkres.h; path = src/munkres.h; sourceTree = "<group>"; };
+		A7988A5E1343825D00D37855 /* orientation_finder.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = orientation_finder.cpp; path = src/orientation_finder.cpp; sourceTree = "<group>"; };
+		A7988A5F1343825D00D37855 /* orientation_finder.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = orientation_finder.h; path = src/orientation_finder.h; sourceTree = "<group>"; };
+		A7988A601343825D00D37855 /* prefilter_lept.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = prefilter_lept.cpp; path = src/prefilter_lept.cpp; sourceTree = "<group>"; };
+		A7988A611343825D00D37855 /* prefilter.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = prefilter.cpp; path = src/prefilter.cpp; sourceTree = "<group>"; };
+		A7988A621343825D00D37855 /* serif.font.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = serif.font.inc; path = src/serif.font.inc; sourceTree = "<group>"; };
+		A7988A631343825D00D37855 /* shape_context.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = shape_context.cpp; path = src/shape_context.cpp; sourceTree = "<group>"; };
+		A7988A641343825D00D37855 /* shape_context.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = shape_context.h; path = src/shape_context.h; sourceTree = "<group>"; };
+		A7988A651343825D00D37855 /* TEST.font.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = TEST.font.inc; path = src/TEST.font.inc; sourceTree = "<group>"; };
+		A7988A661343825D00D37855 /* TEST2.font.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = TEST2.font.inc; path = src/TEST2.font.inc; sourceTree = "<group>"; };
+		A7988A671343825D00D37855 /* TEST3.font.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = TEST3.font.inc; path = src/TEST3.font.inc; sourceTree = "<group>"; };
+		A7988A681343825D00D37855 /* TEST4.font.inc */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.pascal; name = TEST4.font.inc; path = src/TEST4.font.inc; sourceTree = "<group>"; };
+		A7988A6A1343825D00D37855 /* tpsinterpolate.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = tpsinterpolate.h; path = src/tpsinterpolate.h; sourceTree = "<group>"; };
 		A7AC3997128DDA4A00158F63 /* algebra.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = algebra.cpp; path = src/algebra.cpp; sourceTree = "<group>"; };
 		A7AC3998128DDA4A00158F63 /* algebra.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = algebra.h; path = src/algebra.h; sourceTree = "<group>"; };
 		A7AC3999128DDA4A00158F63 /* current_session.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = current_session.h; path = src/current_session.h; sourceTree = "<group>"; };
@@ -144,8 +186,6 @@
 		A7E60B71126DEBC100BA2EFD /* filter.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = filter.h; path = src/filter.h; sourceTree = "<group>"; };
 		A7E60B72126DEBC100BA2EFD /* font.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = font.cpp; path = src/font.cpp; sourceTree = "<group>"; };
 		A7E60B73126DEBC100BA2EFD /* font.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = font.h; path = src/font.h; sourceTree = "<group>"; };
-		A7E60B74126DEBC100BA2EFD /* fourier_descriptors_extractor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = fourier_descriptors_extractor.cpp; path = src/fourier_descriptors_extractor.cpp; sourceTree = "<group>"; };
-		A7E60B75126DEBC100BA2EFD /* fourier_descriptors_extractor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = fourier_descriptors_extractor.h; path = src/fourier_descriptors_extractor.h; sourceTree = "<group>"; };
 		A7E60B76126DEBC100BA2EFD /* graph_extractor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = graph_extractor.cpp; path = src/graph_extractor.cpp; sourceTree = "<group>"; };
 		A7E60B77126DEBC100BA2EFD /* graph_extractor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = graph_extractor.h; path = src/graph_extractor.h; sourceTree = "<group>"; };
 		A7E60B7A126DEBC100BA2EFD /* graphics_detector.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = graphics_detector.cpp; path = src/graphics_detector.cpp; sourceTree = "<group>"; };
@@ -194,7 +234,6 @@
 		A7E60BAC126DEBC100BA2EFD /* thin_filter2.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = thin_filter2.h; path = src/thin_filter2.h; sourceTree = "<group>"; };
 		A7E60BAD126DEBC100BA2EFD /* thread_local_posix.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = thread_local_posix.cpp; path = src/thread_local_posix.cpp; sourceTree = "<group>"; };
 		A7E60BAE126DEBC100BA2EFD /* thread_local_ptr.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = thread_local_ptr.h; path = src/thread_local_ptr.h; sourceTree = "<group>"; };
-		A7E60BB0126DEBC100BA2EFD /* vec2d.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = vec2d.cpp; path = src/vec2d.cpp; sourceTree = "<group>"; };
 		A7E60BB1126DEBC100BA2EFD /* vec2d.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = vec2d.h; path = src/vec2d.h; sourceTree = "<group>"; };
 		A7E60BB2126DEBC100BA2EFD /* wedge_bond_extractor.cpp */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.cpp; name = wedge_bond_extractor.cpp; path = src/wedge_bond_extractor.cpp; sourceTree = "<group>"; };
 		A7E60BB3126DEBC100BA2EFD /* wedge_bond_extractor.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = wedge_bond_extractor.h; path = src/wedge_bond_extractor.h; sourceTree = "<group>"; };
@@ -266,6 +305,32 @@
 		A7E60C1F126E070700BA2EFD /* imago */ = {
 			isa = PBXGroup;
 			children = (
+				A7988A4F1343825D00D37855 /* arial_bold.font.inc */,
+				A7988A501343825D00D37855 /* arial.font.inc */,
+				A7988A511343825D00D37855 /* character_recognizer_font.cpp */,
+				A7988A521343825D00D37855 /* classification.h */,
+				A7988A531343825D00D37855 /* contour_extractor.cpp */,
+				A7988A541343825D00D37855 /* contour_extractor.h */,
+				A7988A551343825D00D37855 /* features_compare_method.cpp */,
+				A7988A561343825D00D37855 /* features_compare_method.h */,
+				A7988A571343825D00D37855 /* fourier_descriptors.cpp */,
+				A7988A581343825D00D37855 /* fourier_descriptors.h */,
+				A7988A591343825D00D37855 /* fourier_features.cpp */,
+				A7988A5A1343825D00D37855 /* fourier_features.h */,
+				A7988A5C1343825D00D37855 /* munkres.cpp */,
+				A7988A5D1343825D00D37855 /* munkres.h */,
+				A7988A5E1343825D00D37855 /* orientation_finder.cpp */,
+				A7988A5F1343825D00D37855 /* orientation_finder.h */,
+				A7988A601343825D00D37855 /* prefilter_lept.cpp */,
+				A7988A611343825D00D37855 /* prefilter.cpp */,
+				A7988A621343825D00D37855 /* serif.font.inc */,
+				A7988A631343825D00D37855 /* shape_context.cpp */,
+				A7988A641343825D00D37855 /* shape_context.h */,
+				A7988A651343825D00D37855 /* TEST.font.inc */,
+				A7988A661343825D00D37855 /* TEST2.font.inc */,
+				A7988A671343825D00D37855 /* TEST3.font.inc */,
+				A7988A681343825D00D37855 /* TEST4.font.inc */,
+				A7988A6A1343825D00D37855 /* tpsinterpolate.h */,
 				A7B9A0EE12A6AB5100280D96 /* character_recognizer.cpp */,
 				A7B9A0EF12A6AB5100280D96 /* character_recognizer.h */,
 				A7E60B5F126DEBC100BA2EFD /* approximator.cpp */,
@@ -304,8 +369,6 @@
 				A7E60B71126DEBC100BA2EFD /* filter.h */,
 				A7E60B72126DEBC100BA2EFD /* font.cpp */,
 				A7E60B73126DEBC100BA2EFD /* font.h */,
-				A7E60B74126DEBC100BA2EFD /* fourier_descriptors_extractor.cpp */,
-				A7E60B75126DEBC100BA2EFD /* fourier_descriptors_extractor.h */,
 				A7E60B76126DEBC100BA2EFD /* graph_extractor.cpp */,
 				A7E60B77126DEBC100BA2EFD /* graph_extractor.h */,
 				A7E60B7A126DEBC100BA2EFD /* graphics_detector.cpp */,
@@ -354,7 +417,6 @@
 				A7E60BAC126DEBC100BA2EFD /* thin_filter2.h */,
 				A7E60BAD126DEBC100BA2EFD /* thread_local_posix.cpp */,
 				A7E60BAE126DEBC100BA2EFD /* thread_local_ptr.h */,
-				A7E60BB0126DEBC100BA2EFD /* vec2d.cpp */,
 				A7E60BB1126DEBC100BA2EFD /* vec2d.h */,
 				A7E60BB2126DEBC100BA2EFD /* wedge_bond_extractor.cpp */,
 				A7E60BB3126DEBC100BA2EFD /* wedge_bond_extractor.h */,
@@ -388,7 +450,6 @@
 				A7E60BC4126DEBC100BA2EFD /* exception.h in Headers */,
 				A7E60BC6126DEBC100BA2EFD /* filter.h in Headers */,
 				A7E60BC8126DEBC100BA2EFD /* font.h in Headers */,
-				A7E60BCA126DEBC100BA2EFD /* fourier_descriptors_extractor.h in Headers */,
 				A7E60BCC126DEBC100BA2EFD /* graph_extractor.h in Headers */,
 				A7E60BD0126DEBC100BA2EFD /* graphics_detector.h in Headers */,
 				A7E60BD2126DEBC100BA2EFD /* image_draw_utils.h in Headers */,
@@ -431,6 +492,15 @@
 				A7AC39BC128DDA4A00158F63 /* stl_fwd.h in Headers */,
 				A7AC39BE128DDA4A00158F63 /* triple_bond_maker.h in Headers */,
 				A7B9A0F112A6AB5100280D96 /* character_recognizer.h in Headers */,
+				A7988A6E1343825D00D37855 /* classification.h in Headers */,
+				A7988A701343825D00D37855 /* contour_extractor.h in Headers */,
+				A7988A721343825D00D37855 /* features_compare_method.h in Headers */,
+				A7988A741343825D00D37855 /* fourier_descriptors.h in Headers */,
+				A7988A761343825D00D37855 /* fourier_features.h in Headers */,
+				A7988A791343825E00D37855 /* munkres.h in Headers */,
+				A7988A7B1343825E00D37855 /* orientation_finder.h in Headers */,
+				A7988A801343825E00D37855 /* shape_context.h in Headers */,
+				A7988A861343825E00D37855 /* tpsinterpolate.h in Headers */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -491,7 +561,6 @@
 				A7E60BC3126DEBC100BA2EFD /* exception.cpp in Sources */,
 				A7E60BC5126DEBC100BA2EFD /* filter.cpp in Sources */,
 				A7E60BC7126DEBC100BA2EFD /* font.cpp in Sources */,
-				A7E60BC9126DEBC100BA2EFD /* fourier_descriptors_extractor.cpp in Sources */,
 				A7E60BCB126DEBC100BA2EFD /* graph_extractor.cpp in Sources */,
 				A7E60BCF126DEBC100BA2EFD /* graphics_detector.cpp in Sources */,
 				A7E60BD1126DEBC100BA2EFD /* image_draw_utils.cpp in Sources */,
@@ -515,7 +584,6 @@
 				A7E60BFB126DEBC100BA2EFD /* static_object.cpp in Sources */,
 				A7E60C00126DEBC100BA2EFD /* thin_filter2.cpp in Sources */,
 				A7E60C02126DEBC100BA2EFD /* thread_local_posix.cpp in Sources */,
-				A7E60C05126DEBC100BA2EFD /* vec2d.cpp in Sources */,
 				A7E60C07126DEBC100BA2EFD /* wedge_bond_extractor.cpp in Sources */,
 				A7E60C5C126E127F00BA2EFD /* imago_c.cpp in Sources */,
 				A7AC39AB128DDA4A00158F63 /* algebra.cpp in Sources */,
@@ -526,6 +594,16 @@
 				A7AC39B9128DDA4A00158F63 /* skeleton.cpp in Sources */,
 				A7AC39BD128DDA4A00158F63 /* triple_bond_maker.cpp in Sources */,
 				A7B9A0F012A6AB5100280D96 /* character_recognizer.cpp in Sources */,
+				A7988A6D1343825D00D37855 /* character_recognizer_font.cpp in Sources */,
+				A7988A6F1343825D00D37855 /* contour_extractor.cpp in Sources */,
+				A7988A711343825D00D37855 /* features_compare_method.cpp in Sources */,
+				A7988A731343825D00D37855 /* fourier_descriptors.cpp in Sources */,
+				A7988A751343825D00D37855 /* fourier_features.cpp in Sources */,
+				A7988A781343825E00D37855 /* munkres.cpp in Sources */,
+				A7988A7A1343825E00D37855 /* orientation_finder.cpp in Sources */,
+				A7988A7C1343825E00D37855 /* prefilter_lept.cpp in Sources */,
+				A7988A7D1343825E00D37855 /* prefilter.cpp in Sources */,
+				A7988A7F1343825E00D37855 /* shape_context.cpp in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -545,9 +623,11 @@
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = imago_Prefix.pch;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = (
 					../libpng,
 					..,
+					../opencv/include,
 				);
 				INSTALL_PATH = /usr/local/lib;
 				ONLY_ACTIVE_ARCH = YES;
@@ -564,9 +644,11 @@
 				GCC_MODEL_TUNING = G5;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = imago_Prefix.pch;
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = (
 					../libpng,
 					..,
+					../opencv/include,
 				);
 				INSTALL_PATH = /usr/local/lib;
 				PRODUCT_NAME = imago;

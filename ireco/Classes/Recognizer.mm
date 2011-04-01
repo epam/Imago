@@ -18,12 +18,6 @@
 #import "chemical_structure_recognizer.h"
 #import "output.h"
 
-#import "Image/Image.h"
-#import "Image/ImageFilter.h"
-#import "Image/Point.h"
-#import "Image/FileJPG.h"
-//#import "FilePNG.h"
-
 #import "Recognizer.h"
 
 #undef LMARK 
@@ -34,24 +28,13 @@
 #define LPRINT imago::getLog().print
 #define TIME(a, msg) do { LMARK; a; LPRINT(1, msg); } while(0);
 
-void convert( gga::Image &a, imago::Image &b )
-{
-   b.init(a.getWidth(), a.getHeight());
-   b.fillWhite();
-   
-   for (int i = 0; i < b.getWidth(); i++)
-      for (int j = 0; j < b.getHeight(); j++)
-      {
-         b.getByte(i, j) = a.getPixel(i, j).Value;
-      }
-}
-
 @implementation Recognizer
 
 @synthesize image;
 
 - (NSString *)recognize
 {
+#if 0
    std::string molfileStr;
    
    NSString *fontPath = [[NSBundle mainBundle] pathForResource:@"TEST4" ofType:@"font"];
@@ -154,6 +137,8 @@ void convert( gga::Image &a, imago::Image &b )
    }
    
    return [NSString stringWithCString:molfileStr.c_str()];
+#endif
+   return nil;
 }
 
 + (Recognizer *)recognizerWithImage:(UIImage *)image
