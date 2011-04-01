@@ -201,13 +201,9 @@ void _removeSpots (Image &img, int validcolor, int max_size)
 
 static CharacterRecognizer _cr(3); // not really used
 
-void prefilterFile (const char *filename, Image &image)
+static void _prefilterInternal( const cv::Mat &m, Image &image )
 {
-   //Imago cannot load and resize!
-   cv::Mat mat = cv::imread(filename, 0); //load and make grayscale
-
-   if (mat.data == NULL)
-      throw Exception("imload failed");
+   cv::Mat mat = m;
 
    int w = mat.cols;
    int h = mat.rows;
@@ -415,6 +411,30 @@ void prefilterFile (const char *filename, Image &image)
    ImageUtils::saveImageToFile(image, "09_final.png");
 #endif
 }
+
+void prefilterFile(const char *filename, Image &image)
+{
+   //Imago cannot load and resize!
+   cv::Mat mat = cv::imread(filename, 0);
+
+   if (mat.data == NULL)
+      throw Exception("imload failed");
+   _prefilterInternal(mat, image);
+}
+
+void prefilterFile(const std::vector<unsigned char> &data, Image &image)
+{
+   //Imago cannot load and resize!
+   cv::Mat mdata(1, data.size(), CV_8UC1);
+   for (int i = 0; i < (int)data.size(); ++i)
+      mdata.at<unsigned char>(0, i) = data[i];
+   cv::Mat mat = cv::imdecode(mdata, 0);
+
+   if (mat.data == NULL)
+      throw Exception("imload failed");
+   _prefilterInternal(mat, image);
+}
+
 
 // NOTE: the input image must be thinned
 bool isCircle (Image &seg)

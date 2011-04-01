@@ -17,6 +17,7 @@
 #import "molecule.h"
 #import "chemical_structure_recognizer.h"
 #import "output.h"
+#import "prefilter.h"
 
 #import "Recognizer.h"
 
@@ -34,7 +35,6 @@
 
 - (NSString *)recognize
 {
-#if 0
    std::string molfileStr;
    
    NSString *fontPath = [[NSBundle mainBundle] pathForResource:@"TEST4" ofType:@"font"];
@@ -57,58 +57,8 @@
       LPRINT(0 , "Let the recognition begin");
       
       imago::Image img;
-      
-      //Load JPG image in iSMILES image structure
-      gga::Image original_img;
-      gga::FileJPG().load(jpgImage, &original_img);
-      
-      TIME(original_img.resizeLinear(3), "iSMILES resize");
-      
-      printf("Orientation: %i\n", original_img.getOrientation());
-      
-      int angle = 0;
-      switch(original_img.getOrientation())
-      {
-         case 1: // standard orientation, do nothing
-         case 2: // flipped right-left
-            break;
-         case 3: // rotated 180
-            angle = 180;
-            break;
-         case 4: // flipped top-bottom
-         case 5: // flipped diagonally around '\'
-            break;
-         case 6: // 90 CW
-            angle = 90;
-            break;
-         case 7: // flipped diagonally around '/'
-            break;
-         case 8: // 90 CCW
-            angle = 270;
-            break;
-         case -1:    //not found
-         default:    // shouldn't happen
-            break;
-      }
-      
-      if(angle != 0)
-      {
-         const gga::Image src(original_img);
-         TIME(rotateImage(src, (float)angle, &original_img), "iSMILES rotate");
-      }
-      
-      //Process image using iSMILES
-      gga::ImageFilter flt(original_img);
-      
-      flt.Parameters.ImageSize = 10000;
-      
-      TIME(flt.prepareImageForVectorization(), "iSMILES image processing");
-      
-      //gga::FilePNG().save(output, original_img);
-      
-      //Back to imago Image type
-      convert(original_img, img);
-      
+      imago::prefilterFile(jpgImage, img);
+
       /*
       if (rs["DebugSession"])
       {
@@ -137,7 +87,7 @@
    }
    
    return [NSString stringWithCString:molfileStr.c_str()];
-#endif
+
    return nil;
 }
 

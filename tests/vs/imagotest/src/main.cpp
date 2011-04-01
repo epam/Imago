@@ -37,6 +37,7 @@
 #include "orientation_finder.h"
 #include "graphics_detector.h"
 #include "shape_context.h"
+#include "prefilter.h"
 
 #include "classification.h"
 #include "fourier_features.h"
@@ -440,10 +441,6 @@ void testOCR2( const char *name )
    }
 }
 
-namespace imago
-{
-   void prefilterFile( const char *filename, Image &img );
-}
 void testRotation(const char *filename = 0)
 {
    try
@@ -467,8 +464,18 @@ void testRotation(const char *filename = 0)
       const char *f = filename ? filename :
          "../../../data/from_caduff_2/IMG_0043.JPG";
          //"../../../ireco/first-delivery-images/photo09.jpg";
-      prefilterFile(f, img);
 
+      std::vector<byte> data;
+      FILE *inf = fopen(f, "rb");
+      while (!feof(inf))
+      {
+         if (!feof(inf))
+            data.push_back(fgetc(inf));
+      }
+      fclose(inf);
+      prefilterFile(data, img);
+
+      return;
       getSettings()["DebugSession"] = true;
       //getSettings()["Filter"] = "blur"; //for 34!
       ChemicalStructureRecognizer &csr = getRecognizer();
@@ -787,11 +794,11 @@ int main(int argc, char **argv)
    //makeFont();
    //testOCR2(argv[1]);
 
-   //testRotation(argv[1]);
+   testRotation(argv[1]);
    //makeCVFont();
 
    //testClassifier();
-   testShapeContext(argv[1]);
+   //testShapeContext(argv[1]);
 
    //testCvOCR(argv[1]);
    
