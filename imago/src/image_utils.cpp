@@ -14,6 +14,7 @@
 
 #include <cmath>
 #include <algorithm>
+#include <string>
 
 #include "image.h"
 #include "image_utils.h"
@@ -21,6 +22,8 @@
 #include "output.h"
 #include "png_loader.h"
 #include "png_saver.h"
+#include "jpg_loader.h"
+#include "jpg_saver.h"
 #include "scanner.h"
 #include "segment.h"
 #include "thin_filter2.h"
@@ -242,12 +245,25 @@ void ImageUtils::cutSegment( Image &img, const Segment &seg )
 
 void ImageUtils::loadImageFromFile( Image &img, const char *FileName )
 {
-   FileScanner fscan(FileName);
-   PngLoader loader(fscan);
+   img.clear(); 
+   
+   std::string fname(FileName);
 
-   img.clear(); //TODO: is it right?
+   std::string extension = fname.substr(fname.length() - 3, 3);
 
-   loader.loadImage(img);
+   std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
+
+   if (extension == "jpg")
+   {
+      JpgLoader jpg_loader(FileName);
+      jpg_loader.loadImage(img);
+   }
+   else if (extension == "png")
+   {
+      FileScanner fscan(FileName);
+      PngLoader png_loader(fscan);
+      png_loader.loadImage(img);
+   }
 }
 
 void ImageUtils::saveImageToFile( const Image &img, const char *FileName )
