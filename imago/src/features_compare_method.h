@@ -20,7 +20,7 @@ namespace imago
       virtual double compare( const IFeatures *other ) const = 0;
 
       virtual void write( Output &o ) const = 0;
-      virtual void read( /*Input*/FILE *fi ) = 0;
+      virtual void read( Scanner &s ) = 0;
    };
 
    class FeaturesCompareMethod: public IOCRClassification
@@ -36,14 +36,14 @@ namespace imago
       void train( const TrainSet &ts );
 
       void save( Output &o ) const;
-      void load( /*Input*/ const std::string &filename );
+      void load( Scanner &s );
 
    protected:
       virtual IFeatures *_extract( const Image &img ) const = 0;
       //virtual double _compare( const IFeatures *a, const IFeatures *b ) = 0;
 
-      virtual void _readHeader( /*Input*/ FILE *fi ) {};
-      virtual IFeatures* _readFeatures( /*Input*/ FILE *fi ) const = 0;
+      virtual void _readHeader( Scanner &s ) {};
+      virtual IFeatures* _readFeatures( Scanner &s ) const = 0;
       virtual void _writeHeader( Output &o ) const {};
 
    private:

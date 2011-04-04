@@ -47,6 +47,7 @@ set(SRC
   src/fourier_features.cpp
   src/shape_context.cpp
   src/munkres.cpp
+  src/jpg_loader.cpp
 )
 
 if(WIN32)

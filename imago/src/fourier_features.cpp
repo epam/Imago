@@ -8,6 +8,7 @@
 #include "segmentator.h"
 #include "fourier_descriptors.h"
 #include "output.h"
+#include "scanner.h"
 
 namespace imago
 {
@@ -114,22 +115,29 @@ namespace imago
       }
    }
 
-   void FourierFeatures::read( FILE *fi )
+   void FourierFeatures::read( Scanner &s )
    {
-      int s;
-      fscanf(fi, "%d %d\n", &_count, &s);
+      int sz;
+      _count = s.readInt();
+      s.readChar();
+      sz = s.readInt(); //fscanf(fi, "%d %d\n", &_count, &sz);
+      s.readChar();
       _outer.resize(2 * _count);
-      if (s > 0)
-         _inner.resize(s);
+      if (sz > 0)
+         _inner.resize(sz);
 
       for (int i = 0; i < 2 * _count; i++)
-         fscanf(fi, "%lf", &_outer[i]);
+         _outer[i] = s.readDouble();
+         //fscanf(fi, "%lf", &_outer[i]);
 
-      for (int j = 0; j < s; j++)
+      s.readChar();
+      for (int j = 0; j < sz; j++)
       {
          _inner[j].resize(2 * _count);
          for (int i = 0; i < 2 * _count; i++)
-            fscanf(fi, "%lf", &_inner[j][i]);
+            _inner[j][i] = s.readDouble();
+            //fscanf(fi, "%lf", &_inner[j][i]);
+         s.readChar();
       }
    }
 
@@ -145,15 +153,15 @@ namespace imago
       o.printf("%d\n", _count);
    }
 
-   void FourierFeaturesCompareMethod::_readHeader( /*Input*/ FILE *fi )
+   void FourierFeaturesCompareMethod::_readHeader( Scanner &s )
    {
-      fscanf(fi, "%d\n", &_count);
+      _count = s.readInt();
    }
 
-   IFeatures *FourierFeaturesCompareMethod::_readFeatures( /*Input*/ FILE *fi ) const
+   IFeatures *FourierFeaturesCompareMethod::_readFeatures( Scanner &s ) const
    {
       FourierFeatures *f = new FourierFeatures(_count);
-      f->read(fi);
+      f->read(s);
       return f;
    }
 }

@@ -462,7 +462,8 @@ void testRotation(const char *filename = 0)
       printf("Orientation %d\n", rot);
       */
       const char *f = filename ? filename :
-         "../../../data/from_caduff_2/IMG_0043.JPG";
+         "IMG_0052.JPG";
+         //"../../../data/from_caduff_2/IMG_0043.JPG";
          //"../../../ireco/first-delivery-images/photo09.jpg";
 
       std::vector<byte> data;
@@ -704,7 +705,8 @@ void testClassifier()
    //classificator->train(ts);
    //FileOutput fout("fdc.dump");
    //classificator->save(fout);
-   classificator->load("fdc.dump");
+   FileScanner fs("fdc.dump");
+   classificator->load(fs);
 
    bool b; char c; double err;
    Image img;
@@ -794,10 +796,10 @@ int main(int argc, char **argv)
    //makeFont();
    //testOCR2(argv[1]);
 
-   testRotation(argv[1]);
+   //testRotation(argv[1]);
    //makeCVFont();
 
-   //testClassifier();
+   testClassifier();
    //testShapeContext(argv[1]);
 
    //testCvOCR(argv[1]);

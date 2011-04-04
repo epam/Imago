@@ -21,7 +21,7 @@ namespace imago
       double compare( const IFeatures *other ) const;
 
       void write( Output &o ) const;
-      void read( /*Input*/FILE *fi );
+      void read( Scanner &s );
    private:
       cv::Mat _img;
       int _binsR, _binsT, _count;

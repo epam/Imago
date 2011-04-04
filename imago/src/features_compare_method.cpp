@@ -3,6 +3,7 @@
 #include "features_compare_method.h"
 #include "exception.h"
 #include "output.h"
+#include "scanner.h"
 
 namespace imago
 {
@@ -51,32 +52,32 @@ namespace imago
             (*fit)->write(o);
    }
 
-   void FeaturesCompareMethod::load( const std::string &filename )
+   void FeaturesCompareMethod::load( Scanner &s )
    {
-      FILE *fi = fopen(filename.c_str(), "r");
-      if (!fi)
-         throw IOException("Cannot open file %s", filename.c_str());
+      _readHeader(s);
+      s.readChar(); //"\n"
 
-      _readHeader(fi);
-      fscanf(fi, "\n");
-
-      int n;
-      fscanf(fi, "%d\n", &n);
+      int n = s.readInt();
+      s.readChar();
+      //fscanf(fi, "%d\n", &n);
       _classes.resize(n);
       for (int i = 0; i < n; i++)
       {
          char c; int d;
-         fscanf(fi, "%c %d ", &c, &d);
+         c = s.readChar();
+         d = s.readInt();
+         s.readChar();
+         //fscanf(fi, "%c %d ", &c, &d);
          _classes[i].first = c;
          _classes[i].second.resize(d);
          _mapping[c] = i;
       }
 
       for (int i = 0; i < n; i++)
-         for (int j = 0; j < _classes[i].second.size(); j++)
-            _classes[i].second[j] = _readFeatures(fi);
+         for (int j = 0; j < (int)_classes[i].second.size(); j++)
+            _classes[i].second[j] = _readFeatures(s);
 
-      fclose(fi);
+      //fclose(fi);
       _trained = true;
    }
 

@@ -7,6 +7,7 @@
 namespace imago
 {
    class Output;
+   class Scanner;
 
    template<class Sample, class Response>
    class IClassificationMethod
@@ -21,7 +22,7 @@ namespace imago
       virtual void train( const TrainSet &ts ) = 0;
 
       virtual void save( Output &o ) const = 0;
-      virtual void load( /*Input*/const std::string &filename ) = 0;
+      virtual void load( Scanner &s ) = 0;
 
       virtual bool getBestFrom( const Sample &sample,
                                 const std::deque<Response> &valid,

@@ -21,7 +21,7 @@ namespace imago
       double compare( const IFeatures *other ) const;
 
       void write( Output &o ) const;
-      void read( /*Input*/ FILE *fi );
+      void read( Scanner &s );
 
    protected:
       typedef std::vector<double> Descriptors;
@@ -52,8 +52,8 @@ namespace imago
    protected:
       virtual IFeatures *_extract( const Image &img ) const;
 
-      virtual void _readHeader( /*Input*/FILE *fi );
-      virtual IFeatures* _readFeatures( /*Input*/FILE *fi ) const;
+      virtual void _readHeader( Scanner &s );
+      virtual IFeatures* _readFeatures( Scanner &s ) const;
       virtual void _writeHeader( Output &o ) const;
    };
 }

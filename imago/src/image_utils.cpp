@@ -23,7 +23,7 @@
 #include "png_loader.h"
 #include "png_saver.h"
 #include "jpg_loader.h"
-#include "jpg_saver.h"
+//#include "jpg_saver.h"
 #include "scanner.h"
 #include "segment.h"
 #include "thin_filter2.h"

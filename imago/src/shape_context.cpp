@@ -195,7 +195,7 @@ namespace imago
       return dist;
    }
 
-   void ShapeContextFeatures::read( /*Input*/ FILE *fi )
+   void ShapeContextFeatures::read( Scanner &s )
    {
       throw LogicException("Not implemented");
    }
