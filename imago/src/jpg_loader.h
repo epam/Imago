@@ -21,22 +21,15 @@ namespace imago
 {
    class Image;
    class Scanner;
-
-   /**
-    * @brief   Png picture format loading class
-    */
+   
    class JpgLoader
    {
    public:
 
-      JpgLoader( const char *FileName );
-      bool loadImage( Image &I );
-      ~JpgLoader();
-
-   private:
       JpgLoader();
-
-      const char *_fileName;
+      bool loadImage( Image &img, const char *file_name );
+      bool loadImage( Image &img, const char *begin, const char *end );
+      ~JpgLoader();
    };
 }
 

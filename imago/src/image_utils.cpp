@@ -23,7 +23,6 @@
 #include "png_loader.h"
 #include "png_saver.h"
 #include "jpg_loader.h"
-#include "jpg_saver.h"
 #include "scanner.h"
 #include "segment.h"
 #include "thin_filter2.h"
@@ -255,8 +254,8 @@ void ImageUtils::loadImageFromFile( Image &img, const char *FileName )
 
    if (extension == "jpg")
    {
-      JpgLoader jpg_loader(FileName);
-      jpg_loader.loadImage(img);
+      JpgLoader jpg_loader;
+      jpg_loader.loadImage(img, fname.c_str());
    }
    else if (extension == "png")
    {

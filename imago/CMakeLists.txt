@@ -9,6 +9,7 @@ set(SRC
   src/scanner.cpp
   src/molecule.cpp
   src/png_loader.cpp
+  src/jpg_loader.cpp
   src/font.cpp
   src/label_logic.cpp
   src/log.cpp
@@ -46,8 +47,13 @@ set(SRC
   src/features_compare_method.cpp
   src/fourier_features.cpp
   src/shape_context.cpp
-  src/munkres.cpp
+  src/munkres.cpp  
 )
+
+FILE(GLOB HEADERS "src/*.h")
+list(APPEND SRC ${HEADERS})
+
+
 
 if(WIN32)
   list(APPEND SRC
