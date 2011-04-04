@@ -465,7 +465,25 @@ void _selectFont( const SegmentDeque &layer, boost::shared_ptr<Font> &_fnt )
 //      puts(e.what());
 //   }
 //}
+
+#include "imago_c.h"
+
+void f1()
+{
+   qword id = imagoAllocSessionId();
+
+   imagoSetSessionId(id);
+
+   imagoLoadAndFilterJpgFile("1.jpg");
+
+   imagoRecognize();
+
+   imagoSaveMolToFile("result.mol");
+
+   imagoReleaseSessionId(id);
    
+}
+
 int main( int argc, char *argv[] )
 {
    //if (argc > 1)

@@ -679,7 +679,10 @@ void Skeleton::_joinVertices(double eps)
    //recalcAvgBondSize?
    //double _addEps = getSettings().get("AddVertexEps");
    //double _addEps = _min_bond_length * 0.7;
+#ifdef DEBUG
    LPRINT(0, "joining vertices, eps = %lf", eps);
+#endif /* DEBUG */
+
    BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
    {
       Vec2d v_pos = pos[v];
