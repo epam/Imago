@@ -70,9 +70,9 @@ else(NOT WIN32)
   set(OpenCV_LIBS optimized ${OpenCV_LIBS_DIR}/opencv_core220.lib
                   debug    ${OpenCV_LIBS_DIR}/opencv_core220d.lib
                   optimized ${OpenCV_LIBS_DIR}/opencv_imgproc220.lib
-                  debug    ${OpenCV_LIBS_DIR}/opencv_imgproc220d.lib
-                  optimized ${OpenCV_LIBS_DIR}/opencv_highgui220.lib
-                  debug    ${OpenCV_LIBS_DIR}/opencv_highgui220d.lib)
+                  debug    ${OpenCV_LIBS_DIR}/opencv_imgproc220d.lib)
+#                  optimized ${OpenCV_LIBS_DIR}/opencv_highgui220.lib
+#                  debug    ${OpenCV_LIBS_DIR}/opencv_highgui220d.lib)
 endif(NOT WIN32)
 
 option(EMBED_FONT "Embed font file" ON)
