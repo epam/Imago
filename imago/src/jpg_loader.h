@@ -28,7 +28,7 @@ namespace imago
 
       JpgLoader();
       bool loadImage( Image &img, const char *file_name );
-      bool loadImage( Image &img, const char *begin, const char *end );
+      bool loadImage( Image &img, const byte *begin, const byte *end );
       ~JpgLoader();
    };
 }

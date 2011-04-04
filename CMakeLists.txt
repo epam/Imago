@@ -27,7 +27,8 @@ if(NOT WIN32)
   
   if(NOT APPLE)
     find_package(PNG REQUIRED)
-    find_package(JPEG REQUIRED)
+    #find_package(JPEG REQUIRED)
+    LOCAL_JPEG()
 
     find_package(OpenCV REQUIRED)
   else(NOT APPLE)

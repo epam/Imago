@@ -796,10 +796,10 @@ int main(int argc, char **argv)
    //makeFont();
    //testOCR2(argv[1]);
 
-   //testRotation(argv[1]);
+   testRotation(argv[1]);
    //makeCVFont();
 
-   testClassifier();
+   //testClassifier();
    //testShapeContext(argv[1]);
 
    //testCvOCR(argv[1]);

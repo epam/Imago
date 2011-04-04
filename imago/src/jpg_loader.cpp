@@ -1,4 +1,5 @@
 #include <cstdio>
+#include <csetjmp>
 
 #include "jpeglib.h"
 
@@ -175,7 +176,7 @@ static int put_jpeg_grey_memory(unsigned char **dest_image, unsigned long *image
    return true;
 }
 
-bool JpgLoader::loadImage( Image &img, const char *begin, const char *end )
+bool JpgLoader::loadImage( Image &img, const byte *begin, const byte *end )
 {
    unsigned int width, height, pixel_format;
    int i;

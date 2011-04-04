@@ -1,5 +1,4 @@
 #include <opencv/cv.h>
-#include <opencv/highgui.h>
 
 #include "image.h"
 #include "log.h"
@@ -12,6 +11,7 @@
 #include "convolver.h"
 #include "image_utils.h"
 #include "binarizer.h"
+#include "jpg_loader.h"
 
 namespace imago
 {
@@ -80,6 +80,19 @@ void _copyMatToImage (Image &img, const cv::Mat &mat)
    for (i = 0; i < w; i++)
       for (j = 0; j < h; j++)
          img.getByte(i, j) = mat.at<unsigned char>(j, i);
+}
+
+void _copyImageToMat ( const Image &img, cv::Mat &mat)
+{
+   int w = img.getWidth();
+   int h = img.getHeight();
+
+   mat.create(h, w, CV_8U);
+   int i, j;
+
+   for (i = 0; i < w; i++)
+      for (j = 0; j < h; j++)
+         mat.at<unsigned char>(j, i) = img.getByte(i, j);
 }
 
 inline static void _blur (Image &img, int radius)
@@ -201,29 +214,26 @@ void _removeSpots (Image &img, int validcolor, int max_size)
 
 static CharacterRecognizer _cr(3); // not really used
 
-static void _prefilterInternal( const cv::Mat &m, Image &image )
+static void _prefilterInternal( const Image &raw, Image &image )
 {
-   cv::Mat mat = m;
-
-   int w = mat.cols;
-   int h = mat.rows;
+   int w = raw.getWidth();
+   int h = raw.getHeight();
    LPRINT(0, "loaded image %d x %d", w, h);
    int maxside = (w < h) ? h : w;
    int n = maxside / 800;
+   Image img;
    if (n > 1)
    {
+      cv::Mat mat;
+      _copyImageToMat(raw, mat);
       LPRINT(0, "resizing down %d times", n);
       cv::Mat dst;
       cv::resize(mat, dst, cv::Size(), 1.0 / n, 1.0 / n);
-      mat = dst;
+      _copyMatToImage(img, dst);
 #ifdef DEBUG
-      cv::imwrite("01_after_subsampling.png", mat);
+      ImageUtils::saveImageToFile(img, "01_after_subsampling.png");
 #endif
    }
-
-   Image img;
-   _copyMatToImage(img, mat);
-
 
    {
       LPRINT(0, "blurring");
@@ -414,25 +424,21 @@ static void _prefilterInternal( const cv::Mat &m, Image &image )
 
 void prefilterFile(const char *filename, Image &image)
 {
-   //Imago cannot load and resize!
-   cv::Mat mat = cv::imread(filename, 0);
+   Image raw;
 
-   if (mat.data == NULL)
-      throw Exception("imload failed");
-   _prefilterInternal(mat, image);
+   ImageUtils::loadImageFromFile(raw, filename);
+
+   _prefilterInternal(raw, image);
 }
 
 void prefilterFile(const std::vector<unsigned char> &data, Image &image)
 {
    //Imago cannot load and resize!
-   cv::Mat mdata(1, data.size(), CV_8UC1);
-   for (int i = 0; i < (int)data.size(); ++i)
-      mdata.at<unsigned char>(0, i) = data[i];
-   cv::Mat mat = cv::imdecode(mdata, 0);
+   Image raw;
 
-   if (mat.data == NULL)
-      throw Exception("imload failed");
-   _prefilterInternal(mat, image);
+   JpgLoader().loadImage(raw, &data[0], &data[0] + data.size());
+
+   _prefilterInternal(raw, image);
 }
 
 
