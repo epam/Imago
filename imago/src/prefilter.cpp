@@ -33,7 +33,7 @@ static int _cmp_ang (const void *p1, const void *p2)
 }
 
 static void _blur (Image &img, int radius);
-void _unsharpMask (Image &img, int radius, float amount, int threshold)
+static void _unsharpMask (Image &img, int radius, float amount, int threshold)
 {
    int  w, h;
 
@@ -69,7 +69,7 @@ void _unsharpMask (Image &img, int radius, float amount, int threshold)
       }
 }
 
-void _copyMatToImage (Image &img, const cv::Mat &mat)
+inline static void _copyMatToImage (Image &img, const cv::Mat &mat)
 {
    int w = mat.cols;
    int h = mat.rows;
@@ -82,7 +82,7 @@ void _copyMatToImage (Image &img, const cv::Mat &mat)
          img.getByte(i, j) = mat.at<unsigned char>(j, i);
 }
 
-void _copyImageToMat ( const Image &img, cv::Mat &mat)
+inline static void _copyImageToMat ( const Image &img, cv::Mat &mat)
 {
    int w = img.getWidth();
    int h = img.getHeight();
