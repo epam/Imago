@@ -7,27 +7,27 @@
         <link rel="stylesheet" type="text/css" href="ketcher.css" />
         <script type="text/javascript" src="prototype-min.js"></script>
         <script type="text/javascript" src="raphael-min.js"></script>
-        <script type="text/javascript" src="chem/common.js"></script>
-        <script type="text/javascript" src="chem/vec2.js"></script>
-        <script type="text/javascript" src="chem/set.js"></script>
-        <script type="text/javascript" src="chem/map.js"></script>
-        <script type="text/javascript" src="chem/pool.js"></script>
-        <script type="text/javascript" src="chem/element.js"></script>
-        <script type="text/javascript" src="chem/molecule.js"></script>
-        <script type="text/javascript" src="chem/molfile.js"></script>
-        <script type="text/javascript" src="chem/sgroup.js"></script>
-        <script type="text/javascript" src="chem/dfs.js"></script>
-        <script type="text/javascript" src="chem/cis_trans.js"></script>
-        <script type="text/javascript" src="chem/stereocenters.js"></script>
-        <script type="text/javascript" src="chem/smiles.js"></script>
-        <script type="text/javascript" src="rnd/events.js"></script>
-        <script type="text/javascript" src="rnd/visel.js"></script>
-        <script type="text/javascript" src="rnd/moldata.js"></script>
-        <script type="text/javascript" src="rnd/moldata_valence.js"></script>
-        <script type="text/javascript" src="rnd/drawing.js"></script>
-        <script type="text/javascript" src="rnd/render.js"></script>
-        <script type="text/javascript" src="ui/ui.js"></script>
-        <script type="text/javascript" src="ui/actions.js"></script>
+        <script type="text/javascript" src="common.js"></script>
+        <script type="text/javascript" src="vec2.js"></script>
+        <script type="text/javascript" src="set.js"></script>
+        <script type="text/javascript" src="map.js"></script>
+        <script type="text/javascript" src="pool.js"></script>
+        <script type="text/javascript" src="element.js"></script>
+        <script type="text/javascript" src="molecule.js"></script>
+        <script type="text/javascript" src="molfile.js"></script>
+        <script type="text/javascript" src="sgroup.js"></script>
+        <script type="text/javascript" src="dfs.js"></script>
+        <script type="text/javascript" src="cis_trans.js"></script>
+        <script type="text/javascript" src="stereocenters.js"></script>
+        <script type="text/javascript" src="smiles.js"></script>
+        <script type="text/javascript" src="events.js"></script>
+        <script type="text/javascript" src="visel.js"></script>
+        <script type="text/javascript" src="moldata.js"></script>
+        <script type="text/javascript" src="moldata_valence.js"></script>
+        <script type="text/javascript" src="drawing.js"></script>
+        <script type="text/javascript" src="render.js"></script>
+        <script type="text/javascript" src="ui.js"></script>
+        <script type="text/javascript" src="actions.js"></script>
         <script type="text/javascript" src="ketcher.js"></script>
     </head>
 
@@ -35,25 +35,25 @@
         <div>
             <table id="ketcher_window">
                 <tr align="center" id="main_toolbar">
-                    <td style="width:36px"><img class="sideButton" id="select_simple" src="png/arrow.png" alt="" title="Element Selection (Esc)" /></td>
+                    <td style="width:36px"><img class="sideButton" id="select_simple" src="arrow.png" alt="" title="Element Selection (Esc)" /></td>
                     <td class="toolDelimiter"></td>
                     <!--td style="width:36px"><object type="image/svg+xml" width="28" height="28" data="svg/document-new28x28.svg"></object></td-->
-                    <td class="toolButton" id="new"><img src="png/document-new.png" alt="" title="New (Ctrl+N)" /></td>
-                    <td class="toolButton" id="open"><img src="png/document-open.png" alt="" title="Open... (Ctrl+O)" /></td>
-                    <td class="toolButton" id="save"><img src="png/document-save-as.png" alt="" title="Save As... (Ctrl+S)" /></td>
+                    <td class="toolButton" id="new"><img src="document-new.png" alt="" title="New (Ctrl+N)" /></td>
+                    <td class="toolButton" id="open"><img src="document-open.png" alt="" title="Open... (Ctrl+O)" /></td>
+                    <td class="toolButton" id="save"><img src="document-save-as.png" alt="" title="Save As... (Ctrl+S)" /></td>
                     <td class="toolDelimiter"></td>
-                    <td class="toolButton buttonDisabled" id="undo"><img src="png/edit-undo.png" alt="" title="Undo (Ctrl+Z)" /></td>
-                    <td class="toolButton buttonDisabled" id="redo"><img src="png/edit-redo.png" alt="" title="Redo (Ctrl+Shift+Z)" /></td>
-                    <td class="toolButton buttonDisabled" id="cut"><img src="png/edit-cut.png" alt="" title="Cut (Ctrl+X)" /></td>
-                    <td class="toolButton buttonDisabled" id="copy"><img src="png/edit-copy.png" alt="" title="Copy (Ctrl+C)" /></td>
-                    <td class="toolButton buttonDisabled" id="paste"><img src="png/edit-paste.png" alt="" title="Paste (Ctrl+V)" /></td>
+                    <td class="toolButton buttonDisabled" id="undo"><img src="edit-undo.png" alt="" title="Undo (Ctrl+Z)" /></td>
+                    <td class="toolButton buttonDisabled" id="redo"><img src="edit-redo.png" alt="" title="Redo (Ctrl+Shift+Z)" /></td>
+                    <td class="toolButton buttonDisabled" id="cut"><img src="edit-cut.png" alt="" title="Cut (Ctrl+X)" /></td>
+                    <td class="toolButton buttonDisabled" id="copy"><img src="edit-copy.png" alt="" title="Copy (Ctrl+C)" /></td>
+                    <td class="toolButton buttonDisabled" id="paste"><img src="edit-paste.png" alt="" title="Paste (Ctrl+V)" /></td>
                     <td class="toolDelimiter"></td>
-                    <td class="toolButton" id="zoom_in"><img src="png/view-zoom-in.png" alt="" title="Zoom In (+)" /></td>
-                    <td class="toolButton" id="zoom_out"><img src="png/view-zoom-out.png" alt="" title="Zoom Out (-)" /></td>
+                    <td class="toolButton" id="zoom_in"><img src="view-zoom-in.png" alt="" title="Zoom In (+)" /></td>
+                    <td class="toolButton" id="zoom_out"><img src="view-zoom-out.png" alt="" title="Zoom Out (-)" /></td>
                     <td class="toolDelimiter"></td>
-                    <td class="toolButton serverRequired" id="clean_up"><img src="png/layout.png" alt="" title="Clean Up (Ctrl+L)" /></td>
+                    <td class="toolButton serverRequired" id="clean_up"><img src="layout.png" alt="" title="Clean Up (Ctrl+L)" /></td>
                     <td style="width:100%"></td>
-                    <td style="width:36px;padding:0px 0px 0px 1px;"><a href="http://www.ggasoftware.com/" target="_blank"><img src="png/logo.png" alt="" title="GGA Software Services" /></a></td>
+                    <td style="width:36px;padding:0px 0px 0px 1px;"><a href="http://www.ggasoftware.com/" target="_blank"><img src="logo.png" alt="" title="GGA Software Services" /></a></td>
                 </tr>
                 <!--tr align="center">
                     <td style="height:0px"></td>
@@ -62,56 +62,56 @@
                 </tr-->
                 <tr align="center" style="height:34px">
                     <!--td><object class="sideButton" type="image/svg+xml" width="32" height="32" data="svg/anybond.svg"></object></td-->
-                    <td><img class="sideButton" id="select_erase" src="png/edit-clear.png" alt="" title="Erase" /></td>
+                    <td><img class="sideButton" id="select_erase" src="edit-clear.png" alt="" title="Erase" /></td>
                     <td colspan="16" rowspan="14"><div id="client_area"></div></td>
                     <td></td>
                 </tr>
                 <tr align="center" style="height:34px">
-                    <td><img class="sideButton" id="bond_any" src="png/anybond.png" alt="" title="Any Bond (0)" /></td>
-                    <td><img class="sideButton" id="atom_any" src="png/anyatom.png" alt="" title="Any Atom (A)" /></td>
+                    <td><img class="sideButton" id="bond_any" src="anybond.png" alt="" title="Any Bond (0)" /></td>
+                    <td><img class="sideButton" id="atom_any" src="anyatom.png" alt="" title="Any Atom (A)" /></td>
                 </tr>
                 <tr align="center" style="height:34px">
-                    <td><img class="sideButton" id="bond_single" src="png/single.png" alt="" title="Single Bond (1)" /></td>
-                    <td><img class="sideButton" id="atom_h" src="png/h.png" alt="" title="H Atom (H)" /></td>
+                    <td><img class="sideButton" id="bond_single" src="single.png" alt="" title="Single Bond (1)" /></td>
+                    <td><img class="sideButton" id="atom_h" src="h.png" alt="" title="H Atom (H)" /></td>
                 </tr>
                 <tr align="center" style="height:34px">
-                    <td><img class="sideButton" id="bond_up" src="png/up.png" alt="" title="Single Up Bond (1)" /></td>
-                    <td><img class="sideButton" id="atom_c" src="png/c.png" alt="" title="C Atom (C)" /></td>
+                    <td><img class="sideButton" id="bond_up" src="up.png" alt="" title="Single Up Bond (1)" /></td>
+                    <td><img class="sideButton" id="atom_c" src="c.png" alt="" title="C Atom (C)" /></td>
                 </tr>
                 <tr align="center" style="height:34px">
-                    <td><img class="sideButton" id="bond_down" src="png/down.png" alt="" title="Single Down Bond (1)" /></td>
-                    <td><img class="sideButton" id="atom_n" src="png/n.png" alt="" title="N Atom (N)" /></td>
+                    <td><img class="sideButton" id="bond_down" src="down.png" alt="" title="Single Down Bond (1)" /></td>
+                    <td><img class="sideButton" id="atom_n" src="n.png" alt="" title="N Atom (N)" /></td>
                 </tr>
                 <tr align="center" style="height:34px">
-                    <td><img class="sideButton" id="bond_double" src="png/double.png" alt="" title="Double Bond (2)" /></td>
-                    <td><img class="sideButton" id="atom_o" src="png/o.png" alt="" title="O Atom (O)" /></td>
+                    <td><img class="sideButton" id="bond_double" src="double.png" alt="" title="Double Bond (2)" /></td>
+                    <td><img class="sideButton" id="atom_o" src="o.png" alt="" title="O Atom (O)" /></td>
                 </tr>
                 <tr align="center" style="height:34px">
-                    <td><img class="sideButton" id="bond_triple" src="png/triple.png" alt="" title="Triple Bond (3)" /></td>
-                    <td><img class="sideButton" id="atom_s" src="png/s.png" alt="" title="S Atom (S)" /></td>
+                    <td><img class="sideButton" id="bond_triple" src="triple.png" alt="" title="Triple Bond (3)" /></td>
+                    <td><img class="sideButton" id="atom_s" src="s.png" alt="" title="S Atom (S)" /></td>
                 </tr>
                 <tr align="center" style="height:34px">
-                    <td><img class="sideButton" id="bond_aromatic" src="png/aromatic.png" alt="" title="Aromatic Bond (4)" /></td>
-                    <td><img class="sideButton" id="atom_f" src="png/f.png" alt="" title="F Atom (F)" /></td>
+                    <td><img class="sideButton" id="bond_aromatic" src="aromatic.png" alt="" title="Aromatic Bond (4)" /></td>
+                    <td><img class="sideButton" id="atom_f" src="f.png" alt="" title="F Atom (F)" /></td>
                 </tr>
                 <tr align="center" style="height:34px">
-                    <td><img class="sideButton" id="pattern_six1" src="png/hexa1.png" alt="" title="Benzene (R)" /></td>
-                    <td><img class="sideButton" id="atom_p" src="png/p.png" alt="" title="P Atom (P)" /></td>
+                    <td><img class="sideButton" id="pattern_six1" src="hexa1.png" alt="" title="Benzene (R)" /></td>
+                    <td><img class="sideButton" id="atom_p" src="p.png" alt="" title="P Atom (P)" /></td>
                 </tr>
                 <tr align="center" style="height:34px">
-                    <td><img class="sideButton" id="pattern_six2" src="png/hexa2.png" alt="" title="Cyclohexane (R)" /></td>
-                    <td><img class="sideButton" id="atom_cl" src="png/cl.png" alt="" title="Cl Atom (Shift+C)" /></td>
+                    <td><img class="sideButton" id="pattern_six2" src="hexa2.png" alt="" title="Cyclohexane (R)" /></td>
+                    <td><img class="sideButton" id="atom_cl" src="cl.png" alt="" title="Cl Atom (Shift+C)" /></td>
                 </tr>
                 <tr align="center" style="height:34px">
-                    <td><img class="sideButton" id="pattern_five" src="png/penta.png" alt="" title="Cyclopentane (R)" /></td>
-                    <td><img class="sideButton" id="atom_br" src="png/br.png" alt="" title="Br Atom (Shift+B)" /></td>
+                    <td><img class="sideButton" id="pattern_five" src="penta.png" alt="" title="Cyclopentane (R)" /></td>
+                    <td><img class="sideButton" id="atom_br" src="br.png" alt="" title="Br Atom (Shift+B)" /></td>
                 </tr>
                 <tr align="center" style="height:34px">
-                    <td><img class="sideButton" id="sgroup" src="png/sgroup.png" alt="" title="S-Group (Ctrl+G)" /></td>
-                    <td><img class="sideButton" id="atom_i" src="png/i.png" alt="" title="I Atom (I)" /></td>
+                    <td><img class="sideButton" id="sgroup" src="sgroup.png" alt="" title="S-Group (Ctrl+G)" /></td>
+                    <td><img class="sideButton" id="atom_i" src="i.png" alt="" title="I Atom (I)" /></td>
                 </tr>
                 <!--tr align="center" style="height:34px">
-                    <td><img class="sideButton buttonDisabled" id="pattern_naphthalene" src="png/naphthalene.png" alt="" title="Naphthalene" /></td>
+                    <td><img class="sideButton buttonDisabled" id="pattern_naphthalene" src="naphthalene.png" alt="" title="Naphthalene" /></td>
                     <td></td>
                 </tr-->
                 <tr>
