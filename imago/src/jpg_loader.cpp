@@ -12,6 +12,7 @@ JpgLoader::JpgLoader()
 {
 }
 
+//TODO: Exceptions, Scanner
 bool JpgLoader::loadImage( Image &img, const char *file_name )
 {
    FILE* f = fopen(file_name, "rb");

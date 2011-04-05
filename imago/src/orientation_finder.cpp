@@ -50,7 +50,7 @@ namespace imago
       {
          if (i > 0)
          {
-            BOOST_FOREACH(Segment * &s, segments)
+            BOOST_FOREACH(Segment *s, segments)
             {
                s->rotate90();
             }
@@ -114,17 +114,16 @@ namespace imago
                scores[i] += 0.5;
 
             //scores[i] += err;
-            //symbols[i]++;
-            delete seg;
-         }
-
-         BOOST_FOREACH(Segment *seg, layer_graphics)
-            delete seg;
+            //symbols[i]++;            
+         }         
 
 #ifndef NDEBUG
          printf("  score: %lf\n", scores[i]);
 #endif
       }
+
+      BOOST_FOREACH(Segment *seg, segments)
+         delete seg;
 
       int max = 0;
       for (i = 1; i < 4; i++)

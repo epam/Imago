@@ -255,7 +255,11 @@ void ImageUtils::loadImageFromFile( Image &img, const char *FileName )
    if (extension == "jpg")
    {
       JpgLoader jpg_loader;
-      jpg_loader.loadImage(img, fname.c_str());
+
+      if (!jpg_loader.loadImage(img, fname.c_str()))
+      {
+         throw Exception("Error reading JPG file");
+      }
    }
    else if (extension == "png")
    {

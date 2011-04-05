@@ -466,26 +466,23 @@ void _selectFont( const SegmentDeque &layer, boost::shared_ptr<Font> &_fnt )
 //   }
 //}
 
-#include "imago_c.h"
-
-void f1()
-{
-   qword id = imagoAllocSessionId();
-
-   imagoSetSessionId(id);
-
-   imagoLoadAndFilterJpgFile("1.jpg");
-
-   imagoRecognize();
-
-   imagoSaveMolToFile("result.mol");
-
-   imagoReleaseSessionId(id);
-   
-}
+#include "prefilter.h"
 
 int main( int argc, char *argv[] )
 {
+   try
+   {
+      qword sid = SessionManager::getInstance().allocSID();
+      SessionManager::getInstance().setSID(sid);
+
+      Image img;
+      
+      prefilterFile("../../../data/from_caduff_2/img_0019.jpg", img);
+   }
+   catch ( Exception &e )
+   {
+      puts(e.what());
+   }
    //if (argc > 1)
      // testHandWrittenRecogntion(argv[1]);
 
@@ -493,7 +490,7 @@ int main( int argc, char *argv[] )
    //testHandWrittenRecogntion("../../../data/mol_images/from-iphone/filtered/iphone3.jpg.out.png");
    //testRNG("../../../data/mol_images/image13.png");
    //testRecognize("../../../data/mol_images/from-iphone/filtered/IMG_0057.jpg.out.png"); 
-   testRecognize("../../../data/mol_images/temp/1.png"); 
+   //testRecognize("../../../data/mol_images/temp/1.png"); 
    //C:\work\imago\data\mol_images\first-delivery-images
    //system("start marvinsketch result.mol");
 
