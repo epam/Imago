@@ -477,8 +477,8 @@ int main( int argc, char *argv[] )
 
       Image img;
       
-      //prefilterFile(argv[1], img);
-      prefilterFile("../../../data/from_caduff_2/img_0019.jpg", img);
+      prefilterFile(argv[1], img);
+      //prefilterFile("../../../data/from_caduff_2/img_0019.jpg", img);
 
       ImageUtils::saveImageToFile(img, "result.png");
 
