@@ -119,7 +119,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       d = 0.5 * (Algebra::distance2segment(sb_pos, fb_pos, fe_pos) +
                  Algebra::distance2segment(se_pos, fb_pos, fe_pos));
 
-   //if (d > __min(bf.length, bs.length))
+   //if (d > std::min(bf.length, bs.length))
    //   return false;
 
    BGL_FORALL_VERTICES(v, _g, Graph)

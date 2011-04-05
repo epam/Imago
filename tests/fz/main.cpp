@@ -477,7 +477,21 @@ int main( int argc, char *argv[] )
 
       Image img;
       
+      //prefilterFile(argv[1], img);
       prefilterFile("../../../data/from_caduff_2/img_0019.jpg", img);
+
+      ImageUtils::saveImageToFile(img, "result.png");
+
+      Molecule mol;
+
+      gSession.get()->recognizer().image2mol(img, mol);
+
+      FileOutput fo("result.mol");
+      MolfileSaver ma(fo);
+
+      ma.saveMolecule(mol);
+
+      SessionManager::getInstance().releaseSID(sid);
    }
    catch ( Exception &e )
    {

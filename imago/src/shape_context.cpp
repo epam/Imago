@@ -75,8 +75,8 @@ namespace imago
 
 #ifdef DEBUG
       {
-         Image img(__max(_img.cols, fothers->_img.cols),
-                   __max(_img.rows, fothers->_img.rows));
+         Image img(std::max(_img.cols, fothers->_img.cols),
+                   std::max(_img.rows, fothers->_img.rows));
 
          img.fillWhite();
          for (int i = 0; i < mapping.size(); ++i)
@@ -113,8 +113,8 @@ namespace imago
 
 #if 1//def DEBUG
       {
-         Image img(__max(_img.cols, fothers->_img.cols),
-                   __max(_img.rows, fothers->_img.rows));
+         Image img(std::max(_img.cols, fothers->_img.cols),
+                   std::max(_img.rows, fothers->_img.rows));
          img.fillWhite();
 
          for (int i = 0; i < fothers->_img.rows; ++i)

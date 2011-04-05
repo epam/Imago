@@ -426,7 +426,7 @@ bool Skeleton::_dissolveIntermediateVertices ()
       double d = Vec2d::dot(dir1, dir2);
       double n1 = dir1.norm();
       double n2 = dir2.norm();
-      double maxn = __max(n1, n2);
+      double maxn = std::max(n1, n2);
       
       if (n1 * n2 > 0.00001)
          d /= n1 * n2;

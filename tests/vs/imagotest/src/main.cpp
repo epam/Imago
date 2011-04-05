@@ -466,7 +466,7 @@ void testRotation(const char *filename = 0)
          "../../../data/from_caduff_2/IMG_0022.JPG";
          //"../../../ireco/first-delivery-images/photo09.jpg";
 
-      std::vector<byte> data;
+      std::vector<unsigned char> data;
       FILE *inf = fopen(f, "rb");
       while (!feof(inf))
       {
