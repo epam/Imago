@@ -234,6 +234,8 @@ static void _prefilterInternal( const Image &raw, Image &image )
       ImageUtils::saveImageToFile(img, "01_after_subsampling.png");
 #endif
    }
+   else
+      img.copy(raw);
 
    {
       LPRINT(0, "blurring");

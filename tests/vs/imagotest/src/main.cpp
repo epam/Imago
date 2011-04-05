@@ -462,8 +462,8 @@ void testRotation(const char *filename = 0)
       printf("Orientation %d\n", rot);
       */
       const char *f = filename ? filename :
-         "IMG_0052.JPG";
-         //"../../../data/from_caduff_2/IMG_0043.JPG";
+         //"IMG_0052.JPG";
+         "../../../data/from_caduff_2/IMG_0022.JPG";
          //"../../../ireco/first-delivery-images/photo09.jpg";
 
       std::vector<byte> data;
