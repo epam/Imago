@@ -98,7 +98,6 @@
 		A7D5CC4312ADC82200C60C51 /* visel.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0412ADC82200C60C51 /* visel.js */; };
 		A7D5CC4412ADC82200C60C51 /* log.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0612ADC82200C60C51 /* log.js */; };
 		A7D5CC4512ADC82200C60C51 /* ui.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CC0712ADC82200C60C51 /* ui.js */; };
-		A7D672A613461F640030A6E1 /* libopencv_highgui.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D672A513461F640030A6E1 /* libopencv_highgui.a */; };
 		A7D672A813461F8B0030A6E1 /* libopencv_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D672A713461F8B0030A6E1 /* libopencv_core.a */; };
 		A7D672AA134620020030A6E1 /* libopencv_imgproc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D672A9134620020030A6E1 /* libopencv_imgproc.a */; };
 		A7D672AC1346227C0030A6E1 /* libopencv_lapack.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D672AB1346227C0030A6E1 /* libopencv_lapack.a */; };
@@ -125,7 +124,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 101071210101071210101071;
+			remoteGlobalIDString = 1010B76F01010B76F01010B7;
 			remoteInfo = imago_static;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -146,14 +145,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1006F37401006F37401006F3;
+			remoteGlobalIDString = 101000A70101000A70101000;
 			remoteInfo = png_local;
 		};
 		A7D672B3134625E90030A6E1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 101033120101033120101033;
+			remoteGlobalIDString = 10103C4B010103C4B010103C;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -256,7 +255,6 @@
 		A7D5CC0412ADC82200C60C51 /* visel.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = visel.js; sourceTree = "<group>"; };
 		A7D5CC0612ADC82200C60C51 /* log.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = log.js; sourceTree = "<group>"; };
 		A7D5CC0712ADC82200C60C51 /* ui.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = ui.js; sourceTree = "<group>"; };
-		A7D672A513461F640030A6E1 /* libopencv_highgui.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopencv_highgui.a; path = "../opencv/iphone/release-universal/libopencv_highgui.a"; sourceTree = "<group>"; };
 		A7D672A713461F8B0030A6E1 /* libopencv_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopencv_core.a; path = "../opencv/iphone/release-universal/libopencv_core.a"; sourceTree = "<group>"; };
 		A7D672A9134620020030A6E1 /* libopencv_imgproc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopencv_imgproc.a; path = "../opencv/iphone/release-universal/libopencv_imgproc.a"; sourceTree = "<group>"; };
 		A7D672AB1346227C0030A6E1 /* libopencv_lapack.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopencv_lapack.a; path = "../opencv/iphone/release-universal/libopencv_lapack.a"; sourceTree = "<group>"; };
@@ -281,7 +279,6 @@
 				A7D672AC1346227C0030A6E1 /* libopencv_lapack.a in Frameworks */,
 				A7D672AA134620020030A6E1 /* libopencv_imgproc.a in Frameworks */,
 				A7D672A813461F8B0030A6E1 /* libopencv_core.a in Frameworks */,
-				A7D672A613461F640030A6E1 /* libopencv_highgui.a in Frameworks */,
 				A7D9A9CC1343B6A0004B0AF0 /* libimago_static.a in Frameworks */,
 				1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */,
 				1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */,
@@ -326,7 +323,6 @@
 				A7D672AB1346227C0030A6E1 /* libopencv_lapack.a */,
 				A7D672A9134620020030A6E1 /* libopencv_imgproc.a */,
 				A7D672A713461F8B0030A6E1 /* libopencv_core.a */,
-				A7D672A513461F640030A6E1 /* libopencv_highgui.a */,
 				A7988AA21343ADB800D37855 /* imago.xcodeproj */,
 				080E96DDFE201D6D7F000001 /* Classes */,
 				29B97315FDCFA39411CA2CEA /* Other Sources */,
@@ -726,11 +722,13 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = imago_iphone_Prefix.pch;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = (
 					../imago/src,
@@ -752,9 +750,11 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
+				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = YES;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = imago_iphone_Prefix.pch;
+				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = (
 					../imago/src,
@@ -767,6 +767,7 @@
 					"\"$(SRCROOT)\"",
 					"\"$(SRCROOT)/../opencv/iphone/release-universal\"",
 				);
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = "imago-iphone";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;

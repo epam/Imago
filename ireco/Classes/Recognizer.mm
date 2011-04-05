@@ -42,6 +42,9 @@
    NSLog(@"Loading image...\n");
 
    NSData *rawImage = UIImageJPEGRepresentation(self.image, 1.0f);
+   //NSString *outPath = [[NSBundle mainBundle] pathForResource:@"photo11" ofType:@"jpg"];
+   //NSData *rawImage = [NSData dataWithContentsOfFile:outPath];
+   
    std::vector<unsigned char> jpgImage((unsigned char *)[rawImage bytes], (unsigned char *)[rawImage bytes] + [rawImage length]);
    
    try
