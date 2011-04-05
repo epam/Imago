@@ -85,3 +85,86 @@ chem.getElementTextContent = function (element)
     else
         throw Error("Browser unrecognized");
 }
+
+chem.stringPadded = function (string, width, leftAligned) {
+	string += '';
+	var space = '';
+	while (string.length + space.length < width)
+		space += ' ';
+	if (leftAligned)
+		return string + space;
+	else
+		return space + string;
+}
+
+chem.idList = function (object) {
+	var list = [];
+	for (var aid in object) {
+		list.push(aid);
+	}
+	return list;
+}
+
+chem.mapArray = function (src, map) {
+	var dst = [];
+	for (var i = 0; i < src.length; ++i) {
+		dst.push(map[src[i]]);
+	}
+	return dst;
+}
+
+chem.apply = function (array, func) {
+	for (var i = 0; i < array.length; ++i)
+		array[i] = func(array[i]);
+}
+
+chem.ifDef = function (dst, src, prop, def)
+{
+	dst[prop] = !Object.isUndefined(src[prop]) ? src[prop] : def;
+}
+
+chem.ifDefList = function (dst, src, prop, def)
+{
+	dst[prop] = !Object.isUndefined(src[prop]) && src[prop] != null ? chem.array(src[prop]) : def;
+}
+
+chem.identityMap = function (array) {
+	var map = {};
+	for (var i = 0; i < array.length; ++i)
+		map[array[i]] = array[i];
+	return map;
+}
+
+chem.stripRight = function (src) {
+	var i;
+	for (i = 0; i < src.length; ++i)
+		if (src[src.lenght - i - 1] != ' ')
+			break;
+	return src.slice(0, src.length - i);
+}
+
+chem.paddedFloat = function (number, width, precision)
+{
+	var numStr = number.toFixed(precision).replace(',', '.');
+	if (numStr.length > width)
+		throw new Error("number does not fit");
+	return chem.stringPadded(numStr, width);
+}
+
+chem.paddedInt = function (number, width)
+{
+	var numStr = number.toFixed(0);
+	if (numStr.length > width) {
+		throw new Error("number does not fit");
+	}
+	return chem.stringPadded(numStr, width);
+}
+
+chem.arrayAddIfMissing = function (array, item)
+{
+	for (var i = 0; i < array.length; ++i)
+		if (array[i] == item)
+			return false;
+	array.push(item);
+	return true;
+}

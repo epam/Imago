@@ -45,7 +45,7 @@
         //
         self.imagePickerController.showsCameraControls = NO;
         
-        if (self.imagePickerController.cameraOverlayView != self.view)
+        if ([[self.imagePickerController.cameraOverlayView subviews] count] == 0)
         {
             // setup our custom overlay view for the camera
             //
@@ -53,11 +53,11 @@
             CGRect overlayViewFrame = self.imagePickerController.cameraOverlayView.frame;
             CGRect newFrame = CGRectMake(0.0,
                                          CGRectGetHeight(overlayViewFrame) -
-                                         self.view.frame.size.height - 9.0,
+                                         self.view.frame.size.height - 10.0,
                                          CGRectGetWidth(overlayViewFrame),
-                                         self.view.frame.size.height + 9.0);
+                                         self.view.frame.size.height + 10.0);
             self.view.frame = newFrame;
-            self.imagePickerController.cameraOverlayView = self.view;
+            [self.imagePickerController.cameraOverlayView addSubview:self.view];
         }
     }
 }

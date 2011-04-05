@@ -12,75 +12,81 @@
 
 // chem.Molecule constructor and utilities are defined here
 if (!window.chem || !chem.Vec2 || !chem.Pool)
-    throw new Error("Vec2, Pool should be defined first")
+	throw new Error("Vec2, Pool should be defined first")
 
 chem.Molecule = function ()
 {
-    this.atoms = new chem.Pool();
-    this.bonds = new chem.Pool();
-    this.sgroups = new chem.Pool();
+	this.atoms = new chem.Pool();
+	this.bonds = new chem.Pool();
+	this.sgroups = new chem.Pool();
+	this.isChiral = false;
 }
 
 chem.Molecule.prototype.toLists = function ()
 {
-    var aidMap = {};
-    var atomList = [];
-    this.atoms.each(function(aid, atom) {
-        aidMap[aid] = atomList.length;
-        atomList.push(atom);
-    });
+	var aidMap = {};
+	var atomList = [];
+	this.atoms.each(function(aid, atom) {
+		aidMap[aid] = atomList.length;
+		atomList.push(atom);
+	});
 
-    var bondList = [];
-    this.bonds.each(function(bid, bond) {
-        var b = Object.clone(bond);
-        b.begin = aidMap[bond.begin];
-        b.end = aidMap[bond.end];
-        bondList.push(b);
-    });
-    return {'atoms': atomList, 'bonds': bondList};
+	var bondList = [];
+	this.bonds.each(function(bid, bond) {
+		var b = Object.clone(bond);
+		b.begin = aidMap[bond.begin];
+		b.end = aidMap[bond.end];
+		bondList.push(b);
+	});
+
+	return {
+		'atoms': atomList,
+		'bonds': bondList
+	};
 }
 
 chem.Molecule.prototype.clone = function ()
 {
 	var cp = new chem.Molecule();
-    var aidMap = {};
-    this.atoms.each(function(aid, atom) {
+	var aidMap = {};
+	this.atoms.each(function(aid, atom) {
 		aidMap[aid] = cp.atoms.add(atom.clone());
-    });
+	});
 
-    var bidMap = {};
-    this.bonds.each(function(bid, bond) {
-        bidMap[bid] = cp.atoms.add(bond.clone(aidMap));
-    });
+	var bidMap = {};
+	this.bonds.each(function(bid, bond) {
+		bidMap[bid] = cp.bonds.add(bond.clone(aidMap));
+	});
 
-    this.sgroups.each(function(sid, sg) {
-		sg = sg.clone(aidMap);
+	this.sgroups.each(function(sid, sg) {
+		sg = chem.SGroup.clone(sg, aidMap, bidMap);
 		var id = cp.sgroups.add(sg);
 		sg.id = id;
-		for (var i = 0; i < sg.data.atoms; ++i) {
-			cp.atoms.get(sg.data.atoms[i]).sgroup = i;
+		for (var i = 0; i < sg.atoms.length; ++i) {
+			chem.Set.add(cp.atoms.get(sg.atoms[i]).sgs, id);
 		}
-    });
+	});
+	cp.isChiral = this.isChiral;
 
-    return cp;
+	return cp;
 }
 
 chem.Molecule.prototype.findBondId = function (begin, end)
 {
-    var id = -1;
+	var id = -1;
     
-    this.bonds.find(function (bid, bond)
-    {
-        if ((bond.begin == begin && bond.end == end) ||
-            (bond.begin == end && bond.end == begin))
-        {
-            id = bid;
-            return true;
-        }
-        return false;
-    }, this);
+	this.bonds.find(function (bid, bond)
+	{
+		if ((bond.begin == begin && bond.end == end) ||
+			(bond.begin == end && bond.end == begin))
+			{
+			id = bid;
+			return true;
+		}
+		return false;
+	}, this);
     
-    return id;
+	return id;
 }
 
 chem.Molecule.prototype.merge = function (mol)
@@ -99,57 +105,57 @@ chem.Molecule.prototype.merge = function (mol)
 
 chem.Molecule.ATOM =
 {
-    RADICAL:
-    {
-        NONE:    0,
-        SINGLET: 1,
-        DOUPLET: 2,
-        TRIPLET: 3
-    }
+	RADICAL:
+	{
+		NONE:    0,
+		SINGLET: 1,
+		DOUPLET: 2,
+		TRIPLET: 3
+	}
 };
 
 chem.Molecule.radicalElectrons = function(radical)
 {
-    radical = radical - 0;
-    if (radical == chem.Molecule.ATOM.RADICAL.NONE)
-        return 0;
-    else if (radical == chem.Molecule.ATOM.RADICAL.DOUPLET)
-        return 1;
-    else if (radical == chem.Molecule.ATOM.RADICAL.SINGLET ||
-            radical == chem.Molecule.ATOM.RADICAL.TRIPLET)
-        return 2;
-    throw new Error("Unknown radical value");
+	radical = radical - 0;
+	if (radical == chem.Molecule.ATOM.RADICAL.NONE)
+		return 0;
+	else if (radical == chem.Molecule.ATOM.RADICAL.DOUPLET)
+		return 1;
+	else if (radical == chem.Molecule.ATOM.RADICAL.SINGLET ||
+		radical == chem.Molecule.ATOM.RADICAL.TRIPLET)
+		return 2;
+	throw new Error("Unknown radical value");
 }
 
 chem.Molecule.BOND =
 {
-    TYPE:
-    {
-        SINGLE: 1,
-        DOUBLE: 2,
-        TRIPLE: 3,
-        AROMATIC: 4,
-        SINGLE_OR_DOUBLE: 5,
-        SINGLE_OR_AROMATIC: 6,
-        DOUBLE_OR_AROMATIC: 7,
-        ANY : 8
-    },
+	TYPE:
+	{
+		SINGLE: 1,
+		DOUBLE: 2,
+		TRIPLE: 3,
+		AROMATIC: 4,
+		SINGLE_OR_DOUBLE: 5,
+		SINGLE_OR_AROMATIC: 6,
+		DOUBLE_OR_AROMATIC: 7,
+		ANY : 8
+	},
 
-    STEREO:
-    {
-        NONE: 0,
-        UP: 1,
-        EITHER: 4,
-        DOWN: 6,
-        CIS_TRANS: 3
-    },
+	STEREO:
+	{
+		NONE: 0,
+		UP: 1,
+		EITHER: 4,
+		DOWN: 6,
+		CIS_TRANS: 3
+	},
 
-    TOPOLOGY:
-    {
-        EITHER: 0,
-        RING: 1,
-        CHAIN: 2
-    }
+	TOPOLOGY:
+	{
+		EITHER: 0,
+		RING: 1,
+		CHAIN: 2
+	}
 };
 
 chem.Molecule.FRAGMENT = {
@@ -175,39 +181,37 @@ chem.Molecule.prototype.merge = function (mol)
 	}, this);
 }
 
-chem.ifDef = function (dst, src, prop, def)
-{
-	dst[prop] = !Object.isUndefined(src[prop]) ? src[prop] : def;
-}
-
 chem.Molecule.Atom = function (params)
 {
-    if (!params || !('label' in params))
-        throw new Error("label must be specified!");
+	if (!params || !('label' in params))
+		throw new Error("label must be specified!");
 
-    this.label = params.label;
+	this.label = params.label;
 	chem.ifDef(this, params, 'isotope', 0);
 	chem.ifDef(this, params, 'radical', 0);
 	chem.ifDef(this, params, 'charge', 0);
 	chem.ifDef(this, params, 'valence', 0);
 	chem.ifDef(this, params, 'explicitValence', 0);
 	chem.ifDef(this, params, 'implicitH', 0);
-	chem.ifDef(this, params, 'pos', new chem.Vec2());
+	if (!Object.isUndefined(params.pos))
+		this.pos = new chem.Vec2(params.pos);
+	else
+		this.pos = new chem.Vec2();
 
 	chem.ifDef(this, params, 'fragment', -1);
-	chem.ifDef(this, params, 'sgroup', -1);
+	this.sgs = {};
 
-    // query
+	// query
 	chem.ifDef(this, params, 'ringBondCount', -1);
 	chem.ifDef(this, params, 'substitutionCount', -1);
 	chem.ifDef(this, params, 'unsaturatedAtom', -1);
 
-	chem.ifDef(this, params, 'atomList', null);
+	this.atomList = !Object.isUndefined(params.atomList) && params.atomList != null ? new chem.Molecule.AtomList(params.atomList) : null;
 }
 
 chem.Molecule.Atom.prototype.clone = function ()
 {
-	return new chem.Atom(this);
+	return new chem.Molecule.Atom(this);
 }
 
 chem.Molecule.Atom.prototype.isQuery =  function ()
@@ -217,16 +221,24 @@ chem.Molecule.Atom.prototype.isQuery =  function ()
 
 chem.Molecule.Atom.prototype.pureHydrogen =  function ()
 {
-    return this.label == 'H' && this.isotope == 0;
+	return this.label == 'H' && this.isotope == 0;
+}
+
+chem.Molecule.Atom.prototype.isPlainCarbon =  function ()
+{
+	return this.label == 'C' && this.isotope == 0 && this.isotope == 0 &&
+		this.radical == 0 && this.charge == 0 && this.explicitValence == 0 &&
+		this.ringBondCount == -1 && this.substitutionCount == -1 && this.unsaturatedAtom == -1 &&
+		!this.atomList;
 }
 
 chem.Molecule.AtomList = function (params)
 {
-    if (!params || !('notList' in params) || !('ids' in params))
-        throw new Error("'notList' and 'ids' must be specified!");
+	if (!params || !('notList' in params) || !('ids' in params))
+		throw new Error("'notList' and 'ids' must be specified!");
 
-    this.notList = params.notList; /*boolean*/
-    this.ids = params.ids; /*Array of integers*/
+	this.notList = params.notList; /*boolean*/
+	this.ids = params.ids; /*Array of integers*/
 }
 
 chem.Molecule.AtomList.prototype.labelList = function ()
@@ -247,18 +259,18 @@ chem.Molecule.AtomList.prototype.label = function ()
 
 chem.Molecule.Bond = function (params)
 {
-    if (!params || !('begin' in params) || !('end' in params) || !('type' in params))
-        throw new Error("'begin', 'end' and 'type' properties must be specified!");
+	if (!params || !('begin' in params) || !('end' in params) || !('type' in params))
+		throw new Error("'begin', 'end' and 'type' properties must be specified!");
 
-    this.begin = params.begin;
-    this.end = params.end;
-    this.type = params.type;
-    chem.ifDef(this, params, 'stereo', chem.Molecule.BOND.STEREO.NONE);
-    chem.ifDef(this, params, 'topology', chem.Molecule.BOND.TOPOLOGY.EITHER);
-    chem.ifDef(this, params, 'reactingCenterStatus', 0);
+	this.begin = params.begin;
+	this.end = params.end;
+	this.type = params.type;
+	chem.ifDef(this, params, 'stereo', chem.Molecule.BOND.STEREO.NONE);
+	chem.ifDef(this, params, 'topology', chem.Molecule.BOND.TOPOLOGY.EITHER);
+	chem.ifDef(this, params, 'reactingCenterStatus', 0);
 }
 
-chem.Molecule.Bond.clone = function (aidMap)
+chem.Molecule.Bond.prototype.clone = function (aidMap)
 {
 	var cp = new chem.Molecule.Bond(this);
 	if (aidMap) {
@@ -270,9 +282,56 @@ chem.Molecule.Bond.clone = function (aidMap)
 
 chem.Molecule.Bond.prototype.findOtherEnd = function (i)
 {
-    if (i == this.begin)
-        return this.end;
-    if (i == this.end)
-        return this.begin;
-    throw new Error("bond end not found");
+	if (i == this.begin)
+		return this.end;
+	if (i == this.end)
+		return this.begin;
+	throw new Error("bond end not found");
+}
+
+chem.Molecule.prototype.sGroupsRecalcCrossBonds = function () {
+	this.sgroups.each(function(sgid, sg){
+		sg.xBonds = [];
+		sg.neiAtoms = [];
+	},this);
+	this.bonds.each(function(bid, bond){
+		var a1 = this.atoms.get(bond.begin);
+		var a2 = this.atoms.get(bond.end);
+		chem.Set.each(a1.sgs, function(sgid){
+			if (!chem.Set.contains(a2.sgs, sgid)) {
+				var sg = this.sgroups.get(sgid);
+				sg.xBonds.push(bid);
+				chem.arrayAddIfMissing(sg.neiAtoms, bond.end);
+			}
+		}, this);
+		chem.Set.each(a2.sgs, function(sgid){
+			if (!chem.Set.contains(a1.sgs, sgid)) {
+				var sg = this.sgroups.get(sgid);
+				sg.xBonds.push(bid);
+				chem.arrayAddIfMissing(sg.neiAtoms, bond.begin);
+			}
+		}, this);
+	},this);
+}
+
+chem.Molecule.prototype.getObjBBox = function ()
+{
+	var bb = null;
+	this.atoms.each(function (aid, atom) {
+		if (!bb)
+			bb = {
+				min: atom.pos,
+				max: atom.pos
+			}
+		else {
+			bb.min = chem.Vec2.min(bb.min, atom.pos);
+			bb.max = chem.Vec2.max(bb.max, atom.pos);
+		}
+	});
+	if (!bb)
+		bb = {
+			min: new chem.Vec2(0, 0),
+			max: new chem.Vec2(1, 1)
+		};
+	return new chem.Box2Abs(bb.min, bb.max);
 }

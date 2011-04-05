@@ -59,9 +59,6 @@
 
 - (void)showImagePicker:(UIImagePickerControllerSourceType)sourceType
 {
-    if (self.imageView.isAnimating)
-        self.imageView.stopAnimating;
-	
     if (self.capturedImage != nil)
     {
         [self.capturedImage release];

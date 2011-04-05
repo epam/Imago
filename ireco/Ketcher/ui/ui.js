@@ -23,13 +23,14 @@ ui.SCALE_MIN  = 20;
 ui.SCALE_MAX  = 120;
 ui.SCALE_INCR = 20;
 
-ui.DBLCLICK_INTERVAL = 250;
+ui.DBLCLICK_INTERVAL = 300;
+
+ui.HISTORY_LENGTH = 8;
 
 ui.DEBUG = false;
 
 ui.render = null;
 
-ui.console = null;
 ui.ctab = new chem.Molecule();
 
 ui.client_area = null;
@@ -41,13 +42,13 @@ ui.redoStack = new Array();
 ui.is_osx = false;
 ui.initialized = false;
 
-ui.MODE = {SIMPLE: 1, ERASE: 2, ATOM: 3, BOND: 4, PATTERN: 5, PASTE: 6};
+ui.MODE = {SIMPLE: 1, ERASE: 2, ATOM: 3, BOND: 4, PATTERN: 5, SGROUP: 6, PASTE: 7};
 
 ui.patterns =
 {
     six1: [1, 2, 1, 2, 1, 2],
     six2: [1, 1, 1, 1, 1, 1],
-    sixa: [4, 4, 4, 4, 4, 4],
+    //sixa: [4, 4, 4, 4, 4, 4],
     five: [1, 1, 1, 1, 1]
 }
 
@@ -84,6 +85,13 @@ ui.initButton = function (el)
     });
 };
 
+ui.onClick_SideButton = function (event)
+{
+    if (this.hasClassName('buttonDisabled'))
+        return;
+    ui.selectMode(this.id);
+};
+
 ui.init = function ()
 {
     if (this.initialized)
@@ -96,11 +104,6 @@ ui.init = function ()
         this.selectMode('select_simple');
         return;
     }
-    
-    this.console = new ui.Log();
-    this.showConsole(ui.DEBUG);
-    
-    this.console.writeLine("Initializing UI...");
     
     this.is_osx = (navigator.userAgent.indexOf('Mac OS X') != -1);
     
@@ -121,6 +124,15 @@ ui.init = function ()
             });
         }
     }
+    
+    // OS X specific stuff
+    if (ui.is_osx)
+    {
+        $$('.toolButton > img, .sideButton').each(function (button)
+        {
+            button.title = button.title.replace("Ctrl", "Cmd");
+        }, this);
+    }
 
     // Document events
     document.observe('keypress', ui.onKeyPress_Ketcher);
@@ -133,12 +145,7 @@ ui.init = function ()
     $$('.sideButton').each(function (el)
     {
         ui.initButton(el);
-        el.observe('click', function (event) 
-        {
-            if (this.hasClassName('buttonDisabled'))
-                return;
-            ui.selectMode(this.id);
-        });
+        el.observe('click', ui.onClick_SideButton);
     });
     $('new').observe('click', ui.onClick_NewFile);
     $('open').observe('click', ui.onClick_OpenFile);
@@ -177,6 +184,18 @@ ui.init = function ()
         ui.applyAtomProperties();
     });
     
+    // S-group properties dialog events
+    $('sgroup_type').observe('change', ui.onChange_SGroupType);
+    $('sgroup_label').observe('change', ui.onChange_SGroupLabel);
+    $('sgroup_prop_cancel').observe('click', function ()
+    {
+        ui.hideDialog('sgroup_properties');
+    });
+    $('sgroup_prop_ok').observe('click', function ()
+    {
+        ui.applySGroupProperties();
+    });
+    
     // Label input events
     $('input_label').observe('blur', function ()
     {
@@ -201,7 +220,6 @@ ui.init = function ()
     $('upload_mol').observe('submit', function ()
     {
         ui.hideDialog('open_file');
-        setTimeout(ui.loadMoleculeFromFile, 500);
     });
     $('upload_cancel').observe('click', function ()
     {
@@ -238,8 +256,6 @@ ui.init = function ()
                     
     if (this.standalone)
     {
-        this.console.writeLine(" Server not found. Working in a standalone mode.");
-
         $$('.serverRequired').each(function (el)
         {
             if (el.hasClassName('toolButton'))
@@ -255,24 +271,20 @@ ui.init = function ()
             $('upload_mol').action = ui.base_url + 'open';
             $('download_mol').action = ui.base_url + 'save';
         }
-        this.console.writeLine(" Server found.");
     }
         
     this.selectMode('select_simple');
     
     // Init renderer
-    this.console.writeLine(" Renderer...");
     this.render =  new rnd.Render(this.client_area, this.scale, {atomColoring: true}, new chem.Vec2(ui.client_area.clientWidth, ui.client_area.clientHeight - 4));
     
     this.render.onAtomClick = this.onClick_Atom;
     this.render.onAtomDblClick = this.onDblClick_Atom;
-    this.render.onAtomMouseMove = this.onMouseMove_Atom;
     this.render.onAtomMouseDown = this.onMouseDown_Atom;
     this.render.onAtomMouseOver = this.onMouseOver_Atom;
     this.render.onAtomMouseOut = this.onMouseOut_Atom;
     
     this.render.onBondClick = this.onClick_Bond;
-    this.render.onBondMouseMove = this.onMouseMove_Bond;
     this.render.onBondMouseDown = this.onMouseDown_Bond;
     this.render.onBondMouseOver = this.onMouseOver_Bond;
     this.render.onBondMouseOut = this.onMouseOut_Bond;
@@ -281,21 +293,17 @@ ui.init = function ()
     this.render.onCanvasMouseMove = this.onMouseMove_Canvas;
     this.render.onCanvasMouseDown = this.onMouseDown_Canvas;
     this.render.onCanvasOffsetChanged = this.onOffsetChanged;
+
+    this.render.onSGroupClick = this.onClick_SGroup;
+    this.render.onSGroupDblClick = this.onDblClick_SGroup;
+    this.render.onSGroupMouseDown = function () { return true; };
+    this.render.onSGroupMouseOver = this.onMouseOver_SGroup;
+    this.render.onSGroupMouseOut = this.onMouseOut_SGroup;
     
     this.render.setMolecule(this.ctab);
     this.render.update();
     
     this.initialized = true;
-    
-    this.console.writeLine("Done.");
-};
-
-ui.showConsole = function (show)
-{
-    if (show)
-        $('console_row').show();
-    else
-        $('console_row').hide();
 };
 
 ui.showDialog = function (name)
@@ -332,9 +340,26 @@ ui.updateMolecule = function (mol)
         this.console.writeLine('Molfile parsing failed');
         return;
     }
-    
+
+    if (ui.selected())
+        ui.updateSelection();
+        
     this.addUndoAction(this.Action.fromNewCanvas(mol));
-    this.render.update();
+    
+    ui.showDialog('loading');
+    setTimeout(function ()
+    {
+        try
+        {
+            ui.render.update()
+        } catch (er)
+        {
+            alert(er.message);
+        } finally
+        {
+            ui.hideDialog('loading');
+        }
+    }, 50);
 };
 
 ui.parseMolfile = function (molfile)
@@ -376,6 +401,11 @@ ui.selectMode = function (mode)
                 ui.render.update();
                 return;
             }
+            if (mode == 'sgroup')
+            {
+                ui.showSGroupProperties(null);
+                return;
+            }
         }
         
         if (ui.mode_button == null) // ui.MODE.PASTE
@@ -406,6 +436,8 @@ ui.modeType = function ()
         return ui.MODE.ATOM;
     if (ui.mode_button.id.startsWith('bond_'))
         return ui.MODE.BOND;
+    if (ui.mode_button.id == 'sgroup')
+        return ui.MODE.SGROUP;
     if (ui.mode_button.id.startsWith('pattern_'))
         return ui.MODE.PATTERN;
 }
@@ -430,17 +462,17 @@ ui.bondType = function (mode)
     case 'double':
         return {type: 2, stereo: chem.Molecule.BOND.STEREO.NONE};
     case 'triple':
-        return {type: 3, stereo: chem.Molecule.BOND.STEREO.NONE};;
+        return {type: 3, stereo: chem.Molecule.BOND.STEREO.NONE};
     case 'aromatic':
-        return {type: 4, stereo: chem.Molecule.BOND.STEREO.NONE};;
+        return {type: 4, stereo: chem.Molecule.BOND.STEREO.NONE};
     case 'single_double':
-        return {type: 5, stereo: chem.Molecule.BOND.STEREO.NONE};;
+        return {type: 5, stereo: chem.Molecule.BOND.STEREO.NONE};
     case 'single_aromatic':
-        return {type: 6, stereo: chem.Molecule.BOND.STEREO.NONE};;
+        return {type: 6, stereo: chem.Molecule.BOND.STEREO.NONE};
     case 'double_aromatic':
-        return {type: 7, stereo: chem.Molecule.BOND.STEREO.NONE};;
+        return {type: 7, stereo: chem.Molecule.BOND.STEREO.NONE};
     case 'any':
-        return {type: 8, stereo: chem.Molecule.BOND.STEREO.NONE};;
+        return {type: 8, stereo: chem.Molecule.BOND.STEREO.NONE};
     }
 }
 
@@ -473,10 +505,9 @@ ui.onClick_NewFile = function ()
         return;
     
     if (ui.modeType() == ui.MODE.PASTE)
-    {
         ui.cancelPaste();
-        ui.selectMode('select_simple');
-    }
+
+    ui.selectMode('select_simple');
     
     if (ui.ctab.atoms.count() != 0)
     {
@@ -583,11 +614,19 @@ ui.onKeyPress_Ketcher = function (event)
     case 102: // f
         ui.selectMode('atom_f');
         return chem.preventDefault(event);
+    case 103: // Ctrl+G
+        if ((event.metaKey && ui.is_osx) || (event.ctrlKey && !ui.is_osx))
+            ui.onClick_SideButton.call($('sgroup'));
+        return chem.preventDefault(event);
     case 104: // h
         ui.selectMode('atom_h');
         return chem.preventDefault(event);
     case 105: // i
         ui.selectMode('atom_i');
+        return chem.preventDefault(event);
+    case 108: // Ctrl+L
+        if ((event.metaKey && ui.is_osx) || (event.ctrlKey && !ui.is_osx))
+            ui.onClick_CleanUp.call($('clean_up'));
         return chem.preventDefault(event);
     case 110: // n or Ctrl+N
         if ((event.metaKey && ui.is_osx) || (event.ctrlKey && !ui.is_osx))
@@ -605,7 +644,7 @@ ui.onKeyPress_Ketcher = function (event)
         ui.selectMode('atom_p');
         return chem.preventDefault(event);
     case 114: // r
-        var rings = ['pattern_six1', 'pattern_six2', 'pattern_sixa', 'pattern_five'];
+        var rings = ['pattern_six1', 'pattern_six2', 'pattern_five'];
         ui.selectMode(rings[(rings.indexOf(ui.mode_button.id) + 1) % rings.length]);
         return chem.preventDefault(event);
     case 115: // s or Ctrl+S
@@ -645,8 +684,8 @@ ui.onKeyDown_IE = function (event)
 
     // Ctrl+A, Ctrl+C, Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+V, Ctrl+X, Ctrl+Z
     //if ([65, 67, 78, 79, 83, 86, 88, 90].indexOf(event.keyCode) != -1 && event.ctrlKey)
-    // Ctrl+A, Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+Z
-    if ([65, 78, 79, 83, 90].indexOf(event.keyCode) != -1 && event.ctrlKey)
+    // Ctrl+A, Ctrl+G, Ctrl+L, Ctrl+N, Ctrl+O, Ctrl+S, Ctrl+Z
+    if ([65, 71, 76, 78, 79, 83, 90].indexOf(event.keyCode) != -1 && event.ctrlKey)
     {
         chem.stopEventPropagation(event);
         return chem.preventDefault(event);
@@ -708,6 +747,14 @@ ui.onKeyUp = function (event)
         if ((event.metaKey && ui.is_osx) || (event.ctrlKey && !ui.is_osx))
             ui.onClick_Copy.call($('copy'));
         return;
+    case 71: // Ctrl+G
+        if ((event.metaKey && ui.is_osx) || (event.ctrlKey && !ui.is_osx))
+            ui.onClick_SideButton.call($('sgroup'));
+        return;
+    case 76: // Ctrl+L
+        if ((event.metaKey && ui.is_osx) || (event.ctrlKey && !ui.is_osx))
+            ui.onClick_CleanUp.call($('clean_up'));
+        return;
     case 78: // Ctrl+N
         if ((event.metaKey && ui.is_osx) || (event.ctrlKey && !ui.is_osx))
             ui.onClick_NewFile.call($('new'));
@@ -759,6 +806,7 @@ ui.onKeyPress_InputLabel = function (event)
         
         var label = '';
         var charge = 0;
+        var value_arr = this.value.toArray();
         
         if (this.value == '*') 
         {
@@ -770,9 +818,9 @@ ui.onKeyPress_InputLabel = function (event)
             if (this.value.length == 2)
                 charge = 1;
             else
-                charge = parseInt(this.value[1]);
+                charge = parseInt(value_arr[1]);
             
-            if (this.value[2] == '-')
+            if (value_arr[2] == '-')
                 charge *= -1;
         } else if (this.value.match(/^[A-Z]{1,2}$/i))
         {
@@ -782,13 +830,13 @@ ui.onKeyPress_InputLabel = function (event)
             if (this.value.match(/^[A-Z]{2}/i))
                 label = this.value.substr(0, 2).capitalize();
             else
-                label = this.value[0].capitalize();
+                label = value_arr[0].capitalize();
         } else if (this.value.match(/^[A-Z]{1,2}[1-9]?[+-]$/i))
         {
             if (this.value.match(/^[A-Z]{2}/i))
                 label = this.value.substr(0, 2).capitalize();
             else
-                label = this.value[0].capitalize();
+                label = value_arr[0].capitalize();
                 
             var match = this.value.match(/[0-9]/i);
             
@@ -797,7 +845,7 @@ ui.onKeyPress_InputLabel = function (event)
             else
                 charge = 1;
             
-            if (this.value[this.value.length - 1] == '-')
+            if (value_arr[this.value.length - 1] == '-')
                 charge *= -1;
         }
             
@@ -844,7 +892,7 @@ ui.getFile = function ()
     return chem.getElementTextContent(frame_body);
 }
 
-ui.loadMolecule = function (mol_string)
+ui.loadMolecule = function (mol_string, force_layout)
 {
     var smiles = mol_string.strip();
     
@@ -854,12 +902,10 @@ ui.loadMolecule = function (mol_string)
         {
             if (smiles != '')
             {
-                //this.console.writeLine('SMILES is not supported in a standalone mode.');
                 alert('SMILES is not supported in a standalone mode.');
             }
             return;
         }
-        this.console.write('\nMaking layout...');
         var request = new Ajax.Request(ui.path + 'layout?smiles=' + encodeURIComponent(smiles),
                 {
                     method: 'get',
@@ -867,14 +913,20 @@ ui.loadMolecule = function (mol_string)
                     onComplete: function (res)
                     {
                         if (res.responseText.startsWith('Ok.'))
-                        {
-                            ui.console.write('Ok.');
                             ui.updateMolecule(ui.parseMolfile(res.responseText));
-                        } else
-                        {
-                            ui.console.writeLine('Failed. Response is:');
-                            ui.console.writeLine(res.responseText);
-                        }
+                    }
+                });
+    } else if (!ui.standalone && force_layout)
+    {
+        var request = new Ajax.Request(ui.path + 'layout',
+                {
+                    method: 'post',
+                    asynchronous : true,
+                    parameters: {moldata: mol_string},
+                    onComplete: function (res)
+                    {
+                        if (res.responseText.startsWith('Ok.'))
+                            ui.updateMolecule(ui.parseMolfile(res.responseText));
                     }
                 });
     } else {
@@ -882,16 +934,12 @@ ui.loadMolecule = function (mol_string)
     }
 };
 
+// Called from iframe's 'onload'
 ui.loadMoleculeFromFile = function ()
 {
     var file = ui.getFile();
     if (file.startsWith('Ok.'))
         ui.loadMolecule(file.substr(file.indexOf('\n') + 1));
-    else
-    {
-        ui.console.writeLine("Can not open file:");
-        ui.console.writeLine(file);
-    }
 };
 
 ui.loadMoleculeFromInput = function ()
@@ -1030,14 +1078,14 @@ ui.onClick_CleanUp = function ()
         ui.selectMode('select_simple');
     }
     
-    var ss = new chem.SmilesSaver();
+    var ms = new chem.MolfileSaver();
     
     try
     {
-        ui.loadMolecule(ss.saveMolecule(ui.ctab, true));
+        ui.loadMolecule(ms.saveMolecule(ui.ctab), true);
     } catch (er)
     {
-        alert("SMILES: " + er.message);
+        alert("Molfile: " + er.message);
     }
 }
 
@@ -1115,12 +1163,12 @@ ui.dbl_click = false;
 ui.onClick_Atom = function (event, id)
 {
     if (ui.mouse_moved)
-        return;
+        return true;
         
     if (event.altKey)
     {
         ui.showAtomProperties(id);
-        return;
+        return true;
     }
 
     ui.dbl_click = false;
@@ -1128,7 +1176,7 @@ ui.onClick_Atom = function (event, id)
     setTimeout(function ()
     {
         if (ui.dbl_click)
-            return;
+            return true;
             
         switch (ui.modeType())
         {
@@ -1197,29 +1245,32 @@ ui.onClick_Atom = function (event, id)
             ui.addUndoAction(ui.Action.fromPatternOnAtom(id, ui.pattern()), true);
             ui.render.update();
             break;
-            
-        case ui.MODE.PASTE:
-            ui.onClick_Canvas(event); // TODO: fix this
+
+        case ui.MODE.SGROUP:
+            ui.updateSelection([id], []);
+            ui.showSGroupProperties(null);
             break;
         }
     }, ui.DBLCLICK_INTERVAL);
+	return true;
 }
 
 ui.onDblClick_Atom = function (event, id)
 {
     if (event.altKey)
-        return;
+        return true;
 
     ui.dbl_click = true;
 
     if (ui.modeType() != ui.MODE.PASTE)
         ui.showAtomProperties(id);
+	return true;
 }
 
 ui.onClick_Bond = function (event, id)
 {
     if (ui.mouse_moved)
-        return;
+        return true;
     
     switch (ui.modeType())
     {
@@ -1288,10 +1339,50 @@ ui.onClick_Bond = function (event, id)
         ui.render.update();
         break;
         
-    case ui.MODE.PASTE:
-        ui.onClick_Canvas(event); // TODO: fix this
+    case ui.MODE.SGROUP:
+        var bond = ui.ctab.bonds.get(id);
+        
+        ui.updateSelection([bond.begin, bond.end], [id]);
+        ui.showSGroupProperties(null);
         break;
     }
+	return true;
+}
+
+ui.onClick_SGroup = function (event, sid)
+{
+    ui.dbl_click = false;
+    
+    setTimeout(function ()
+    {
+        if (ui.dbl_click)
+            return true;
+            
+        if (ui.modeType() == ui.MODE.ERASE)
+        {
+            // remove highlighting
+            ui.highlightSGroup(sid, false);
+
+            ui.addUndoAction(ui.Action.fromSgroupDeletion(sid));
+            ui.render.update();
+        }
+    }, ui.DBLCLICK_INTERVAL);
+    
+	return true;
+}
+
+ui.onDblClick_SGroup = function (event, sid)
+{
+    ui.dbl_click = true;
+    
+    if (ui.modeType() != ui.MODE.PASTE)
+    {
+        if (ui.selected())
+            ui.updateSelection();
+        ui.showSGroupProperties(sid);
+    }
+        
+	return true;
 }
 
 ui.onClick_Canvas = function (event)
@@ -1329,10 +1420,11 @@ ui.onClick_Canvas = function (event)
         break;
         
     case ui.MODE.PASTE:
-        ui.addUndoAction(ui.Action.fromFragmentAddition(ui.pasted.atoms, ui.pasted.bonds));
+        ui.addUndoAction(ui.Action.fromFragmentAddition(ui.pasted.atoms, ui.pasted.bonds, ui.pasted.sgroups));
         ui.render.update();
         ui.pasted.atoms.clear();
         ui.pasted.bonds.clear();
+        ui.pasted.sgroups.clear();
         ui.selectMode('select_simple');
         break;
     }
@@ -1443,8 +1535,21 @@ ui.onOffsetChanged = function (newOffset, oldOffset)
     if (oldOffset == null)
         return;
         
-    ui.client_area.scrollLeft += newOffset.x - oldOffset.x;
-    ui.client_area.scrollTop += newOffset.y - oldOffset.y;
+    var delta = new chem.Vec2(newOffset.x - oldOffset.x, newOffset.y - oldOffset.y);
+        
+    ui.client_area.scrollLeft += delta.x;
+    ui.client_area.scrollTop += delta.y;
+    
+    ui.undoStack.each(function (action)
+    {
+        action.operations.each(function (op)
+        {
+            if (op.type == ui.Action.OPERATION.ATOM_POS || op.type == ui.Action.OPERATION.ATOM_ADD)
+            {
+                op.params.pos.add_(delta);
+            }
+        }, this);
+    }, this);
 }
 
 //
@@ -1500,6 +1605,8 @@ ui.updateSelection = function (atoms, bonds)
     ui.selection.bonds = bonds;
     ui.render.setSelection(atoms, bonds);
     ui.render.update();
+    
+    ui.updateClipboardButtons();
 }
 
 ui.selected = function ()
@@ -1509,6 +1616,10 @@ ui.selected = function ()
 
 ui.selectAll = function ()
 {
+    var mode = ui.modeType();
+    if (mode == ui.MODE.ERASE || mode == ui.MODE.SGROUP)
+        ui.selectMode('select_simple');
+
     var alist = [], blist = [];
     
     ui.ctab.atoms.each(function(aid) {
@@ -1520,7 +1631,6 @@ ui.selectAll = function ()
     });
 
     ui.updateSelection(alist, blist);
-    ui.updateClipboardButtons();
 }
 
 ui.removeSelected = function ()
@@ -1537,6 +1647,9 @@ ui.onMouseDown_Atom = function (event, aid)
     if ($('input_label').visible())
         $('input_label').hide();
 
+    if (ui.modeType() == ui.MODE.PASTE)
+        return false;
+    
     ui.mouse_moved = false;
     ui.drag.atom_id = aid;
     ui.drag.start_pos = {x: event.pageX, y: event.pageY};
@@ -1554,12 +1667,16 @@ ui.onMouseDown_Atom = function (event, aid)
             ui.drag.action = ui.Action.fromSelectedAtomsPos();
         ui.drag.selection = true;
     }
+	return true;
 }
 
 ui.onMouseDown_Bond = function (event, bid)
 {
     if ($('input_label').visible())
         $('input_label').hide();
+
+    if (ui.modeType() == ui.MODE.PASTE)
+        return false;
 
     ui.mouse_moved = false;
     ui.drag.bond_id = bid;
@@ -1578,12 +1695,26 @@ ui.onMouseDown_Bond = function (event, bid)
             ui.drag.action = ui.Action.fromSelectedAtomsPos();
         ui.drag.selection = true;
     }
+	return true;
 }
 
 ui.onMouseDown_Canvas = function (event)
 {
     if ($('input_label').visible())
         $('input_label').hide();
+    
+    if (ui.modeType() == ui.MODE.PASTE)
+    {
+        ui.mouse_moved = true; // to avoid further handling of the click
+        ui.addUndoAction(ui.Action.fromFragmentAddition(ui.pasted.atoms, ui.pasted.bonds, ui.pasted.sgroups));
+        ui.render.update();
+        ui.pasted.atoms.clear();
+        ui.pasted.bonds.clear();
+        ui.pasted.sgroups.clear();
+        ui.selectMode('select_simple');
+
+        return;
+    }
 
     ui.mouse_moved = false;
 
@@ -1596,18 +1727,6 @@ ui.onMouseDown_Canvas = function (event)
     }
     
     ui.updateSelection();
-}
-
-ui.onMouseMove_Atom = function (event)
-{
-    if (ui.modeType() == ui.MODE.PASTE || ui.isDrag())
-        ui.onMouseMove_Canvas(event); // TODO: fix this
-}
-
-ui.onMouseMove_Bond = function (event)
-{
-    if (ui.modeType() == ui.MODE.PASTE || ui.isDrag())
-        ui.onMouseMove_Canvas(event); // TODO: fix this
 }
 
 ui.onMouseMove_Canvas = function (event)
@@ -1709,7 +1828,7 @@ ui.onMouseMove_Canvas = function (event)
     {
         if (ui.drag.atom_id == null && ui.drag.bond_id == null)
         {
-            if ((mode == ui.MODE.SIMPLE || mode == ui.MODE.ERASE) && ui.drag.start_pos != null) // rectangle selection
+            if ((mode == ui.MODE.SIMPLE || mode == ui.MODE.ERASE || mode == ui.MODE.SGROUP) && ui.drag.start_pos != null) // rectangle selection
             {
                 var start_pos = ui.page2canvas({pageX: ui.drag.start_pos.x, pageY:ui.drag.start_pos.y});
                 var cur_pos = ui.page2canvas(event);
@@ -1756,8 +1875,11 @@ ui.onMouseMove_Canvas = function (event)
 ui.onMouseUp_Ketcher = function (event)
 {
     if (ui.modeType() == ui.MODE.ERASE)
-        if (ui.selected())
+        if (ui.selected() && ui.isDrag())
             ui.removeSelected();
+    if (ui.modeType() == ui.MODE.SGROUP)
+        if (ui.selected() && ui.isDrag())
+            ui.showSGroupProperties(null);
     ui.endDrag();
     chem.stopEventPropagation(event);
 }
@@ -1777,7 +1899,7 @@ ui.onMouseOver_Atom = function (event, aid)
                 return true;
             return false;
         }, this)))
-            return;
+            return true;
             
         var begin = ui.drag.atom_id;
         var pos = null;
@@ -1814,7 +1936,8 @@ ui.onMouseOver_Atom = function (event, aid)
         ui.render.update();
         ui.drag.new_atom_id = -1; // after update() to avoid mousout
         ui.render.atomSetHighlight(aid, true);
-    } 
+    }
+	return true;
 }
 
 ui.onMouseOut_Atom = function (event, aid)
@@ -1830,17 +1953,45 @@ ui.onMouseOut_Atom = function (event, aid)
         ui.drag.action = ui.Action.fromAtomPos(ui.drag.atom_id);
         ui.drag.last_pos = Object.clone(ui.drag.start_pos);
     }
+	return true;
 }
 
 ui.onMouseOver_Bond = function (event, bid)
 {
     if (!ui.isDrag() && ui.modeType() != ui.MODE.PASTE)
         ui.render.bondSetHighlight(bid, true);
+	return true;
 }
 
 ui.onMouseOut_Bond = function (event, bid)
 {
     ui.render.bondSetHighlight(bid, false);
+	return true;
+}
+
+ui.highlightSGroup = function (sid, highlight)
+{
+    ui.render.sGroupSetHighlight(sid, highlight);
+    
+    var atoms = ui.render.sGroupGetAtoms(sid);
+    
+    atoms.each(function (id)
+    {
+        ui.render.atomSetSGroupHighlight(id, highlight);
+    }, this);
+}
+
+ui.onMouseOver_SGroup = function (event, sid)
+{
+    if (!ui.isDrag() && ui.modeType() != ui.MODE.PASTE)
+        ui.highlightSGroup(sid, true);
+	return true;
+}
+
+ui.onMouseOut_SGroup = function (event, sid)
+{
+    ui.highlightSGroup(sid, false);
+	return true;
 }
 
 //
@@ -1852,8 +2003,10 @@ ui.showAtomProperties = function (id)
     $('atom_label').value = ui.render.atomGetAttr(id, 'label');
     ui.onChange_AtomLabel.call($('atom_label'));
     $('atom_charge').value = ui.render.atomGetAttr(id, 'charge');
-    $('atom_isotope').value = ui.render.atomGetAttr(id, 'isotope');
-    $('atom_valence').value = ui.render.atomGetAttr(id, 'valence');
+    var value = ui.render.atomGetAttr(id, 'isotope');
+    $('atom_isotope').value = (value == 0 ? '' : value);
+    value = ui.render.atomGetAttr(id, 'valence');
+    $('atom_valence').value = (value == 0 ? '' : value);
     $('atom_radical').value = ui.render.atomGetAttr(id, 'radical');
     
     ui.showDialog('atom_properties');
@@ -1870,8 +2023,8 @@ ui.applyAtomProperties = function ()
     {
         label: $('atom_label').value,
         charge: parseInt($('atom_charge').value),
-        isotope: parseInt($('atom_isotope').value),
-        valence: parseInt($('atom_valence').value),
+        isotope: $('atom_isotope').value == '' ? 0 : parseInt($('atom_isotope').value),
+        valence: $('atom_valence').value == '' ? 0 : parseInt($('atom_valence').value),
         radical: parseInt($('atom_radical').value)
     }), true);
         
@@ -1884,16 +2037,18 @@ ui.onChange_AtomLabel = function ()
     
     var element = chem.Element.getElementByLabel(this.value);
     
-    if (element == null && this.value != 'A')
+    if (element == null && this.value != 'A' && this.value != '*')
     {
         this.value = ui.render.atomGetAttr($('atom_properties').atom_id, 'label');
 
-        if (this.value != 'A')
+        if (this.value != 'A' && this.value != '*')
             element = chem.Element.getElementByLabel(this.value);
     }
     
     if (this.value == 'A')
         chem.setElementTextContent($('atom_number'), "any");
+    else if (this.value == '*')
+        chem.setElementTextContent($('atom_number'), "*");
     else
         chem.setElementTextContent($('atom_number'), element.toString());
 }
@@ -1904,16 +2059,205 @@ ui.onChange_AtomCharge = function ()
 
 ui.onChange_AtomIsotope = function ()
 {
-    if (!this.value.match(/^[1-9][0-9]{0,2}$/))
+    if (this.value == chem.getElementTextContent($('atom_number')) || this.value.strip() == '' || this.value == '0')
+        this.value = '';
+    else if (!this.value.match(/^[1-9][0-9]{0,2}$/))
         this.value = ui.render.atomGetAttr($('atom_properties').atom_id, 'isotope');
-    else if (this.value == chem.getElementTextContent($('atom_number')))
-        this.value = '0';
 }
 
 ui.onChange_AtomValence = function ()
 {
-    if (!this.value.match(/^[0-9]$/))
+    if (this.value.strip() == '' || this.value == '0')
+        this.value = '';
+    else if (!this.value.match(/^[1-9]$/))
         this.value = ui.render.atomGetAttr($('atom_properties').atom_id, 'valence');
+}
+
+//
+// S-Group properties
+//
+ui.showSGroupProperties = function (id)
+{
+    if ($('sgroup_properties').visible())
+        return;
+    
+    // check s-group overlappings
+    if (id == null)
+    {
+        var verified = {};
+        var atoms_hash = {};
+
+        ui.selection.atoms.each(function (id)
+        {
+            atoms_hash[id] = true;
+        }, this);
+        
+        if (!Object.isUndefined(ui.selection.atoms.detect(function (id)
+        {
+            var sgroups = ui.render.atomGetSGroups(id);
+            
+            if (!Object.isUndefined(sgroups.detect(function (sid)
+            {
+                if (sid in verified)
+                    return false;
+                
+                var sg_atoms = ui.render.sGroupGetAtoms(sid);
+                
+                if (sg_atoms.length < ui.selection.atoms.length)
+                {                    
+                    if (!Object.isUndefined(sg_atoms.detect(function (aid)
+                    {
+                        if (aid in atoms_hash)
+                            return false;
+                        return true;
+                    }, this)))
+                    {
+                        return true;
+                    }
+                } else if (!Object.isUndefined(ui.selection.atoms.detect(function (aid)
+                {
+                    if (sg_atoms.indexOf(aid) != -1)
+                        return false;
+                    return true;
+                }, this)))
+                {
+                    return true;
+                }
+                
+                return false;
+            }, this)))
+            {
+                return true;
+            }
+            return false;
+        }, this)))
+        {
+            alert("Partial S-group overlapping is not allowed.");
+            return;
+        }
+    }
+        
+    var type = (id == null) ? 'GEN' : ui.render.sGroupGetType(id);
+    
+    $('sgroup_properties').sgroup_id = id;
+    $('sgroup_type').value = type;
+    ui.onChange_SGroupType.call($('sgroup_type'));
+    
+    switch (type)
+    {
+    case 'SRU':
+        $('sgroup_connection').value = ui.render.sGroupGetAttr(id, 'connectivity');
+        $('sgroup_label').value = ui.render.sGroupGetAttr(id, 'subscript');
+        break;
+    case 'MUL':
+        $('sgroup_label').value = ui.render.sGroupGetAttr(id, 'mul');
+        break;
+    case 'SUP':
+        $('sgroup_label').value = ui.render.sGroupGetAttr(id, 'name');
+        break;
+    case 'DAT':
+        $('sgroup_field_name').value = ui.render.sGroupGetAttr(id, 'fieldName');
+        $('sgroup_field_value').value = ui.render.sGroupGetAttr(id, 'fieldValue');
+        break;
+    }
+    
+    if (type != 'DAT')
+    {
+        $('sgroup_field_name').value = '';
+        $('sgroup_field_value').value = '';
+    }
+    
+    ui.showDialog('sgroup_properties');
+    $('sgroup_type').activate();
+}
+
+ui.applySGroupProperties = function ()
+{
+    ui.hideDialog('sgroup_properties');
+    
+    var id = $('sgroup_properties').sgroup_id;
+    
+    var type = $('sgroup_type').value;
+    var attrs = 
+    {
+        mul: null,
+        connectivity: '',
+        name: '',
+        subscript: '',
+        fieldName: '',
+        fieldValue: ''
+    };
+
+    switch (type)
+    {
+    case 'SRU':
+        attrs.connectivity = $('sgroup_connection').value;
+        attrs.subscript = $('sgroup_label').value;
+        break;
+    case 'MUL':
+        attrs.mul = parseInt($('sgroup_label').value);
+        break;
+    case 'SUP':
+        attrs.name = $('sgroup_label').value;
+        break;
+    case 'DAT':
+        attrs.fieldName = $('sgroup_field_name').value.strip();
+        attrs.fieldValue = $('sgroup_field_value').value.strip();
+        
+        if (attrs.fieldName == '' || attrs.fieldValue == '')
+        {
+            alert("Please, specify data field name and value.");
+            ui.showDialog('sgroup_properties');
+            return;
+        }
+        break;
+    }
+
+    if (id == null)
+    {
+        ui.addUndoAction(ui.Action.fromSgroupAddition(type, attrs, ui.selection.atoms));
+        ui.updateSelection();
+    } else
+    {
+        ui.addUndoAction(ui.Action.fromSgroupAttrs(id, type, attrs), true);
+        ui.render.update();
+    }
+}
+
+ui.onChange_SGroupLabel = function ()
+{
+    if ($('sgroup_type').value == 'MUL' && !this.value.match(/^[1-9][0-9]{0,2}$/))
+        this.value = '1';
+}
+
+ui.onChange_SGroupType = function ()
+{
+    var type = $('sgroup_type').value;
+    
+    if (type == 'DAT')
+    {
+        $$('.generalSGroup').each(function (el) { el.hide() });
+        $$('.dataSGroup').each(function (el) { el.show() });
+        
+        $('sgroup_field_name').activate();
+        
+        return;
+    }
+
+    $$('.generalSGroup').each(function (el) { el.show() });
+    $$('.dataSGroup').each(function (el) { el.hide() });
+
+    $('sgroup_label').disabled = (type != 'SRU') && (type != 'MUL') && (type != 'SUP');
+    $('sgroup_connection').disabled = (type != 'SRU');
+    
+    if (type == 'MUL' && !$('sgroup_label').value.match(/^[1-9][0-9]{0,2}$/))
+        $('sgroup_label').value = '1';
+    else if (type == 'SRU')
+        $('sgroup_label').value = 'n';
+    else if (type == 'GEN')
+        $('sgroup_label').value = '';
+    else if (type == 'SUP')
+        $('sgroup_label').value = 'name';
 }
 
 //
@@ -1921,7 +2265,7 @@ ui.onChange_AtomValence = function ()
 //
 
 ui.clipboard = null;
-ui.pasted = {atoms: [], bonds: []};
+ui.pasted = {atoms: [], bonds: [], sgroups: []};
 
 ui.isClipboardEmpty = function ()
 {
@@ -1948,15 +2292,24 @@ ui.updateClipboardButtons = function ()
 
 ui.copy = function ()
 {
-    ui.clipboard = new chem.Molecule();
+    ui.clipboard = 
+    {
+        atoms: new Array(),
+        bonds: new Array(),
+        sgroups: new Array()
+    };
     
     var mapping = {};
-    
+
     ui.selection.atoms.each(function (id)
     {
         var new_atom = Object.clone(ui.ctab.atoms.get(id));
         new_atom.pos = ui.render.atomGetPos(id);
-        mapping[id] = ui.clipboard.atoms.add(new chem.Molecule.Atom(new_atom));
+        
+        if (new_atom.sgroup != -1)
+            new_atom.sgroup = -1;
+        
+        mapping[id] = ui.clipboard.atoms.push(new chem.Molecule.Atom(new_atom)) - 1;
     });
     
     ui.selection.bonds.each(function (id)
@@ -1964,30 +2317,104 @@ ui.copy = function ()
         var new_bond = Object.clone(ui.ctab.bonds.get(id));
         new_bond.begin = mapping[new_bond.begin];
         new_bond.end = mapping[new_bond.end];
-        ui.clipboard.bonds.add(new chem.Molecule.Bond(new_bond));
+        ui.clipboard.bonds.push(new chem.Molecule.Bond(new_bond));
+    });
+
+    var sgroup_counts = new Hash();
+
+    // determine selected sgroups
+    ui.selection.atoms.each(function (id)
+    {
+        var sg = ui.render.atomGetSGroups(id);
+        
+        sg.each(function (sid)
+        {
+            var n = sgroup_counts.get(sid);
+            if (Object.isUndefined(n))
+                n = 1;
+            else
+                n++;
+            sgroup_counts.set(sid, n);
+        }, this);
+    }, this);
+    
+    sgroup_counts.each(function (sg)
+    {
+        var sid = parseInt(sg.key);
+
+        if (sg.value == ui.render.sGroupGetAtoms(sid).length)
+        {
+            var new_sgroup = 
+            {
+                type: ui.render.sGroupGetType(sid),
+                mul: ui.render.sGroupGetAttr(sid, 'mul'),
+                connectivity: ui.render.sGroupGetAttr(sid, 'connectivity'),
+                name: ui.render.sGroupGetAttr(sid, 'name'),
+                subscript: ui.render.sGroupGetAttr(sid, 'subscript'),
+                fieldName: ui.render.sGroupGetAttr(sid, 'fieldName'),
+                fieldValue: ui.render.sGroupGetAttr(sid, 'fieldValue'),
+                atoms: ui.render.sGroupGetAtoms(sid).clone()
+            }
+            
+            for (var i = 0; i < new_sgroup.atoms.length; i++)
+            {
+                new_sgroup.atoms[i] = mapping[new_sgroup.atoms[i]];
+            }
+            
+            ui.clipboard.sgroups.push(new_sgroup);
+        }
     });
 }
 
 ui.paste = function ()
 {
     var mapping = {};
+    var id, i;
     
-    ui.clipboard.atoms.each(function (id, atom)
+    for (id = 0; id < ui.clipboard.atoms.length; id++)
     {
+        var atom = ui.clipboard.atoms[id];
         mapping[id] = ui.render.atomAdd(atom.pos, atom);
         ui.pasted.atoms.push(mapping[id]);
-    });
+    }
     
-    ui.clipboard.bonds.each(function (id, bond)
+    for (id = 0; id < ui.clipboard.bonds.length; id++)
     {
+        var bond = ui.clipboard.bonds[id];
         ui.pasted.bonds.push(ui.render.bondAdd(mapping[bond.begin], mapping[bond.end], bond));
-    });
+    }
+    
+    ui.clipboard.sgroups.each(function (sgroup)
+    {
+        var sid = ui.render.sGroupCreate(sgroup.type);
+        
+        ui.render.sGroupSetAttr(sid, 'mul', sgroup.mul);
+        ui.render.sGroupSetAttr(sid, 'connectivity', sgroup.connectivity);
+        ui.render.sGroupSetAttr(sid, 'name', sgroup.name);
+        ui.render.sGroupSetAttr(sid, 'subscript', sgroup.subscript);
+        ui.render.sGroupSetAttr(sid, 'fieldName', sgroup.fieldName);
+        ui.render.sGroupSetAttr(sid, 'fieldValue', sgroup.fieldValue);
+        
+        sgroup.atoms.each(function(id)
+        {
+			ui.render.atomClearSGroups(mapping[id]);
+            ui.render.atomAddToSGroup(mapping[id], sid);
+        }, this);    
+            
+        ui.pasted.sgroups.push(sid);
+    }, this);
 
     ui.selectMode(null);
+    ui.render.update();
 }
 
 ui.cancelPaste = function ()
 {
+    ui.pasted.sgroups.each(function (id)
+    {
+        ui.render.sGroupDelete(id);
+    });
+    
     ui.pasted.atoms.each(function (id)
     {
         ui.render.atomRemove(id);
@@ -1995,6 +2422,7 @@ ui.cancelPaste = function ()
     
     ui.pasted.atoms.clear();
     ui.pasted.bonds.clear();
+    ui.pasted.sgroups.clear();
     
     if (ui.render != null)
         ui.render.update();
@@ -2016,7 +2444,6 @@ ui.onClick_Copy = function ()
         
     ui.copy();
     ui.updateSelection();
-    ui.updateClipboardButtons();
 }
 
 ui.onClick_Paste = function ()
@@ -2027,912 +2454,6 @@ ui.onClick_Paste = function ()
     if (ui.modeType() == ui.MODE.PASTE)
         ui.cancelPaste();
     ui.paste();
-}
-
-//
-// Undo/redo actions
-//
-ui.atomMap = new Array();
-ui.bondMap = new Array();
-
-ui.Action = function ()
-{
-    this.operations = new Array();
-}
-
-ui.Action.OPERATION =
-{
-    ATOM_POS:    1,
-    ATOM_ATTR:   2,
-    ATOM_ADD:    3,
-    ATOM_DEL:    4,
-    BOND_ATTR:   5,
-    BOND_ADD:    6,
-    BOND_DEL:    7, 
-    BOND_FLIP:   8, 
-    CANVAS_LOAD: 9
-};
-
-ui.Action.prototype.addOperation = function (type, params)
-{
-    var op = 
-    {
-        type: type,
-        params: params,
-        inverted: 
-        {
-            type: null,
-            params: null,
-            inverted: null
-        }
-    };
-    
-    op.inverted.inverted = op;
-    this.operations.push(op);
-    return op;
-}
-
-ui.Action.prototype.mergeWith = function (action)
-{
-    this.operations = this.operations.concat(action.operations);
-}
-
-// Perform action and return inverted one
-ui.Action.prototype.perform = function ()
-{
-    var action = new ui.Action();
-    var prev_op = null;
-    var idx = 0;
-    
-    this.operations.each(function (op)
-    {
-        switch (op.type)
-        {
-        case ui.Action.OPERATION.ATOM_POS:
-            op.inverted.type = ui.Action.OPERATION.ATOM_POS;
-            op.inverted.params =
-            {
-                id: op.params.id,
-                pos: ui.render.atomGetPos(ui.atomMap[op.params.id])
-            };
-            ui.render.atomMove(ui.atomMap[op.params.id], op.params.pos);
-            break;
-            
-        case ui.Action.OPERATION.ATOM_ATTR:
-            op.inverted.type = ui.Action.OPERATION.ATOM_ATTR;
-            op.inverted.params =
-            {
-                id: op.params.id,
-                attr_name: op.params.attr_name,
-                attr_value: ui.render.atomGetAttr(ui.atomMap[op.params.id], op.params.attr_name)
-            };
-            ui.render.atomSetAttr(ui.atomMap[op.params.id], op.params.attr_name, op.params.attr_value);
-            break;
-            
-        case ui.Action.OPERATION.ATOM_ADD:
-            op.inverted.type = ui.Action.OPERATION.ATOM_DEL;
-            
-            var id = ui.render.atomAdd(op.params.pos, op.params.atom);
-            
-            if (op.inverted.params == null)
-            {
-                op.inverted.params =
-                {
-                    id: ui.atomMap.push(id) - 1
-                };
-            } else
-                ui.atomMap[op.inverted.params.id] = id;
-            break;
-            
-        case ui.Action.OPERATION.ATOM_DEL:
-            op.inverted.type = ui.Action.OPERATION.ATOM_ADD;
-            op.inverted.params =
-            {
-                pos: ui.render.atomGetPos(ui.atomMap[op.params.id]),
-                atom: ui.ctab.atoms.get(ui.atomMap[op.params.id])
-            };
-            ui.render.atomRemove(ui.atomMap[op.params.id]);
-            break;
-            
-        case ui.Action.OPERATION.BOND_ATTR:
-            op.inverted.type = ui.Action.OPERATION.BOND_ATTR;
-            op.inverted.params =
-            {
-                id: op.params.id,
-                attr_name: op.params.attr_name,
-                attr_value: ui.render.bondGetAttr(ui.bondMap[op.params.id], op.params.attr_name)
-            };
-            ui.render.bondSetAttr(ui.bondMap[op.params.id], op.params.attr_name, op.params.attr_value);
-            break;
-            
-        case ui.Action.OPERATION.BOND_ADD:
-            op.inverted.type = ui.Action.OPERATION.BOND_DEL;
-            
-            var id = ui.render.bondAdd(ui.atomMap[op.params.begin], ui.atomMap[op.params.end], op.params.bond);
-            
-            if (op.inverted.params == null)
-            {
-                op.inverted.params =
-                {
-                    id: ui.bondMap.push(id) - 1
-                };
-            } else
-                ui.bondMap[op.inverted.params.id] = id;
-            break;
-            
-        case ui.Action.OPERATION.BOND_DEL:
-            var bond = ui.ctab.bonds.get(ui.bondMap[op.params.id]);
-            var i;
-            var begin = ui.atomMap.indexOf(bond.begin);
-            var end = ui.atomMap.indexOf(bond.end);
-
-            op.inverted.type = ui.Action.OPERATION.BOND_ADD;
-            op.inverted.params =
-            {
-                begin: begin,
-                end:   end,
-                bond:  bond
-            };
-            ui.render.bondRemove(ui.bondMap[op.params.id]);
-            break;
-            
-        case ui.Action.OPERATION.BOND_FLIP:
-            op.inverted.type = ui.Action.OPERATION.BOND_FLIP;
-            op.inverted.params =
-            {
-                id: op.params.id
-            };
-            
-            ui.bondMap[op.params.id] = ui.render.bondFlip(ui.bondMap[op.params.id]);
-            break;
-            
-        case ui.Action.OPERATION.CANVAS_LOAD:
-            op.inverted.type = ui.Action.OPERATION.CANVAS_LOAD;
-            
-            if (op.params.atom_map == null)
-            {
-                op.params.atom_map = new Array();
-                op.params.bond_map = new Array();
-                
-                op.params.ctab.atoms.each(function (aid)
-                {
-                    op.params.atom_map.push(parseInt(aid));
-                }, this);
-                
-                op.params.ctab.bonds.each(function (bid)
-                {
-                    op.params.bond_map.push(parseInt(bid));
-                }, this);
-            }
-            
-            op.inverted.params =
-            {
-                ctab: ui.ctab,
-                atom_map: ui.atomMap,
-                bond_map: ui.bondMap
-            };
-            
-            ui.ctab = op.params.ctab;
-            ui.render.setMolecule(ui.ctab);
-            ui.atomMap = op.params.atom_map;
-            ui.bondMap = op.params.bond_map;
-            break;
-            
-        default:
-            return;
-        }
-        action.operations.push(op.inverted);
-        idx++;
-    }, this);
-    
-    action.operations.reverse();
-    
-    return action;
-}
-
-ui.Action.prototype.isDummy = function ()
-{
-    if (this.operations.detect(function (op)
-    {
-        switch (op.type)
-        {
-        case ui.Action.OPERATION.ATOM_POS:
-            if (ui.render.atomGetPos(ui.atomMap[op.params.id]).equals(op.params.pos))
-                return false;
-            return true;
-        case ui.Action.OPERATION.ATOM_ATTR:
-            if (ui.render.atomGetAttr(ui.atomMap[op.params.id], op.params.attr_name) == op.params.attr_value)
-                return false;
-            return true;
-        case ui.Action.OPERATION.BOND_ATTR:
-            if (ui.render.bondGetAttr(ui.bondMap[op.params.id], op.params.attr_name) == op.params.attr_value)
-                return false;
-            return true;
-        }
-        return true;
-    }, this) != null)
-    {
-        return false;
-    }
-    
-    return true;
-}
-
-ui.Action.fromAtomPos = function (id, pos)
-{
-    var action = new ui.Action();
-
-    action.addOperation(ui.Action.OPERATION.ATOM_POS,
-    {
-        id: ui.atomMap.indexOf(id),
-        pos: ui.render.atomGetPos(id)
-    });
-    
-    if (arguments.length > 1)
-        ui.render.atomMove(id, pos);
-    
-    return action;
-}
-
-ui.Action.fromSelectedAtomsPos = function ()
-{
-    var action = new ui.Action();
-
-    ui.selection.atoms.each(function (id)
-    {
-        action.addOperation(ui.Action.OPERATION.ATOM_POS,
-        {
-            id: ui.atomMap.indexOf(id),
-            pos: ui.render.atomGetPos(id)
-        });
-    }, this);
-    
-    return action;
-}
-
-ui.Action.fromBondPos = function (id)
-{
-    var action = new ui.Action();
-    var bond = ui.ctab.bonds.get(id);
-
-    action.addOperation(ui.Action.OPERATION.ATOM_POS,
-    {
-        id: ui.atomMap.indexOf(bond.begin),
-        pos: ui.render.atomGetPos(bond.begin)
-    });
-    action.addOperation(ui.Action.OPERATION.ATOM_POS,
-    {
-        id: ui.atomMap.indexOf(bond.end),
-        pos: ui.render.atomGetPos(bond.end)
-    });
-    
-    return action;
-}
-
-ui.Action.fromAtomAttrs = function (id, attrs)
-{
-    var action = new ui.Action();
-    var id_map = ui.atomMap.indexOf(id);
-
-    attrs = new Hash(attrs);
-    
-    attrs.each(function (attr)
-    {
-        action.addOperation(ui.Action.OPERATION.ATOM_ATTR,
-        {
-            id: id_map,
-            attr_name: attr.key,
-            attr_value: ui.render.atomGetAttr(id, attr.key)
-        });
-        ui.render.atomSetAttr(id, attr.key, attr.value);
-    }, this);
-    
-    return action;
-}
-
-ui.Action.fromSelectedAtomsAttrs = function (attrs)
-{
-    var action = new ui.Action();
-    
-    attrs = new Hash(attrs);
-        
-    ui.selection.atoms.each(function (id)
-    {
-        var id_map = ui.atomMap.indexOf(id);
-
-        attrs.each(function (attr)
-        {
-            action.addOperation(ui.Action.OPERATION.ATOM_ATTR,
-            {
-                id: id_map,
-                attr_name: attr.key,
-                attr_value: ui.render.atomGetAttr(id, attr.key)
-            });
-            ui.render.atomSetAttr(id, attr.key, attr.value);
-        }, this);
-    }, this);
-    
-    return action;
-}
-
-ui.Action.fromBondAttrs = function (id, attrs)
-{
-    var action = new ui.Action();
-    var id_map = ui.bondMap.indexOf(id);
-
-    attrs = new Hash(attrs);
-
-    attrs.each(function (attr)
-    {
-        action.addOperation(ui.Action.OPERATION.BOND_ATTR,
-        {
-            id: id_map,
-            attr_name: attr.key,
-            attr_value: ui.render.bondGetAttr(id, attr.key)
-        });
-        ui.render.bondSetAttr(id, attr.key, attr.value);
-    }, this);
-    return action;
-}
-
-ui.Action.fromSelectedBondsAttrs = function (attrs)
-{
-    var action = new ui.Action();
-
-    attrs = new Hash(attrs);
-
-    ui.selection.bonds.each(function (id)
-    {
-        var id_map = ui.bondMap.indexOf(id);
-
-        attrs.each(function (attr)
-        {
-            action.addOperation(ui.Action.OPERATION.BOND_ATTR,
-            {
-                id: id_map,
-                attr_name: attr.key,
-                attr_value: ui.render.bondGetAttr(id, attr.key)
-            });
-            ui.render.bondSetAttr(id, attr.key, attr.value);
-        }, this);
-    }, this);
-    return action;
-}
-
-ui.Action.fromAtomAddition = function (pos, atom)
-{
-    var action = new ui.Action();
-    
-    action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-    {
-        id: ui.atomMap.push(ui.render.atomAdd(pos, atom)) - 1
-    });
-    
-    return action;
-}
-
-ui.Action.fromBondAddition = function (bond, begin, end, pos, pos2)
-{
-    var action = new ui.Action();
-    var begin_op = null;
-    var end_op = null;
-    
-    if (!Object.isNumber(begin))
-    {
-        begin = ui.atomMap.push(ui.render.atomAdd(pos, begin)) - 1;
-        begin_op = action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-        {
-            id: begin
-        });
-        
-        pos = pos2;
-        begin = ui.atomMap[begin];
-    }
-    
-    if (!Object.isNumber(end))
-    {
-        end = ui.atomMap.push(ui.render.atomAdd(pos, end)) - 1;
-        end_op = action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-        {
-            id: end
-        });
-
-        end = ui.atomMap[end];
-    }
-    
-    action.addOperation(ui.Action.OPERATION.BOND_DEL,
-    {
-        id: ui.bondMap.push(ui.render.bondAdd(begin, end, bond)) - 1
-    });
-    
-    action.operations.reverse();
-    
-    return [action, begin, end];
-}
-
-ui.Action.fromAtomDeletion = function (id)
-{
-    var action = new ui.Action();
-    
-    ui.render.atomGetNeighbors(id).each(function (nei)
-    {
-        action.addOperation(ui.Action.OPERATION.BOND_DEL,
-        {
-            id: ui.bondMap.indexOf(nei.bid)
-        });
-        if (ui.render.atomGetDegree(nei.aid) == 1)
-        {
-            action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-            {
-                id: ui.atomMap.indexOf(nei.aid)
-            });
-        }
-    }, this);
-    
-    action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-    {
-        id: ui.atomMap.indexOf(id)
-    });
-
-    return action.perform();
-}
-
-ui.Action.fromBondDeletion = function (id)
-{
-    var action = new ui.Action();
-    var bond = ui.ctab.bonds.get(id);
-    
-    action.addOperation(ui.Action.OPERATION.BOND_DEL,
-    {
-        id: ui.bondMap.indexOf(id)
-    });
-    
-    if (ui.render.atomGetDegree(bond.begin) == 1)
-    {
-        action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-        {
-            id: ui.atomMap.indexOf(bond.begin)
-        });
-    }
-    
-    if (ui.render.atomGetDegree(bond.end) == 1)
-    {
-        action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-        {
-            id: ui.atomMap.indexOf(bond.end)
-        });
-    }
-
-    return action.perform();
-}
-
-ui.Action.fromFragmentAddition = function (atoms, bonds)
-{
-    var action = new ui.Action();
-    
-    /*
-    atoms.each(function (aid)
-    {
-        ui.render.atomGetNeighbors(aid).each(function (nei)
-        {
-            if (ui.selection.bonds.indexOf(nei.bid) == -1)
-                ui.selection.bonds = ui.selection.bonds.concat([nei.bid]);
-        }, this);
-    }, this);
-    */
-    
-    // TODO: merge close atoms and bonds
-    
-    bonds.each(function (bid)
-    {
-        var idx = ui.bondMap.indexOf(bid);
-        
-        if (idx == -1)
-            idx = ui.bondMap.push(bid) - 1;
-            
-        action.addOperation(ui.Action.OPERATION.BOND_DEL,
-        {
-            id: idx
-        });
-    }, this);
-    
-
-    atoms.each(function (aid)
-    {
-        var idx = ui.atomMap.indexOf(aid);
-        
-        if (idx == -1)
-            idx = ui.atomMap.push(aid) - 1;
-            
-        action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-        {
-            id: idx
-        });
-    }, this);
-    
-    return action;
-}
-
-ui.Action.fromFragmentDeletion = function ()
-{
-    var action = new ui.Action();
-    
-    ui.selection.atoms.each(function (aid)
-    {
-        ui.render.atomGetNeighbors(aid).each(function (nei)
-        {
-            if (ui.selection.bonds.indexOf(nei.bid) == -1)
-                ui.selection.bonds = ui.selection.bonds.concat([nei.bid]);
-        }, this);
-    }, this);
-    
-    ui.selection.bonds.each(function (bid)
-    {
-        action.addOperation(ui.Action.OPERATION.BOND_DEL,
-        {
-            id: ui.bondMap.indexOf(bid)
-        });
-        
-        var bond = ui.ctab.bonds.get(bid);
-        
-        if (ui.selection.atoms.indexOf(bond.begin) == -1 && ui.render.atomGetDegree(bond.begin) == 1)
-        {
-            action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-            {
-                id: ui.atomMap.indexOf(bond.begin)
-            });
-        }
-        if (ui.selection.atoms.indexOf(bond.end) == -1 && ui.render.atomGetDegree(bond.end) == 1)
-        {
-            action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-            {
-                id: ui.atomMap.indexOf(bond.end)
-            });
-        }
-    }, this);
-    
-
-    ui.selection.atoms.each(function (aid)
-    {
-        action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-        {
-            id: ui.atomMap.indexOf(aid)
-        });
-    }, this);
-
-    return action.perform();
-}
-
-ui.Action.fromAtomMerge = function (src_id, dst_id)
-{
-    var action = new ui.Action();
-    var dst_idx = ui.atomMap.indexOf(dst_id);
-    
-    ui.render.atomGetNeighbors(src_id).each(function (nei)
-    {
-        var bond = ui.ctab.bonds.get(nei.bid);
-        var begin, end;
-        
-        if (bond.begin == nei.aid)
-        {
-            begin = ui.atomMap.indexOf(nei.aid);
-            end = dst_idx;
-        } else 
-        {
-            begin = dst_idx;
-            end = ui.atomMap.indexOf(nei.aid);
-        }
-        if (dst_id != bond.begin && dst_id != bond.end && ui.ctab.findBondId(ui.atomMap[begin], ui.atomMap[end]) == -1) // TODO: improve this
-        {
-            action.addOperation(ui.Action.OPERATION.BOND_ADD,
-            {
-                begin: begin,
-                end: end,
-                bond: bond
-            });
-        }
-        action.addOperation(ui.Action.OPERATION.BOND_DEL,
-        {
-            id: ui.bondMap.indexOf(nei.bid)
-        });
-    }, this);
-    
-    var attrs = new Hash(ui.ctab.atoms.get(src_id));
-    
-    attrs.each(function (attr)
-    {
-        action.addOperation(ui.Action.OPERATION.ATOM_ATTR,
-        {
-            id: dst_idx,
-            attr_name: attr.key,
-            attr_value: attr.value
-        });
-    }, this);
-
-    action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-    {
-        id: ui.atomMap.indexOf(src_id)
-    });
-
-    return action.perform();
-}
-
-ui.Action.fromBondFlipping = function (id)
-{
-    var action = new ui.Action();
-    
-    action.addOperation(ui.Action.OPERATION.BOND_FLIP,
-    {
-        id: ui.bondMap.indexOf(id)
-    });
-    
-    return action.perform();
-}
-
-ui.Action.fromPatternOnCanvas = function (pos, pattern)
-{
-    var angle = 2 * Math.PI / pattern.length;
-    var l = ui.scale / (2 * Math.sin(angle / 2));
-    var v = new chem.Vec2(0, -l);
-
-    var action = new ui.Action();
-
-    pattern.each(function ()
-    {
-        action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-        {
-            id: ui.atomMap.push(ui.render.atomAdd(chem.Vec2.sum(pos, v), {label: 'C'})) - 1
-        });
-        
-        v = v.rotate(angle);
-    }, this);
-    
-    var i = 0;
-    
-    action.operations.each(function (op)
-    {
-        var begin = ui.atomMap[op.params.id];
-        var end = ui.atomMap[action.operations[(i + 1) % pattern.length].params.id];
-        
-        action.addOperation(ui.Action.OPERATION.BOND_DEL,
-        {
-            id: ui.bondMap.push(ui.render.bondAdd(begin, end, {type: pattern[i]})) - 1
-        });
-        
-        i++;
-    }, this);
-    
-    action.operations.reverse();
-    
-    return action;
-}
-
-ui.Action.fromPatternOnAtom = function (aid, pattern)
-{
-    if (ui.render.atomGetDegree(aid) != 1)
-    {
-        var atom = ui.atomForNewBond(aid);
-        var action_res = ui.Action.fromBondAddition({type: 1}, aid, atom.atom, atom.pos);
-        
-        var action = ui.Action.fromPatternOnElement(action_res[2], pattern, true);
-        
-        action.mergeWith(action_res[0]);
-        
-        return action;
-    }
-    
-    return ui.Action.fromPatternOnElement(aid, pattern, true);
-}
-
-ui.Action.fromPatternOnElement = function (id, pattern, on_atom)
-{
-    var angle = (pattern.length - 2) * Math.PI / (2 * pattern.length);
-    var first_idx = 0; //pattern.indexOf(bond.type) + 1; // 0 if there's no
-    var pos = null; // center pos
-    var v = null; // rotating vector from center
-    
-    if (on_atom)
-    {
-        var nei_id = ui.render.atomGetNeighbors(id)[0].aid;
-        var atom_pos = ui.render.atomGetPos(id);
-        
-        pos = chem.Vec2.diff(atom_pos, ui.render.atomGetPos(nei_id));
-        pos = pos.scaled(ui.scale / pos.length());
-        v = pos.negated();
-        pos.add_(atom_pos);
-        angle = Math.PI - 2 * angle;
-    } else
-    {
-        var bond = ui.ctab.bonds.get(id);
-        var begin_pos = ui.render.atomGetPos(bond.begin);
-        var end_pos = ui.render.atomGetPos(bond.end);
-        
-        var v = chem.Vec2.diff(end_pos, begin_pos);
-        var l = v.length() / (2 * Math.cos(angle));
-        
-        v = v.scaled(l / v.length());
-
-        var v_sym = v.rotate(-angle);
-        v = v.rotate(angle);
-        
-        var pos = chem.Vec2.sum(begin_pos, v);
-        var pos_sym = chem.Vec2.sum(begin_pos, v_sym);
-        
-        var cnt = 0, bcnt = 0;
-        var cnt_sym = 0, bcnt_sym = 0;
-        
-        // TODO: improve this enumeration
-        ui.ctab.atoms.each(function (a_id)
-        {
-            if (chem.Vec2.dist(pos, ui.render.atomGetPos(a_id)) < l * 1.1)
-            {
-                cnt++;
-                bcnt += ui.render.atomGetDegree(a_id);
-            } else if (chem.Vec2.dist(pos_sym, ui.render.atomGetPos(a_id)) < l * 1.1)
-            {
-                cnt_sym++;
-                bcnt_sym += ui.render.atomGetDegree(a_id);
-            }
-        });
-        
-        angle = Math.PI - 2 * angle;
-        
-        if (cnt > cnt_sym || (cnt == cnt_sym && bcnt > bcnt_sym))
-        {
-            pos = pos_sym;
-            v = v_sym;
-        } else
-            angle = -angle;
-        
-        v = v.negated();
-    }
-
-    var action = new ui.Action();
-    var atom_ids = new Array(pattern.length);
-    
-    if (!on_atom)
-    {
-        atom_ids[0] = bond.begin;
-        atom_ids[pattern.length - 1] = bond.end;
-    }
-    
-    (on_atom ? pattern.length : pattern.length-1).times(function (idx)
-    {
-        if (idx > 0 || on_atom)
-        {
-            var new_pos = chem.Vec2.sum(pos, v);
-            
-            var a = ui.render.findClosestAtom(ui.render.client2Obj(new_pos), ui.scale * 0.1);
-            
-            if (a == null)
-            {
-                atom_ids[idx] = ui.render.atomAdd(new_pos, {label: 'C'});
-                
-                action.addOperation(ui.Action.OPERATION.ATOM_DEL,
-                {
-                    id: ui.atomMap.push(atom_ids[idx]) - 1
-                });
-            } else
-                atom_ids[idx] = a.id;
-        }
-        
-        v = v.rotate(angle);
-    }, this);
-    
-    var i = 0;
-    
-    pattern.length.times(function (idx)
-    {
-        var begin = atom_ids[idx];
-        var end = atom_ids[(idx + 1) % pattern.length];
-        var bond_type = pattern[(first_idx + idx) % pattern.length];
-
-        if (!ui.render.checkBondExists(begin, end))
-        {
-            var bond_id = ui.render.bondAdd(begin, end, {type: bond_type});
-            
-            action.addOperation(ui.Action.OPERATION.BOND_DEL,
-            {
-                id: ui.bondMap.push(bond_id) - 1
-            });
-        } else
-        {
-            if (bond_type == chem.Molecule.BOND.TYPE.AROMATIC)
-            {
-                var nei = ui.render.atomGetNeighbors(begin);
-                
-                nei.find(function (n)
-                {
-                    if (n.aid == end)
-                    {
-                        var src_type = ui.render.bondGetAttr(n.bid, 'type');
-                        
-                        if (src_type != bond_type)
-                        {
-                            action.addOperation(ui.Action.OPERATION.BOND_ATTR,
-                            {
-                                id: ui.bondMap.indexOf(n.bid),
-                                attr_name: 'type',
-                                attr_value: src_type
-                            });
-                            ui.render.bondSetAttr(n.bid, 'type', bond_type);
-                        }
-                        return true;
-                    }
-                    return false;
-                }, this);
-            }
-        }
-        
-        i++;
-    }, this);
-    
-    action.operations.reverse();
-    
-    return action;
-}
-
-ui.Action.fromNewCanvas = function (ctab)
-{
-    var action = new ui.Action();
-    
-    action.addOperation(ui.Action.OPERATION.CANVAS_LOAD,
-    {
-        ctab: ctab,
-        atom_map: null,
-        bond_map: null
-    });
-    
-    return action.perform();
-}
-
-ui.addUndoAction = function (action, check_dummy)
-{
-    if (action == null)
-        return;
-        
-    if (check_dummy != true || !action.isDummy())
-    {
-        ui.undoStack.push(action);
-        ui.redoStack.clear();
-        ui.updateActionButtons();
-    }
-}
-
-ui.removeDummyAction = function ()
-{
-    if (ui.undoStack.length != 0 && ui.undoStack.last().isDummy())
-    {
-        ui.undoStack.pop();
-        ui.updateActionButtons();
-    }
-}
-
-ui.updateActionButtons = function ()
-{
-    if (ui.undoStack.length == 0)
-        $('undo').addClassName('buttonDisabled');
-    else
-        $('undo').removeClassName('buttonDisabled');
-
-    if (ui.redoStack.length == 0)
-        $('redo').addClassName('buttonDisabled');
-    else
-        $('redo').removeClassName('buttonDisabled');
-}
-
-ui.undo = function ()
-{
-    ui.redoStack.push(ui.undoStack.pop().perform());
-    ui.updateActionButtons();
-    ui.updateSelection();
-}
-
-ui.redo = function ()
-{
-    ui.undoStack.push(ui.redoStack.pop().perform());
-    ui.updateActionButtons();
-    ui.updateSelection();
 }
 
 ui.onClick_Undo = function ()
