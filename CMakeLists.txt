@@ -34,6 +34,12 @@ if(NOT WIN32)
   else(NOT APPLE)
     option(IPHONE "Cross-compile for IPHONE" OFF)
 
+	if (IPHONE)
+	  set(IMAGO_C_FLAGS "${IMAGO_C_FLAGS} -mno-thumb -ffast-math -fvisibility=hidden")
+	endif (IPHONE)
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IMAGO_C_FLAGS}")
+    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IMAGO_C_FLAGS}")
+
     LOCAL_PNG()
     LOCAL_JPEG()
 
