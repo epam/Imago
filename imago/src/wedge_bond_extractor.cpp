@@ -503,8 +503,8 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
 
    int r;
 
-   if (_thicknesses[g.getBondBegin(e1)] >= _thicknesses[g.getBondEnd(e1)])
-      ;//g.reverseEdge(e1);
+   //if (_thicknesses[g.getBondBegin(e1)] >= _thicknesses[g.getBondEnd(e1)])
+      //g.reverseEdge(e1);
 
    r = _thicknesses[g.getBondEnd(e1)];
    if (r / _mean_thickness < thick_ratio_eps)
