@@ -43,6 +43,10 @@ namespace imago
 
       Segmentator::segmentate(_img, segments);
 
+      mol.clear();
+      WedgeBondExtractor wbe(segments, _img);
+      wbe.singleDownFetch(mol);
+
       RecognitionSettings &rs = getSettings();
       int i;
 
@@ -56,13 +60,8 @@ namespace imago
             }
          }
 
-         mol.clear();
          layer_symbols.clear();
          layer_graphics.clear();
-
-
-         WedgeBondExtractor wbe(segments, _img);
-         wbe.singleDownFetch(mol);
 
          Separator sep(segments, _img);
 

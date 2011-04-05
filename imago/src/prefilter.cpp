@@ -400,7 +400,9 @@ static void _prefilterInternal( const Image &raw, Image &image )
    _removeSpots(image, 255, 2);
 
    OrientationFinder of(_cr);
+   LMARK;
    int rotation = of.findFromImage(image);
+   LPRINT(1, "OrientationFinder");
    if (rotation != 0)
    {
       LPRINT(0, "Found rotation %d", 90 * (4 - rotation));
