@@ -12,5 +12,5 @@ SOURCE_DIR=$(pwd)
 
 mkdir -p $BUILD_DIR
 cd $BUILD_DIR
-/opt/local/bin/cmake -DIPHONE=ON -G Xcode $SOURCE_DIR
+/opt/local/bin/cmake -DIPHONE=ON -DEMBED_FONT=OFF -G Xcode $SOURCE_DIR
 cd -
