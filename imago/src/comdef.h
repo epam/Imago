@@ -21,6 +21,17 @@
 #ifndef _comdef_h
 #define _comdef_h
 
+#include "boost/graph/properties.hpp"
+namespace boost
+{
+   enum vertex_seg_ptr_t { vertex_seg_ptr };
+   enum vertex_pos_t { vertex_pos };
+   enum edge_type_t { edge_type };
+   BOOST_INSTALL_PROPERTY(vertex, seg_ptr);
+   BOOST_INSTALL_PROPERTY(vertex, pos);
+   BOOST_INSTALL_PROPERTY(edge, type);
+}
+
 #define DO_LOG
 
 #ifndef NDEBUG
@@ -62,17 +73,6 @@ namespace imago
    {
       return a > 0 ? a : -a;
    }
-}
-
-#include "boost/graph/properties.hpp"
-namespace boost
-{
-   enum vertex_seg_ptr_t { vertex_seg_ptr };
-   enum vertex_pos_t { vertex_pos };
-   enum edge_type_t { edge_type };
-   BOOST_INSTALL_PROPERTY(vertex, seg_ptr);
-   BOOST_INSTALL_PROPERTY(vertex, pos);
-   BOOST_INSTALL_PROPERTY(edge, type);
 }
 
 #define __max(a, b) (((a) < (b)) ? (b) : (a))

@@ -282,13 +282,13 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    ThinFilter2 tf(thinseg);
    tf.apply();
 
-#ifndef NDEBUG
+#ifdef DEBUG
    printf(" (%d ic)", features.inner_contours_count);
 #endif
    
    if (isCircle(thinseg))
    {
-#ifndef NDEBUG
+#ifdef DEBUG
       printf(" circle ");
 #endif
       return 'O';
@@ -322,9 +322,10 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    if (err_n[min_n] > 100)
       err_n[min_n] = 100;
 
+#ifdef DEBUG
    printf(" h %.2lf", err_h[min_h]);
    printf(" n %.2lf", err_n[min_n]);
-   
+#endif
    if (err_n[min_n] < 3.45) //1.8
    {
       if (err_h[min_h] < err_n[min_n])
@@ -340,7 +341,7 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    double err;
    char c = _cr.recognize(seg, candidates, &err);
 
-#ifndef NDEBUG
+#ifdef DEBUG
    if (c != 0)
       printf(" [%c] %.2lf ", c, err);
 #endif

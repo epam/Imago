@@ -151,9 +151,12 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
    if (d > _multiBondErr * _avgBondLength)
       return false;
 
+#ifdef DEBUG
    LPRINT(0, "found double boud:"); 
    LPRINT(0, "(%.1lf %.1lf) - (%.1lf %.1lf)", fb_pos.x, fb_pos.y, fe_pos.x, fe_pos.y);
    LPRINT(0, "(%.1lf %.1lf) - (%.1lf %.1lf)", sb_pos.x, sb_pos.y, se_pos.x, se_pos.y);
+#endif /* DEBUG */
+
    return true;
 }
 
