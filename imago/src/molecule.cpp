@@ -167,14 +167,21 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
       _mapping[newVertex] = &l;
    }
 
+   std::deque<Skeleton::Vertex> deck;
+
    //Removing dots without labels
-   VertexIterator vi, vi_next, vi_end;
-   boost::tie(vi, vi_end) = boost::vertices(_g);
-   for (vi_next = vi, ++vi_next; vi != vi_end; vi = vi_next, ++vi_next)
+   
+
+   BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
    {
-      if (boost::degree(*vi, _g) == 0 && _mapping.find(*vi) == _mapping.end())
-         boost::remove_vertex(*vi, _g);
+      if (boost::degree(v, _g) == 0 && _mapping.find(v) == _mapping.end())
+         deck.push_back(v);
    }
+   
+
+
+   BOOST_FOREACH(Skeleton::Vertex v, deck)
+      boost::remove_vertex(v, _g);
 }
 
 void Molecule::aromatize( Points2d &aromatic_centers )
