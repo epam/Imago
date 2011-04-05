@@ -41,20 +41,26 @@ namespace imago
       Molecule mol;
       SegmentDeque segments, layer_symbols, layer_graphics;
 
+      Segmentator::segmentate(_img, segments);
+
       RecognitionSettings &rs = getSettings();
       int i;
 
       for (i = 0; i < 4; i++)
       {
          if (i > 0)
-            _img.rotate90();
+         {
+            BOOST_FOREACH(Segment * &s, segments)
+            {
+               s->rotate90();
+            }
+         }
 
          mol.clear();
-         segments.clear();
          layer_symbols.clear();
          layer_graphics.clear();
 
-         Segmentator::segmentate(_img, segments);
+
          WedgeBondExtractor wbe(segments, _img);
          wbe.singleDownFetch(mol);
 
