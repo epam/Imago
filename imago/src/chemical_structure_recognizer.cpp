@@ -261,7 +261,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       mol.aromatize(ringCenters);
 
-      TIME(wbe.fixStereoCenters(mol), "Fixing stereo bonds directions");
+      TIME(wbe.fixStereoCenters(mol), "Fixing stereo bonds directions");      
 
       LPRINT(0, "Compound recognized with #%i config", (int)rs["CfgNumber"] + 1);
 

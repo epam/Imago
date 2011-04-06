@@ -85,7 +85,7 @@ void WedgeBondExtractor::_fitSingleDownBorders( Vec2d &p1, Vec2d &p2, Vec2d &v1,
 int WedgeBondExtractor::singleDownFetch( Skeleton &g )
 {
    int sdb_count = 0;
-   double eps = 3.3, angle;
+   double eps = 3.3, angle;   
 
    std::vector<SingleDownBond> sd_bonds;
    std::vector<SegCenter> segs_info;
@@ -108,7 +108,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
       segs_info[i].seginfo_index = i;
    }
 
-   int f = 0;
+//   int f = 0;
 
    //TODO: maybe better a LOT
    for (int i = 0; i != (int)segs_info.size(); i++)
@@ -116,7 +116,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
       {
          if (segs_info[i].used && segs_info[j].used && abs(segs_info[i].angle - segs_info[j].angle) < 0.1)
          {
-            f++;
+            //f++;
             DoubleVector distances;
             Vec2d p1 = segs_info[i].center, p2 = segs_info[j].center;   
 
@@ -263,6 +263,9 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
    }
 
    g.recalcAvgBondLength();
+
+   Skeleton::SkeletonGraph graph = g.getGraph();   
+  
    return sdb_count;
 }
 

@@ -478,11 +478,14 @@ int main( int argc, char *argv[] )
       Image img;
       
       //prefilterFile(argv[1], img);
-      prefilterFile("../../../data/from_caduff_2/img_0019.jpg", img);
+      //prefilterFile("../../../data/from_caduff_2/img_0032.jpg", img);
+      prefilterFile("../../../data/iphone3.jpg", img);
 
       ImageUtils::saveImageToFile(img, "result.png");
 
       Molecule mol;
+
+      getSettings().set("DebugSession", true);
 
       gSession.get()->recognizer().image2mol(img, mol);
 

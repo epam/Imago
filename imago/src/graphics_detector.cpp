@@ -196,9 +196,149 @@ int GraphicsDetector::_countBorderBlackPoints( const Image &img ) const
    return count;
 }
 
+struct _AngRadius
+{
+   float ang;
+   float radius;
+};
+
+static int _cmp_ang (const void *p1, const void *p2)
+{
+   const _AngRadius &f1 = *(const _AngRadius *)p1;
+   const _AngRadius &f2 = *(const _AngRadius *)p2;
+
+   if (f1.ang < f2.ang)
+      return -1;
+   return 1;
+}
+
+bool isCircle (Image &seg)
+{
+   int w = seg.getWidth();
+   int h = seg.getHeight();
+   int i, j;
+   float centerx = 0, centery = 0;
+   int npoints = 0;
+
+   for (j = 0; j < h; j++)
+   {
+      for (i = 0; i < w; i++)
+      {
+         if (seg.getByte(i, j) == 0)
+         {
+            centerx += i;
+            centery += j;
+            npoints++;
+         }
+      }
+   }
+
+   if (npoints == 0)
+      throw Exception("empty fragment?");
+
+   centerx /= npoints;
+   centery /= npoints;
+
+   _AngRadius *points = new _AngRadius[npoints + 1];
+   int k = 0;
+   float avg_radius = 0;
+
+   for (i = 0; i < w; i++)
+      for (j = 0; j < h; j++)
+      {
+         if (seg.getByte(i, j) == 0)
+         {
+            float radius = sqrt((i - centerx) * (i - centerx) +
+                                (j - centery) * (j - centery));
+            points[k].radius = radius;
+            avg_radius += radius;
+            float cosine = (i - centerx) / radius;
+            float sine = (centery - j) / radius;
+            float ang = (float)atan2(sine, cosine);
+            if (ang < 0)
+               ang += 2 * PI;
+            points[k].ang = ang;
+            k++;
+         }
+      }
+
+   qsort(points, npoints, sizeof(_AngRadius), _cmp_ang);
+   
+   points[npoints].ang = points[0].ang + 2 * PI;
+   points[npoints].radius = points[0].radius;
+
+   for (i = 0; i < npoints; i++)
+   {
+      float gap = points[i + 1].ang - points[i].ang;
+      float r1 = fabs(points[i].radius);
+      float r2 = fabs(points[i + 1].radius);
+      float gapr = 1.f;
+
+      if (r1 > r2 && r2 > 0.00001)
+         gapr = r1 / r2;
+      else if (r2 < r1 && r1 > 0.00001)
+         gapr = r2 / r1;
+
+      if (gap < 0.1 && gapr > 2)
+      {
+         #ifdef DEBUG
+         printf("large radios gap: %3f -> %3f at %3f\n", r1, r2, points[i].ang);
+         #endif
+         delete[] points;
+         return false;
+      }
+
+      if (gap > 1.0)
+      {
+         #ifdef DEBUG
+         printf("large gap: %3f at %3f\n", gap, points[i].ang);
+         #endif
+         delete[] points;
+         return false;
+      }
+      if (gap > PI / 8 && (points[i].ang < PI / 8 || points[i].ang > 7 * PI / 4))
+      {
+         #ifdef DEBUG
+         printf("C-like gap: %3f at %3f\n", gap, points[i].ang);
+         #endif
+         delete[] points;
+         return false;
+      }
+   }
+
+   avg_radius /= npoints;
+
+   if (avg_radius < 0.0001)
+   {
+      #ifdef DEBUG
+      printf("degenerate\n");
+      #endif
+      delete[] points;
+      return false;
+   }
+
+   float disp = 0;
+
+   for (i = 0; i < npoints; i++)
+      disp += (points[i].radius - avg_radius) * (points[i].radius - avg_radius);
+
+   disp /= npoints;
+   float ratio = sqrt(disp) / avg_radius;
+
+   #ifdef DEBUG
+   printf("avgr %.3f dev %.3f ratio %.3f\n",
+          avg_radius, sqrt(disp), ratio);
+   #endif
+
+   delete[] points;
+   if (ratio > 0.3)
+      return false; // not a circle
+   return true;
+}
+
 void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ring_centers ) const
 {
-   int circle_count;
+ /*  int circle_count;
    Segment circle;
    std::vector<double> circle_descriptors;
    
@@ -216,11 +356,29 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
    img.init(1000, 1000);
    img.fillWhite();
 
-   std::vector<double> tmp_descriptors;
+   std::vector<double> tmp_descriptors;*/
+
    for (SegmentDeque::iterator it = segments.begin(); it != segments.end();)
    {      
       if (absolute((*it)->getRatio() - 1.0) < 0.4)
       {
+         Segment tmp;
+
+         tmp.copy(**it);
+         ThinFilter2(tmp).apply();
+
+         if (getSettings()["DebugSession"])
+            ImageUtils::saveImageToFile(tmp, "output/tmp_ring.png");
+         
+         if (isCircle(tmp))
+         {
+            ring_centers.push_back(tmp.getCenter());
+            delete *it;
+            it = segments.erase(it);
+            continue;
+         }
+      }
+         /*
          Segment tmp;
 
          tmp.copy(**it);
@@ -268,8 +426,8 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
                it = segments.erase(it);
                continue;
             }
-         }
-      }
+         }*/
+      //}
       ++it;
    }
 }
