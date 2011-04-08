@@ -19,6 +19,7 @@
 		A75C26A712AD496900EBBC45 /* ireco.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A512AD496900EBBC45 /* ireco.png */; };
 		A75C26A812AD496900EBBC45 /* irecohd.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A612AD496900EBBC45 /* irecohd.png */; };
 		A79D4C0212AE849000A3C3DA /* Recognizer.mm in Sources */ = {isa = PBXBuildFile; fileRef = A79D4C0112AE849000A3C3DA /* Recognizer.mm */; };
+		A7A68494134C987600841AFC /* Entitlements.plist in Resources */ = {isa = PBXBuildFile; fileRef = A7A68493134C987600841AFC /* Entitlements.plist */; };
 		A7C3450B134B322500879EE6 /* set.js in Resources */ = {isa = PBXBuildFile; fileRef = A7C3450A134B322500879EE6 /* set.js */; };
 		A7C3450D134B323A00879EE6 /* sgroup.png in Resources */ = {isa = PBXBuildFile; fileRef = A7C3450C134B323A00879EE6 /* sgroup.png */; };
 		A7C3450F134B324E00879EE6 /* actions.js in Resources */ = {isa = PBXBuildFile; fileRef = A7C3450E134B324E00879EE6 /* actions.js */; };
@@ -108,7 +109,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1010B76701010B76701010B7;
+			remoteGlobalIDString = 1010B7AB01010B7AB01010B7;
 			remoteInfo = imago_static;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -129,14 +130,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1010009F01010009F0101000;
+			remoteGlobalIDString = 101000C30101000C30101000;
 			remoteInfo = png_local;
 		};
 		A7D672B3134625E90030A6E1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 10103C43010103C43010103C;
+			remoteGlobalIDString = 10103C7E010103C7E010103C;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -159,6 +160,7 @@
 		A7988AA21343ADB800D37855 /* imago.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = imago.xcodeproj; path = ../imago_gen/imago.xcodeproj; sourceTree = "<group>"; };
 		A79D4C0012AE849000A3C3DA /* Recognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Recognizer.h; sourceTree = "<group>"; };
 		A79D4C0112AE849000A3C3DA /* Recognizer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Recognizer.mm; sourceTree = "<group>"; };
+		A7A68493134C987600841AFC /* Entitlements.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
 		A7C3450A134B322500879EE6 /* set.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = set.js; sourceTree = "<group>"; };
 		A7C3450C134B323A00879EE6 /* sgroup.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sgroup.png; sourceTree = "<group>"; };
 		A7C3450E134B324E00879EE6 /* actions.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = actions.js; sourceTree = "<group>"; };
@@ -288,6 +290,7 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				A7A68493134C987600841AFC /* Entitlements.plist */,
 				A7D672AB1346227C0030A6E1 /* libopencv_lapack.a */,
 				A7D672A9134620020030A6E1 /* libopencv_imgproc.a */,
 				A7D672A713461F8B0030A6E1 /* libopencv_core.a */,
@@ -606,6 +609,7 @@
 				A7D5CC3A12ADC82200C60C51 /* view-zoom-in.png in Resources */,
 				A7D5CC3B12ADC82200C60C51 /* view-zoom-out.png in Resources */,
 				A7C3450D134B323A00879EE6 /* sgroup.png in Resources */,
+				A7A68494134C987600841AFC /* Entitlements.plist in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -653,17 +657,20 @@
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_FAST_MATH = YES;
 				GCC_OPTIMIZATION_LEVEL = 0;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = imago_iphone_Prefix.pch;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_THUMB_SUPPORT = NO;
+				GCC_VERSION = 4.2;
 				HEADER_SEARCH_PATHS = (
 					../imago/src,
 					../iSMILES/src,
 					..,
 				);
 				INFOPLIST_FILE = "imago_iphone-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
@@ -679,24 +686,34 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
+				CODE_SIGN_ENTITLEMENTS = Entitlements.plist;
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				COPY_PHASE_STRIP = YES;
+				GCC_FAST_MATH = YES;
+				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
+				GCC_OPTIMIZATION_LEVEL = 3;
 				GCC_PRECOMPILE_PREFIX_HEADER = YES;
 				GCC_PREFIX_HEADER = imago_iphone_Prefix.pch;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
-				GCC_VERSION = com.apple.compilers.llvmgcc42;
+				GCC_THUMB_SUPPORT = NO;
+				GCC_VERSION = 4.2;
 				HEADER_SEARCH_PATHS = (
 					../imago/src,
 					../iSMILES/src,
 					..,
 				);
 				INFOPLIST_FILE = "imago_iphone-Info.plist";
+				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
 					"\"$(SRCROOT)/../opencv/iphone/release-universal\"",
 				);
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = "imago-iphone";
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
@@ -710,6 +727,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
 				ONLY_ACTIVE_ARCH = YES;
 				PREBINDING = NO;
 				SDKROOT = iphoneos;
@@ -724,6 +742,7 @@
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PREBINDING = NO;
 				SDKROOT = iphoneos;
