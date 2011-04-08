@@ -75,7 +75,10 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
       Vec2d &p1 = lsegments[2 * i];
       Vec2d &p2 = lsegments[2 * i + 1];
 
-      avg_size += Vec2d::distance(p1, p2);
+      double dist = Vec2d::distance(p1, p2);
+
+      if (dist > 2.0)
+         avg_size += dist;
    }
 
    avg_size /= (lsegments.size() / 2);
@@ -87,7 +90,10 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
       Vec2d &p1 = lsegments[2 * i];
       Vec2d &p2 = lsegments[2 * i + 1];
 
-      graph.addBond(p1, p2);      
+      double dist = Vec2d::distance(p1, p2);
+
+      if (dist > 2.0)
+         graph.addBond(p1, p2);      
    }
 
    RecognitionSettings &rs = getSettings();

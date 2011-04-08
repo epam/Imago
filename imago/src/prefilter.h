@@ -8,5 +8,6 @@ namespace imago
 
    void prefilterFile(const char *filename, Image &image);
    void prefilterFile(const std::vector<unsigned char> &data, Image &image);
+   bool isCircle (Image &seg);
 }
 #endif /* _prefilter_h_ */

@@ -479,7 +479,7 @@ int main( int argc, char *argv[] )
       
       //prefilterFile(argv[1], img);
       //prefilterFile("../../../data/from_caduff_2/img_0032.jpg", img);
-      prefilterFile("../../../data/iphone3.jpg", img);
+      prefilterFile("../../../data/o1.jpg", img);
 
       ImageUtils::saveImageToFile(img, "result.png");
 
