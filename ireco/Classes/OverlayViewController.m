@@ -13,8 +13,10 @@
 {
     if ((self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil]))
     {
-        self.imagePickerController = [[[UIImagePickerController alloc] init] autorelease];
+        UIImagePickerController *imagePicker = [[UIImagePickerController alloc] init];
+        self.imagePickerController = imagePicker;
         self.imagePickerController.delegate = self;
+        [imagePicker release];
     }
     return self;
 }

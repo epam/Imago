@@ -10,14 +10,16 @@
 
 - (void)viewDidLoad
 {
-    self.overlayViewController =
-        [[[OverlayViewController alloc] initWithNibName:@"OverlayViewController" bundle:nil] autorelease];
+    OverlayViewController *overlay = [[OverlayViewController alloc] initWithNibName:@"OverlayViewController" bundle:nil];
+    self.overlayViewController = overlay;
 
     // as a delegate we will be notified when pictures are taken and when to dismiss the image picker
     self.overlayViewController.delegate = self;
+    [overlay release];
 
-    self.ketcherViewController =
-        [[[KetcherViewController alloc] initWithNibName:@"KetcherViewController" bundle:nil] autorelease];
+    KetcherViewController *ketcher = [[KetcherViewController alloc] initWithNibName:@"KetcherViewController" bundle:nil];
+    self.ketcherViewController = ketcher;
+    [ketcher release];
 
     self.capturedImage = nil;
 
