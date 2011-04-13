@@ -35,6 +35,8 @@
 
 - (NSString *)recognize
 {
+   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    
    std::string molfileStr;
    
    NSString *fontPath = [[NSBundle mainBundle] pathForResource:@"TEST4" ofType:@"font"];
@@ -86,9 +88,11 @@
    catch( imago::Exception &e )
    {
       puts(e.what());
+      [pool drain];
       return nil;
    }
    
+   [pool drain];
    return [NSString stringWithCString:molfileStr.c_str()];
 }
 

@@ -59,6 +59,8 @@
 
 - (void)recognizingProc:(UIImage *)image
 {
+   NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
+    
    if (prevImage == nil || prevImage != image)
    {
       Recognizer *recognizer = [Recognizer recognizerWithImage:image];
@@ -79,6 +81,7 @@
    }
    
    [self.activityView stopAnimating];
+   [pool drain];
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView
