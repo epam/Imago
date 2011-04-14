@@ -109,7 +109,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1010B7A801010B7A801010B7;
+			remoteGlobalIDString = 1010B7AB01010B7AB01010B7;
 			remoteInfo = imago_static;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -130,14 +130,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 101000C00101000C00101000;
+			remoteGlobalIDString = 101000C30101000C30101000;
 			remoteInfo = png_local;
 		};
 		A7D672B3134625E90030A6E1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 10103C7B010103C7B010103C;
+			remoteGlobalIDString = 10103C7E010103C7E010103C;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */

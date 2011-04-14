@@ -25,6 +25,7 @@ namespace imago
 {
    class Molecule;
    class Segment;
+   class CharacterRecognizer;
    
    class ChemicalStructureRecognizer
    {
@@ -32,10 +33,12 @@ namespace imago
 
       ChemicalStructureRecognizer();
       ChemicalStructureRecognizer( const char *fontfile );
+      //ChemicalStructureRecognizer( const CharacterRecognizer &cr );
 
       void setImage( Image &img );
       void recognize( Molecule &mol ); 
       void image2mol( Image &img, Molecule &mol );
+      const CharacterRecognizer &getCharacterRecognizer() { return  _cr; };
 
       ~ChemicalStructureRecognizer();
 

@@ -18,7 +18,7 @@ namespace imago
 {
    bool isCircle (Image &seg);
 
-   OrientationFinder::OrientationFinder( const CharacterRecognizer &cr ) : _cr(cr)
+   OrientationFinder::OrientationFinder( const CharacterRecognizer &cr ) : _cr(cr), _hwcr(cr)
    {
    }
 
@@ -93,6 +93,7 @@ namespace imago
                continue;
               }*/
 
+            //char c = -1;
             char c = _hwcr.recognize(*seg);
 
 #ifndef NDEBUG

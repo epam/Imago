@@ -18,6 +18,7 @@
 #import "chemical_structure_recognizer.h"
 #import "output.h"
 #import "prefilter.h"
+#import "character_recognizer.h"
 
 #import "Recognizer.h"
 
@@ -61,8 +62,12 @@
       LMARK;
       LPRINT(0 , "Let the recognition begin");
       
+      const char *fontfile = [fontPath cStringUsingEncoding:NSASCIIStringEncoding];
+
+      imago::ChemicalStructureRecognizer csr(fontfile);
+      
       imago::Image img;
-      imago::prefilterFile(jpgImage, img);
+      imago::prefilterFile(jpgImage, img, csr.getCharacterRecognizer());
 
       /*
       if (rs["DebugSession"])
@@ -73,8 +78,8 @@
       
       //Recognize molecule
       imago::Molecule mol;
-      const char *fontfile = [fontPath cStringUsingEncoding:NSASCIIStringEncoding];
-      imago::ChemicalStructureRecognizer(fontfile).image2mol(img, mol);
+      
+      csr.image2mol(img, mol);
       
       //Save result
       //imago::FileOutput fo("result.mol");

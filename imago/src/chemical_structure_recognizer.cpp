@@ -241,16 +241,17 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          TIME(GraphExtractor::extract(gd, layer_graphics, mol),
             "Extracting molecular graph");
          }
-      //TIME(wbe.singleUpFetch(mol), "Fetching single-up bonds");
+      TIME(wbe.singleUpFetch(mol), "Fetching single-up bonds");
 
       if (!layer_symbols.empty())
-      {
+      {         
          LMARK;
          LabelLogic ll(_cr, getSettings()["CapHeightErr"]);
          std::deque<Label> unmapped_labels;
+                 
          BOOST_FOREACH(Label &l, mol.getLabels())
             ll.recognizeLabel(l);
-
+         
          LPRINT(1, "Label recognizing");
          
          mol.mapLabels(unmapped_labels);
@@ -291,4 +292,5 @@ void ChemicalStructureRecognizer::setImage( Image &img )
 
 ChemicalStructureRecognizer::~ChemicalStructureRecognizer()
 {
+   printf("\n!!CSR DESTRUCT\n");
 }

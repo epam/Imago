@@ -212,9 +212,9 @@ void _removeSpots (Image &img, int validcolor, int max_size)
    }
 }
 
-static CharacterRecognizer _cr(3); // not really used
 
-static void _prefilterInternal( const Image &raw, Image &image )
+
+static void _prefilterInternal( const Image &raw, Image &image, const CharacterRecognizer &_cr )
 {
    int w = raw.getWidth();
    int h = raw.getHeight();
@@ -231,7 +231,7 @@ static void _prefilterInternal( const Image &raw, Image &image )
       cv::resize(mat, dst, cv::Size(), 1.0 / n, 1.0 / n);
       _copyMatToImage(img, dst);
 #ifdef DEBUG
-      ImageUtils::saveImageToFile(img, "01_after_subsampling.png");
+      //ImageUtils::saveImageToFile(img, "01_after_subsampling.png");
 #endif
    }
    else
@@ -241,7 +241,7 @@ static void _prefilterInternal( const Image &raw, Image &image )
       LPRINT(0, "blurring");
       _blur(img, 1);
 #ifdef DEBUG
-      ImageUtils::saveImageToFile(img, "02_after_blur.png");
+      //ImageUtils::saveImageToFile(img, "02_after_blur.png");
 #endif
    }
 
@@ -273,7 +273,7 @@ static void _prefilterInternal( const Image &raw, Image &image )
       pix = newpix;
       }*/
 #ifdef DEBUG
-   ImageUtils::saveImageToFile(img, "03_after_normalization.png");
+   //ImageUtils::saveImageToFile(img, "03_after_normalization.png");
 #endif
 
 
@@ -285,7 +285,7 @@ static void _prefilterInternal( const Image &raw, Image &image )
 
       _unsharpMask(img, 8, 4, 0);
 #ifdef DEBUG
-      ImageUtils::saveImageToFile(img, "04_after_strong_unsharp_mask.png");
+      //ImageUtils::saveImageToFile(img, "04_after_strong_unsharp_mask.png");
 #endif
    }
 
@@ -293,7 +293,7 @@ static void _prefilterInternal( const Image &raw, Image &image )
       Binarizer b(img, 32);
       b.apply();
 #ifdef DEBUG
-      ImageUtils::saveImageToFile(img, "05_after_strong_binarization.png");
+      //ImageUtils::saveImageToFile(img, "05_after_strong_binarization.png");
 #endif
    }
 
@@ -301,14 +301,14 @@ static void _prefilterInternal( const Image &raw, Image &image )
    strongimg.copy(img);
    _removeSpots(strongimg, 0, 10);
 #ifdef DEBUG
-   ImageUtils::saveImageToFile(img, "06_after_spots_removal.png");
+   //ImageUtils::saveImageToFile(img, "06_after_spots_removal.png");
 #endif
 
    {
       LPRINT(0, "unsharp mask (weak)");
       _unsharpMask(weakimg, 10, 12, 0);
 #ifdef DEBUG
-      ImageUtils::saveImageToFile(weakimg, "07_after_weak_unsharp_mask.png");
+      //ImageUtils::saveImageToFile(weakimg, "07_after_weak_unsharp_mask.png");
 #endif
    }
 
@@ -316,7 +316,7 @@ static void _prefilterInternal( const Image &raw, Image &image )
       Binarizer b(weakimg, 80);
       b.apply();
 #ifdef DEBUG
-      ImageUtils::saveImageToFile(weakimg, "08_after_weak_binarization.png");
+      //ImageUtils::saveImageToFile(weakimg, "08_after_weak_binarization.png");
 #endif
    }
 
@@ -423,27 +423,27 @@ static void _prefilterInternal( const Image &raw, Image &image )
 
    LPRINT(0, "Filtering done");
 #ifdef DEBUG
-   ImageUtils::saveImageToFile(image, "09_final.png");
+   //ImageUtils::saveImageToFile(image, "09_final.png");
 #endif
 }
 
-void prefilterFile(const char *filename, Image &image)
+void prefilterFile(const char *filename, Image &image, const CharacterRecognizer &cr )
 {
    Image raw;
 
    ImageUtils::loadImageFromFile(raw, filename);
 
-   _prefilterInternal(raw, image);
+   _prefilterInternal(raw, image, cr);
 }
 
-void prefilterFile(const std::vector<unsigned char> &data, Image &image)
+void prefilterFile(const std::vector<unsigned char> &data, Image &image, const CharacterRecognizer &cr )
 {
    //Imago cannot load and resize!
    Image raw;
 
    JpgLoader().loadImage(raw, &data[0], &data[0] + data.size());
 
-   _prefilterInternal(raw, image);
+   _prefilterInternal(raw, image, cr);
 }
 
 

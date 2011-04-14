@@ -6,8 +6,8 @@ namespace imago
 {
    class Image;
 
-   void prefilterFile(const char *filename, Image &image);
-   void prefilterFile(const std::vector<unsigned char> &data, Image &image);
+   void prefilterFile(const char *filename, Image &image, const CharacterRecognizer &cr);
+   void prefilterFile(const std::vector<unsigned char> &data, Image &image, const CharacterRecognizer &cr );
    bool isCircle (Image &seg);
 }
 #endif /* _prefilter_h_ */

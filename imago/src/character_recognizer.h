@@ -61,11 +61,11 @@ namespace imago
       SymbolFeatures features_n2;
       SymbolFeatures features_n3;
       SymbolFeatures features_n4;
-      HWCharacterRecognizer ();
+      HWCharacterRecognizer ( const CharacterRecognizer &cr );
 
       int recognize (Segment &seg);
    protected:
-      CharacterRecognizer _cr;
+      const CharacterRecognizer &_cr;
       void _readFile(const char *filename, SymbolFeatures &features);
 };
 

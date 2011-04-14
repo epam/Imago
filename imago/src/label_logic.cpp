@@ -26,7 +26,7 @@ using namespace imago;
 
 LabelLogic::LabelLogic( const CharacterRecognizer &cr, double capHeightError ) :
 _cr(cr),
-   cap_height_error(capHeightError) //0.82 0.877 0.78
+   cap_height_error(capHeightError), _hwcr(cr) //0.82 0.877 0.78
 {
    cap_height_error = 0.56; //changed in "handwriting"
    _cap_height = (int)getSettings()["CapitalHeight"];

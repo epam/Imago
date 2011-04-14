@@ -212,7 +212,7 @@ void CharacterRecognizer::_loadFromFile( const std::string &filename )
    _loaded = true;
 }
 
-HWCharacterRecognizer::HWCharacterRecognizer () : _cr(3)
+HWCharacterRecognizer::HWCharacterRecognizer( const CharacterRecognizer &cr ) : _cr(cr)
 {
    try
    {
