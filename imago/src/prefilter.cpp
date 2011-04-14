@@ -1,5 +1,7 @@
 #include <opencv/cv.h>
 
+#include "boost/foreach.hpp"
+
 #include "image.h"
 #include "log.h"
 #include "current_session.h"
@@ -210,6 +212,9 @@ void _removeSpots (Image &img, int validcolor, int max_size)
          }
       }
    }
+
+   BOOST_FOREACH( Segment *s, segments )
+      delete s;
 }
 
 
@@ -396,6 +401,12 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
          #endif
       }
    }
+
+   BOOST_FOREACH( Segment *s, weak_segments )
+      delete s;
+
+   BOOST_FOREACH( Segment *s, strong_segments )
+      delete s;
 
    _removeSpots(image, 255, 2);
 
