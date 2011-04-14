@@ -175,7 +175,6 @@ CEXPORT int imagoLoadAndFilterJpgFile( const char *filename )
    img.clear();
    prefilterFile(filename, img, getRecognizer().getCharacterRecognizer());
    IMAGO_END;
-   return 1;
 }
 
 CEXPORT int imagoGetPrefilteredImageSize (int *width, int *height)

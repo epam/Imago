@@ -11,9 +11,15 @@ int main( int argc, char *argv[] )
 
    while (1)
    {
+     int res;
      printf("Type image filename:\n");
      scanf("%s", filename);
-     imagoLoadAndFilterJpgFile(filename);
+
+     res = imagoLoadAndFilterJpgFile(filename);
+     
+     if (res == 0)
+       break;
+
      imagoRecognize();
      imagoSaveMolToFile("result.mol");
    }

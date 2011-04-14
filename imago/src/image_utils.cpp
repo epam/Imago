@@ -248,6 +248,9 @@ void ImageUtils::loadImageFromFile( Image &img, const char *FileName )
    
    std::string fname(FileName);
 
+   if (fname.length() < 5)
+      throw Exception("Unknown file format");
+
    std::string extension = fname.substr(fname.length() - 3, 3);
 
    std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
@@ -260,13 +263,19 @@ void ImageUtils::loadImageFromFile( Image &img, const char *FileName )
       {
          throw Exception("Error reading JPG file");
       }
+
+      return;
    }
-   else if (extension == "png")
+   
+   if (extension == "png")
    {
       FileScanner fscan(FileName);
       PngLoader png_loader(fscan);
       png_loader.loadImage(img);
+      return;
    }
+
+   throw Exception("Unknown file format");
 }
 
 void ImageUtils::saveImageToFile( const Image &img, const char *FileName )
