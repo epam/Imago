@@ -142,14 +142,14 @@ void Segment::initFeatures( int descriptorsCount ) const
       if ((int)_features.descriptors.size() / 2 >=  descriptorsCount)
          return;
 
+   SegmentDeque segments;
+
    try
    {
       FourierDescriptors::calculate(this, descriptorsCount,
                                                   _features.descriptors);
 
       //Searching for inner contours
-
-      SegmentDeque segments;
       Segmentator::segmentate(*this, segments, 3, 255); //all white parts
 
       int x, y, w, h;
@@ -193,6 +193,9 @@ void Segment::initFeatures( int descriptorsCount ) const
       _features.recognizable = false;
    }
    _features.init = true;
+
+   BOOST_FOREACH(Segment *s, segments)
+      delete s;
 }
 
 void Segment::splitVert(int x, Segment &left, Segment &right) const
