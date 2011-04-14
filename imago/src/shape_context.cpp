@@ -1,4 +1,3 @@
-#include <opencv/highgui.h>
 #include <numeric>
 #include "boost/foreach.hpp"
 #include "boost/scoped_ptr.hpp"

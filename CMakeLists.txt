@@ -31,6 +31,8 @@ if(NOT WIN32)
     LOCAL_JPEG()
 
     find_package(OpenCV REQUIRED)
+    set(OpenCV_LIBS debug cxcore optimized cxcore
+        debug cv optimized cv)
   else(NOT APPLE)
     option(IPHONE "Cross-compile for IPHONE" OFF)
 
@@ -49,7 +51,6 @@ if(NOT WIN32)
       set(OpenCV_LIBS 
           /Users/vsmolov/opencv/opencv/Output3/tmp/mac-install/lib/libopencv_core.a
           /Users/vsmolov/opencv/opencv/Output3/tmp/mac-install/lib/libopencv_imgproc.a
-          /Users/vsmolov/opencv/opencv/Output3/tmp/mac-install/lib/libopencv_highgui.a
           /Users/vsmolov/opencv/opencv/Output3/tmp/mac-build/3rdparty/lib/Release/liblibjpeg.a
           /Users/vsmolov/opencv/opencv/Output3/tmp/mac-build/3rdparty/lib/Release/libopencv_lapack.a
          )
@@ -95,6 +96,6 @@ add_subdirectory(alter-ego)
 add_subdirectory(jimago)
 
 add_subdirectory(tests/vs/imagotest)
-add_subdirectory(tests/dp)
-add_subdirectory(tests/fz)
+# add_subdirectory(tests/dp)
+# add_subdirectory(tests/fz)
 endif(NOT IPHONE)

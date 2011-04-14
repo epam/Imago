@@ -45,7 +45,7 @@
 
 namespace imago
 {
-   void prefilterFile (const char *filename, Image &img);
+   void prefilterFile (const char *filename, Image &img, const CharacterRecognizer &cr );
 }
 
 using namespace imago;
@@ -173,7 +173,7 @@ CEXPORT int imagoLoadAndFilterJpgFile( const char *filename )
    Image &img = context->img;
 
    img.clear();
-   prefilterFile(filename, img);
+   prefilterFile(filename, img, getRecognizer().getCharacterRecognizer());
    IMAGO_END;
    return 1;
 }

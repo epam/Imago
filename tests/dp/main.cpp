@@ -41,7 +41,8 @@ namespace imago
    void prefilterFile (const char *filename, Image &img);
 }
 
-HWCharacterRecognizer hwcr;
+CharacterRecognizer cr(3)
+HWCharacterRecognizer hwcr(cr);
 
 void _findCircles (Image &img)
 {

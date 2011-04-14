@@ -474,7 +474,7 @@ void testRotation(const char *filename = 0)
             data.push_back(fgetc(inf));
       }
       fclose(inf);
-      prefilterFile(data, img);
+      //prefilterFile(data, img, cr);
 
       getSettings()["DebugSession"] = true;
       //getSettings()["Filter"] = "blur"; //for 34!

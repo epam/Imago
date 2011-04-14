@@ -8,6 +8,9 @@ set(SRC
   src/imago_c.cpp
   )
 
+FILE(GLOB HEADERS "src/*.h")
+list(APPEND SRC ${HEADERS})
+
 add_library(imago_c SHARED ${SRC})
 target_link_libraries(imago_c imago_static)
 
