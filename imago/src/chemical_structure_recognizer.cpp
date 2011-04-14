@@ -292,5 +292,4 @@ void ChemicalStructureRecognizer::setImage( Image &img )
 
 ChemicalStructureRecognizer::~ChemicalStructureRecognizer()
 {
-   printf("\n!!CSR DESTRUCT\n");
 }
