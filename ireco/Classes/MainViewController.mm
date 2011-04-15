@@ -49,8 +49,7 @@
     
    [overlayViewController release];
    [ketcherViewController release];
-   if (capturedImage != nil)
-      [capturedImage release];
+   [capturedImage release];
     
    [super dealloc];
 }
@@ -94,13 +93,10 @@
 // as a delegate we are being told a picture was taken
 - (void)didTakePicture:(UIImage *)picture
 {
-    if (self.capturedImage != nil)
-       [self.capturedImage release];
-    else
+    if (self.capturedImage == nil)
        self.recognizeButton.enabled = YES;
 
-    self.capturedImage = picture;
-   [self.capturedImage retain];
+    [self setCapturedImage:picture];
 }
 
 // as a delegate we are told to finished with the camera

@@ -32,82 +32,72 @@
 
 @implementation Recognizer
 
-@synthesize image;
-
-- (NSString *)recognize
+- (NSString *)recognize: (UIImage *)image
 {
    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
     
-   std::string molfileStr;
-   
-   NSString *fontPath = [[NSBundle mainBundle] pathForResource:@"TEST4" ofType:@"font"];
-
    NSLog(@"Loading image...\n");
-
-   NSData *rawImage = UIImageJPEGRepresentation(self.image, 1.0f);
-   //NSString *outPath = [[NSBundle mainBundle] pathForResource:@"photo11" ofType:@"jpg"];
-   //NSData *rawImage = [NSData dataWithContentsOfFile:outPath];
-   
+   NSData *rawImage = UIImageJPEGRepresentation(image, 1.0f);
    std::vector<unsigned char> jpgImage((unsigned char *)[rawImage bytes], (unsigned char *)[rawImage bytes] + [rawImage length]);
-   
+
+   [pool drain];
+
    try
    {
-      qword id = imago::SessionManager::getInstance().allocSID();
-      imago::SessionManager::getInstance().setSID(id);
-      imago::RecognitionSettings &rs = imago::getSettings();
-      rs.set("DebugSession", false);
-      
       imago::getLog().reset();
       
       LMARK;
       LPRINT(0 , "Let the recognition begin");
       
-      const char *fontfile = [fontPath cStringUsingEncoding:NSASCIIStringEncoding];
-
-      imago::ChemicalStructureRecognizer csr(fontfile);
-      
       imago::Image img;
-      imago::prefilterFile(jpgImage, img, csr.getCharacterRecognizer());
+      imago::prefilterFile(jpgImage, img, csr->getCharacterRecognizer());
 
-      /*
-      if (rs["DebugSession"])
-      {
-         imago::ImageUtils::saveImageToFile(img, "output/process_result.png");
-      }
-      */
-      
       //Recognize molecule
       imago::Molecule mol;
       
-      csr.image2mol(img, mol);
+      csr->image2mol(img, mol);
       
       //Save result
+      std::string molfileStr;
+
       //imago::FileOutput fo("result.mol");
       imago::ArrayOutput so(molfileStr);
       //imago::StandardOutput fo;
       imago::MolfileSaver ma(so);
       TIME(ma.saveMolecule(mol), "Saving molecule");
-      
-      imago::SessionManager::getInstance().releaseSID(id);
+
+      return [NSString stringWithCString:molfileStr.c_str()];
    }
    catch( imago::Exception &e )
    {
       puts(e.what());
-      [pool drain];
       return nil;
    }
-   
-   [pool drain];
-   return [NSString stringWithCString:molfileStr.c_str()];
 }
 
-+ (Recognizer *)recognizerWithImage:(UIImage *)image
+- (Recognizer *)init
 {
-   Recognizer *inst = [[self alloc] init];
+   if (self = [super init])
+   {
+      sessionId = imago::SessionManager::getInstance().allocSID();
+      imago::SessionManager::getInstance().setSID(sessionId);
+      imago::RecognitionSettings &rs = imago::getSettings();
+      rs.set("DebugSession", false);
+
+      NSString *fontPath = [[NSBundle mainBundle] pathForResource:@"TEST4" ofType:@"font"];
+      const char *fontfile = [fontPath cStringUsingEncoding:NSASCIIStringEncoding];
+      
+      csr = new imago::ChemicalStructureRecognizer(fontfile);
+   }
+   return self;
+}
+
+- (void)dealloc
+{
+   delete csr;
+   imago::SessionManager::getInstance().releaseSID(sessionId);
    
-   inst.image = image;
-   [inst autorelease];
-   return inst;
+   [super dealloc];
 }
 
 @end

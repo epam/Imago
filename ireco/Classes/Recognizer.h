@@ -10,14 +10,12 @@
 
 @interface Recognizer : NSObject
 {
-
 @private
-   UIImage *image;
+   qword sessionId;
+   imago::ChemicalStructureRecognizer *csr;
+   
 }
 
-@property (nonatomic, retain) UIImage *image;
-
-- (NSString *)recognize;
-+ (Recognizer *)recognizerWithImage:(UIImage *)image;
+- (NSString *)recognize: (UIImage *)image;
 
 @end

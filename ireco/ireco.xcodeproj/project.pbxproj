@@ -15,7 +15,7 @@
 		A704F75C1271BED80006F5C5 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A704F75B1271BED80006F5C5 /* libz.dylib */; };
 		A71E321D13462DF3006D4D50 /* libpng_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6728F13461AA40030A6E1 /* libpng_local.a */; };
 		A71E321E13462DF3006D4D50 /* libjpeg_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6729113461AA40030A6E1 /* libjpeg_local.a */; };
-		A732667012AD20B3001F7D75 /* MainViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A732666F12AD20B3001F7D75 /* MainViewController.m */; };
+		A732667012AD20B3001F7D75 /* MainViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = A732666F12AD20B3001F7D75 /* MainViewController.mm */; };
 		A75C26A712AD496900EBBC45 /* ireco.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A512AD496900EBBC45 /* ireco.png */; };
 		A75C26A812AD496900EBBC45 /* irecohd.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A612AD496900EBBC45 /* irecohd.png */; };
 		A79D4C0212AE849000A3C3DA /* Recognizer.mm in Sources */ = {isa = PBXBuildFile; fileRef = A79D4C0112AE849000A3C3DA /* Recognizer.mm */; };
@@ -27,7 +27,7 @@
 		A7D5CBA512ADB83D00C60C51 /* KetcherViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA012ADB7E900C60C51 /* KetcherViewController.xib */; };
 		A7D5CBA812ADB8B500C60C51 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA612ADB8B500C60C51 /* MainWindow.xib */; };
 		A7D5CBA912ADB8B500C60C51 /* OverlayViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */; };
-		A7D5CBB312ADBF1100C60C51 /* KetcherViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBB212ADBF1100C60C51 /* KetcherViewController.m */; };
+		A7D5CBB312ADBF1100C60C51 /* KetcherViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = A7D5CBB212ADBF1100C60C51 /* KetcherViewController.mm */; };
 		A7D5CC0812ADC82200C60C51 /* cis_trans.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBC712ADC82200C60C51 /* cis_trans.js */; };
 		A7D5CC0912ADC82200C60C51 /* common.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBC812ADC82200C60C51 /* common.js */; };
 		A7D5CC0A12ADC82200C60C51 /* dfs.js in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBC912ADC82200C60C51 /* dfs.js */; };
@@ -109,7 +109,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1010B7A801010B7A801010B7;
+			remoteGlobalIDString = 1010B9E201010B9E201010B9;
 			remoteInfo = imago_static;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -130,14 +130,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 101000C00101000C00101000;
+			remoteGlobalIDString = 101000F40101000F40101000;
 			remoteInfo = png_local;
 		};
 		A7D672B3134625E90030A6E1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 10103C7B010103C7B010103C;
+			remoteGlobalIDString = 10103CAF010103CAF010103C;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -154,7 +154,7 @@
 		8D1107310486CEB800E47090 /* imago_iphone-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "imago_iphone-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 		A704F75B1271BED80006F5C5 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		A732666E12AD20B3001F7D75 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
-		A732666F12AD20B3001F7D75 /* MainViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainViewController.m; sourceTree = "<group>"; };
+		A732666F12AD20B3001F7D75 /* MainViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MainViewController.mm; sourceTree = "<group>"; };
 		A75C26A512AD496900EBBC45 /* ireco.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ireco.png; sourceTree = "<group>"; };
 		A75C26A612AD496900EBBC45 /* irecohd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = irecohd.png; sourceTree = "<group>"; };
 		A7988AA21343ADB800D37855 /* imago.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = imago.xcodeproj; path = ../imago_gen/imago.xcodeproj; sourceTree = "<group>"; };
@@ -169,7 +169,7 @@
 		A7D5CBA612ADB8B500C60C51 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = OverlayViewController.xib; sourceTree = "<group>"; };
 		A7D5CBAE12ADBC3E00C60C51 /* KetcherViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = KetcherViewController.h; sourceTree = "<group>"; };
-		A7D5CBB212ADBF1100C60C51 /* KetcherViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = KetcherViewController.m; sourceTree = "<group>"; };
+		A7D5CBB212ADBF1100C60C51 /* KetcherViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = KetcherViewController.mm; sourceTree = "<group>"; };
 		A7D5CBC712ADC82200C60C51 /* cis_trans.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = cis_trans.js; sourceTree = "<group>"; };
 		A7D5CBC812ADC82200C60C51 /* common.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = common.js; sourceTree = "<group>"; };
 		A7D5CBC912ADC82200C60C51 /* dfs.js */ = {isa = PBXFileReference; explicitFileType = sourcecode.javascript; fileEncoding = 4; path = dfs.js; sourceTree = "<group>"; };
@@ -266,13 +266,13 @@
 			isa = PBXGroup;
 			children = (
 				A732666E12AD20B3001F7D75 /* MainViewController.h */,
-				A732666F12AD20B3001F7D75 /* MainViewController.m */,
+				A732666F12AD20B3001F7D75 /* MainViewController.mm */,
 				A7E234961281B61400C7CDC4 /* OverlayViewController.h */,
 				A7E234971281B61400C7CDC4 /* OverlayViewController.m */,
 				1D3623240D0F684500981E51 /* imago_iphoneAppDelegate.h */,
 				1D3623250D0F684500981E51 /* imago_iphoneAppDelegate.mm */,
 				A7D5CBAE12ADBC3E00C60C51 /* KetcherViewController.h */,
-				A7D5CBB212ADBF1100C60C51 /* KetcherViewController.m */,
+				A7D5CBB212ADBF1100C60C51 /* KetcherViewController.mm */,
 				A79D4C0012AE849000A3C3DA /* Recognizer.h */,
 				A79D4C0112AE849000A3C3DA /* Recognizer.mm */,
 			);
@@ -623,8 +623,8 @@
 				1D60589B0D05DD56006BFB54 /* main.m in Sources */,
 				1D3623260D0F684500981E51 /* imago_iphoneAppDelegate.mm in Sources */,
 				A7E234981281B61400C7CDC4 /* OverlayViewController.m in Sources */,
-				A732667012AD20B3001F7D75 /* MainViewController.m in Sources */,
-				A7D5CBB312ADBF1100C60C51 /* KetcherViewController.m in Sources */,
+				A732667012AD20B3001F7D75 /* MainViewController.mm in Sources */,
+				A7D5CBB312ADBF1100C60C51 /* KetcherViewController.mm in Sources */,
 				A79D4C0212AE849000A3C3DA /* Recognizer.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -687,8 +687,8 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_ENTITLEMENTS = Entitlements.plist;
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution: Boris Karulin";
+				CODE_SIGN_IDENTITY = "";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				GCC_FAST_MATH = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -712,8 +712,7 @@
 				);
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = BeerMat;
-				PROVISIONING_PROFILE = "";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "7F44A480-1734-48A5-B9FE-353CFCDDBEC5";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				VALIDATE_PRODUCT = YES;
 			};
