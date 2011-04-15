@@ -3,14 +3,12 @@
 #include "imago_c.h"
 
 #define IMAGO_CALL(func) \
-   do {  \
    res = func; \
    if (res == 0 ) \
    { \
       printf("Something bad happened: %s", imagoGetLastError()); \
       break; \
-   } } while(0);
-
+   } 
 
 int main( int argc, char *argv[] )
 {
@@ -25,6 +23,7 @@ int main( int argc, char *argv[] )
      scanf("%s", filename);
 
      IMAGO_CALL(imagoLoadJpgImageFromFile(filename));
+     IMAGO_CALL(imagoResetLog());
      IMAGO_CALL(imagoFilterImage());
      IMAGO_CALL(imagoRecognize());
      IMAGO_CALL(imagoSaveMolToFile("result.mol"));
