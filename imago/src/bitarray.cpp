@@ -16,6 +16,8 @@
 #include <cstring>
 #include <cmath>
 
+#include <cstring>
+
 #include "bitarray.h"
 #include "exception.h"
 

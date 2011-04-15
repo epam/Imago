@@ -208,20 +208,24 @@ void ImageUtils::putSegment( Image &img, const Segment &seg, bool careful )
 {
    int i, j, img_cols = img.getWidth(),
       seg_x = seg.getX(), seg_y = seg.getY(),
-      seg_rows = seg.getHeight(), seg_cols = seg.getWidth();
+      seg_rows = seg.getHeight(), seg_cols = seg.getWidth(),
+      img_size = img.getWidth() * img.getHeight();
 
    for (j = 0; j < seg_rows; j++)
       for (i = 0; i < seg_cols; i++)
       {
          int address = (j + seg_y) * img_cols + (i + seg_x);
 
-         if (careful)
-         {
-            if (img[address] == 255)
+         if (address < img_size)
+         { 
+            if (careful)
+            {
+               if (img[address] == 255)
+                  img[address] = seg.getByte(i, j);
+            }
+            else
                img[address] = seg.getByte(i, j);
          }
-         else
-            img[address] = seg.getByte(i, j);
       }
 }
 
