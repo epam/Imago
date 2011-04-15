@@ -6,6 +6,7 @@ set(SRC
   src/exception.cpp
   src/output.cpp
   src/scanner.cpp
+  src/bitarray.cpp
   src/molecule.cpp
   src/png_loader.cpp
   src/jpg_loader.cpp
