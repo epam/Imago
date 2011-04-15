@@ -95,6 +95,7 @@
 		A7DB91D312804B8E00B51670 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7DB91D212804B8E00B51670 /* AudioToolbox.framework */; };
 		A7E234981281B61400C7CDC4 /* OverlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7E234971281B61400C7CDC4 /* OverlayViewController.m */; };
 		A7E60C6C126E15F600BA2EFD /* libstdc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E60C6B126E15F600BA2EFD /* libstdc++.dylib */; };
+		A7F7E2941358A6FC006C79F8 /* base64.js in Resources */ = {isa = PBXBuildFile; fileRef = A7F7E2931358A6FC006C79F8 /* base64.js */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -237,6 +238,7 @@
 		A7E234961281B61400C7CDC4 /* OverlayViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OverlayViewController.h; sourceTree = "<group>"; };
 		A7E234971281B61400C7CDC4 /* OverlayViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OverlayViewController.m; sourceTree = "<group>"; };
 		A7E60C6B126E15F600BA2EFD /* libstdc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libstdc++.dylib"; path = "usr/lib/gcc/arm-apple-darwin10/4.2.1/libstdc++.dylib"; sourceTree = SDKROOT; };
+		A7F7E2931358A6FC006C79F8 /* base64.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; name = base64.js; path = Ketcher/base64.js; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -358,6 +360,7 @@
 				A7D5CBD312ADC82200C60C51 /* ketcher.css */,
 				A7D5CBD412ADC82200C60C51 /* ketcher.html */,
 				A7D5CBD512ADC82200C60C51 /* ketcher.js */,
+				A7F7E2931358A6FC006C79F8 /* base64.js */,
 				A7D5CBD612ADC82200C60C51 /* png */,
 				A7D5CBFC12ADC82200C60C51 /* prototype-min.js */,
 				A7D5CBFD12ADC82200C60C51 /* raphael-min.js */,
@@ -564,6 +567,7 @@
 				A7D5CC4512ADC82200C60C51 /* ui.js in Resources */,
 				A7C3450B134B322500879EE6 /* set.js in Resources */,
 				A7C3450F134B324E00879EE6 /* actions.js in Resources */,
+				A7F7E2941358A6FC006C79F8 /* base64.js in Resources */,
 				A75C26A712AD496900EBBC45 /* ireco.png in Resources */,
 				A75C26A812AD496900EBBC45 /* irecohd.png in Resources */,
 				A7D5CB9A12ADA75E00C60C51 /* TEST4.font in Resources */,

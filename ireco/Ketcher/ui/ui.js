@@ -336,10 +336,7 @@ ui.onResize_Ketcher = function ()
 ui.updateMolecule = function (mol)
 {
     if (typeof(mol) == 'undefined' || mol == null)
-    {
-        this.console.writeLine('Molfile parsing failed');
         return;
-    }
 
     if (ui.selected())
         ui.updateSelection();
@@ -369,7 +366,15 @@ ui.parseMolfile = function (molfile)
     if (lines.length > 0 && lines[0] == 'Ok.')
         lines.shift();
     
-    return chem.Molfile.parseMolfile(lines);
+    try
+    {
+        var ctab = chem.Molfile.parseMolfile(lines);
+        return ctab;
+    } catch (er)
+    {
+        alert("Error loading molfile.");
+        return null;
+    }
 };
 
 //
@@ -889,7 +894,7 @@ ui.getFile = function ()
     else // IE7
         frame_body = document.frames['buffer_frame'].document.body;
 
-    return chem.getElementTextContent(frame_body);
+    return Base64.decode(frame_body.title);
 }
 
 ui.loadMolecule = function (mol_string, force_layout)
@@ -1010,7 +1015,7 @@ ui.onChange_FileFormat = function (event, update)
         try
         {
             saver = new chem.SmilesSaver();
-            output.smiles = saver.saveMolecule(ui.ctab);
+            output.smiles = saver.saveMolecule(ui.ctab, true);
         } catch (er)
         {
             output.smiles = er.message;
@@ -2254,10 +2259,11 @@ ui.onChange_SGroupType = function ()
         $('sgroup_label').value = '1';
     else if (type == 'SRU')
         $('sgroup_label').value = 'n';
-    else if (type == 'GEN')
+    else if (type == 'GEN' || type == 'SUP')
         $('sgroup_label').value = '';
-    else if (type == 'SUP')
-        $('sgroup_label').value = 'name';
+        
+    if (type != 'GEN')
+        $('sgroup_label').activate();
 }
 
 //
