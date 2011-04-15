@@ -125,6 +125,8 @@ namespace imago
       BOOST_FOREACH(Segment *seg, segments)
          delete seg;
 
+      segments.clear();
+
       int max = 0;
       for (i = 1; i < 4; i++)
       {

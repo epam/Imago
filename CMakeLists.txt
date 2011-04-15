@@ -97,5 +97,5 @@ add_subdirectory(jimago)
 
 add_subdirectory(tests/vs/imagotest)
 # add_subdirectory(tests/dp)
-# add_subdirectory(tests/fz)
+add_subdirectory(tests/fz)
 endif(NOT IPHONE)

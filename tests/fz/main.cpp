@@ -468,18 +468,72 @@ void _selectFont( const SegmentDeque &layer, boost::shared_ptr<Font> &_fnt )
 
 #include "prefilter.h"
 
-int main( int argc, char *argv[] )
+void testSegmentate( char *filename )
 {
-   try
+   try 
    {
       qword sid = SessionManager::getInstance().allocSID();
       SessionManager::getInstance().setSID(sid);
 
       Image img;
+
+      ImageUtils::loadImageFromFile(img, filename);
+
+      SegmentDeque segs;
+
+      Segmentator::segmentate(img, segs);
+
+      int i = 0;
+      char Buf[100];
+
+      Image img1;
+      img1.init(img.getWidth(), img.getHeight());
+      img1.fillWhite();
+
+      BOOST_FOREACH( Segment *s, segs )
+      {
+         i++;
+         sprintf(Buf, "%i.png", i);
+         ImageUtils::saveImageToFile(*s, Buf);
+
+         ImageUtils::putSegment(img1, *s, true);
+      }
+
+      ImageUtils::saveImageToFile(img1, "result.png");
+
+      BOOST_FOREACH( Segment *s, segs )
+      {
+         delete s;
+      }
+       
+      SessionManager::getInstance().releaseSID(sid);
+   }
+   catch (Exception &e)
+   {
+      puts(e.what());
+   }
+}
+
+int main( int argc, char *argv[] )
+{
+   //testSegmentate("../../../data/mol_images/image439.png");
+
+   try
+   {
+      qword sid = SessionManager::getInstance().allocSID();
+      SessionManager::getInstance().setSID(sid);
+
+      getSettings()["DebugSession"] = false;
+
+      Image img;
+
+      ImageUtils::loadImageFromFile(img, "../../../data/fx104.jpg");
+
+      prefilterImage(img, gSession.get()->recognizer().getCharacterRecognizer());
       
       //prefilterFile(argv[1], img);
       //prefilterFile("../../../data/from_caduff_2/img_0032.jpg", img);
-      prefilterFile("../../../data/o1.jpg", img);
+      //prefilterFile("../../../data/fx104asdkjflj", img, gSession.get()->recognizer().getCharacterRecognizer());
 
       ImageUtils::saveImageToFile(img, "result.png");
 

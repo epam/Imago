@@ -271,6 +271,9 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       BOOST_FOREACH( Segment *s, layer_graphics )
          delete s;
 
+      layer_symbols.clear();
+      layer_graphics.clear();
+
       LPRINT(1, "Recognition finished");
    }
    catch (Exception &e)

@@ -82,9 +82,10 @@ CEXPORT int imagoSetFilter( const char *name );
  */
 CEXPORT int imagoSetBinarizationLevel( const int level );
 
-/* PNG image loading functions. */
+/* Image loading functions. */
 CEXPORT int imagoLoadPngImageFromBuffer( const char *buf, const int buf_size );
 CEXPORT int imagoLoadPngImageFromFile( const char *FileName );
+CEXPORT int imagoLoadJpgImageFromFile( const char *FileName );
 
 /* PNG image saving function. */
 CEXPORT int imagoSavePngImageToFile( const char *FileName );
@@ -100,6 +101,8 @@ CEXPORT int imagoSetLogPrinter( void (*printer)( const char *str ) );
 /* Disable log printing (set quiet mode). */
 CEXPORT int imagoDisableLog();
 
+CEXPORT int imagoResetLog();
+
 /* Attach some arbitrary data to the current Imago instance. */
 CEXPORT int imagoSetSessionSpecificData( void *data );
 CEXPORT int imagoGetSessionSpecificData( void **data );
@@ -112,7 +115,8 @@ CEXPORT int imagoRecognize();
 CEXPORT int imagoSaveMolToBuffer( char **buf, int *buf_size );
 CEXPORT int imagoSaveMolToFile( const char *FileName );
 
-CEXPORT int imagoLoadAndFilterJpgFile( const char *filename );
+CEXPORT int imagoFilterImage();
+
 CEXPORT int imagoGetPrefilteredImageSize (int *width, int *height);
 CEXPORT int imagoGetPrefilteredImage (unsigned char **data, int *width, int *height);
 

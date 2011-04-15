@@ -354,6 +354,8 @@ bool Separator::_testDoubleBondV( Segment &segment )
    BOOST_FOREACH( Segment *s, segs )
       delete s;
 
+   segs.clear();
+
    return ret;
 }
 

@@ -46,6 +46,7 @@
 namespace imago
 {
    void prefilterFile (const char *filename, Image &img, const CharacterRecognizer &cr );
+   void prefilterImage( Image &image, const CharacterRecognizer &cr );
 }
 
 using namespace imago;
@@ -132,6 +133,25 @@ CEXPORT int imagoLoadPngImageFromFile( const char *FileName )
    IMAGO_END;
 }
 
+CEXPORT int imagoLoadJpgImageFromFile( const char *FileName )
+{
+   IMAGO_BEGIN;
+   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   ImageUtils::loadImageFromFile(context->img, FileName);
+      
+   IMAGO_END;
+}
+
+CEXPORT int imagoFilterImage()
+{
+   IMAGO_BEGIN;
+   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   Image &img = context->img;
+
+   prefilterImage(img, getRecognizer().getCharacterRecognizer());
+   IMAGO_END;
+}
+
 CEXPORT int imagoLoadPngImageFromBuffer( const char *buf, const int buf_size )
 {
    IMAGO_BEGIN;
@@ -163,17 +183,6 @@ CEXPORT int imagoLoadGreyscaleRawImage( const char *buf, const int width, const 
    for (int i = 0; i < width * height; i++)
       img[i] = buf[i];
 
-   IMAGO_END;
-}
-
-CEXPORT int imagoLoadAndFilterJpgFile( const char *filename )
-{
-   IMAGO_BEGIN;
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
-   Image &img = context->img;
-
-   img.clear();
-   prefilterFile(filename, img, getRecognizer().getCharacterRecognizer());
    IMAGO_END;
 }
 
@@ -284,6 +293,15 @@ CEXPORT int imagoDisableLog()
    IMAGO_BEGIN;
 
    getLog().setPrinter(0);
+
+   IMAGO_END;
+}
+
+CEXPORT int imagoResetLog()
+{
+   IMAGO_BEGIN;
+
+   getLog().reset();
 
    IMAGO_END;
 }

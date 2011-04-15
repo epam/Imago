@@ -2,12 +2,21 @@
 
 #include "imago_c.h"
 
+#define IMAGO_CALL(func) \
+   do {  \
+   res = func; \
+   if (res == 0 ) \
+   { \
+      printf("Something bad happened: %s", imagoGetLastError()); \
+      break; \
+   } } while(0);
+
+
 int main( int argc, char *argv[] )
 {
+   char filename[100];
    qword id = imagoAllocSessionId();
    imagoSetSessionId(id);
-
-   char filename[100];
 
    while (1)
    {
@@ -15,13 +24,10 @@ int main( int argc, char *argv[] )
      printf("Type image filename:\n");
      scanf("%s", filename);
 
-     res = imagoLoadAndFilterJpgFile(filename);
-     
-     if (res == 0)
-       break;
-
-     imagoRecognize();
-     imagoSaveMolToFile("result.mol");
+     IMAGO_CALL(imagoLoadJpgImageFromFile(filename));
+     IMAGO_CALL(imagoFilterImage());
+     IMAGO_CALL(imagoRecognize());
+     IMAGO_CALL(imagoSaveMolToFile("result.mol"));
    }
 
    imagoReleaseSessionId(id);

@@ -215,6 +215,7 @@ void _removeSpots (Image &img, int validcolor, int max_size)
 
    BOOST_FOREACH( Segment *s, segments )
       delete s;
+   segments.clear();
 }
 
 
@@ -408,11 +409,15 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
    BOOST_FOREACH( Segment *s, strong_segments )
       delete s;
 
+   weak_segments.clear();
+   strong_segments.clear();
+
    _removeSpots(image, 255, 2);
 
    OrientationFinder of(_cr);
    LMARK;
    int rotation = of.findFromImage(image);
+   //int rotation = 1;
    LPRINT(1, "OrientationFinder");
 
    if (rotation != 0)
@@ -436,6 +441,17 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
 #ifdef DEBUG
    //ImageUtils::saveImageToFile(image, "09_final.png");
 #endif
+}
+
+void prefilterImage( Image &image, const CharacterRecognizer &cr )
+{
+   Image raw;
+
+   raw.copy(image);
+
+   image.clear();
+
+   _prefilterInternal(raw, image, cr);
 }
 
 void prefilterFile(const char *filename, Image &image, const CharacterRecognizer &cr )

@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (C) 2009-2010 GGA Software Services LLC
+ * Copyright (C) 2009-2011 GGA Software Services LLC
  * 
  * This file is part of Imago toolkit.
  * 
@@ -18,6 +18,7 @@
 #include "stl_fwd.h"
 #include <vector>
 
+#include "bitarray.h"
 #include "segment.h"
 #include "separator.h"
 
@@ -33,7 +34,8 @@ namespace imago
       static void segmentate( const Image &img, Container &segments, int windowSize = 3, byte validColor = 0 )
       {
          int i, j;
-         IntVector visited(img.getHeight() * img.getWidth(), 0);
+
+         BitArray visited(img.getHeight() * img.getWidth());
 
          segments.clear();
 
@@ -43,7 +45,7 @@ namespace imago
             {
                if (img.getByte(j, i) == validColor)
                {
-                  if (visited[(i * img.getWidth() + j)] != 0)
+                  if (visited.getBit(i * img.getWidth() + j))
                      continue;
 
                   Segment *newImg = new Segment();
@@ -57,7 +59,7 @@ namespace imago
       }
 
    private:
-      static void _walkSegment( const Image &img, IntVector &visited,
+      static void _walkSegment( const Image &img, BitArray &visited,
                                 Segment *segment, int windowSize, byte validColor );
    };
 }

@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (C) 2009-2010 GGA Software Services LLC
+ * Copyright (C) 2009-2011 GGA Software Services LLC
  * 
  * This file is part of Imago toolkit.
  * 
@@ -22,7 +22,7 @@
 
 using namespace imago;
 
-void Segmentator::_walkSegment( const Image &img, IntVector &visited,
+void Segmentator::_walkSegment( const Image &img, BitArray &visited,
                                 Segment *segment, int windowSize, byte validColor )
 {
    IntDeque q;
@@ -63,7 +63,7 @@ void Segmentator::_walkSegment( const Image &img, IntVector &visited,
             {
                int ind = (i * width) + j;
 
-               if (visited[ind])
+               if (visited.getBit(ind))
                   continue;
 
                if (img.getByte(j, i) == validColor)
@@ -78,7 +78,8 @@ void Segmentator::_walkSegment( const Image &img, IntVector &visited,
 
                   segment_elements.push_back(ind);
 
-                  visited[ind] = 1;
+                  visited.setBit(ind, 1);
+                  //printf("%i %i %i\n", i, j, ind);
                }
             }
          }
