@@ -13,6 +13,7 @@
  ***************************************************************************/
 
 #include <cstdlib>
+#include <cstring>
 #include <cmath>
 
 #include "bitarray.h"
