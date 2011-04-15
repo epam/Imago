@@ -61,12 +61,6 @@
 
 - (void)showImagePicker:(UIImagePickerControllerSourceType)sourceType
 {
-    if (self.capturedImage != nil)
-    {
-        [self.capturedImage release];
-        self.capturedImage = nil;
-    }
-    
     if ([UIImagePickerController isSourceTypeAvailable:sourceType])
     {
         [self.overlayViewController setupImagePicker:sourceType];
