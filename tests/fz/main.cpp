@@ -523,11 +523,11 @@ int main( int argc, char *argv[] )
       qword sid = SessionManager::getInstance().allocSID();
       SessionManager::getInstance().setSID(sid);
 
-      getSettings()["DebugSession"] = false;
-
+      getSettings()["DebugSession"] = true;
+         
       Image img;
 
-      ImageUtils::loadImageFromFile(img, "../../../data/fx104.jpg");
+      ImageUtils::loadImageFromFile(img, "../../../data/ctia4/1.png");
 
       prefilterImage(img, gSession.get()->recognizer().getCharacterRecognizer());
       

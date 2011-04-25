@@ -54,7 +54,10 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
    RecognitionSettings &rs = getSettings();
    SegmentDeque layer_suspicious;
 
-   cap_height = _estimateCapHeight();   
+   if (_segs.size() == 0)
+      cap_height = -1;
+   else
+      cap_height = _estimateCapHeight();   
 
    rs.set("CapitalHeight", cap_height);
 
@@ -165,8 +168,6 @@ int Separator::_estimateCapHeight()
       heights.push_back(s->getHeight());
 
    int seg_ver_eps = rs["SegmentVerEps"];
-
-
 
    for (int i = 0; i != (int)heights.size();)
    {

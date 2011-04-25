@@ -227,7 +227,9 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
    LPRINT(0, "loaded image %d x %d", w, h);
    int maxside = (w < h) ? h : w;
    int n = maxside / 800;
+   bool debug_session = getSettings()["DebugSession"];
    Image img;
+
    if (n > 1)
    {
       cv::Mat mat;
@@ -236,9 +238,9 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
       cv::Mat dst;
       cv::resize(mat, dst, cv::Size(), 1.0 / n, 1.0 / n);
       _copyMatToImage(img, dst);
-#ifdef DEBUG
-      //ImageUtils::saveImageToFile(img, "01_after_subsampling.png");
-#endif
+
+   if (debug_session)
+      ImageUtils::saveImageToFile(img, "output/01_after_subsampling.png");
    }
    else
       img.copy(raw);
@@ -246,9 +248,9 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
    {
       LPRINT(0, "blurring");
       _blur(img, 1);
-#ifdef DEBUG
-      //ImageUtils::saveImageToFile(img, "02_after_blur.png");
-#endif
+
+      if (debug_session)
+         ImageUtils::saveImageToFile(img, "output/02_after_blur.png");
    }
 
 
@@ -258,9 +260,9 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
    {
       int avg = img.mean();
 
-      #ifdef DEBUG
-      fprintf(stderr, "average brightness = %d\n", avg);
-      #endif
+      if (debug_session)
+         fprintf(stderr, "average brightness = %d\n", avg);
+      
       if (avg < 155)
       {
          LPRINT(0, "adding constant gray");
@@ -278,10 +280,8 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
       //pixDestroy(&pix);
       pix = newpix;
       }*/
-#ifdef DEBUG
-   //ImageUtils::saveImageToFile(img, "03_after_normalization.png");
-#endif
-
+   if (debug_session)
+      ImageUtils::saveImageToFile(img, "output/03_after_normalization.png");
 
    Image weakimg;
    weakimg.copy(img);
@@ -290,40 +290,39 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
       LPRINT(0, "unsharp mask (strong)");
 
       _unsharpMask(img, 8, 4, 0);
-#ifdef DEBUG
-      //ImageUtils::saveImageToFile(img, "04_after_strong_unsharp_mask.png");
-#endif
+      
+      if (debug_session)
+         ImageUtils::saveImageToFile(img, "output/04_after_strong_unsharp_mask.png");
    }
 
    {
       Binarizer b(img, 32);
       b.apply();
-#ifdef DEBUG
-      //ImageUtils::saveImageToFile(img, "05_after_strong_binarization.png");
-#endif
+
+      if (debug_session)
+         ImageUtils::saveImageToFile(img, "output/05_after_strong_binarization.png");
    }
 
    Image strongimg;
    strongimg.copy(img);
    _removeSpots(strongimg, 0, 10);
-#ifdef DEBUG
-   //ImageUtils::saveImageToFile(img, "06_after_spots_removal.png");
-#endif
+
+   if (debug_session)
+      ImageUtils::saveImageToFile(img, "output/06_after_spots_removal.png");
 
    {
       LPRINT(0, "unsharp mask (weak)");
       _unsharpMask(weakimg, 10, 12, 0);
-#ifdef DEBUG
-      //ImageUtils::saveImageToFile(weakimg, "07_after_weak_unsharp_mask.png");
-#endif
+      
+      if (debug_session)
+         ImageUtils::saveImageToFile(weakimg, "output/07_after_weak_unsharp_mask.png");
    }
 
    {
       Binarizer b(weakimg, 80);
       b.apply();
-#ifdef DEBUG
-      //ImageUtils::saveImageToFile(weakimg, "08_after_weak_binarization.png");
-#endif
+      if (debug_session)
+         ImageUtils::saveImageToFile(weakimg, "output/08_after_weak_binarization.png");
    }
 
    SegmentDeque weak_segments;
@@ -331,10 +330,11 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
    Segmentator::segmentate(weakimg, weak_segments);
    Segmentator::segmentate(strongimg, strong_segments);
 
-   #ifdef DEBUG
-   fprintf(stderr, "%d weak segments\n", weak_segments.size());
-   fprintf(stderr, "%d strong segments\n", strong_segments.size());
-   #endif
+   if (debug_session)
+   {
+      fprintf(stderr, "%d weak segments\n", weak_segments.size());
+      fprintf(stderr, "%d strong segments\n", strong_segments.size());
+   }
 
    image.init(w, h);
    image.fillWhite();
@@ -397,9 +397,8 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
       if (!found)
       {
          // should not happen
-         #ifdef DEBUG
-         fprintf(stderr, "weak segment not found\n");
-         #endif
+         if (debug_session)
+            fprintf(stderr, "weak segment not found\n");
       }
    }
 
@@ -438,9 +437,9 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
    }
 
    LPRINT(0, "Filtering done");
-#ifdef DEBUG
-   //ImageUtils::saveImageToFile(image, "09_final.png");
-#endif
+
+   if (debug_session)
+      ImageUtils::saveImageToFile(image, "output/09_final.png");
 }
 
 void prefilterImage( Image &image, const CharacterRecognizer &cr )

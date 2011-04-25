@@ -126,10 +126,15 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       
       TIME(_processFilter(), "Imago image processing");
 
-      //Notice, that there is no supersegmentation procedure
       Image &_img = _origImage;
 
       _img.crop();
+
+      if (!_img.isInit())
+      {
+         LPRINT(0, "Empty image, nothing to recognize");
+         return;
+      }
 
       rs.set("imgHeight", _img.getHeight());
       rs.set("imgWidth", _img.getWidth());
@@ -139,31 +144,13 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          ImageUtils::saveImageToFile(_img, "output/real_img.png");
       }
 
-      /*
-        OrientationFinder of(_cr);
-      int rotation = of.findFromImage(_img);
-      rotation = 0;
-      if (rotation != 0)
-         LPRINT(0, "Found rotation %d", 90 * (4 - rotation));
-      switch (rotation)
-      {
-         case 1:
-            _img.rotate90();
-            break;
-         case 2:
-            _img.rotate180();
-            break;
-         case 3:
-            _img.rotate90(false);
-      }
-      */
-
-      if (rs["DebugSession"])
-      {
-         ImageUtils::saveImageToFile(_img, "output/rotated.png");
-      }
-
       TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
+
+      if (segments.size() == 0)
+      {
+         LPRINT(0, "Empty image, nothing to recognize");
+         return;
+      }
 
       WedgeBondExtractor wbe(segments, _img);
       {
