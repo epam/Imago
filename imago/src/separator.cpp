@@ -322,7 +322,8 @@ bool Separator::_testDoubleBondV( Segment &segment )
    Segment tmp, segment_tmp;
    RecognitionSettings &rs = gSession.get()->settings();
 
-   ImageUtils::saveImageToFile(segment, "output/tmp_seg.png");
+   if (rs["DebugSession"])
+      ImageUtils::saveImageToFile(segment, "output/tmp_seg.png");
 
    adequate_ratio_min = rs["MinSymRatio"];
    double_bond_dist = rs["DoubleBondDist"];

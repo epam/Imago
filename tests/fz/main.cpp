@@ -527,8 +527,8 @@ int main( int argc, char *argv[] )
          
       Image img;
 
-      ImageUtils::loadImageFromFile(img, argv[1]);
-      //ImageUtils::loadImageFromFile(img, "../../../data/ctia4/2.png");
+      //ImageUtils::loadImageFromFile(img, argv[1]);
+      ImageUtils::loadImageFromFile(img, "../../../data/photo.jpg");
 
       prefilterImage(img, gSession.get()->recognizer().getCharacterRecognizer());
       
