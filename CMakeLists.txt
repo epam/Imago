@@ -59,7 +59,7 @@ if(NOT WIN32)
     
   endif(NOT APPLE)
 else(NOT WIN32)
-  set(IMAGO_C_FLAGS "/GL- /GR- /EHsc /Gy /W3 /nologo /c /wd4345 /wd4244 /D _CRT_SECURE_NO_DEPRECATE")
+  set(IMAGO_C_FLAGS "/MP /GL- /GR- /EHsc /Gy /W3 /nologo /c /wd4345 /wd4244 /D _CRT_SECURE_NO_DEPRECATE")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IMAGO_C_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IMAGO_C_FLAGS}")
 

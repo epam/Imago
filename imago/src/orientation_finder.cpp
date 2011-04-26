@@ -58,6 +58,8 @@ namespace imago
             {
                s->rotate90();
             }
+
+            _img.rotate90();
          }
 
          layer_symbols.clear();
