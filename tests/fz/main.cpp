@@ -523,12 +523,12 @@ int main( int argc, char *argv[] )
       qword sid = SessionManager::getInstance().allocSID();
       SessionManager::getInstance().setSID(sid);
 
-      getSettings()["DebugSession"] = true;
+      getSettings()["DebugSession"] = false;
          
       Image img;
 
-      //ImageUtils::loadImageFromFile(img, argv[1]);
-      ImageUtils::loadImageFromFile(img, "../../../data/photo.jpg");
+      ImageUtils::loadImageFromFile(img, argv[1]);
+      //ImageUtils::loadImageFromFile(img, "../../../data/mol_images/image78.png");
 
       prefilterImage(img, gSession.get()->recognizer().getCharacterRecognizer());
       
@@ -539,8 +539,6 @@ int main( int argc, char *argv[] )
       ImageUtils::saveImageToFile(img, "result.png");
 
       Molecule mol;
-
-      getSettings().set("DebugSession", true);
 
       gSession.get()->recognizer().image2mol(img, mol);
 

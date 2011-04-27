@@ -192,7 +192,9 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       {
          LabelCombiner lc(layer_symbols, layer_graphics,
                           rs["CapitalHeight"], _cr);
-         lc.extractLabels(mol.getLabels());
+
+         if ((int)rs["CapitalHeight"] != -1)
+            lc.extractLabels(mol.getLabels());
 
          if (rs["DebugSession"])
          {
@@ -222,8 +224,6 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 #endif
          TIME(gd.extractRingsCenters(layer_graphics, ringCenters),
             "Extracting aromatic rings");
-
-
 
          TIME(GraphExtractor::extract(gd, layer_graphics, mol),
             "Extracting molecular graph");

@@ -39,6 +39,7 @@ namespace imago
 
       void splitVert( int x, Segment &left, Segment &right ) const;
       void crop();
+      void rotate90();
 
       double getRatio() const;
       double getDensity() const;

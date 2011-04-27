@@ -51,14 +51,18 @@ LabelCombiner::LabelCombiner( SegmentDeque &symbols_layer,
 
    _cap_height = _findCapitalHeight();
    rs["CapitalHeight"] = _cap_height;
-   _cap_height_error = (double)rs["CapHeightErr"];
-   _space = _cap_height >> 1;
 
-   _fetchSymbols(other_layer);
+   if (cap_height != -1)
+   {
+      _cap_height_error = (double)rs["CapHeightErr"];
+      _space = _cap_height >> 1;
 
-   _locateLabels();
-   BOOST_FOREACH(Label &l, _labels)
-      _fillLabelInfo(l);
+      _fetchSymbols(other_layer);
+
+      _locateLabels();
+      BOOST_FOREACH(Label &l, _labels)
+         _fillLabelInfo(l);
+   }
 }
 
 void LabelCombiner::setParameters( double capHeightError, double maxSymRatio,
@@ -92,8 +96,9 @@ int LabelCombiner::_findCapitalHeight()
          min_d = d, cap_height = seg_height;
    }
 
-   if (cap_height == -1)
-      throw LogicException("Cannot determine CapHeight");
+   //TODO: temporary!
+   //if (cap_height == -1)
+     // throw LogicException("Cannot determine CapHeight");
    
    return cap_height;
 }

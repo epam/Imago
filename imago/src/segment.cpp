@@ -228,6 +228,13 @@ void Segment::crop()
    
 }
 
+void Segment::rotate90()
+{
+   Image::rotate90();
+
+   std::swap(_x, _y);
+}
+
 Segment::~Segment()
 {
 
