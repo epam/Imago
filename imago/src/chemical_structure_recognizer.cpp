@@ -162,7 +162,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       //Settings for handwriting separation
       rs.set("SymHeightErr", 42);      
-      rs.set("MaxSymRatio", 1.4);   
+      rs.set("MaxSymRatio", 1.14);   
       rs.set("ParLinesEps", 0.5);
 
       TIME(sep.firstSeparation(layer_symbols, layer_graphics), 

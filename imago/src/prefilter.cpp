@@ -413,28 +413,28 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
 
    _removeSpots(image, 255, 2);
 
-   OrientationFinder of(_cr);
-   LMARK;
-   int rotation = of.findFromImage(image);
-   //int rotation = 1;
-   LPRINT(1, "OrientationFinder");
+   //OrientationFinder of(_cr);
+   //LMARK;
+   //int rotation = of.findFromImage(image);
+   ////int rotation = 1;
+   //LPRINT(1, "OrientationFinder");
 
-   if (rotation != 0)
-   {
-      LPRINT(0, "Found rotation %d", 90 * (4 - rotation));
-      switch (rotation)
-      {
-         case 1:
-            image.rotate90();
-            break;
-         case 2:
-            image.rotate180();
-            break;
-         case 3:
-            image.rotate90(false);
-      }
+   //if (rotation != 0)
+   //{
+   //   LPRINT(0, "Found rotation %d", 90 * (4 - rotation));
+   //   switch (rotation)
+   //   {
+   //      case 1:
+   //         image.rotate90();
+   //         break;
+   //      case 2:
+   //         image.rotate180();
+   //         break;
+   //      case 3:
+   //         image.rotate90(false);
+   //   }
 
-   }
+   //}
 
    LPRINT(0, "Filtering done");
 

@@ -98,7 +98,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
                   else
                      mark = SEP_SUSPICIOUS;
                else
-                  if (ImageUtils::testSlashLine(*s, 0, 7.0)) //TODO: To rs immediately. Original is 1.3 
+                  if (ImageUtils::testSlashLine(*s, 0, 4.0)) //TODO: To rs immediately. Original is 1.3 
                      mark = SEP_BOND;
                   else 
                      mark = SEP_SYMBOL;
