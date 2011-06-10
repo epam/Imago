@@ -442,15 +442,41 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
       ImageUtils::saveImageToFile(image, "output/09_final.png");
 }
 
+void _prefilterInternal2( Image &img )
+{
+   cv::Mat mat;
+   _copyImageToMat(img, mat);
+
+   mat = 255 - mat;
+   cv::Mat background, strel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(46, 46));
+
+   cv::morphologyEx(mat, mat, cv::MORPH_TOPHAT, strel);
+   mat = 255 - mat;
+
+   //cv::GaussianBlur(mat, mat, cv::Size(3, 3), 9.0);
+   cv::GaussianBlur(mat, mat, cv::Size(5, 5), 5.0);
+   //cv::GaussianBlur(mat, mat, cv::Size(5, 5), 5.0);
+   
+   cv::medianBlur(mat, mat, 3.0);
+   
+   printf("%lf", cv::threshold(mat, mat, 0, 255, cv::THRESH_OTSU));
+
+   img.clear();
+   _copyMatToImage(img, mat);
+}
+
+
 void prefilterImage( Image &image, const CharacterRecognizer &cr )
 {
-   Image raw;
+   /*Image raw;
 
    raw.copy(image);
 
-   image.clear();
+   image.clear();*/
 
-   _prefilterInternal(raw, image, cr);
+   _prefilterInternal2(image);
+
+   //_prefilterInternal(raw, image, cr);
 }
 
 void prefilterFile(const char *filename, Image &image, const CharacterRecognizer &cr )
@@ -459,7 +485,8 @@ void prefilterFile(const char *filename, Image &image, const CharacterRecognizer
 
    ImageUtils::loadImageFromFile(raw, filename);
 
-   _prefilterInternal(raw, image, cr);
+   //_prefilterInternal(raw, image, cr);
+   _prefilterInternal2(raw);
 }
 
 void prefilterFile(const std::vector<unsigned char> &data, Image &image, const CharacterRecognizer &cr )
@@ -469,7 +496,7 @@ void prefilterFile(const std::vector<unsigned char> &data, Image &image, const C
 
    JpgLoader().loadImage(raw, &data[0], &data[0] + data.size());
 
-   _prefilterInternal(raw, image, cr);
+   _prefilterInternal2(raw);
 }
 
 
