@@ -249,13 +249,14 @@ void ImageUtils::cutSegment( Image &img, const Segment &seg )
 
 void ImageUtils::loadImageFromFile( Image &img, const char *format, ... )
 {
+   char str[MAX_LINE];
    va_list args;
 
-   va_start(args, format);
-   vprintf(format, args);
+   va_start(args, format);   
+   vsnprintf(str, sizeof(str), format, args);
    va_end(args);
 
-   const char *FileName = format;
+   const char *FileName = str;
 
    img.clear(); 
    
@@ -293,13 +294,14 @@ void ImageUtils::loadImageFromFile( Image &img, const char *format, ... )
 
 void ImageUtils::saveImageToFile( const Image &img, const char *format, ... )
 {
+   char str[MAX_LINE];
    va_list args;
 
-   va_start(args, format);
-   vprintf(format, args);
+   va_start(args, format);   
+   vsnprintf(str, sizeof(str), format, args);
    va_end(args);
 
-   const char *FileName = format;
+   const char *FileName = str;
 
    FileOutput fout(FileName);
    PngSaver saver(fout);

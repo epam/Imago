@@ -3,6 +3,8 @@
 #include <vector>
 #include <list>
 
+#include <opencv\cv.h>
+
 #include <boost/graph/kruskal_min_spanning_tree.hpp>
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/biconnected_components.hpp"
@@ -514,32 +516,60 @@ void testSegmentate( char *filename )
    }
 }
 
-void prefilter2( Image &img )
+inline static void _copyMatToImage (Image &img, const cv::Mat &mat)
 {
+   int w = mat.cols;
+   int h = mat.rows;
 
+   img.init(w, h);
+   int i, j;
 
+   for (i = 0; i < w; i++)
+      for (j = 0; j < h; j++)
+         img.getByte(i, j) = mat.at<unsigned char>(j, i);
 }
+
+inline static void _copyImageToMat ( const Image &img, cv::Mat &mat)
+{
+   int w = img.getWidth();
+   int h = img.getHeight();
+
+   mat.create(h, w, CV_8U);
+   int i, j;
+
+   for (i = 0; i < w; i++)
+      for (j = 0; j < h; j++)
+         mat.at<unsigned char>(j, i) = img.getByte(i, j);
+}
+
 
 void testNewFilter( char *filename )
 {
    try
    {
+      qword sid = SessionManager::getInstance().allocSID();
+      SessionManager::getInstance().setSID(sid);
+
       Image img;
 
       ImageUtils::loadImageFromFile(img, filename);
 
-      prefilter2(img);
+      TIME(prefilter2(img), "filtering");
+      //TIME(prefilterImage(img, gSession.get()->recognizer().getCharacterRecognizer()), "filtering");
 
-      ImageUtils::saveImageToFile(img, "output/filter_result_%s.png", filename);
+      ImageUtils::saveImageToFile(img, "output/newfilter_result.png");
+
+      SessionManager::getInstance().releaseSID(sid);
    }
    catch (Exception &e)
    {
+      puts(e.what());
    }
 }
 
 int main( int argc, char *argv[] )
 {
-   testNewFilter("../../../data/from_caduff_2/photo1.jpg");
+   testNewFilter("../../../data/iphone_images/photo1.jpg");
    return 1;
 
    try
