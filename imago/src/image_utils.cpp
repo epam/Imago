@@ -13,6 +13,7 @@
  ***************************************************************************/
 
 #include <cmath>
+#include <cstdarg>
 #include <algorithm>
 #include <string>
 
@@ -246,8 +247,16 @@ void ImageUtils::cutSegment( Image &img, const Segment &seg )
       }
 }
 
-void ImageUtils::loadImageFromFile( Image &img, const char *FileName )
+void ImageUtils::loadImageFromFile( Image &img, const char *format, ... )
 {
+   va_list args;
+
+   va_start(args, format);
+   vprintf(format, args);
+   va_end(args);
+
+   const char *FileName = format;
+
    img.clear(); 
    
    std::string fname(FileName);
@@ -282,8 +291,16 @@ void ImageUtils::loadImageFromFile( Image &img, const char *FileName )
    throw Exception("Unknown file format");
 }
 
-void ImageUtils::saveImageToFile( const Image &img, const char *FileName )
+void ImageUtils::saveImageToFile( const Image &img, const char *format, ... )
 {
+   va_list args;
+
+   va_start(args, format);
+   vprintf(format, args);
+   va_end(args);
+
+   const char *FileName = format;
+
    FileOutput fout(FileName);
    PngSaver saver(fout);
 

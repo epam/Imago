@@ -514,9 +514,33 @@ void testSegmentate( char *filename )
    }
 }
 
+void prefilter2( Image &img )
+{
+
+
+}
+
+void testNewFilter( char *filename )
+{
+   try
+   {
+      Image img;
+
+      ImageUtils::loadImageFromFile(img, filename);
+
+      prefilter2(img);
+
+      ImageUtils::saveImageToFile(img, "output/filter_result_%s.png", filename);
+   }
+   catch (Exception &e)
+   {
+   }
+}
+
 int main( int argc, char *argv[] )
 {
-   //testSegmentate("../../../data/mol_images/image439.png");
+   testNewFilter("../../../data/from_caduff_2/photo1.jpg");
+   return 1;
 
    try
    {
@@ -529,6 +553,8 @@ int main( int argc, char *argv[] )
 
       //ImageUtils::loadImageFromFile(img, argv[1]);
       ImageUtils::loadImageFromFile(img, "../../../data/from_caduff_3/5.jpg");
+
+      //ImageUtils::loadImageFromFile(img, "../../../data/from_caduff_3/5.jpg");
 
       prefilterImage(img, gSession.get()->recognizer().getCharacterRecognizer());
       
