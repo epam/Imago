@@ -473,7 +473,6 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    raw.copy(image);
 
    image.clear();*/
-
    _prefilterInternal2(image);
 
    //_prefilterInternal(raw, image, cr);
