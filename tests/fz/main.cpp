@@ -3,7 +3,7 @@
 #include <vector>
 #include <list>
 
-#include <opencv\cv.h>
+#include <opencv/cv.h>
 
 #include <boost/graph/kruskal_min_spanning_tree.hpp>
 #include "boost/graph/adjacency_list.hpp"
@@ -554,8 +554,8 @@ void testNewFilter( char *filename )
 
       ImageUtils::loadImageFromFile(img, filename);
 
-      TIME(prefilter2(img), "filtering");
-      //TIME(prefilterImage(img, gSession.get()->recognizer().getCharacterRecognizer()), "filtering");
+//      TIME(prefilter2(img), "filtering");
+      TIME(prefilterImage(img, gSession.get()->recognizer().getCharacterRecognizer()), "filtering");
 
       ImageUtils::saveImageToFile(img, "output/newfilter_result.png");
 

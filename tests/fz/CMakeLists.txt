@@ -1,6 +1,7 @@
 include_directories(
   ../../
   ../../imago/src
+  ../../opencv/include
   )
 
 set(SRC
