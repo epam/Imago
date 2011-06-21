@@ -556,7 +556,12 @@ void in_to_out_name(char *fn_out, const char *filename, const char * str_templat
 {
 
    if(filename == NULL)
+   {
+       if (str_template == NULL)
+           return;
+       strcpy(fn_out, str_template);
        return;
+   }
 
    size_t sl = strnlen(filename, 1000);
    if(sl > 0 && sl < 1000)
@@ -577,6 +582,8 @@ void in_to_out_name(char *fn_out, const char *filename, const char * str_templat
 void testNewFilter( char *filename )
 {
    char fn_out[1000];
+   if(filename == NULL)
+       return;
    in_to_out_name(fn_out, filename, ".out.png");
    try
    {
@@ -604,10 +611,13 @@ void testNewFilter( char *filename )
 int main( int argc, char *argv[] )
 {
 
+   char fn_out[1000];
    printHelp("", argv[0]);       
+   if(argc == 1)
+       return 1;
 
-   testNewFilter(argv[1]);
-   return 1;
+   //   testNewFilter(argv[1]);
+//   return 1;
 
    try
    {
@@ -618,8 +628,8 @@ int main( int argc, char *argv[] )
          
       Image img;
 
-      //ImageUtils::loadImageFromFile(img, argv[1]);
-      ImageUtils::loadImageFromFile(img, "../../../data/from_caduff_3/5.jpg");
+      ImageUtils::loadImageFromFile(img, argv[1]);
+      //ImageUtils::loadImageFromFile(img, "../../../data/from_caduff_3/5.jpg");
 
       //ImageUtils::loadImageFromFile(img, "../../../data/from_caduff_3/5.jpg");
 
@@ -628,14 +638,14 @@ int main( int argc, char *argv[] )
       //prefilterFile(argv[1], img);
       //prefilterFile("../../../data/from_caduff_2/img_0032.jpg", img);
       //prefilterFile("../../../data/fx104asdkjflj", img, gSession.get()->recognizer().getCharacterRecognizer());
-
-      ImageUtils::saveImageToFile(img, "result.png");
+      in_to_out_name(fn_out, argv[1], ".out.png");
+      ImageUtils::saveImageToFile(img, fn_out);
 
       Molecule mol;
 
       gSession.get()->recognizer().image2mol(img, mol);
-
-      FileOutput fo("result.mol");
+      in_to_out_name(fn_out, argv[1], ".mol");
+      FileOutput fo(fn_out);
       MolfileSaver ma(fo);
 
       ma.saveMolecule(mol);
