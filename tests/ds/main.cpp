@@ -552,27 +552,32 @@ inline static void _copyImageToMat ( const Image &img, cv::Mat &mat)
          mat.at<unsigned char>(j, i) = img.getByte(i, j);
 }
 
-
-void testNewFilter( char *filename )
+void in_to_out_name(char *fn_out, const char *filename, const char * str_template )
 {
-   char fn_out[1000];
+
    if(filename == NULL)
        return;
 
    size_t sl = strnlen(filename, 1000);
    if(sl > 0 && sl < 1000)
    {
-       char  *template_s  = strstr(filename, ".JPG"); 
+       const char  *template_s  = strstr(filename, ".JPG"); 
        if(template_s == NULL)
          template_s  = strstr(filename, ".jpg"); 
        if(template_s == NULL)
-           strcpy(fn_out, "output/newfilter_result.png"); 
+           strcpy(fn_out, "output/output_template.png"); 
            
 
        int rupture = (int)template_s - (int)filename;
        memcpy(fn_out, filename, rupture);
-       strcpy(&fn_out[rupture], ".out.png");
+       strcpy(&fn_out[rupture], str_template);
    }
+}
+
+void testNewFilter( char *filename )
+{
+   char fn_out[1000];
+   in_to_out_name(fn_out, filename, ".out.png");
    try
    {
       qword sid = SessionManager::getInstance().allocSID();
