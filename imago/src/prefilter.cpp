@@ -459,7 +459,7 @@ void _prefilterInternal2( Image &img )
    
    cv::medianBlur(mat, mat, 3.0);
    
-   printf("%lf", cv::threshold(mat, mat, 0, 255, cv::THRESH_OTSU));
+   cv::threshold(mat, mat, 0, 255, cv::THRESH_OTSU);
 
    img.clear();
    _copyMatToImage(img, mat);
@@ -468,15 +468,15 @@ void _prefilterInternal2( Image &img )
 
 void prefilterImage( Image &image, const CharacterRecognizer &cr )
 {
-   /*Image raw;
+   Image raw;
 
    raw.copy(image);
 
-   image.clear();*/
+   image.clear();
 
-   _prefilterInternal2(image);
+   //_prefilterInternal2(image);
 
-   //_prefilterInternal(raw, image, cr);
+   _prefilterInternal(raw, image, cr);
 }
 
 void prefilterFile(const char *filename, Image &image, const CharacterRecognizer &cr )
@@ -485,8 +485,8 @@ void prefilterFile(const char *filename, Image &image, const CharacterRecognizer
 
    ImageUtils::loadImageFromFile(raw, filename);
 
-   //_prefilterInternal(raw, image, cr);
-   _prefilterInternal2(raw);
+   _prefilterInternal(raw, image, cr);
+   //_prefilterInternal2(raw);
 }
 
 void prefilterFile(const std::vector<unsigned char> &data, Image &image, const CharacterRecognizer &cr )
@@ -497,6 +497,7 @@ void prefilterFile(const std::vector<unsigned char> &data, Image &image, const C
    JpgLoader().loadImage(raw, &data[0], &data[0] + data.size());
 
    _prefilterInternal(raw, image, cr);
+   //_prefilterInternal2(raw);	
 }
 
 

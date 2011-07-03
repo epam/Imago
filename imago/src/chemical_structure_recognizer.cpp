@@ -124,7 +124,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       SegmentDeque layer_symbols, layer_graphics, segments;
       RecognitionSettings &rs = getSettings();      
       
-      TIME(_processFilter(), "Imago image processing");
+     //TIME(_processFilter(), "Imago image processing");
 
       Image &_img = _origImage;
 

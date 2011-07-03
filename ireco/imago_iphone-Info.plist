@@ -14,6 +14,8 @@
 	<array>
 		<string>ireco.png</string>
 		<string>irecohd.png</string>
+		<string>irecopad.png</string>
+		<string>irecopad.png</string>
 	</array>
 	<key>CFBundleIdentifier</key>
 	<string>6KBW792M89.com.ggasoftware.${PRODUCT_NAME:rfc1034identifier}</string>
@@ -28,11 +30,27 @@
 	<key>CFBundleURLTypes</key>
 	<array/>
 	<key>CFBundleVersion</key>
-	<string>1.0</string>
+	<string>1.1.2</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSMainNibFile</key>
 	<string>MainWindow</string>
+	<key>NSMainNibFile~ipad</key>
+	<string>MainWindow-iPad</string>
+	<key>UISupportedInterfaceOrientations</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
+	<key>UISupportedInterfaceOrientations~ipad</key>
+	<array>
+		<string>UIInterfaceOrientationPortrait</string>
+		<string>UIInterfaceOrientationPortraitUpsideDown</string>
+		<string>UIInterfaceOrientationLandscapeLeft</string>
+		<string>UIInterfaceOrientationLandscapeRight</string>
+	</array>
 	<key>UTExportedTypeDeclarations</key>
 	<array/>
 	<key>UTImportedTypeDeclarations</key>

@@ -3,11 +3,12 @@
 
 @protocol OverlayViewControllerDelegate;
 
-@interface OverlayViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate>
+@interface OverlayViewController : UIViewController <UINavigationControllerDelegate, UIImagePickerControllerDelegate, UIPopoverControllerDelegate>
 {
     id <OverlayViewControllerDelegate> delegate;
     
     UIImagePickerController *imagePickerController;
+    UIPopoverController *popoverController;
     
 @private
     UIBarButtonItem *takePictureButton;
@@ -16,6 +17,7 @@
 
 @property (nonatomic, assign) id <OverlayViewControllerDelegate> delegate;
 @property (nonatomic, retain) UIImagePickerController *imagePickerController;
+@property (nonatomic, retain) UIPopoverController *popoverController;
 
 @property (nonatomic, retain) IBOutlet UIBarButtonItem *takePictureButton;
 @property (nonatomic, retain) IBOutlet UIBarButtonItem *cancelButton;

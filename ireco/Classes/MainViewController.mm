@@ -30,7 +30,7 @@
         [toolbarItems addObjectsFromArray:self.toolbar.items];
         [toolbarItems removeObjectAtIndex:2];
         [self.toolbar setItems:toolbarItems animated:NO];
-    }
+    } 
 }
 
 - (void)viewDidUnload
@@ -54,27 +54,32 @@
    [super dealloc];
 }
 
-
 #pragma mark -
 #pragma mark Toolbar Actions
 
-- (void)showImagePicker:(UIImagePickerControllerSourceType)sourceType
+- (void)showImagePicker:(UIImagePickerControllerSourceType)sourceType fromButton:(id)button
 {
     if ([UIImagePickerController isSourceTypeAvailable:sourceType])
     {
         [self.overlayViewController setupImagePicker:sourceType];
-        [self presentModalViewController:self.overlayViewController.imagePickerController animated:YES];
+        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+        {
+            [self presentModalViewController:self.overlayViewController.imagePickerController animated:YES];
+        } else
+        {
+             [self.overlayViewController.popoverController presentPopoverFromBarButtonItem:button permittedArrowDirections:UIPopoverArrowDirectionAny animated:YES];
+        }
     }
 }
 
 - (IBAction)photoLibraryAction:(id)sender
 {   
-   [self showImagePicker:UIImagePickerControllerSourceTypePhotoLibrary];
+   [self showImagePicker:UIImagePickerControllerSourceTypePhotoLibrary fromButton:sender];
 }
 
 - (IBAction)cameraAction:(id)sender
 {
-   [self showImagePicker:UIImagePickerControllerSourceTypeCamera];
+   [self showImagePicker:UIImagePickerControllerSourceTypeCamera fromButton:sender];
 }
 
 #pragma mark -
@@ -102,12 +107,22 @@
 // as a delegate we are told to finished with the camera
 - (void)didFinishWithCamera
 {
-    [self dismissModalViewControllerAnimated:YES];
+    if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPhone)
+    {
+        [self dismissModalViewControllerAnimated:YES];
+    } else
+    {
+        [self.overlayViewController.popoverController dismissPopoverAnimated:YES];
+    }
     
     if (self.capturedImage != nil)
     {
         [self.imageView setImage:self.capturedImage];
     }
+}
+
+- (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
+   return YES;
 }
 
 @end
