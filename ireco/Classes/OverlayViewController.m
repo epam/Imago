@@ -3,7 +3,7 @@
 @implementation OverlayViewController
 
 @synthesize delegate, takePictureButton,
-            cancelButton, imagePickerController;
+            cancelButton, imagePickerController, popoverController;
 
 
 #pragma mark -
@@ -17,6 +17,17 @@
         self.imagePickerController = imagePicker;
         self.imagePickerController.delegate = self;
         [imagePicker release];
+
+        if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad)
+        {
+            self.imagePickerController.contentSizeForViewInPopover = CGSizeMake(320, 480);
+            UIPopoverController *popover = [[UIPopoverController alloc] initWithContentViewController:imagePicker];
+            self.popoverController = popover;
+            self.popoverController.delegate = self;
+            [self.popoverController setPopoverContentSize:(CGSizeMake(320, 480))];
+            [popover release];
+        }
+
     }
     return self;
 }
@@ -40,28 +51,6 @@
 - (void)setupImagePicker:(UIImagePickerControllerSourceType)sourceType
 {
     self.imagePickerController.sourceType = sourceType;
-    
-    if (sourceType == UIImagePickerControllerSourceTypeCamera)
-    {
-        // user wants to use the camera interface
-        //
-        self.imagePickerController.showsCameraControls = NO;
-        
-        if ([[self.imagePickerController.cameraOverlayView subviews] count] == 0)
-        {
-            // setup our custom overlay view for the camera
-            //
-            // ensure that our custom view's frame fits within the parent frame
-            CGRect overlayViewFrame = self.imagePickerController.cameraOverlayView.frame;
-            CGRect newFrame = CGRectMake(0.0,
-                                         CGRectGetHeight(overlayViewFrame) -
-                                         self.view.frame.size.height - 10.0,
-                                         CGRectGetWidth(overlayViewFrame),
-                                         self.view.frame.size.height + 10.0);
-            self.view.frame = newFrame;
-            [self.imagePickerController.cameraOverlayView addSubview:self.view];
-        }
-    }
 }
 
 // called when the parent application receives a memory warning
@@ -119,6 +108,8 @@
 {
     [self.delegate didFinishWithCamera];    // tell our delegate we are finished with the picker
 }
+
+
 
 @end
 
