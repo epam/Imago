@@ -755,6 +755,66 @@ void testShapeContext( const char *filename )
    SessionManager::getInstance().releaseSID(sid);
 }
 
+void calcDescriptors(int argc, char **argv)
+{
+   if (argc != 3)
+   {
+      exit(-1);
+   }
+   const std::string imgpath(argv[1]);
+   const int count = atoi(argv[2]);
+
+   Image img;
+   SegmentDeque segments;
+   ImageUtils::loadImageFromFile(img, imgpath.c_str());
+
+   Binarizer(img, 195).apply();
+   Segmentator::segmentate(img, segments);
+   Segment *seg;
+
+   if (segments.size() >= 3)
+   {
+      printf("%s\n", imgpath.c_str());
+      exit(-1);
+   }
+   assert(segments.size() < 3);
+
+   if (segments.size() == 2)
+   {
+      Segment *head, *tail;
+      head = segments.front();
+      tail = segments.back();
+
+      if (head->getHeight() * head->getWidth() > tail->getHeight() * tail->getWidth())
+         seg = head;
+      else
+         seg = tail;
+   }
+   else
+      seg = segments.front();
+
+   seg->initFeatures(count);
+   SymbolFeatures &features = seg->getFeatures();
+   if (!features.recognizable)
+      exit(-1);
+
+   printf("%d\n", features.inner_contours_count);
+
+   for (int i = 0; i < 2 * count; ++i)
+   {
+      printf("%lf ", features.descriptors[i]);
+   }
+   puts("");
+   for (int j = 0; j < features.inner_contours_count; ++j)
+   {
+      for (int i = 0; i < 2 * count; ++i)
+      {
+         printf("%lf ", features.inner_descriptors[j][i]);
+      }
+      puts("");
+   }
+}
+
 int main(int argc, char **argv)
 {
    //graphTest();
@@ -773,9 +833,9 @@ int main(int argc, char **argv)
    LOG123 << "123\n";
    LOG123 << "x = " << x << "\n";
    */
-#ifdef DEBUG
-   puts("DEBUG");
-#endif
+//#ifdef DEBUG
+//   puts("DEBUG");
+//#endif
    
    //testThreads();
 
@@ -795,7 +855,8 @@ int main(int argc, char **argv)
    //makeFont();
    //testOCR2(argv[1]);
 
-   testRotation(argv[1]);
+//   testRotation(argv[1]);
+   calcDescriptors(argc, argv);
    //makeCVFont();
 
    //testClassifier();

@@ -182,12 +182,12 @@ void CharacterRecognizer::_loadFromFile( const std::string &filename )
 {
    FILE *f = fopen(filename.c_str(), "r");
    int fonts_count, letters_count;
-   fscanf(f, "%d %d %d\n", &_count, &fonts_count, &letters_count);
+   fscanf(f, "%d %d\n", &_count, &letters_count);
    _classes.resize(letters_count);
    for (int i = 0; i < letters_count; i++)
    {
       SymbolClass &cls = _classes[i];
-      fscanf(f, "%c\n", &cls.sym);
+      fscanf(f, "%c %d\n", &cls.sym, &fonts_count);
       _mapping[cls.sym] = i;
       cls.shapes.resize(fonts_count);
       for (int j = 0; j < fonts_count; j++)
