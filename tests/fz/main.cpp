@@ -569,8 +569,8 @@ void testNewFilter( char *filename )
 
 int main( int argc, char *argv[] )
 {
-   testNewFilter("../../../data/iphone_images/photo1.jpg");
-   return 1;
+   //testNewFilter("../../../data/iphone_images/photo1.jpg");
+   //return 1;
 
    try
    {
@@ -581,8 +581,8 @@ int main( int argc, char *argv[] )
          
       Image img;
 
-      //ImageUtils::loadImageFromFile(img, argv[1]);
-      ImageUtils::loadImageFromFile(img, "../../../data/from_caduff_3/5.jpg");
+      ImageUtils::loadImageFromFile(img, argv[1]);
+      //ImageUtils::loadImageFromFile(img, "../../../data/from_caduff_3/5.jpg");
 
       //ImageUtils::loadImageFromFile(img, "../../../data/from_caduff_3/5.jpg");
 
