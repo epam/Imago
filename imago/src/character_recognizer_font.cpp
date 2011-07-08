@@ -5,7 +5,7 @@ namespace imago
    {
       #ifdef IMAGO_FONT_BUILT_IN
 //      #include "TEST4.font.inc"
-      #include "f.font.inc"
+      #include "ff.font.inc"
       _loaded = true;
       #endif
    }

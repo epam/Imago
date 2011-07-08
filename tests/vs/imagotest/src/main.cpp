@@ -466,19 +466,23 @@ void testRotation(const char *filename = 0)
          "../../../data/from_caduff_2/IMG_0022.JPG";
          //"../../../ireco/first-delivery-images/photo09.jpg";
 
-      std::vector<unsigned char> data;
-      FILE *inf = fopen(f, "rb");
-      while (!feof(inf))
-      {
-         if (!feof(inf))
-            data.push_back(fgetc(inf));
-      }
-      fclose(inf);
+      // std::vector<unsigned char> data;
+      // FILE *inf = fopen(f, "rb");
+      // while (!feof(inf))
+      // {
+      //    if (!feof(inf))
+      //       data.push_back(fgetc(inf));
+      // }
+      // fclose(inf);
       //prefilterFile(data, img, cr);
 
       getSettings()["DebugSession"] = true;
       //getSettings()["Filter"] = "blur"; //for 34!
       ChemicalStructureRecognizer &csr = getRecognizer();
+
+      ImageUtils::loadImageFromFile(img, f);
+      
+      prefilterImage(img, csr.getCharacterRecognizer());
       Molecule mol;
 
       csr.image2mol(img, mol);
@@ -855,8 +859,8 @@ int main(int argc, char **argv)
    //makeFont();
    //testOCR2(argv[1]);
 
-//   testRotation(argv[1]);
-   calcDescriptors(argc, argv);
+   testRotation(argv[1]);
+   //calcDescriptors(argc, argv);
    //makeCVFont();
 
    //testClassifier();

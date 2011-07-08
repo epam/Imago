@@ -18,7 +18,7 @@ f = open(outpath, 'w')
 f.write("" + str(count) + " " + str(len(symbols)) + "\n")
 for sym in symbols:
     symdir = os.path.join(indir, sym)
-    glyphs = os.listdir(symdir)
+    glyphs = filter(lambda g: g[-4:] == ".png", os.listdir(symdir))  
     f.write("" + str(sym) + " " + str(len(glyphs)) + "\n")
     for g in glyphs:
         p = subprocess.Popen(["./fd_calc", os.path.join(symdir, g), str(count)], stdout=subprocess.PIPE)
