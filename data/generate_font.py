@@ -11,13 +11,19 @@ count = 25
 
 assert(os.path.isdir(indir))
 
-symbols = sorted(os.listdir(indir))
+symbols = []
+symbols += [chr(ord('A') + i) for i in xrange(0, 26)]
+symbols += [chr(ord('a') + i) for i in xrange(0, 26)]
+symbols += [str(i) for i in xrange(0, 10)]
 
 f = open(outpath, 'w')
 
 f.write("" + str(count) + " " + str(len(symbols)) + "\n")
 for sym in symbols:
-    symdir = os.path.join(indir, sym)
+    if sym >= 'A' and sym <= 'Z':
+        symdir = os.path.join(indir, 'capital', sym)
+    else:
+        symdir = os.path.join(indir, sym)
     glyphs = filter(lambda g: g[-4:] == ".png", os.listdir(symdir))  
     f.write("" + str(sym) + " " + str(len(glyphs)) + "\n")
     for g in glyphs:
