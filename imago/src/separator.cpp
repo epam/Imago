@@ -21,8 +21,10 @@
 
 #include "boost/foreach.hpp"
 
+#include "approximator.h"
 #include "comdef.h"
 #include "current_session.h"
+#include "graphics_detector.h"
 #include "exception.h"
 #include "image.h"
 #include "image_utils.h"
@@ -31,6 +33,7 @@
 #include "segment.h"
 #include "segmentator.h"
 #include "stat_utils.h"
+#include "thin_filter2.h"
 #include "recognition_settings.h"
 
 using namespace imago;
@@ -86,6 +89,15 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 
          if (s->getHeight() >= cap_height - sym_height_err && 
              s->getHeight() <= cap_height + sym_height_err) 
+         {
+            if (s->getRatio() > 0.96 && s->getRatio() < 1.05)
+            {
+               if (_analyzeSpecialSegment(s, layer_graphics, layer_symbols))
+               {
+                  layer_graphics.push_back(s);
+                  continue;
+               }
+            }
             if (s->getRatio() > adequate_ratio_max)
                if (ImageUtils::testSlashLine(*s, 0, 3.2)) //TODO: To rs immediately. Original is 1.0
                   mark = SEP_BOND;
@@ -98,10 +110,11 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
                   else
                      mark = SEP_SUSPICIOUS;
                else
-                  if (ImageUtils::testSlashLine(*s, 0, 4.0)) //TODO: To rs immediately. Original is 1.3 
+                  if (ImageUtils::testSlashLine(*s, 0, 3.0)) //TODO: To rs immediately. Original is 1.3 
                      mark = SEP_BOND;
                   else 
                      mark = SEP_SYMBOL;
+         }
          else
             mark = SEP_BOND;
 
@@ -114,10 +127,15 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
             layer_symbols.push_back(s);
             break;
          case SEP_SPECIAL:
-            if ((s)->getDensity() < susp_seg_density)
+            if (_analyzeSpecialSegment(s, layer_graphics, layer_symbols))
                layer_graphics.push_back(s);
             else
                layer_symbols.push_back(s);
+
+            /*if ((s)->getDensity() < susp_seg_density)
+               layer_graphics.push_back(s);
+            else
+               layer_symbols.push_back(s);*/
             break;
          case SEP_SUSPICIOUS:
             layer_suspicious.push_back(s);
@@ -135,6 +153,23 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
    }
 
    std::sort(layer_symbols.begin(), layer_symbols.end(), _segmentsComparator);
+}
+
+bool Separator::_analyzeSpecialSegment( Segment *seg, SegmentDeque &layer_graphics, SegmentDeque &layer_symbols )
+{
+   Image tmp;
+   CvApproximator cvApprox;
+   GraphicsDetector gd(&cvApprox, 7.0);
+   Points2d lsegments;
+
+   tmp.copy(*seg);
+
+   gd.detect(tmp, lsegments);
+
+   if (lsegments.size() == 4)// && lsegments.size() <= 10)
+      return true;
+   else
+      return false;
 }
 
 bool Separator::_isSuspiciousSymbol( Segment *cur_seg, SegmentDeque &layer_symbols, int cap_height )

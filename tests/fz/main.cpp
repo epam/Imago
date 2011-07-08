@@ -582,7 +582,7 @@ int main( int argc, char *argv[] )
       Image img;
 
       ImageUtils::loadImageFromFile(img, argv[1]);
-      //ImageUtils::loadImageFromFile(img, "../../../data/from_caduff_3/5.jpg");
+      //ImageUtils::loadImageFromFile(img, "../../../data/TestSuite3/iPad2/TS_3_iPad_2_14.jpg");
 
       //ImageUtils::loadImageFromFile(img, "../../../data/from_caduff_3/5.jpg");
 
