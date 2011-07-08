@@ -12,6 +12,7 @@
 		1D60589F0D05DD5A006BFB54 /* Foundation.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1D30AB110D05D00D00671497 /* Foundation.framework */; };
 		1DF5F4E00D08C38300B7A737 /* UIKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 1DF5F4DF0D08C38300B7A737 /* UIKit.framework */; };
 		2892E4100DC94CBA00A64D0F /* CoreGraphics.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 2892E40F0DC94CBA00A64D0F /* CoreGraphics.framework */; };
+		89504A4F13C73A05005B17C2 /* ff.font in Resources */ = {isa = PBXBuildFile; fileRef = 89504A4E13C73A05005B17C2 /* ff.font */; };
 		895D166F13BB95D700789128 /* MainWindow-iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 895D166E13BB95D700789128 /* MainWindow-iPad.xib */; };
 		895D167113BBBC7600789128 /* irecopad.png in Resources */ = {isa = PBXBuildFile; fileRef = 895D167013BBBC7600789128 /* irecopad.png */; };
 		A704F75C1271BED80006F5C5 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A704F75B1271BED80006F5C5 /* libz.dylib */; };
@@ -25,7 +26,6 @@
 		A7C3450B134B322500879EE6 /* set.js in Resources */ = {isa = PBXBuildFile; fileRef = A7C3450A134B322500879EE6 /* set.js */; };
 		A7C3450D134B323A00879EE6 /* sgroup.png in Resources */ = {isa = PBXBuildFile; fileRef = A7C3450C134B323A00879EE6 /* sgroup.png */; };
 		A7C3450F134B324E00879EE6 /* actions.js in Resources */ = {isa = PBXBuildFile; fileRef = A7C3450E134B324E00879EE6 /* actions.js */; };
-		A7D5CB9A12ADA75E00C60C51 /* TEST4.font in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CB9912ADA75E00C60C51 /* TEST4.font */; };
 		A7D5CBA512ADB83D00C60C51 /* KetcherViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA012ADB7E900C60C51 /* KetcherViewController.xib */; };
 		A7D5CBA812ADB8B500C60C51 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA612ADB8B500C60C51 /* MainWindow.xib */; };
 		A7D5CBA912ADB8B500C60C51 /* OverlayViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */; };
@@ -112,7 +112,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1010BA1001010BA1001010BA;
+			remoteGlobalIDString = 1010B76401010B76401010B7;
 			remoteInfo = imago_static;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -133,7 +133,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 10103CDD010103CDD010103C;
+			remoteGlobalIDString = 10103AE2010103AE2010103A;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -147,6 +147,7 @@
 		2892E40F0DC94CBA00A64D0F /* CoreGraphics.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = CoreGraphics.framework; path = System/Library/Frameworks/CoreGraphics.framework; sourceTree = SDKROOT; };
 		28A0AAE50D9B0CCF005BE974 /* imago_iphone_Prefix.pch */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = imago_iphone_Prefix.pch; sourceTree = "<group>"; };
 		29B97316FDCFA39411CA2CEA /* main.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = main.m; sourceTree = "<group>"; };
+		89504A4E13C73A05005B17C2 /* ff.font */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = ff.font; path = ../data/ff.font; sourceTree = "<group>"; };
 		895D166E13BB95D700789128 /* MainWindow-iPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "MainWindow-iPad.xib"; path = "iPad/MainWindow-iPad.xib"; sourceTree = "<group>"; };
 		895D167013BBBC7600789128 /* irecopad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = irecopad.png; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* imago_iphone-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "imago_iphone-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
@@ -162,7 +163,6 @@
 		A7C3450A134B322500879EE6 /* set.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = set.js; sourceTree = "<group>"; };
 		A7C3450C134B323A00879EE6 /* sgroup.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = sgroup.png; sourceTree = "<group>"; };
 		A7C3450E134B324E00879EE6 /* actions.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = actions.js; sourceTree = "<group>"; };
-		A7D5CB9912ADA75E00C60C51 /* TEST4.font */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text; name = TEST4.font; path = ../data/fonts/TEST4.font; sourceTree = SOURCE_ROOT; };
 		A7D5CBA012ADB7E900C60C51 /* KetcherViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = KetcherViewController.xib; sourceTree = "<group>"; };
 		A7D5CBA612ADB8B500C60C51 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = OverlayViewController.xib; sourceTree = "<group>"; };
@@ -318,11 +318,11 @@
 		29B97317FDCFA39411CA2CEA /* Resources */ = {
 			isa = PBXGroup;
 			children = (
+				89504A4E13C73A05005B17C2 /* ff.font */,
 				A7D0BA3B13BE29B600BBA4A3 /* iPhone */,
 				895D166D13BB95D400789128 /* iPad */,
 				A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */,
 				A7D5CBC512ADC80C00C60C51 /* Ketcher */,
-				A7D5CB9912ADA75E00C60C51 /* TEST4.font */,
 				A75C26A512AD496900EBBC45 /* ireco.png */,
 				A75C26A612AD496900EBBC45 /* irecohd.png */,
 				8D1107310486CEB800E47090 /* imago_iphone-Info.plist */,
@@ -584,7 +584,6 @@
 				A7F7E2941358A6FC006C79F8 /* base64.js in Resources */,
 				A75C26A712AD496900EBBC45 /* ireco.png in Resources */,
 				A75C26A812AD496900EBBC45 /* irecohd.png in Resources */,
-				A7D5CB9A12ADA75E00C60C51 /* TEST4.font in Resources */,
 				A7D5CBA512ADB83D00C60C51 /* KetcherViewController.xib in Resources */,
 				A7D5CBA812ADB8B500C60C51 /* MainWindow.xib in Resources */,
 				A7D5CBA912ADB8B500C60C51 /* OverlayViewController.xib in Resources */,
@@ -630,6 +629,7 @@
 				A7A68494134C987600841AFC /* Entitlements.plist in Resources */,
 				895D166F13BB95D700789128 /* MainWindow-iPad.xib in Resources */,
 				895D167113BBBC7600789128 /* irecopad.png in Resources */,
+				89504A4F13C73A05005B17C2 /* ff.font in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

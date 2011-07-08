@@ -84,7 +84,7 @@
       imago::RecognitionSettings &rs = imago::getSettings();
       rs.set("DebugSession", false);
 
-      NSString *fontPath = [[NSBundle mainBundle] pathForResource:@"TEST4" ofType:@"font"];
+      NSString *fontPath = [[NSBundle mainBundle] pathForResource:@"ff" ofType:@"font"];
       const char *fontfile = [fontPath cStringUsingEncoding:NSASCIIStringEncoding];
       
       csr = new imago::ChemicalStructureRecognizer(fontfile);
