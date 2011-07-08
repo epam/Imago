@@ -112,7 +112,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1010ED6001010ED6001010ED;
+			remoteGlobalIDString = 1010BA1001010BA1001010BA;
 			remoteInfo = imago_static;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -129,18 +129,11 @@
 			remoteGlobalIDString = 101074490101074490101074;
 			remoteInfo = jpeg_local;
 		};
-		A7D672B1134625E90030A6E1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
-			proxyType = 1;
-			remoteGlobalIDString = 101035B60101035B60101035;
-			remoteInfo = png_local;
-		};
 		A7D672B3134625E90030A6E1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 101070E50101070E50101070;
+			remoteGlobalIDString = 10103CDD010103CDD010103C;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -496,7 +489,6 @@
 			buildRules = (
 			);
 			dependencies = (
-				A7D672B2134625E90030A6E1 /* PBXTargetDependency */,
 				A7D672B4134625E90030A6E1 /* PBXTargetDependency */,
 				A7988AAC1343ADCF00D37855 /* PBXTargetDependency */,
 			);
@@ -664,11 +656,6 @@
 			isa = PBXTargetDependency;
 			name = imago_static;
 			targetProxy = A7988AAB1343ADCF00D37855 /* PBXContainerItemProxy */;
-		};
-		A7D672B2134625E90030A6E1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			name = png_local;
-			targetProxy = A7D672B1134625E90030A6E1 /* PBXContainerItemProxy */;
 		};
 		A7D672B4134625E90030A6E1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;

@@ -57,6 +57,8 @@ namespace imago
       SymbolFeatures features_h2; 
       SymbolFeatures features_h3;
       SymbolFeatures features_h4;
+      SymbolFeatures features_h5;
+      SymbolFeatures features_h6;
       SymbolFeatures features_n1;
       SymbolFeatures features_n2;
       SymbolFeatures features_n3;

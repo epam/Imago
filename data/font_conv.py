@@ -9,24 +9,25 @@ def ConvertFont(fn_in, fn_out):
     line = fin.readline()
     line = line.split()
     n = int(line[0])
-    fonts = int(line[1])
-    letters = int(line[2])
+    letters = int(line[1])
     fout.write("""_count = %d;
-int fonts_count = %d, letters_count = %d, i;
+int letters_count = %d, i;
 SymbolClass *cls;
 SymbolFeatures *sf;
 _classes.resize(letters_count);
-""" % (n, fonts, letters))
+""" % (n, letters))
 
     for i in range(letters):
-        curChar = fin.readline()[0]
-
+        line = fin.readline().split()
+        curChar = line[0]
+        fonts = int(line[1])
+        
         fout.write("""i = %d;
 cls = &_classes[i];
 cls->sym = '%s';
 _mapping[cls->sym] = i;
-cls->shapes.resize(fonts_count);
-""" % (i, curChar))
+cls->shapes.resize(%d);
+""" % (i, curChar, fonts))
         
         for j in range(fonts):
             inner_contours = int(fin.readline())

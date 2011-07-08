@@ -32,8 +32,18 @@
 #include "segments_graph.h"
 #include "scanner.h"
 #include "output.h"
+#include "git_commit.h"
+
 
 using namespace imago;
+
+void printHelp(const char* error, const char* filename)
+{
+    printf("%s\n", error);
+    printf("Git commit string: %s\n", git_commit_str);
+    printf("Date of commit: %s\n", git_date_of_commit_str);
+    printf("Usage: %s \n\n", filename);
+}
 
 void testRecognize( char *input )
 {
@@ -542,9 +552,39 @@ inline static void _copyImageToMat ( const Image &img, cv::Mat &mat)
          mat.at<unsigned char>(j, i) = img.getByte(i, j);
 }
 
+void in_to_out_name(char *fn_out, const char *filename, const char * str_template )
+{
+
+   if(filename == NULL)
+   {
+       if (str_template == NULL)
+           return;
+       strcpy(fn_out, str_template);
+       return;
+   }
+
+   size_t sl = strnlen(filename, 1000);
+   if(sl > 0 && sl < 1000)
+   {
+       const char  *template_s  = strstr(filename, ".JPG"); 
+       if(template_s == NULL)
+         template_s  = strstr(filename, ".jpg"); 
+       if(template_s == NULL)
+           strcpy(fn_out, "output/output_template.png"); 
+           
+
+       int rupture = (int)template_s - (int)filename;
+       memcpy(fn_out, filename, rupture);
+       strcpy(&fn_out[rupture], str_template);
+   }
+}
 
 void testNewFilter( char *filename )
 {
+   char fn_out[1000];
+   if(filename == NULL)
+       return;
+   in_to_out_name(fn_out, filename, ".out.png");
    try
    {
       qword sid = SessionManager::getInstance().allocSID();
@@ -557,7 +597,8 @@ void testNewFilter( char *filename )
 //      TIME(prefilter2(img), "filtering");
       TIME(prefilterImage(img, gSession.get()->recognizer().getCharacterRecognizer()), "filtering");
 
-      ImageUtils::saveImageToFile(img, "output/newfilter_result.png");
+
+      ImageUtils::saveImageToFile(img, fn_out);
 
       SessionManager::getInstance().releaseSID(sid);
    }
@@ -569,8 +610,14 @@ void testNewFilter( char *filename )
 
 int main( int argc, char *argv[] )
 {
-   //testNewFilter("../../../data/iphone_images/photo1.jpg");
-   //return 1;
+
+   char fn_out[1000];
+   printHelp("", argv[0]);       
+   if(argc == 1)
+       return 1;
+
+   //   testNewFilter(argv[1]);
+//   return 1;
 
    try
    {
@@ -591,14 +638,14 @@ int main( int argc, char *argv[] )
       //prefilterFile(argv[1], img);
       //prefilterFile("../../../data/from_caduff_2/img_0032.jpg", img);
       //prefilterFile("../../../data/fx104asdkjflj", img, gSession.get()->recognizer().getCharacterRecognizer());
-
-      ImageUtils::saveImageToFile(img, "result.png");
+      in_to_out_name(fn_out, argv[1], ".out.png");
+      ImageUtils::saveImageToFile(img, fn_out);
 
       Molecule mol;
 
       gSession.get()->recognizer().image2mol(img, mol);
-
-      FileOutput fo("result.mol");
+      in_to_out_name(fn_out, argv[1], ".mol");
+      FileOutput fo(fn_out);
       MolfileSaver ma(fo);
 
       ma.saveMolecule(mol);

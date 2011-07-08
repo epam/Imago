@@ -131,8 +131,10 @@ void LabelLogic::process( Segment *seg, int line_y )
    double sameLineEps = 0.2; //(double)getSettings()["SameLineEps"];
                              //changed in "handwriting"
    bool capital = false;
+   char hwc = _hwcr.recognize(*seg);
+   
    //TODO: This can slowdown recognition process! Check this!
-   if (seg->getHeight() > 0.9 * _cap_height)
+   if (seg->getHeight() > 0.9 * _cap_height && hwc < '0' && hwc > '9')
       capital = true;
    else
    {
@@ -141,8 +143,6 @@ void LabelLogic::process( Segment *seg, int line_y )
       
       // No time to combine the recognizers properly. 
       // Just use one on top of another for now.
-      char hwc = _hwcr.recognize(*seg);
-
       if (hwc == 'N')
          capital = true;
       else if (hwc == 'H')
@@ -158,12 +158,22 @@ void LabelLogic::process( Segment *seg, int line_y )
             capital = true;
          else
          {
-            if (c_small == 'o' || c_small == 'c' || c_small == 's' ||
-                c_small == 'i' || c_small == 'p' || c_small == 'u' ||
-                c_small == 'v' || c_small == 'w')
-               capital = true;
+            if (c_small == 's' && c_digit == '2')
+            {
+               if (d_small < d_digit)
+                  capital = true;
+               else
+                  capital = false;
+            }
             else
-               capital = false;
+            {
+               if (c_small == 'o' || c_small == 'c' || c_small == 'i' ||
+                   c_small == 'p' || c_small == 'u' ||
+                   c_small == 'v' || c_small == 'w')
+                  capital = true;
+               else
+                  capital = false;
+            }
          }
       }
    }
@@ -172,7 +182,7 @@ void LabelLogic::process( Segment *seg, int line_y )
    {
       //Check for tall small letters
       _predict(seg, letters);
-      char sym = _hwcr.recognize(*seg);
+      char sym = hwc;
 
       if (sym == 'N')
          ;
@@ -189,6 +199,10 @@ void LabelLogic::process( Segment *seg, int line_y )
           sym == 'i' || sym == 'p' || sym == 'u' ||
           sym == 'v' || sym == 'w')
          sym = toupper(sym);
+
+#ifdef DEBUG
+      printf("LLogic sym = %c\n", sym);
+#endif
       
       if (sym >= 'a' && sym <= 'z')
       {

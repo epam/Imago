@@ -444,7 +444,7 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
 
 void _prefilterInternal2( Image &img )
 {
-   cv::Mat mat;
+   /*cv::Mat mat;
    _copyImageToMat(img, mat);
 
    mat = 255 - mat;
@@ -462,7 +462,7 @@ void _prefilterInternal2( Image &img )
    cv::threshold(mat, mat, 0, 255, cv::THRESH_OTSU);
 
    img.clear();
-   _copyMatToImage(img, mat);
+   _copyMatToImage(img, mat);*/
 }
 
 
@@ -473,7 +473,6 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    raw.copy(image);
 
    image.clear();
-
    //_prefilterInternal2(image);
 
    _prefilterInternal(raw, image, cr);
