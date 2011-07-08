@@ -332,11 +332,18 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    printf(" h %.2lf", err_h[min_h]);
    printf(" n %.2lf\n", err_n[min_n]);
 #endif
-   if (err_n[min_n] < 3.45) //1.8
+
+   if (err_h[min_h] < err_n[min_n])
    {
-      if (err_h[min_h] < err_n[min_n])
+      if (err_h[min_h] < 3.2)
          return 'H';
-      return 'N';
+   }
+   else
+   {
+      if (err_n[min_n] < 3.45) //1.8
+      {
+         return 'N';
+      }
    }
 
    static const std::string candidates =

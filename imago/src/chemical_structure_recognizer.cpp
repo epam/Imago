@@ -161,7 +161,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       Separator sep(segments, _img);
 
       //Settings for handwriting separation
-      rs.set("SymHeightErr", 26);      
+      rs.set("SymHeightErr", 26); //42
       rs.set("MaxSymRatio", 1.14);   
       rs.set("ParLinesEps", 0.5);
 
