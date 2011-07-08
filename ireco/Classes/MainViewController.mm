@@ -55,6 +55,110 @@
 }
 
 #pragma mark -
+-(UIImage*)imageRotatedByRadians:(UIImage*)anImage:(CGFloat)radians 
+{   
+    // calculate the size of the rotated view's containing box for our drawing space
+    UIView *rotatedViewBox = [[UIView alloc] initWithFrame:CGRectMake(0,0,anImage.size.width, anImage.size.height)];
+    CGAffineTransform t = CGAffineTransformMakeRotation(radians);
+    rotatedViewBox.transform = t;
+    CGSize rotatedSize = rotatedViewBox.frame.size;
+    [rotatedViewBox release];
+    
+    // Create the bitmap context
+    UIGraphicsBeginImageContext(rotatedSize);
+    CGContextRef bitmap = UIGraphicsGetCurrentContext();
+    
+    // Move the origin to the middle of the image so we will rotate and scale around the center.
+    CGContextTranslateCTM(bitmap, rotatedSize.width/2, rotatedSize.height/2);
+    
+    //   // Rotate the image context
+    CGContextRotateCTM(bitmap, radians);
+    
+    // Now, draw the rotated/scaled image into the context
+    CGContextScaleCTM(bitmap, 1.0, -1.0);
+    CGContextDrawImage(bitmap, CGRectMake(-anImage.size.width / 2, -anImage.size.height / 2, anImage.size.width, anImage.size.height), [anImage CGImage]);
+    
+    UIImage *newImage = UIGraphicsGetImageFromCurrentImageContext();
+    UIGraphicsEndImageContext();
+    
+    
+    return newImage;
+} 
+
+-(UIImage*)prepareImage:(UIImage*)anImage
+{
+    if (anImage.imageOrientation == 0)
+        return anImage;
+    else if (anImage.imageOrientation == 3) {
+        UIImage* sourceImage = anImage; 
+        
+        CGFloat targetWidth = anImage.size.height;
+        CGFloat targetHeight = anImage.size.width;
+        
+        CGImageRef imageRef = [sourceImage CGImage];
+        CGBitmapInfo bitmapInfo = CGImageGetBitmapInfo(imageRef);
+        CGColorSpaceRef colorSpaceInfo = CGImageGetColorSpace(imageRef);
+        
+        if (bitmapInfo == kCGImageAlphaNone) {
+            bitmapInfo = kCGImageAlphaNoneSkipLast;
+        }
+        
+        CGContextRef bitmap;
+        bitmap = CGBitmapContextCreate(NULL, targetWidth, targetHeight, CGImageGetBitsPerComponent(imageRef), CGImageGetBytesPerRow(imageRef), colorSpaceInfo, bitmapInfo);
+        
+        CGContextDrawImage(bitmap, CGRectMake(0, 0, targetWidth, targetHeight), imageRef);
+        
+        CGImageRef ref = CGBitmapContextCreateImage(bitmap);
+        UIImage* newImage = [UIImage imageWithCGImage:ref];
+        
+        CGContextRelease(bitmap);
+        CGImageRelease(ref);
+        
+        return newImage; 
+    } else {
+        printf("Orientation != {3, 0}");
+        return anImage;
+    }
+}
+
+/*
+-(UIImage*)rotateImage:(UIImage*)anImage:(int)orientation
+{
+    UIImage* sourceImage = anImage; 
+        
+    CGFloat targetWidth = anImage.size.width;
+    CGFloat targetHeight = anImage.size.height;
+    
+    CGImageRef imageRef = [sourceImage CGImage];
+    CGBitmapInfo bitmapInfo = CGImageGetBitmapInfo(imageRef);
+    CGColorSpaceRef colorSpaceInfo = CGImageGetColorSpace(imageRef);
+    
+    if (bitmapInfo == kCGImageAlphaNone) {
+        bitmapInfo = kCGImageAlphaNoneSkipLast;
+    }
+    
+    CGContextRef bitmap;
+    bitmap = CGBitmapContextCreate(NULL, targetWidth, targetHeight, CGImageGetBitsPerComponent(imageRef), CGImageGetBytesPerRow(imageRef), colorSpaceInfo, bitmapInfo);
+   
+    if (orientation == 0) {
+        CGContextRotateCTM (bitmap, M_PI/2);
+        CGContextTranslateCTM (bitmap, 0, -targetHeight);        
+    } else {
+        CGContextRotateCTM (bitmap, -M_PI/2);
+        CGContextTranslateCTM (bitmap, -targetWidth, 0);
+    }
+    
+    CGContextDrawImage(bitmap, CGRectMake(0, 0, targetWidth, targetHeight), imageRef);
+    CGImageRef ref = CGBitmapContextCreateImage(bitmap);
+    UIImage* newImage = [UIImage imageWithCGImage:ref];
+    
+    CGContextRelease(bitmap);
+    CGImageRelease(ref);
+    
+    return newImage; 
+}
+*/
+#pragma mark -
 #pragma mark Toolbar Actions
 
 - (void)showImagePicker:(UIImagePickerControllerSourceType)sourceType fromButton:(id)button
@@ -82,6 +186,19 @@
    [self showImagePicker:UIImagePickerControllerSourceTypeCamera fromButton:sender];
 }
 
+- (IBAction)leftAction:(id)sender
+{
+    UIImage *img = [self imageRotatedByRadians:[imageView image] :-M_PI/2];
+    [imageView setImage: img];
+}
+
+- (IBAction)rightAction:(id)sender
+{
+    UIImage *img = [self imageRotatedByRadians:[imageView image] :M_PI/2];
+    [imageView setImage: img];
+}
+
+
 #pragma mark -
 #pragma mark Navigation Bar Actions
 
@@ -89,7 +206,7 @@
 {
    [self.navigationController pushViewController:ketcherViewController animated:YES]; 
    
-   [self.ketcherViewController setupKetcher: self.capturedImage];
+   [self.ketcherViewController setupKetcher: [imageView image]];
 }
    
 #pragma mark -
@@ -117,7 +234,8 @@
     
     if (self.capturedImage != nil)
     {
-        [self.imageView setImage:self.capturedImage];
+        UIImage *img = [self prepareImage:capturedImage];
+        [self.imageView setImage:img];
     }
 }
 

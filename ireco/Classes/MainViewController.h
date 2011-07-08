@@ -29,9 +29,14 @@
 
 @property (nonatomic, retain) IBOutlet UIBarButtonItem *recognizeButton;
 
+-(UIImage*)prepareImage:(UIImage*)anImage;
+-(UIImage*)imageRotatedByRadians:(UIImage*)anImage:(CGFloat)radians;
+
 // toolbar buttons
 - (IBAction)photoLibraryAction:(id)sender;
 - (IBAction)cameraAction:(id)sender;
+- (IBAction)leftAction:(id)sender;
+- (IBAction)rightAction:(id)sender;
 // navigation bar
 - (IBAction)recognizeAction:(id)sender;
 
