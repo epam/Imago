@@ -55,7 +55,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
    double dd;
    if (!Algebra::segmentsParallel(fb_pos, fe_pos, sb_pos, se_pos, _parLinesEps, &dd))
       return false;
-
+   
    Vec2d p1, p2;
    Vec2d m1, m2;
    double dm, db, de;
@@ -93,8 +93,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
 
    if (fe == sb || fb == se)
       return false;
-
-   // DP: DID NOT UNDERSTAND AND COMMENTED OUT
+   
    if (fe != se && fb != sb)
    {
       if (boost::edge(fb, se, _g).second ||
@@ -102,16 +101,13 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
          return false;
 
       dd = Vec2d::distance(m1, m2); 
-      if (dd < 0.09 * _avgBondLength)
+      if (dd < 0.085 * _avgBondLength)      
          return false;
    }
 
    if (db < de)
       std::swap(db, de);
 
-   if (!(dm < 0.98 * de && dm < 0.98 * db))
-      return false;
-   
    if (bf.length < bs.length)
       d = 0.5 * (Algebra::distance2segment(fb_pos, sb_pos, se_pos) +
                  Algebra::distance2segment(fe_pos, sb_pos, se_pos));
@@ -119,9 +115,19 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       d = 0.5 * (Algebra::distance2segment(sb_pos, fb_pos, fe_pos) +
                  Algebra::distance2segment(se_pos, fb_pos, fe_pos));
 
+#ifdef DEBUG
+   printf("DC0: %lf\n", d);
+#endif   
+   
+   if (!(dm < 0.98 * de && dm < 0.98 * db))
+   {
+      printf("lol\n");
+      return false;
+   }
+   
    //if (d > std::min(bf.length, bs.length))
    //   return false;
-
+   
    BGL_FORALL_VERTICES(v, _g, Graph)
    {
       if (v == fb || v == fe || v == sb || v == se)
@@ -143,16 +149,60 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       if (d1 > d || d2 > d)
          continue;
       
-      if (coef > 0 && coef < 1)
+      if (coef > 0.1 && coef < 0.9)
+      {
          return false;
+      }
+   }
+   
+   int maxLength, minLength;
+   if (bf.length > bs.length)
+   {
+      maxLength = bf.length;
+      minLength = bs.length;
+   }
+   else
+   {
+      maxLength = bs.length;
+      minLength = bf.length;
    }
 
-
-   if (d > _multiBondErr * _avgBondLength)
-      return false;
+#ifdef DEBUG
+   printf("DC1: %d %d\n", maxLength, minLength);
+#endif   
+   
+   if (maxLength > 160)
+      _multiBondErr = 0.08; //0.18; //handwriting
+   else if (maxLength > 125)
+   {
+      if (minLength > 90)
+         _multiBondErr = 0.157;
+      else
+         _multiBondErr = 0.195;
+   }
+   else if (maxLength > 110)
+      _multiBondErr = 0.185;
+   else if (maxLength > 108)
+   {
+      if (minLength > 75)
+         _multiBondErr = 0.165;
+      else
+         _multiBondErr = 0.20;
+   }
+   else if (maxLength > 85)
+      _multiBondErr = 0.38;
+   else
+      _multiBondErr = 0.5; //0.65 //TODO: handwriting, original: 0.4
 
 #ifdef DEBUG
-   LPRINT(0, "found double boud:"); 
+   printf("DC:%d; %lf\nDC: %lf < %lf\n", maxLength, _multiBondErr, d, _multiBondErr * maxLength);
+#endif
+   
+   if (d > _multiBondErr * maxLength)
+      return false;
+   
+#ifdef DEBUG
+   LPRINT(0, "found double bond:"); 
    LPRINT(0, "(%.1lf %.1lf) - (%.1lf %.1lf)", fb_pos.x, fb_pos.y, fe_pos.x, fe_pos.y);
    LPRINT(0, "(%.1lf %.1lf) - (%.1lf %.1lf)", sb_pos.x, sb_pos.y, se_pos.x, se_pos.y);
 #endif /* DEBUG */
