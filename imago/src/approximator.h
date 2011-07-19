@@ -26,7 +26,7 @@ namespace imago
        virtual void apply( double eps, const Points2d &input, Points2d &output ) const = 0;
    };
 
-   class SimpleApproximator : public BaseApproximator
+   class SimpleApproximator: public BaseApproximator
    {
    public:
       void apply( double eps, const Points2d &input, Points2d &output ) const;
@@ -40,8 +40,16 @@ namespace imago
    };
 
 
-   class CvApproximator : public BaseApproximator
+   class CvApproximator: public BaseApproximator
    {
+   public:
+      void apply( double eps, const Points2d &input, Points2d &output ) const;
+   };
+
+   class DPApproximator: public BaseApproximator
+   {
+      void _apply_int( double eps, const Points2d &input, Points2d &output ) const; 
+   public:
       void apply( double eps, const Points2d &input, Points2d &output ) const;
    };
 }

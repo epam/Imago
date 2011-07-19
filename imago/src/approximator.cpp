@@ -14,7 +14,10 @@
 
 #include <cmath>
 #include <vector>
+#include <deque>
+#include <utility>
 #include <opencv/cv.h>
+
 
 #include "image.h"
 #include "approximator.h"
@@ -160,4 +163,57 @@ void CvApproximator::apply( double eps, const Points2d &input, Points2d &output 
       output.push_back(Vec2d(approxCurve[i].x, approxCurve[i].y));
    if (closed)
       output.push_back(Vec2d(output[0]));
+}
+
+void DPApproximator::_apply_int( double eps, const Points2d &input, Points2d &output ) const
+{
+   using namespace std;
+   deque<pair<int, int> > stack;
+   int l, r;
+   int i;
+
+   output.clear();
+   stack.push_back(make_pair(0, input.size() - 1));
+   
+   while (stack.size() > 0)
+   {
+      boost::tie(l, r) = stack.back();
+      stack.pop_back();
+
+      const Vec2d &lp = input[l], &rp = input[r];
+      int max_ind = -1, max_dist = eps;
+      for (i = l + 1; i < r; ++i)
+      {
+         double d = Algebra::distance2segment(input[i], lp, rp);
+         if (d > max_dist)
+         {
+            max_dist = d;
+            max_ind = i;
+         }
+      }
+
+      if (max_ind != -1)
+      {
+         stack.push_back(make_pair(max_ind, r));
+         stack.push_back(make_pair(l, max_ind));
+      }
+      else
+      {
+         output.push_back(input[l]);
+      }  
+   }
+   output.push_back(input.back());
+}
+
+void DPApproximator::apply( double eps, const Points2d &input, Points2d &output ) const
+{
+   if (input.front() == input.back())
+   {
+      //closed contour!
+      //split input in halfes and 
+   }
+   else
+   {
+      _apply_int(eps, input, output);
+   }
 }
