@@ -35,6 +35,76 @@ static int _cmp_ang (const void *p1, const void *p2)
 }
 
 static void _blur (Image &img, int radius);
+   
+static void _blur2 (Image &img, int radius)
+{
+   Image res;
+   res.emptyCopy(img);
+   
+   int w = img.getWidth(), h = img.getHeight();
+   int r = radius, val;
+   radius = radius * 2 + 1;
+
+   std::vector<int> div(255 * radius);
+   for (int i = 0; i < 255 * radius; ++i)
+      div[i] = i / radius;
+   
+   byte *row = img.getData();
+   byte *dst = res.getData();
+   for (int y = 0; y < h; ++y)
+   {
+      for (int x = 0; x < w; ++x)
+      {
+         val = 0;
+         for (int i = -r; i <= r; ++i)
+         {
+            int ind = x + i;
+            if (ind < 0)
+               ind = 0;
+            if (ind >= w)
+               ind = w - 1;
+            
+            val += row[ind];
+         }
+         //val /= radius;
+         
+         *dst = div[val];
+         ++dst;
+      }
+      row += w;
+   }
+
+   res.rotate90();
+   img.rotate90();
+   
+   row = res.getData();
+   dst = img.getData();
+   for (int y = 0; y < w; ++y)
+   {
+      for (int x = 0; x < h; ++x)
+      {
+         val = 0;
+         for (int i = -r; i <= r; ++i)
+         {
+            int ind = x + i;
+            if (ind < 0)
+               ind = 0;
+            if (ind >= h)
+               ind = h - 1;
+            
+            val += row[ind];
+         }
+         //val /= radius;
+         
+         *dst = div[val];
+         ++dst;
+      }
+      row += h;
+   }
+
+   img.rotate90(false);
+}
+
 static void _unsharpMask (Image &img, int radius, float amount, int threshold)
 {
    int  w, h;
@@ -44,9 +114,10 @@ static void _unsharpMask (Image &img, int radius, float amount, int threshold)
 
    Image blur;
    blur.copy(img);
-
+   
    TIME(_blur(blur, radius), "Blur");
-
+   //TIME(_blur2(blur, radius), "Blur");
+   
    int i, j;
 
    for (i = 0; i < w; i++)
@@ -70,6 +141,7 @@ static void _unsharpMask (Image &img, int radius, float amount, int threshold)
          img.getByte(i, j) = newval;
       }
 }
+
 
 inline static void _copyMatToImage (Image &img, const cv::Mat &mat)
 {

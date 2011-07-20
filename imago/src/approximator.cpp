@@ -184,6 +184,7 @@ void DPApproximator::_apply_int( double eps, const Points2d &input, Points2d &ou
       int max_ind = -1, max_dist = eps;
       for (i = l + 1; i < r; ++i)
       {
+         //Suppose, all points lay between left and right points.
          double d = Algebra::distance2segment(input[i], lp, rp);
          if (d > max_dist)
          {
@@ -207,10 +208,49 @@ void DPApproximator::_apply_int( double eps, const Points2d &input, Points2d &ou
 
 void DPApproximator::apply( double eps, const Points2d &input, Points2d &output ) const
 {
+   assert(input.size() > 1);
+   output.clear();
+   
    if (input.front() == input.back())
    {
-      //closed contour!
-      //split input in halfes and 
+      if (input.size() < 4)
+      {
+         output.push_back(input[0]);
+         output.push_back(input[1]);
+      }
+      else
+      {
+         //Or find two farthest points on contour
+         int half = input.size() / 2;
+         Points2d ifirst(input.begin(), input.begin() + half),
+            isecond(input.begin() + half, input.end());
+
+         Points2d ofirst, osecond;
+         _apply_int(eps, ifirst, ofirst);
+         _apply_int(eps, isecond, osecond);
+
+         bool joinFirst, joinLast;
+         joinFirst = joinLast = false;
+
+         if (Algebra::distance2segment(ofirst.front(), ofirst[1], osecond[osecond.size() - 2]) < eps)
+         {
+            //merging first segment from ofirst and last from osecond
+            ofirst.erase(ofirst.begin());
+            osecond[osecond.size() - 1] = ofirst.front();
+         }
+
+         if (ofirst.size() > 2 && osecond.size() > 2 &&
+             Algebra::distance2segment(ofirst.back(), ofirst[ofirst.size() - 2],
+                                       osecond.front()) < eps)
+         {
+            //merging last segment from ofirst and first from osecond
+            osecond.erase(osecond.begin());
+            ofirst[ofirst.size() - 1] = osecond.front();
+         }
+
+         output.insert(output.begin(), ofirst.begin(), ofirst.end());
+         output.insert(output.end(), osecond.begin() + 1, osecond.end());
+      }
    }
    else
    {

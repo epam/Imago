@@ -819,6 +819,59 @@ void calcDescriptors(int argc, char **argv)
    }
 }
 
+void testApproximator(char *filename)
+{
+   qword sid = SessionManager::getInstance().allocSID();
+   SessionManager::getInstance().setSID(sid);
+
+   double eps = 11;
+   CvApproximator cv;
+   DPApproximator dp;
+   
+   GraphicsDetector gdD(&dp, eps);
+   GraphicsDetector gdC(&cv, eps);
+
+   Image img, res;
+   ImageUtils::loadImageFromFile(img, filename);
+   
+   Points2d lsegments;
+
+   TIME(gdC.detect(img, lsegments), "CV");
+
+   res.emptyCopy(img);
+   res.fillWhite();
+   for (Points2d::const_iterator it = lsegments.begin(), end = lsegments.end();
+        it != end; ++it)
+   {
+      const Vec2d &b = *it;
+      ++it;
+      const Vec2d &e = *it;
+
+      ImageDrawUtils::putLineSegment(res, b, e, 0);
+      ImageDrawUtils::putCircle(res, b.x, b.y, 3, 128);
+      ImageDrawUtils::putCircle(res, e.x, e.y, 3, 128);
+   }
+
+   ImageUtils::saveImageToFile(res, "cv.png");
+   
+   lsegments.clear();
+   TIME(gdD.detect(img, lsegments), "DP");
+   res.fillWhite();
+   for (Points2d::const_iterator it = lsegments.begin(), end = lsegments.end();
+        it != end; ++it)
+   {
+      const Vec2d &b = *it;
+      ++it;
+      const Vec2d &e = *it;
+
+      ImageDrawUtils::putLineSegment(res, b, e, 0);
+      ImageDrawUtils::putCircle(res, b.x, b.y, 3, 128);
+      ImageDrawUtils::putCircle(res, e.x, e.y, 3, 128);
+   }
+
+   ImageUtils::saveImageToFile(res, "dp.png");
+}
+
 int main(int argc, char **argv)
 {
    //graphTest();
@@ -867,6 +920,8 @@ int main(int argc, char **argv)
    //testShapeContext(argv[1]);
 
    //testCvOCR(argv[1]);
+
+   //testApproximator(argv[1]);
    
    return 0;
 }
