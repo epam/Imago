@@ -15,13 +15,21 @@ if (!window.rnd)
 
 rnd.MouseEvent = function (params)
 {
-	this.pageX = params.pageX;
-	this.pageY = params.pageY;
-	if (Object.isUndefined(this.pageX) || Object.isUndefined(this.pageY))
-	{ // TODO: fix this in IE
-		this.pageX = params.x;
-		this.pageY = params.y;
-	}
+    if (params.touches)
+    {
+        this.touches = params.touches.length;
+        
+        if(params.touches.length == 1){ // Only deal with one finger
+            var touch = params.touches[0]; // Get the information for finger #1
+
+            this.pageX = touch.pageX;
+            this.pageY = touch.pageY;
+        }
+    } else {
+        this.pageX = params.pageX;
+        this.pageY = params.pageY;
+    }
+    
 	this.altKey = params.altKey;
 	this.shiftKey = params.shiftKey;
 	this.ctrlKey = params.ctrlKey;

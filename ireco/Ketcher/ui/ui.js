@@ -57,13 +57,13 @@ ui.patterns =
 //
 ui.initButton = function (el)
 {
-    el.observe('mousedown', function (event) 
+    el.observe('touchstart', function (event) 
     {
         if (this.hasClassName('buttonDisabled'))
             return;
         this.addClassName('buttonPressed');
     });
-    el.observe('mouseup', function (event) 
+    el.observe('touchend', function (event) 
     {
         this.removeClassName('buttonPressed');
     });
@@ -138,7 +138,7 @@ ui.init = function ()
     document.observe('keypress', ui.onKeyPress_Ketcher);
     document.observe('keydown', ui.onKeyDown_IE);
     document.observe('keyup', ui.onKeyUp);
-    document.observe('mouseup', ui.onMouseUp_Ketcher);
+    document.observe('touchend', ui.onMouseUp_Ketcher);
     
     // Button events
     $$('.toolButton').each(ui.initButton);
@@ -280,23 +280,23 @@ ui.init = function ()
     
     this.render.onAtomClick = this.onClick_Atom;
     this.render.onAtomDblClick = this.onDblClick_Atom;
-    this.render.onAtomMouseDown = this.onMouseDown_Atom;
+    this.render.onAtomTouchStart = this.onMouseDown_Atom;
     this.render.onAtomMouseOver = this.onMouseOver_Atom;
     this.render.onAtomMouseOut = this.onMouseOut_Atom;
     
     this.render.onBondClick = this.onClick_Bond;
-    this.render.onBondMouseDown = this.onMouseDown_Bond;
+    this.render.onBondTouchStart = this.onMouseDown_Bond;
     this.render.onBondMouseOver = this.onMouseOver_Bond;
     this.render.onBondMouseOut = this.onMouseOut_Bond;
 
     this.render.onCanvasClick = this.onClick_Canvas;
-    this.render.onCanvasMouseMove = this.onMouseMove_Canvas;
-    this.render.onCanvasMouseDown = this.onMouseDown_Canvas;
+    this.render.onCanvasTouchMove = this.onMouseMove_Canvas;
+    this.render.onCanvasTouchStart = this.onMouseDown_Canvas;
     this.render.onCanvasOffsetChanged = this.onOffsetChanged;
 
     this.render.onSGroupClick = this.onClick_SGroup;
     this.render.onSGroupDblClick = this.onDblClick_SGroup;
-    this.render.onSGroupMouseDown = function () { return true; };
+    this.render.onSGroupTouchStart = function () { return true; };
     this.render.onSGroupMouseOver = this.onMouseOver_SGroup;
     this.render.onSGroupMouseOut = this.onMouseOut_SGroup;
     
@@ -327,7 +327,7 @@ ui.onResize_Ketcher = function ()
         ui.client_area.style.width = (Element.getWidth(ui.client_area.parentNode) - 2).toString() + 'px';
     
     //ui.client_area.style.width = (Element.getWidth(ui.client_area.parentNode) - 2).toString() + 'px';
-    ui.client_area.style.height = (Element.getHeight(ui.client_area.parentNode) - 2).toString() + 'px';
+    //ui.client_area.style.height = (Element.getHeight(ui.client_area.parentNode) - 2).toString() + 'px';
 }
 
 //
@@ -1647,8 +1647,19 @@ ui.removeSelected = function ()
     ui.updateClipboardButtons();
 }
 
+ui.touchedAtomId = null;
+
 ui.onMouseDown_Atom = function (event, aid)
 {
+    if (event.touches != 1) return;
+    
+    ui.touchedAtomId = aid;
+    setTimeout(function () {
+        if (ui.touchedAtomId) {
+            ui.onDblClick_Atom(event, aid);
+        }
+    }, 500);
+
     if ($('input_label').visible())
         $('input_label').hide();
 
@@ -1677,6 +1688,8 @@ ui.onMouseDown_Atom = function (event, aid)
 
 ui.onMouseDown_Bond = function (event, bid)
 {
+    if (event.touches != 1) return;
+    
     if ($('input_label').visible())
         $('input_label').hide();
 
@@ -1705,6 +1718,8 @@ ui.onMouseDown_Bond = function (event, bid)
 
 ui.onMouseDown_Canvas = function (event)
 {
+    if (event.touches != 1) return;
+    
     if ($('input_label').visible())
         $('input_label').hide();
     
@@ -1736,7 +1751,10 @@ ui.onMouseDown_Canvas = function (event)
 
 ui.onMouseMove_Canvas = function (event)
 {
+    //if (event.touches != 1) return;
+    
     ui.mouse_moved = true;
+    ui.touchedAtomId = null;
     
     var mode = ui.modeType();
     
@@ -1879,6 +1897,7 @@ ui.onMouseMove_Canvas = function (event)
 
 ui.onMouseUp_Ketcher = function (event)
 {
+    ui.touchedAtomId = null;
     if (ui.modeType() == ui.MODE.ERASE)
         if (ui.selected() && ui.isDrag())
             ui.removeSelected();

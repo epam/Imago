@@ -3,6 +3,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
     <head>
         <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+        <meta name="viewport" content="user-scalable=0" />
         <title>Ketcher</title>
         <link rel="stylesheet" type="text/css" href="ketcher.css" />
         <script type="text/javascript" src="prototype-min.js"></script>
@@ -32,7 +33,7 @@
         <script type="text/javascript" src="ketcher.js"></script>
     </head>
 
-    <body onload="ketcher.init()">
+    <body onload="ketcher.init()" onorientationchange="ui.onResize_Ketcher()">
         <div>
             <table id="ketcher_window">
                 <tr align="center" id="main_toolbar">

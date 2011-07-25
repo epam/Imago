@@ -25,8 +25,8 @@ rnd.mouseEventNames = [
 	'Click',
 	'DblClick',
 	'MouseOver',
-	'MouseDown',
-	'MouseMove',
+	'TouchStart',
+	'TouchMove',
 	'MouseOut'
 	];
 rnd.entities = ['Atom', 'Bond', 'Canvas'];
@@ -115,7 +115,8 @@ rnd.Render = function (clientArea, scale, opt, viewSz)
 			if (render[name])
 				render[name](new rnd.MouseEvent(event));
 			chem.stopEventPropagation(event);
-			return chem.preventDefault(event);
+            if (eventName == 'TouchMove')               
+			    return chem.preventDefault(event);
 		});
 	}, this);
 
@@ -127,29 +128,29 @@ rnd.Render = function (clientArea, scale, opt, viewSz)
 	// function(event, id){};
 	this.onAtomClick = null;
 	this.onAtomDblClick = null;
-	this.onAtomMouseDown = null;
+	this.onAtomTouchStart = null;
 	this.onAtomMouseOver = null;
-	this.onAtomMouseMove = null;
+	this.onAtomTouchMove = null;
 	this.onAtomMouseOut = null;
 	this.onBondClick = null;
 	this.onBondDblClick = null;
-	this.onBondMouseDown = null;
+	this.onBondTouchStart = null;
 	this.onBondMouseOver = null;
-	this.onBondMouseMove = null;
+	this.onBondTouchMove = null;
 	this.onBondMouseOut = null;
 
 	this.onSGroupClick = null;
 	this.onSGroupDblClick = null;
-	this.onSGroupMouseDown = null;
+	this.onSGroupTouchStart = null;
 	this.onSGroupMouseOver = null;
-	this.onSGroupMouseMove = null;
+	this.onSGroupTouchMove = null;
 	this.onSGroupMouseOut = null;
 
 	this.onCanvasClick = null;
 	this.onCanvasDblClick = null;
-	this.onCanvasMouseDown = null;
+	this.onCanvasTouchStart = null;
 	this.onCanvasMouseOver = null;
-	this.onCanvasMouseMove = null;
+	this.onCanvasTouchMove = null;
 	this.onCanvasMouseOut = null;
 	this.onCanvasOffsetChanged = null; //function(newOffset, oldOffset){};
 	this.onCanvasSizeChanged = null; //function(newSize, oldSize){};
@@ -201,7 +202,7 @@ rnd.Render.prototype.callEventHandler = function (event, eventName, type, id) {
 	}
 }
 
-chem.each(['MouseMove','MouseDown','MouseUp','Click','DblClick'],
+chem.each(['TouchMove','TouchStart','MouseUp','Click','DblClick'],
 	function(eventName) {
 		rnd.Render.prototype['_onCanvas' + eventName] = function(event){
 			this.checkCurrentItem(event);
