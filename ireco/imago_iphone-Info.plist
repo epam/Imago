@@ -31,6 +31,8 @@
 	<string>????</string>
 	<key>CFBundleURLTypes</key>
 	<array/>
+	<key>CFBundleVersion</key>
+	<string>1.1.6</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>NSMainNibFile</key>
