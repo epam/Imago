@@ -61,16 +61,63 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
    double space;
    double bl = bondLength();
    if (bl > 100.0)
-      space = 0.3 * bl;
+      space = 0.3 * bl; //0.3
    else if (bl > 85)
-      space = 0.5 * bl;
+      space = 0.4 * bl; //0.5
    else
-      space = 0.7 * bl;
+      space = 0.46 * bl; //0.7
+
+//   printf("****: %lf %lf\n", bl, space);
 
    std::vector<Skeleton::Vertex> nearest;
 
-   BOOST_FOREACH(Label &l, _labels)
+   std::set<Skeleton::Vertex> only_nearest;
+   labels.assign(_labels.begin(), _labels.end());
+   for (int i = 0; i < labels.size(); ++i)
    {
+      Label &l = labels[i];
+      boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type
+                              positions = boost::get(boost::vertex_pos, _g);
+                     
+      int nearest = 0;    
+      Skeleton::Vertex nearest_vertex;           
+      BGL_FORALL_EDGES(e, _g, SkeletonGraph)
+      {
+         double d1, d2;
+         d1 = d2 = 1e16;
+
+   //TODO: image209 double bond disappears somewhere here
+
+         if (boost::degree(boost::source(e, _g), _g) == 1)
+            d1 = Algebra::distance2rect(boost::get(positions,
+                                                 boost::source(e, _g)), l.rect);
+
+         if (boost::degree(boost::target(e, _g), _g) == 1)
+            d2 = Algebra::distance2rect(boost::get(positions,
+                                                 boost::target(e, _g)), l.rect);
+
+         if (d1 <= d2 && d1 < space)
+         {
+            nearest++;
+            nearest_vertex = boost::source(e, _g);
+         }
+         else if (d2 < d1 && d2 < space)
+         {
+            nearest++;
+            nearest_vertex = boost::target(e, _g);
+         }
+      }
+      if (nearest == 1)
+         only_nearest.insert(nearest_vertex);
+   }
+
+//   BOOST_FOREACH(Label &l, _labels)
+   for (int i = 0; i < labels.size(); ++i)
+   {
+      Label &l = labels[i];
+#ifdef DEBUG
+      printf("LABELS: %d %d\n", l.rect.x, l.rect.y);
+#endif
       nearest.clear();
 
       //TODO: check if it's needed to do on each iteration
@@ -96,6 +143,20 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
             nearest.push_back(boost::source(e, _g));
          else if (d2 < d1 && d2 < space)
             nearest.push_back(boost::target(e, _g));
+      }
+
+      if (nearest.size() > 1)
+      {
+         for (std::vector<Skeleton::Vertex>::iterator it = nearest.begin(),
+              end = nearest.end(); it != nearest.end();)// || nearest.size() != 1;)
+         {
+            if (only_nearest.find(*it) == only_nearest.end())
+               ++it;
+            else
+            {
+               it = nearest.erase(it);
+            }
+         }
       }
 
       int s = nearest.size();

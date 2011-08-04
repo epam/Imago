@@ -132,7 +132,7 @@ void LabelLogic::process( Segment *seg, int line_y )
                              //changed in "handwriting"
    bool capital = false;
    char hwc = _hwcr.recognize(*seg);
-   
+
    //TODO: This can slowdown recognition process! Check this!
    if (seg->getHeight() > 0.9 * _cap_height && hwc < '0' && hwc > '9')
       capital = true;

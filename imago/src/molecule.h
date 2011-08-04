@@ -52,7 +52,7 @@ namespace imago
 
       ChemMapping _mapping;
       std::deque<Label> _labels;
-      
+      std::vector<Label> labels;
    };
 }
 

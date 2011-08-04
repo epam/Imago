@@ -851,7 +851,7 @@ void Skeleton::modifyGraph()
 
     recalcAvgBondLength();
 
-    _joinVertices(0.3);
+    _joinVertices(0.33); //0.3!!!
     _joinVertices(0.2); // TODO: see IMG_0022
 
     //Shrinking short bonds (dots)
