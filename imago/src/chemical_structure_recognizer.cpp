@@ -227,7 +227,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
          TIME(GraphExtractor::extract(gd, layer_graphics, mol),
             "Extracting molecular graph");
-         }
+      }
       TIME(wbe.singleUpFetch(mol), "Fetching single-up bonds");
 
       if (!layer_symbols.empty())

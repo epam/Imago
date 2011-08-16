@@ -17,6 +17,7 @@
 #include <string>
 
 #include "imago_c.h"
+#include "indigo.h"
 #include "image_utils.h"
 #include "molfile_saver.h"
 #include "log.h"
@@ -28,6 +29,7 @@
 #include "session_manager.h"
 #include "png_loader.h"
 #include "current_session.h"
+#include "superatom_expansion.h"
 
 #define IMAGO_BEGIN try {                                                    
 
@@ -55,6 +57,7 @@ struct RecognitionContext
 {
    Image img;
    Molecule mol;
+   std::string molfile;
    std::string out_buf;
    std::string error_buf;
    void *session_specific_data;
@@ -75,6 +78,7 @@ CEXPORT qword imagoAllocSessionId()
 CEXPORT void imagoSetSessionId( qword id )
 {
    SessionManager::getInstance().setSID(id);
+   indigoSetSessionId(id);
    RecognitionContext *&context = (RecognitionContext *&)gSession.get()->context(); 
    
    if (context == 0)
@@ -83,6 +87,7 @@ CEXPORT void imagoSetSessionId( qword id )
 
 CEXPORT void imagoReleaseSessionId( qword id )
 {
+   indigoReleaseSessionId(id);
    RecognitionContext *context;
    if ((context = (RecognitionContext*)gSession.get()->context()) != 0)
    {
@@ -242,6 +247,7 @@ CEXPORT int imagoRecognize()
 
    csr.setImage(context->img);
    csr.recognize(context->mol);
+   context->molfile = expandSuperatoms(context->mol);
 
    IMAGO_END;
 }
@@ -252,9 +258,10 @@ CEXPORT int imagoSaveMolToFile( const char *FileName )
 
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
    FileOutput fout(FileName);
-   MolfileSaver saver(fout);
 
-   saver.saveMolecule(context->mol);
+   fout.writeString(context->molfile);
+   //MolfileSaver saver(fout);
+   //saver.saveMolecule(context->mol);
 
    IMAGO_END;
 }
@@ -264,11 +271,12 @@ CEXPORT int imagoSaveMolToBuffer( char **buf, int *buf_size )
    IMAGO_BEGIN;
 
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
-   std::string &out_buf = context->out_buf;
-   ArrayOutput aout(out_buf);
-   MolfileSaver saver(aout);
+   std::string &out_buf = context->molfile; //context->out_buf;
+   
+   //ArrayOutput aout(out_buf);
+   //MolfileSaver saver(aout);
 
-   saver.saveMolecule(context->mol);
+   //saver.saveMolecule(context->mol);
 
    //Is that correct?
    *buf = new char[out_buf.size()];

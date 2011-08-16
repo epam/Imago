@@ -38,6 +38,7 @@
 #include "graphics_detector.h"
 #include "shape_context.h"
 #include "prefilter.h"
+#include "superatom_expansion.h"
 
 #include "classification.h"
 #include "fourier_features.h"
@@ -492,9 +493,12 @@ void testRotation(const char *filename = 0)
       //printf("After: %d %d\n", img.getWidth(), img.getHeight());
       //ImageUtils::saveImageToFile(img, "rot.png");
 
+      std::string molfile = expandSuperatoms(mol);
+
       FileOutput fout("molecule.mol");
-      MolfileSaver saver(fout);
-      saver.saveMolecule(mol);
+      fout.writeString(molfile);
+      //MolfileSaver saver(fout);
+      //saver.saveMolecule(mol);
 
       SessionManager::getInstance().releaseSID(sid);
 

@@ -13,13 +13,28 @@ macro(LOCAL_JPEG)
   set(JPEG_LIBRARIES jpeg_local)
 endmacro(LOCAL_JPEG)
 
+set(INDIGO_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/third_party/indigo)
+
 if(NOT WIN32)
   option(CROSS32 "Cross-compile for 32-bit" OFF)
 
   set(IMAGO_C_FLAGS "-fPIC")
   if(CROSS32)
+    set(INDIGO_LIBS_DIR ${CMAKE_SOURCE_DIR}/third_party/indigo/linux32/)
     set(IMAGO_C_FLAGS "${IMAGO_C_FLAGS} -m32")
+  else(CROSS32)
+    set(INDIGO_LIBS_DIR ${CMAKE_SOURCE_DIR}/third_party/indigo/linux64/)
   endif(CROSS32)
+
+  set(INDIGO_LIBS 
+      ${INDIGO_LIBS_DIR}/libindigo.a
+      ${INDIGO_LIBS_DIR}/libreaction.a
+      ${INDIGO_LIBS_DIR}/liblayout.a
+      ${INDIGO_LIBS_DIR}/libmolecule.a
+      ${INDIGO_LIBS_DIR}/libgraph.a  
+      ${INDIGO_LIBS_DIR}/libtinyxml.a      
+     )
+
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IMAGO_C_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IMAGO_C_FLAGS}")
 
@@ -36,9 +51,10 @@ if(NOT WIN32)
   else(NOT APPLE)
     option(IPHONE "Cross-compile for IPHONE" OFF)
 
-	if (IPHONE)
-	  set(IMAGO_C_FLAGS "${IMAGO_C_FLAGS} -mno-thumb -ffast-math -fvisibility=hidden")
-	endif (IPHONE)
+	  if (IPHONE)
+	    set(IMAGO_C_FLAGS "${IMAGO_C_FLAGS} -mno-thumb -ffast-math -fvisibility=hidden")
+	  endif (IPHONE)
+  
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IMAGO_C_FLAGS}")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IMAGO_C_FLAGS}")
 

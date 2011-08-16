@@ -123,7 +123,6 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
    
    if (!(dm < 0.98 * de && dm < 0.98 * db))
    {
-      printf("lol\n");
       return false;
    }
    

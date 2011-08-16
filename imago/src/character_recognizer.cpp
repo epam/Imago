@@ -160,7 +160,9 @@ char CharacterRecognizer::recognize( const SymbolFeatures &features,
          boost::get<1>(it->second) = std::min(boost::get<1>(it->second),
                                               boost::get<2>(t));
       }
+#ifdef DEBUG
       printf("***%c %lf %d\n", c, boost::get<2>(t), boost::get<1>(t));
+#endif
    }
 
    char res = 0;

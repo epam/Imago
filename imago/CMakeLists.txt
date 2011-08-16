@@ -48,6 +48,8 @@ set(SRC
   src/fourier_features.cpp
   src/shape_context.cpp
   src/munkres.cpp
+
+  src/superatom_expansion.cpp
 )
 
 FILE(GLOB HEADERS "src/*.h")
@@ -66,6 +68,7 @@ else(WIN32)
 endif(WIN32)
 
 include_directories(..)
+include_directories(${INDIGO_INCLUDE_DIR})
 include_directories(${PNG_INCLUDE_DIR})
 include_directories(${JPEG_INCLUDE_DIR})
 include_directories(${OpenCV_INCLUDE_DIRS})
@@ -76,4 +79,5 @@ endif(EMBED_FONT)
 
 add_library(imago_static STATIC ${SRC})
 target_link_libraries(imago_static ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(imago_static ${INDIGO_LIBS})
 target_link_libraries(imago_static ${OpenCV_LIBS}) 

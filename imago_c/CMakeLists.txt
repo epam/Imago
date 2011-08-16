@@ -2,7 +2,10 @@ include_directories(
   ..
   ../imago/src
   ../libpng/src
+  ../third_party/indigo
   )
+
+#include_directories(${INDIGO_INCLUDE_LIB})
 
 set(SRC
   src/imago_c.cpp
