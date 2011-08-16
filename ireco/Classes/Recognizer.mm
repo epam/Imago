@@ -19,6 +19,7 @@
 #import "output.h"
 #import "prefilter.h"
 #import "character_recognizer.h"
+#import "superatom_expansion.h"
 
 #import "Recognizer.h"
 
@@ -61,11 +62,13 @@
       std::string molfileStr;
 
       //imago::FileOutput fo("result.mol");
-      imago::ArrayOutput so(molfileStr);
+      //imago::ArrayOutput so(molfileStr);
       //imago::StandardOutput fo;
-      imago::MolfileSaver ma(so);
-      TIME(ma.saveMolecule(mol), "Saving molecule");
+      //imago::MolfileSaver ma(so);
+      //TIME(ma.saveMolecule(mol), "Saving molecule");
 
+      molfileStr = imago::expandSuperatoms(mol);
+      
       return [NSString stringWithCString:molfileStr.c_str()];
    }
    catch( imago::Exception &e )

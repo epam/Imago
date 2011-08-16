@@ -18,6 +18,12 @@
 		A704F75C1271BED80006F5C5 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A704F75B1271BED80006F5C5 /* libz.dylib */; };
 		A71E321D13462DF3006D4D50 /* libpng_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6728F13461AA40030A6E1 /* libpng_local.a */; };
 		A71E321E13462DF3006D4D50 /* libjpeg_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6729113461AA40030A6E1 /* libjpeg_local.a */; };
+		A7226D1613FAA58D004E59D9 /* libgraph.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1013FAA58D004E59D9 /* libgraph.a */; };
+		A7226D1713FAA58D004E59D9 /* libindigo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1113FAA58D004E59D9 /* libindigo.a */; };
+		A7226D1813FAA58D004E59D9 /* liblayout.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1213FAA58D004E59D9 /* liblayout.a */; };
+		A7226D1913FAA58D004E59D9 /* libmolecule.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1313FAA58D004E59D9 /* libmolecule.a */; };
+		A7226D1A13FAA58D004E59D9 /* libreaction.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1413FAA58D004E59D9 /* libreaction.a */; };
+		A7226D1B13FAA58D004E59D9 /* libtinyxml.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1513FAA58D004E59D9 /* libtinyxml.a */; };
 		A732667012AD20B3001F7D75 /* MainViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = A732666F12AD20B3001F7D75 /* MainViewController.mm */; };
 		A75C26A712AD496900EBBC45 /* ireco.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A512AD496900EBBC45 /* ireco.png */; };
 		A75C26A812AD496900EBBC45 /* irecohd.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A612AD496900EBBC45 /* irecohd.png */; };
@@ -112,7 +118,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 1010B9AC01010B9AC01010B9;
+			remoteGlobalIDString = 7FC78ADDE0907FC78ADDE090;
 			remoteInfo = imago_static;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -133,7 +139,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 10103C79010103C79010103C;
+			remoteGlobalIDString = 7FC78AD4F6607FC78AD4F660;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -152,6 +158,12 @@
 		895D167013BBBC7600789128 /* irecopad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = irecopad.png; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* imago_iphone-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "imago_iphone-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
 		A704F75B1271BED80006F5C5 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
+		A7226D1013FAA58D004E59D9 /* libgraph.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libgraph.a; path = ../third_party/indigo/ios/libgraph.a; sourceTree = "<group>"; };
+		A7226D1113FAA58D004E59D9 /* libindigo.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libindigo.a; path = ../third_party/indigo/ios/libindigo.a; sourceTree = "<group>"; };
+		A7226D1213FAA58D004E59D9 /* liblayout.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = liblayout.a; path = ../third_party/indigo/ios/liblayout.a; sourceTree = "<group>"; };
+		A7226D1313FAA58D004E59D9 /* libmolecule.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libmolecule.a; path = ../third_party/indigo/ios/libmolecule.a; sourceTree = "<group>"; };
+		A7226D1413FAA58D004E59D9 /* libreaction.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libreaction.a; path = ../third_party/indigo/ios/libreaction.a; sourceTree = "<group>"; };
+		A7226D1513FAA58D004E59D9 /* libtinyxml.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtinyxml.a; path = ../third_party/indigo/ios/libtinyxml.a; sourceTree = "<group>"; };
 		A732666E12AD20B3001F7D75 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		A732666F12AD20B3001F7D75 /* MainViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MainViewController.mm; sourceTree = "<group>"; };
 		A75C26A512AD496900EBBC45 /* ireco.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ireco.png; sourceTree = "<group>"; };
@@ -243,6 +255,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A7226D1613FAA58D004E59D9 /* libgraph.a in Frameworks */,
+				A7226D1713FAA58D004E59D9 /* libindigo.a in Frameworks */,
+				A7226D1813FAA58D004E59D9 /* liblayout.a in Frameworks */,
+				A7226D1913FAA58D004E59D9 /* libmolecule.a in Frameworks */,
+				A7226D1A13FAA58D004E59D9 /* libreaction.a in Frameworks */,
+				A7226D1B13FAA58D004E59D9 /* libtinyxml.a in Frameworks */,
 				A71E321D13462DF3006D4D50 /* libpng_local.a in Frameworks */,
 				A71E321E13462DF3006D4D50 /* libjpeg_local.a in Frameworks */,
 				A7D672AC1346227C0030A6E1 /* libopencv_lapack.a in Frameworks */,
@@ -289,6 +307,12 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				A7226D1013FAA58D004E59D9 /* libgraph.a */,
+				A7226D1113FAA58D004E59D9 /* libindigo.a */,
+				A7226D1213FAA58D004E59D9 /* liblayout.a */,
+				A7226D1313FAA58D004E59D9 /* libmolecule.a */,
+				A7226D1413FAA58D004E59D9 /* libreaction.a */,
+				A7226D1513FAA58D004E59D9 /* libtinyxml.a */,
 				A7A68493134C987600841AFC /* Entitlements.plist */,
 				A7D672AB1346227C0030A6E1 /* libopencv_lapack.a */,
 				A7D672A9134620020030A6E1 /* libopencv_imgproc.a */,
@@ -694,6 +718,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
 					"\"$(SRCROOT)/../opencv/iphone/release-universal\"",
+					"\"$(SRCROOT)/../third_party/indigo/ios\"",
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = BeerMat;
@@ -730,6 +755,7 @@
 					"$(inherited)",
 					"\"$(SRCROOT)\"",
 					"\"$(SRCROOT)/../opencv/iphone/release-universal\"",
+					"\"$(SRCROOT)/../third_party/indigo/ios\"",
 				);
 				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = BeerMat;

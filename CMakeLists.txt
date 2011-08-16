@@ -26,15 +26,7 @@ if(NOT WIN32)
     set(INDIGO_LIBS_DIR ${CMAKE_SOURCE_DIR}/third_party/indigo/linux64/)
   endif(CROSS32)
 
-  set(INDIGO_LIBS 
-      ${INDIGO_LIBS_DIR}/libindigo.a
-      ${INDIGO_LIBS_DIR}/libreaction.a
-      ${INDIGO_LIBS_DIR}/liblayout.a
-      ${INDIGO_LIBS_DIR}/libmolecule.a
-      ${INDIGO_LIBS_DIR}/libgraph.a  
-      ${INDIGO_LIBS_DIR}/libtinyxml.a      
-     )
-
+ 
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IMAGO_C_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IMAGO_C_FLAGS}")
 
@@ -52,6 +44,7 @@ if(NOT WIN32)
     option(IPHONE "Cross-compile for IPHONE" OFF)
 
 	  if (IPHONE)
+            set(INDIGO_LIBS_DIR ${CMAKE_SOURCE_DIR}/third_party/indigo/ios)
 	    set(IMAGO_C_FLAGS "${IMAGO_C_FLAGS} -mno-thumb -ffast-math -fvisibility=hidden")
 	  endif (IPHONE)
   
@@ -74,6 +67,15 @@ if(NOT WIN32)
  
     
   endif(NOT APPLE)
+ set(INDIGO_LIBS 
+      ${INDIGO_LIBS_DIR}/libindigo.a
+      ${INDIGO_LIBS_DIR}/libreaction.a
+      ${INDIGO_LIBS_DIR}/liblayout.a
+      ${INDIGO_LIBS_DIR}/libmolecule.a
+      ${INDIGO_LIBS_DIR}/libgraph.a  
+      ${INDIGO_LIBS_DIR}/libtinyxml.a      
+     )
+
 else(NOT WIN32)
   set(IMAGO_C_FLAGS "/MP /GL- /GR- /EHsc /Gy /W3 /nologo /c /wd4345 /wd4244 /D _CRT_SECURE_NO_DEPRECATE")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IMAGO_C_FLAGS}")
