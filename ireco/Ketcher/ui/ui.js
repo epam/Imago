@@ -228,6 +228,17 @@ ui.init = function ()
 
     // Save dialog events
     $('file_format').observe('change', ui.onChange_FileFormat);
+    $('email_mol').observe('click', function ()
+    {
+        var mf = $('output_mol').value;
+                           
+        var wndMail = window.open("mailto:?body=" + escape(mf.replace(/ /g, "&nbsp;")), "_blank");
+                         
+        if (wndMail)
+        {
+            wndMail.close();    
+        }
+    });
     $('save_ok').observe('click', function ()
     {
         ui.hideDialog('save_file');
