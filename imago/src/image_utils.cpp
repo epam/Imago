@@ -172,6 +172,7 @@ bool ImageUtils::testPlus( const Segment &img )
    int sq[4];
    int w[4], h[4];
    int sum = 0;
+   int s = img.getWidth() * img.getHeight();
 
    sq[0] = ImageUtils::findCornerRect(img, 0, 0, 0, w[0], h[0]);
    sq[1] = ImageUtils::findCornerRect(img, 0, 1, 0, w[1], h[1]);
@@ -180,12 +181,15 @@ bool ImageUtils::testPlus( const Segment &img )
 
    sum = sq[0] + sq[1] + sq[2] + sq[3];
 
-   int s = img.getWidth() * img.getHeight();
+   int max_sq = *std::max_element(sq, sq + 4);
 
    double density = (double)sum / s;
 
+   if (density > 0.4)
+      printf("AAAAAAAA: %d <> %d", max_sq, s);
+
    //TODO: write more convenient criteria
-   return (density > 0.55);
+   return (density > 0.4 && max_sq < 0.38 * s); //0.55
 }
 
 bool ImageUtils::testMinus( const Segment &img, int cap_height )
@@ -202,7 +206,7 @@ bool ImageUtils::testMinus( const Segment &img, int cap_height )
    double density = (double)black / total;
    double ratio = (double)h / w;
 
-   return (ratio < 0.33 && density > 0.95 && w < 0.75 * cap_height);
+   return (ratio < 0.33 && density > 0.7 && w < 0.75 * cap_height); //0.95
 }
 
 void ImageUtils::putSegment( Image &img, const Segment &seg, bool careful )

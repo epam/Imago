@@ -493,12 +493,15 @@ void testRotation(const char *filename = 0)
       //printf("After: %d %d\n", img.getWidth(), img.getHeight());
       //ImageUtils::saveImageToFile(img, "rot.png");
 
+      //FileOutput fout2("molecule2.mol");
+      //MolfileSaver saver(fout2);
+      //saver.saveMolecule(mol);
+
+
       std::string molfile = expandSuperatoms(mol);
 
       FileOutput fout("molecule.mol");
       fout.writeString(molfile);
-      //MolfileSaver saver(fout);
-      //saver.saveMolecule(mol);
 
       SessionManager::getInstance().releaseSID(sid);
 

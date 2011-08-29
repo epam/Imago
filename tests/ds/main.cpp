@@ -573,7 +573,7 @@ void in_to_out_name(char *fn_out, const char *filename, const char * str_templat
            strcpy(fn_out, "output/output_template.png"); 
            
 
-       int rupture = (int)template_s - (int)filename;
+       int rupture = template_s - filename;
        memcpy(fn_out, filename, rupture);
        strcpy(&fn_out[rupture], str_template);
    }

@@ -14,8 +14,8 @@ namespace imago
    {
       using namespace std;
 
-      bool init = false;
-      map<string, string> abbr_map;
+      static bool init = false;
+      static map<string, string> abbr_map;
       typedef pair<int, string> pair_i_s;
 
       if (!init)
@@ -33,8 +33,16 @@ namespace imago
       MolfileSaver ma(so);
       ma.saveMolecule(molecule);
       
+      indigoSetOption("ignore-stereochemistry-errors", "true");
+
       int mol = indigoLoadMoleculeFromString(molString.c_str());
       //printf("***$%d\n", mol);
+
+      if (mol == -1)
+      {
+         fprintf(stderr, "%s\n", indigoGetLastError());
+         return molString;
+      }
 
       int item, iter = indigoIterateAtoms(mol);
       //printf("***%d\n", iter);
@@ -58,6 +66,9 @@ namespace imago
            indigoFree(item);
       }
       indigoFree(iter);
+
+      if (to_replace.size() == 0)
+         return molString;
 
       BOOST_FOREACH(pair_i_s p, to_replace)
       {

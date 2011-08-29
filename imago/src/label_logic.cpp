@@ -133,9 +133,13 @@ void LabelLogic::process( Segment *seg, int line_y )
    bool capital = false;
    char hwc = _hwcr.recognize(*seg);
 
+   bool plus = ImageUtils::testPlus(*seg);
+
    //TODO: This can slowdown recognition process! Check this!
    if (seg->getHeight() > 0.9 * _cap_height && hwc < '0' && hwc > '9')
       capital = true;
+   else if (plus)
+      capital = false;
    else
    {
       double d_big, d_small, d_digit;
@@ -290,7 +294,7 @@ void LabelLogic::process( Segment *seg, int line_y )
          {
             char tmp;
             //Checking if current segment is + or -
-            if (ImageUtils::testPlus(*seg))
+            if (plus) //ImageUtils::testPlus(*seg))
             {
                tmp = '+';
             }

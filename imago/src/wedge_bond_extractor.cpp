@@ -515,7 +515,7 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
 
    if (_thicknesses[g.getBondBegin(e1)] / _mean_thickness > thick_ratio_eps)
    {
-      //This bond is just so thick
+      //This bond is just thick
    }
 
    Vec2d bb = g.getVertexPos(g.getBondBegin(e1));
@@ -659,7 +659,7 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
 
    double S2 = visited.size() / 1.6;
 
-   for (int i = 0; i != visited.size(); i++)
+   for (int i = 0; i < (int)visited.size(); i++)
    {
       _bfs_state[visited[i].y * w + visited[i].x] = 0;
    }
@@ -667,7 +667,12 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
    double square_ratio = S2 / S1;
 
    a1 += b1; a2 += b2;
-   double thick_ratio = std::max(a1, a2) / std::min(a1, a2);
+   double a_min = std::min(a1, a2), a_max = std::max(a1, a2);
+
+   if (a_min < 1.5)
+      return false;
+
+   double thick_ratio = a_max / a_min;
    double angle = 0;
    {
       Vec2d n1, n2;
@@ -684,7 +689,8 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
       }
    }
 
-   if (thick_ratio < thick_ratio_eps ||
+   if (
+       thick_ratio < thick_ratio_eps ||
        square_ratio < 0.6 ||
        angle < 0.06)
       return false;

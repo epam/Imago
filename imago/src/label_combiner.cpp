@@ -112,15 +112,13 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
    {
       next_s = cur_s + 1;
 
-//      if (getSettings()["DebugSession"])
-//         ImageUtils::saveImageToFile(**cur_s, "output/tmp_fetch.png");
+      //if (getSettings()["DebugSession"])
+      //   ImageUtils::saveImageToFile(**cur_s, "output/tmp_fetch.png");
 
       if ((*cur_s)->getHeight() > _cap_height + (int)getSettings()["SymHeightErr"])
          continue;
 
-      bool minus = false;
       int angle;
-
       ImageUtils::testVertHorLine(**cur_s, angle);
 
       Rectangle seg_rect = (*cur_s)->getRectangle();
@@ -128,17 +126,23 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
 
       if (angle != -1)
       {
-         if (ImageUtils::testSlashLine(**cur_s, 0, 3.3)) //TODO: Handwriting, original 1.3
+         bool minus = ImageUtils::testMinus(**cur_s, _cap_height);
+         bool plus = ImageUtils::testPlus(**cur_s);
+
+         if (minus)
+            puts("MINUS!!!");
+
+         if (plus)
+            puts("PLUS!!!");
+
+         if (!plus && !minus)
          {
-            if (ImageUtils::testMinus(**cur_s, _cap_height))
-               minus = true;
-            else
+            if (ImageUtils::testSlashLine(**cur_s, 0, 3.3)) //TODO: Handwriting, original 1.3
+               continue;   
+            if ((seg_rect.height < 0.45 * _cap_height || //0.65 //0.42
+                r > _maxSymRatio || r < _minSymRatio))
                continue;
          }
-
-         if (!minus && (seg_rect.height < 0.45 * _cap_height || //0.65 //0.42
-            r > _maxSymRatio || r < _minSymRatio))
-            continue;
       }
 
       for (cur_l = _symbols_layer.begin(); cur_l != _symbols_layer.end(); ++cur_l)
