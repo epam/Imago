@@ -112,8 +112,8 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
    {
       next_s = cur_s + 1;
 
-      //if (getSettings()["DebugSession"])
-      //   ImageUtils::saveImageToFile(**cur_s, "output/tmp_fetch.png");
+      if (getSettings()["DebugSession"])
+         ImageUtils::saveImageToFile(**cur_s, "output/tmp_fetch.png");
 
       if ((*cur_s)->getHeight() > _cap_height + (int)getSettings()["SymHeightErr"])
          continue;
@@ -139,7 +139,7 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
          {
             if (ImageUtils::testSlashLine(**cur_s, 0, 3.3)) //TODO: Handwriting, original 1.3
                continue;   
-            if ((seg_rect.height < 0.45 * _cap_height || //0.65 //0.42
+            if ((seg_rect.height < 0.45 * _cap_height || seg_rect.height > 1.2 * _cap_height || //0.65 //0.42
                 r > _maxSymRatio || r < _minSymRatio))
                continue;
          }
