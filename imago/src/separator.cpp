@@ -57,10 +57,19 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
    RecognitionSettings &rs = getSettings();
    SegmentDeque layer_suspicious;
 
+#ifdef DEBUG
+   puts("************");
+#endif
+
    if (_segs.size() == 0)
       cap_height = -1;
    else
       cap_height = _estimateCapHeight();   
+
+#ifdef DEBUG
+   printf("CH: %d\n", cap_height);
+   puts("************");
+#endif
 
    rs.set("CapitalHeight", cap_height);
 
@@ -200,7 +209,16 @@ int Separator::_estimateCapHeight()
    RecognitionSettings &rs = gSession.get()->settings();
 
    BOOST_FOREACH( Segment *s, _segs )
+   {
       heights.push_back(s->getHeight());
+#ifdef DEBUG
+      printf("%d ", s->getHeight());
+#endif
+   }
+
+#ifdef DEBUG
+   puts("");
+#endif
 
    int seg_ver_eps = rs["SegmentVerEps"];
 
@@ -215,6 +233,10 @@ int Separator::_estimateCapHeight()
 
       p.first = i;
       p.second = j;
+
+#ifdef DEBUG
+      printf("%d %d\n", i, j);
+#endif
 
       seq_pairs.push_back(p);
 
@@ -272,6 +294,9 @@ int Separator::_estimateCapHeight()
    if (count == 0)
       return -1;
 
+#ifdef DEBUG
+   printf("SSQ: %d\n", symbols_seq);
+#endif
    int cap_height = StatUtils::interMean(heights.begin() + seq_pairs[symbols_found[symbols_seq]].first, 
                                          heights.begin() + seq_pairs[symbols_found[symbols_seq]].second);    
 
