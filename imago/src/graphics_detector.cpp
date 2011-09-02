@@ -245,6 +245,27 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
          
          if (isCircle(tmp))
          {
+            bool valid = true;
+            double r = ((*it)->getWidth() + (*it)->getHeight()) / 4;
+            Vec2d center = tmp.getCenter();
+            BOOST_FOREACH(Segment *s, segments)
+            {
+               double d = Vec2d::distance(center, s->getCenter());
+               printf("R: %lf  %lf\n", d, r);
+               if (d < r)
+               {
+                  valid = false;
+                  break;
+               }
+            }
+            printf("R: %d", (int)valid);
+
+            if (!valid)
+            {
+               ++it;
+               continue;
+            }
+
             ring_centers.push_back(tmp.getCenter());
             delete *it;
             it = segments.erase(it);
@@ -326,7 +347,7 @@ void GraphicsDetector::detect( const Image &img, Points2d &lsegments ) const
    Points2d poly;
    Image tmp;
    tmp.copy(img);
-
+   
    ThinFilter2 tf2(tmp);
    TIME(tf2.apply(), "Thinning");
    _decorner(tmp);
