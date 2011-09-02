@@ -294,11 +294,13 @@ int Separator::_estimateCapHeight()
    if (count == 0)
       return -1;
 
+
+   double temp = StatUtils::interMean(heights.begin() + seq_pairs[symbols_found[symbols_seq]].first, 
+                                      heights.begin() + seq_pairs[symbols_found[symbols_seq]].second);    
 #ifdef DEBUG
-   printf("SSQ: %d\n", symbols_seq);
+   printf("SSQ: %d\nTEMP: %lf", symbols_seq, temp);
 #endif
-   int cap_height = StatUtils::interMean(heights.begin() + seq_pairs[symbols_found[symbols_seq]].first, 
-                                         heights.begin() + seq_pairs[symbols_found[symbols_seq]].second);    
+   int cap_height = (int)temp;
 
    double cur_density = densities[symbols_seq];
 
