@@ -446,7 +446,7 @@ bool Skeleton::_dissolveIntermediateVertices ()
       }
    }
    
-   if (min_err < 0.22) //0.28 //0.22
+   if (min_err < 0.17) //0.28 //0.22
    {
       LPRINT(0, "dissolving vertex, err = %.2lf", min_err);
       std::deque<Vertex> neighbors;

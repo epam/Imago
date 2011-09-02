@@ -75,7 +75,19 @@ void GraphicsDetector::_decorner( Image &img ) const
             }
          }
          if (c >= 4)
-            img.getByte(x, y) = 255;
+         {
+            for (i = y - 1; i <= y + 1; i++)
+            {
+               for (j = x - 1; j <= x + 1; j++)
+               {
+                  if (i >= 0 && i < img.getHeight() && j >= 0 && j < img.getWidth())
+                     if (img.getByte(j, i) == 0)
+                        img.getByte(j, i) = 255;
+               }
+            }
+            
+            //img.getByte(x, y) = 255;
+         }
       }
    }
 

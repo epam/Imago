@@ -217,7 +217,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       {
 #if 1
          CvApproximator cvApprox;
-         GraphicsDetector gd(&cvApprox, 11.0);
+         GraphicsDetector gd(&cvApprox, 8.0);
 #else
          SimpleApproximator sApprox;
          GraphicsDetector gd(&sApprox, 0.3);

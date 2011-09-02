@@ -61,6 +61,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
    Vec2d p1, p2;
    Vec2d m1, m2;
    double dm, db, de;
+   double ratio;
    if (bf.length > bs.length)
    {
       boost::tie(p1, p2) = Algebra::segmentProjection(sb_pos, se_pos, fb_pos, fe_pos);
@@ -71,6 +72,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       dm = Algebra::distance2segment(p1, fb_pos, fe_pos);
       de = Vec2d::distance(p1, fe_pos);
       db = Vec2d::distance(p1, fb_pos);
+      ratio = bf.length / bs.length;
    }
    else
    {
@@ -82,7 +84,13 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       dm = Algebra::distance2segment(p1, sb_pos, se_pos);
       de = Vec2d::distance(p1, se_pos);
       db = Vec2d::distance(p1, sb_pos);
+      ratio = bs.length / bf.length;
    }
+#ifdef DEBUG
+   printf("\t\t%lf\n", ratio);
+#endif
+   if (ratio > 7.5)
+      return false;
 
    double dbb = Vec2d::distance(fb_pos, sb_pos) + Vec2d::distance(fe_pos, se_pos),
       dbe = Vec2d::distance(fb_pos, se_pos) + Vec2d::distance(fe_pos, sb_pos);
