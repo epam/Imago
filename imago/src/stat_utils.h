@@ -115,7 +115,7 @@ namespace imago
        * @return  IQM value
        */
       template<typename ForwardIterator> 
-      static typename ForwardIterator::value_type interMean( ForwardIterator begin, ForwardIterator end )
+      static double /*typename ForwardIterator::value_type*/ interMean( ForwardIterator begin, ForwardIterator end )
       {
          int count = std::distance(begin, end);
 
@@ -135,7 +135,7 @@ namespace imago
 
          u = -0.25 * m + 1;
 
-         typename ForwardIterator::value_type res = 0;
+         /*typename ForwardIterator::value_type*/ double res = 0;
 
          for (ForwardIterator i = begin + l + 1; i != begin + r; ++i)
          {
