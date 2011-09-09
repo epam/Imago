@@ -1,0 +1,3 @@
+[submodule "ireco/Ketcher"]
+	path = ireco/Ketcher
+	url = https://git.ggasoftware.com/git/ketcher
