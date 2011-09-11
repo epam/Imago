@@ -38,7 +38,6 @@
 		A7484A2B141A635B006AB1E6 /* ketcher-ios.css in Resources */ = {isa = PBXBuildFile; fileRef = A7483119141A631C006AB1E6 /* ketcher-ios.css */; };
 		A7484A2C141A635B006AB1E6 /* ketcher.html in Resources */ = {isa = PBXBuildFile; fileRef = A748311A141A631C006AB1E6 /* ketcher.html */; };
 		A7484A2D141A635B006AB1E6 /* events-ios.js in Resources */ = {isa = PBXBuildFile; fileRef = A748311C141A631C006AB1E6 /* events-ios.js */; };
-		A7484A2E141A635B006AB1E6 /* render-ios.js in Resources */ = {isa = PBXBuildFile; fileRef = A748311D141A631C006AB1E6 /* render-ios.js */; };
 		A7484A2F141A635B006AB1E6 /* ui-ios.js in Resources */ = {isa = PBXBuildFile; fileRef = A748311F141A631C006AB1E6 /* ui-ios.js */; };
 		A7484A32141A635B006AB1E6 /* ketcher.css in Resources */ = {isa = PBXBuildFile; fileRef = A7483122141A631C006AB1E6 /* ketcher.css */; };
 		A7484A34141A635B006AB1E6 /* ketcher.js in Resources */ = {isa = PBXBuildFile; fileRef = A7483124141A631C006AB1E6 /* ketcher.js */; };
@@ -166,7 +165,6 @@
 		A7483119141A631C006AB1E6 /* ketcher-ios.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = "ketcher-ios.css"; sourceTree = "<group>"; };
 		A748311A141A631C006AB1E6 /* ketcher.html */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.html; path = ketcher.html; sourceTree = "<group>"; };
 		A748311C141A631C006AB1E6 /* events-ios.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "events-ios.js"; sourceTree = "<group>"; };
-		A748311D141A631C006AB1E6 /* render-ios.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "render-ios.js"; sourceTree = "<group>"; };
 		A748311F141A631C006AB1E6 /* ui-ios.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "ui-ios.js"; sourceTree = "<group>"; };
 		A7483122141A631C006AB1E6 /* ketcher.css */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.css; path = ketcher.css; sourceTree = "<group>"; };
 		A7483124141A631C006AB1E6 /* ketcher.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = ketcher.js; sourceTree = "<group>"; };
@@ -398,7 +396,6 @@
 			isa = PBXGroup;
 			children = (
 				A748311C141A631C006AB1E6 /* events-ios.js */,
-				A748311D141A631C006AB1E6 /* render-ios.js */,
 			);
 			path = rnd;
 			sourceTree = "<group>";
@@ -524,7 +521,7 @@
 		29B97313FDCFA39411CA2CEA /* Project object */ = {
 			isa = PBXProject;
 			attributes = {
-				LastUpgradeCheck = 0410;
+				LastUpgradeCheck = 0420;
 			};
 			buildConfigurationList = C01FCF4E08A954540054247B /* Build configuration list for PBXProject "ireco" */;
 			compatibilityVersion = "Xcode 3.2";
@@ -623,7 +620,6 @@
 				A7484A28141A635B006AB1E6 /* struct.js in Resources */,
 				A7484A29141A635B006AB1E6 /* struct_valence.js in Resources */,
 				A7484A2D141A635B006AB1E6 /* events-ios.js in Resources */,
-				A7484A2E141A635B006AB1E6 /* render-ios.js in Resources */,
 				A7484A2F141A635B006AB1E6 /* ui-ios.js in Resources */,
 				A7484A34141A635B006AB1E6 /* ketcher.js in Resources */,
 				A748630F141A6360006AB1E6 /* prototype-min.js in Resources */,
