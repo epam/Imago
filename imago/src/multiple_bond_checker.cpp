@@ -86,9 +86,9 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       db = Vec2d::distance(p1, sb_pos);
       ratio = bs.length / bf.length;
    }
-#ifdef DEBUG
-   printf("\t\t%lf\n", ratio);
-#endif
+//#ifdef DEBUG
+//   printf("\t\t%lf\n", ratio);
+//#endif
    if (ratio > 7.5)
       return false;
 
@@ -125,9 +125,9 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       d = 0.5 * (Algebra::distance2segment(sb_pos, fb_pos, fe_pos) +
                  Algebra::distance2segment(se_pos, fb_pos, fe_pos));
 
-#ifdef DEBUG
-   printf("DC0: %lf\n", d);
-#endif   
+//#ifdef DEBUG
+//   printf("DC0: %lf\n", d);
+//#endif   
    
    if (!(dm < 0.98 * de && dm < 0.98 * db))
    {
@@ -176,9 +176,9 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       minLength = bf.length;
    }
 
-#ifdef DEBUG
-   printf("DC1: %d %d\n", maxLength, minLength);
-#endif   
+//#ifdef DEBUG
+//   printf("DC1: %d %d\n", maxLength, minLength);
+//#endif   
    
    if (maxLength > 160)
       _multiBondErr = 0.08; //0.18; //handwriting
@@ -187,7 +187,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       if (minLength > 90)
          _multiBondErr = 0.157;
       else
-         _multiBondErr = 0.195;
+         _multiBondErr = 0.203;
    }
    else if (maxLength > 110)
       _multiBondErr = 0.185;

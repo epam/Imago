@@ -464,7 +464,8 @@ void testRotation(const char *filename = 0)
       */
       const char *f = filename ? filename :
          //"IMG_0052.JPG";
-         "../../../data/from_caduff_2/IMG_0022.JPG";
+         //"../../../data/from_caduff_2/IMG_0022.JPG";
+         "../../../../flamingo_test/iPad2/TS_3_iPad_2_1.JPG";
          //"../../../ireco/first-delivery-images/photo09.jpg";
 
       // std::vector<unsigned char> data;

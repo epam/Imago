@@ -97,7 +97,9 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
             ImageUtils::saveImageToFile(*s, "output/tmp.png");
 
          if (s->getHeight() >= cap_height - sym_height_err && 
-             s->getHeight() <= cap_height + sym_height_err) 
+             s->getHeight() <= cap_height + sym_height_err &&
+             s->getHeight() < cap_height * 2 &&
+             s->getWidth() <= 1.8 * cap_height) 
          {
             if (s->getRatio() > 0.96 && s->getRatio() < 1.05)
             {

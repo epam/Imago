@@ -38,8 +38,8 @@ if(NOT WIN32)
     LOCAL_JPEG()
 
     find_package(OpenCV REQUIRED)
-    set(OpenCV_LIBS debug cxcore optimized cxcore
-        debug cv optimized cv)
+#    set(OpenCV_LIBS debug cxcore optimized cxcore
+#        debug cv optimized cv)
   else(NOT APPLE)
     option(IPHONE "Cross-compile for IPHONE" OFF)
 
@@ -115,6 +115,6 @@ add_subdirectory(jimago)
 
 add_subdirectory(tests/vs/imagotest)
 # add_subdirectory(tests/dp)
-add_subdirectory(tests/fz)
-add_subdirectory(tests/ds)
+#add_subdirectory(tests/fz)
+#add_subdirectory(tests/ds)
 endif(NOT IPHONE)

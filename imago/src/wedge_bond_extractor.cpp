@@ -510,8 +510,8 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
       //g.reverseEdge(e1);
 
    r = _thicknesses[g.getBondEnd(e1)];
-   if (r / _mean_thickness < thick_ratio_eps)
-      return false;
+   //if (r / _mean_thickness < thick_ratio_eps)
+   //   return false;
 
    if (_thicknesses[g.getBondBegin(e1)] / _mean_thickness > thick_ratio_eps)
    {
@@ -521,7 +521,15 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
    Vec2d bb = g.getVertexPos(g.getBondBegin(e1));
    Vec2d ee = g.getVertexPos(g.getBondEnd(e1));
 
-   if (Vec2d::distance(bb, ee) < _bond_length * 0.2)
+#ifdef DEBUG
+   printf("SU: (%lf; %lf) (%lf; %lf)  %lf\n", bb.x, bb.y, ee.x, ee.y, Vec2d::distance(bb, ee));
+#endif
+
+   double coef = 0.28;
+   if (_bond_length < 40)
+      coef = 0.4;
+
+   if (Vec2d::distance(bb, ee) < _bond_length * coef)
       return false;
    
    Vec2d b(bb), e(ee);
@@ -689,10 +697,9 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
       }
    }
 
-   if (
-       thick_ratio < thick_ratio_eps ||
-       square_ratio < 0.6 ||
-       angle < 0.06)
+   if (thick_ratio < thick_ratio_eps ||
+       square_ratio < 0.7 ||
+       angle < 0.065)
       return false;
 
    return true;

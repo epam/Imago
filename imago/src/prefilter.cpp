@@ -368,7 +368,7 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
    }
 
    {
-      Binarizer b(img, 32);
+      Binarizer b(img, 50); //32
       b.apply();
 
       if (debug_session)
@@ -384,14 +384,14 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
 
    {
       LPRINT(0, "unsharp mask (weak)");
-      _unsharpMask(weakimg, 10, 12, 0);
+      _unsharpMask(weakimg, 10, 8, 0); //10 12
       
       if (debug_session)
          ImageUtils::saveImageToFile(weakimg, "output/07_after_weak_unsharp_mask.png");
    }
 
    {
-      Binarizer b(weakimg, 80);
+      Binarizer b(weakimg, 75);
       b.apply();
       if (debug_session)
          ImageUtils::saveImageToFile(weakimg, "output/08_after_weak_binarization.png");

@@ -838,8 +838,9 @@ void Skeleton::modifyGraph()
 
     recalcAvgBondLength();
    
-       ;
-    while (_dissolveShortEdges(0.25))
+    //_joinVertices(0.1);
+    while (_dissolveShortEdges(0.2))
+      ;
 
     if (getSettings()["DebugSession"])
     {
