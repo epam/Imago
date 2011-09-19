@@ -120,6 +120,28 @@
 {
 }
 
+- (BOOL)webView:(UIWebView *)webView shouldStartLoadWithRequest:(NSURLRequest *)request navigationType:(UIWebViewNavigationType)navigationType
+{
+    NSString *url = [request.URL absoluteString];
+    NSArray *urlArray = [url componentsSeparatedByString:@"?"];
+    
+    if (urlArray.count > 1)
+    {
+        NSString *paramsString = [urlArray objectAtIndex:1];
+        NSArray *urlParamsArray = [paramsString componentsSeparatedByString:@"&"];
+        NSString *cmd = [[[urlParamsArray objectAtIndex:0] componentsSeparatedByString:@"="] objectAtIndex:1];
+        
+        if ([cmd isEqualToString:@"log"] && urlParamsArray.count > 1)
+        {
+            NSLog(@"%@", [[[urlParamsArray objectAtIndex:1] componentsSeparatedByString:@"="] objectAtIndex:1]);
+            
+            return NO;
+        }
+    }
+        
+    return YES; 
+}
+
 // called when the parent application receives a memory warning
 - (void)didReceiveMemoryWarning
 {
