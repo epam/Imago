@@ -133,7 +133,7 @@
         
         if ([cmd isEqualToString:@"log"] && urlParamsArray.count > 1)
         {
-            NSLog(@"%@", [[[urlParamsArray objectAtIndex:1] componentsSeparatedByString:@"="] objectAtIndex:1]);
+            NSLog(@"%@", [[[[urlParamsArray objectAtIndex:1] componentsSeparatedByString:@"="] objectAtIndex:1] stringByReplacingPercentEscapesUsingEncoding:NSASCIIStringEncoding]);
             
             return NO;
         }
