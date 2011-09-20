@@ -6,6 +6,7 @@
 //  Copyright 2010 __MyCompanyName__. All rights reserved.
 //
 
+#import "indigo.h"
 #import "KetcherViewController.h"
 
 @implementation KetcherViewController
@@ -104,16 +105,21 @@
 
    self.prevImage = image;
    
-   if (self.molfile != nil)
-   {
-      NSString *jsLoadMol = [NSString stringWithFormat: @"ketcher.setMolecule('%@');", [self.molfile stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"]];
-      [self.webView performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject: jsLoadMol waitUntilDone: YES];
-   } else {
-      [webView loadHTMLString:@"<html><head></head><body>An error occured.</body></html>" baseURL:nil];
-   }
+   [self loadMolfileToKetcher];
    
    [self.activityView stopAnimating];
    [pool drain];
+}
+
+- (void)loadMolfileToKetcher
+{
+    if (self.molfile != nil)
+    {
+        NSString *jsLoadMol = [NSString stringWithFormat: @"ketcher.setMolecule('%@');", [self.molfile stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"]];
+        [self.webView performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject: jsLoadMol waitUntilDone: YES];
+    } else {
+        [webView loadHTMLString:@"<html><head></head><body>An error occured.</body></html>" baseURL:nil];
+    }
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView
@@ -134,6 +140,31 @@
         if ([cmd isEqualToString:@"log"] && urlParamsArray.count > 1)
         {
             NSLog(@"%@", [[[[urlParamsArray objectAtIndex:1] componentsSeparatedByString:@"="] objectAtIndex:1] stringByReplacingPercentEscapesUsingEncoding:NSASCIIStringEncoding]);
+            
+            return NO;
+        }
+
+        if ([cmd isEqualToString:@"layout"] && urlParamsArray.count > 1)
+        {
+            const char *layoutMolfile = [[[[[urlParamsArray objectAtIndex:1] componentsSeparatedByString:@"="] objectAtIndex:1] stringByReplacingPercentEscapesUsingEncoding:NSASCIIStringEncoding] cStringUsingEncoding:NSASCIIStringEncoding];
+            
+            int mol = indigoLoadMoleculeFromString(layoutMolfile);
+            
+            if (mol == -1)
+            {
+                NSLog(@"%s\n", indigoGetLastError());
+                return NO;
+            }
+            
+            indigoLayout(mol);
+            
+            layoutMolfile = indigoMolfile(mol);
+            
+            self.molfile = [NSString stringWithCString:layoutMolfile encoding:NSASCIIStringEncoding];
+            
+            indigoFree(mol);
+            
+            [self loadMolfileToKetcher];
             
             return NO;
         }

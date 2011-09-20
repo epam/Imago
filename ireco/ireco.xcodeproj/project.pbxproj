@@ -104,7 +104,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7FB0D8DDDE507FB0D8DDDE50;
+			remoteGlobalIDString = 7FF303DDDE307FF303DDDE30;
 			remoteInfo = imago_static;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -125,7 +125,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7FB0D8D4F4207FB0D8D4F420;
+			remoteGlobalIDString = 7FF303D4F4007FF303D4F400;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -688,6 +688,7 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = (
+					../third_party/indigo,
 					../imago/src,
 					../iSMILES/src,
 					..,
@@ -725,6 +726,7 @@
 				GCC_THUMB_SUPPORT = NO;
 				GCC_VERSION = "";
 				HEADER_SEARCH_PATHS = (
+					../third_party/indigo,
 					../imago/src,
 					../iSMILES/src,
 					..,
@@ -756,6 +758,12 @@
 				GCC_VERSION = "";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../third_party/indigo,
+					../imago/src,
+					../iSMILES/src,
+					..,
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
 				ONLY_ACTIVE_ARCH = YES;
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "A9D41C69-7FE9-4969-BA9E-7BBE88BDEB48";
@@ -774,6 +782,12 @@
 				GCC_VERSION = "";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
+				HEADER_SEARCH_PATHS = (
+					../third_party/indigo,
+					../imago/src,
+					../iSMILES/src,
+					..,
+				);
 				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PROVISIONING_PROFILE = "";

@@ -31,6 +31,7 @@
 @property (nonatomic, retain) NSThread *recognizerThread;
 
 - (void)setupKetcher:(UIImage *)image;
+- (void)loadMolfileToKetcher;
 - (void)recognizerThreadProc;
 - (void)recognizingProc:(UIImage *)image;
 

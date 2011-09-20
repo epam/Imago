@@ -69,7 +69,7 @@
 
       molfileStr = imago::expandSuperatoms(mol);
       
-      return [NSString stringWithCString:molfileStr.c_str()];
+      return [NSString stringWithCString:molfileStr.c_str() encoding:NSASCIIStringEncoding];
    }
    catch( imago::Exception &e )
    {
