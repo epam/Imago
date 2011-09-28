@@ -94,22 +94,26 @@ namespace imago
       friend class MultipleBondChecker;
       
       void _reconnectBonds( Vertex from, Vertex to );
+	  bool _checkMidBonds( Vertex from, Vertex to );
+	  void _reconnectBondsRWT( Vertex from, Vertex to, BondType new_t);
       void _joinVertices(double eps);
       void _repairBroken();
 
       double _multiBondErr; //TODO: add to RecognitionSettings?
       void _findMultiple();
-      bool _dissolveShortEdges (double coeff);
+      bool _dissolveShortEdges (double coeff,const bool has2nb = false);
       bool _dissolveIntermediateVertices ();
       double _avgEdgeLendth (const Vertex &v, int &nnei);
       typedef boost::tuple<bool, Edge, Edge> MakersReturn;
       //MakersReturn _makeDouble( std::pair<Edge, Edge> edges );
       MakersReturn _makeTriple( boost::tuple<Edge, Edge, Edge> edges );
       bool _isParallel( const Edge &first, const Edge &second ) const;
+	  bool _isEqualDirection( const Edge &first, const Edge &second ) const;
+      bool _isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex &b2,const Vertex &e2)  const;
       double _avg_bond_length,
              _parLinesEps,
          _addVertexEps,
-         _min_bond_length;
+         _min_bond_length, _min_bond_h2nb_length;
       std::vector<Vec2d> _vertices_big_degree;
 
       Skeleton( const Skeleton &g );

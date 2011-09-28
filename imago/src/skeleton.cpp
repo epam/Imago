@@ -278,6 +278,51 @@ void Skeleton::_repairBroken()
       boost::remove_vertex(v, _g);
 }
 
+bool Skeleton::_isEqualDirection( const Edge &first, const Edge &second ) const
+{
+   Bond f = boost::get(boost::edge_type, _g, first),
+        s = boost::get(boost::edge_type, _g, second);
+
+   return (fabs(f.k - s.k) < _parLinesEps);
+}
+
+bool Skeleton::_isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex &b2,const Vertex &e2)  const
+{
+#define sign(x) ((x > 0) ? 1 : ((x < 0) ? -1 : 0))
+   Vec2d begin1 = boost::get(boost::vertex_pos, _g, b1),
+         end1 = boost::get(boost::vertex_pos, _g, e1);
+
+   Vec2d begin2 = boost::get(boost::vertex_pos, _g, b2),
+         end2 = boost::get(boost::vertex_pos, _g, e2);
+   
+   int dx1 = end1.x - begin1.x,
+       dy1 = end1.y - begin1.y;
+   double k1 = 0;
+
+   if (dx1 == 0)
+      k1 = PI_2;
+   else
+   {
+      double angle1 = atan((double) dy1 / dx1);
+      k1 = angle1;
+   }
+
+   int dx2 = end2.x - begin2.x,
+   dy2 = end2.y - begin2.y;
+   double k2 = 0;
+
+   if (dx2 == 0)
+      k2 = PI_2;
+   else
+   {
+      double angle2 = atan((double) dy2 / dx2);
+      k2 = angle2;
+   }
+
+   return((fabs(k1 - k2) < _parLinesEps) && (sign(dx1) == sign(dx2)));
+}
+
+
 bool Skeleton::_isParallel( const Edge &first, const Edge &second ) const
 {
    Bond f = boost::get(boost::edge_type, _g, first),
@@ -287,7 +332,7 @@ bool Skeleton::_isParallel( const Edge &first, const Edge &second ) const
                     fabs(fabs(f.k - s.k) - PI) < _parLinesEps);
 }
 
-bool Skeleton::_dissolveShortEdges (double coeff)
+bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 {
    std::vector<Edge> toProcess;
    boost::graph_traits<SkeletonGraph>::edge_iterator ei, ei_e;
@@ -301,60 +346,181 @@ bool Skeleton::_dissolveShortEdges (double coeff)
 
       double edge_len = boost::get(boost::edge_type, _g, edge).length;
       double max_edge_beg = 0, max_edge_end = 0;
+	  bool  pb_e = false, pb_b = false;
+
 
       // find the longest edge going from the beginning of our edge
       {
-         std::deque<Vertex> neighbors;
-         boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-         boost::tie(b, e) = boost::adjacent_vertices(beg, _g);
-         neighbors.assign(b, e);
+		 bool state_conected_b = false;
+         std::deque<Vertex> neighbors_b;
+         boost::graph_traits<SkeletonGraph>::adjacency_iterator b_b, e_b;
+         boost::tie(b_b, e_b) = boost::adjacent_vertices(beg, _g);
+         neighbors_b.assign(b_b, e_b);
 
-         for (int i = 0; i < (int)neighbors.size(); i++)
-         {
-            Edge e = boost::edge(beg, neighbors[i], _g).first;
-            double len = boost::get(boost::edge_type, _g, e).length;
+		 if(neighbors_b.size() > 1)
+			 for (int i = 0; i < (int)neighbors_b.size(); i++)
+			 {
+				 if(neighbors_b[i] != end)
+				 {
+					 Edge ee = boost::edge(neighbors_b[i], beg, _g).first; // order is significant for taking edge with eqval direction
+					 double len = boost::get(boost::edge_type, _g, ee).length;
+					 state_conected_b = state_conected_b | _checkMidBonds(neighbors_b[i], beg);
 
-            if (len > max_edge_beg)
-               max_edge_beg = len;
-         }
-      }
-
-      // find the longest edge going from the end of our edge
-      {
-         std::deque<Vertex> neighbors;
-         boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-         boost::tie(b, e) = boost::adjacent_vertices(end, _g);
-         neighbors.assign(b, e);
-
-         for (int i = 0; i < (int)neighbors.size(); i++)
-         {
-            Edge e = boost::edge(end, neighbors[i], _g).first;
-            double len = boost::get(boost::edge_type, _g, e).length;
-
-            if (len > max_edge_end)
-               max_edge_end = len;
-         }
-      }
+					 if (len > max_edge_beg)
+						 max_edge_beg = len;
+					 if(!pb_b)
+						 pb_b = _isEqualDirection(end, beg, neighbors_b[i], beg);
+				 }
+			 }
       
 
-      if (edge_len < max_edge_beg * coeff ||
-          edge_len < max_edge_end * coeff)
-      {
-         LPRINT(0, "dissolving edge len: %.2lf, max_edge_beg: %.2lf, max_edge_end: %.2lf",
-                edge_len, max_edge_beg, max_edge_end);
-         // dissolve the edge
-         if (max_edge_end < max_edge_beg)
-         {
-            _reconnectBonds(end, beg);
-            boost::remove_vertex(end, _g);
-         }
-         else
-         {
-            _reconnectBonds(beg, end);
-            boost::remove_vertex(beg, _g);
-         }
-         return true;
-      }
+      // find the longest edge going from the end of our edge
+      
+		 bool state_conected_e = false;
+         std::deque<Vertex> neighbors_e;
+         boost::graph_traits<SkeletonGraph>::adjacency_iterator b_e, e_e;
+         boost::tie(b_e, e_e) = boost::adjacent_vertices(end, _g);
+         neighbors_e.assign(b_e, e_e);
+		 if(neighbors_e.size() > 1)
+			 for (int i = 0; i < (int)neighbors_e.size(); i++)
+			 {
+				 if(neighbors_e[i] != beg)
+				 {
+					 Edge ee = boost::edge(neighbors_e[i], end, _g).first; // order is significant for taking edge with eqval direction
+					 double len = boost::get(boost::edge_type, _g, ee).length;
+
+					 if (len > max_edge_end)
+						 max_edge_end = len;
+					 state_conected_e = state_conected_e | _checkMidBonds(neighbors_e[i], end);
+					 if(!pb_e)
+						 pb_e = _isEqualDirection(beg, end, neighbors_e[i], end);
+				 }
+			 }
+      
+		  if(has2nb)
+		  {
+			  if (edge_len < max_edge_beg * (coeff) &&
+				  edge_len < max_edge_end * (coeff) &&
+				  edge_len < _avg_bond_length * coeff)
+			  {
+				  LPRINT(0, "dissolving edge len: %.2lf, max_edge_beg: %.2lf, max_edge_end: %.2lf",
+					  edge_len, max_edge_beg, max_edge_end);
+				  // dissolve the edge
+				  if (max_edge_end < max_edge_beg)
+				  {          
+					  _reconnectBonds(end, beg);
+					  boost::remove_vertex(end, _g);
+				  }
+				  else
+				  {
+					  _reconnectBonds(beg, end);
+					  boost::remove_vertex(beg, _g);
+				  }
+				  return true;
+			  }
+			  else
+			  {
+				  /*
+				  if ((edge_len < max_edge_beg * (coeff) ||
+				  edge_len < max_edge_end * (coeff)) &&
+				  edge_len < _avg_bond_length * coeff)
+				  {
+					  LPRINT(0, "dissolving edge len: %.2lf, max_edge_beg: %.2lf, max_edge_end: %.2lf",
+						  edge_len, max_edge_beg, max_edge_end);
+					  // dissolve the edge
+					  if (max_edge_end < max_edge_beg)
+					  {          
+						  _reconnectBonds(end, beg);
+						  boost::remove_vertex(end, _g);
+					  }
+					  else
+					  {
+						  _reconnectBonds(beg, end);
+						  boost::remove_vertex(beg, _g);
+					  }
+					  return true;
+
+				  }
+				  */
+
+				  if(( max_edge_end < _avg_bond_length * coeff) &&
+				  (edge_len*(coeff) > max_edge_end) && max_edge_end != 0.0)
+				  {
+					  bool ret = false;
+					   if(neighbors_e.size() > 1 && !state_conected_e)
+						   for (int i = 0; i < (int)neighbors_e.size(); i++)
+						   {
+							   if(neighbors_e[i] != beg)
+							   {
+								   _reconnectBonds(neighbors_e[i], end);
+								   boost::remove_vertex(neighbors_e[i], _g);
+								   setBondType(*ei, SINGLE_UP);
+								   ret = true;
+							   }
+						   }
+					  return ret;
+				  }
+
+				  if(( max_edge_beg < _avg_bond_length * coeff) &&
+				  (edge_len*(coeff) > max_edge_beg) && max_edge_beg != 0.0)
+				  {
+
+					  bool ret = false;
+					   if(neighbors_b.size() > 1 && !state_conected_b)
+						   for (int i = 0; i < (int)neighbors_b.size(); i++)
+						   {
+							   if(neighbors_b[i] != end)
+							   {
+								   _reconnectBonds(neighbors_b[i], beg);
+								   boost::remove_vertex(neighbors_b[i], _g);
+								   setBondType(*ei, SINGLE_UP);
+								   ret = true;
+							   }
+						   }
+					  return ret;
+				  }
+			  }
+			  if(edge_len < _avg_bond_length * (coeff))
+			  {
+				  BondType type = getBondType(edge);
+				  if(pb_e && !state_conected_b && type == SINGLE)
+				  {
+					  _reconnectBonds(beg, end);
+					  boost::remove_vertex(beg, _g);
+					  return true;
+					  
+				  }
+				  if(pb_b && !state_conected_e && type == SINGLE)
+				  {
+					  _reconnectBonds(end, beg);
+					  boost::remove_vertex(end, _g);
+					  return true;
+				  }
+			  }
+		  }
+		  else
+		  {
+ 			  if (edge_len < max_edge_beg * coeff ||
+				  edge_len < max_edge_end * coeff)
+			  {
+				 LPRINT(0, "dissolving edge len: %.2lf, max_edge_beg: %.2lf, max_edge_end: %.2lf",
+						edge_len, max_edge_beg, max_edge_end);
+				 // dissolve the edge
+				 if (max_edge_end < max_edge_beg)
+				 {
+					_reconnectBonds(end, beg);
+					boost::remove_vertex(end, _g);
+				 }
+				 else
+				 {
+					_reconnectBonds(beg, end);
+					boost::remove_vertex(beg, _g);
+				 }
+				 return true;
+			  }
+		  }
+	  }
+
    }
    return false;
 }
@@ -647,6 +813,47 @@ void Skeleton::_reconnectBonds( Vertex from, Vertex to )
    }
 }
 
+bool Skeleton::_checkMidBonds( Vertex from, Vertex to )
+{
+   std::deque<Vertex> neighbours;
+   boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
+   boost::tie(b, e) = boost::adjacent_vertices(from, _g);
+   neighbours.assign(b, e);
+   bool ret = false;
+
+   for (int i = 0; i < (int)neighbours.size(); i++)
+   {
+      Vertex v = neighbours[i];
+      Edge e = boost::edge(from, v, _g).first;
+
+      if (v == to)
+         continue;
+      
+      ret = true;
+   }
+   return ret;
+}
+
+void Skeleton::_reconnectBondsRWT( Vertex from, Vertex to, BondType new_t)
+{
+   std::deque<Vertex> neighbours;
+   boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
+   boost::tie(b, e) = boost::adjacent_vertices(from, _g);
+   neighbours.assign(b, e);
+
+   for (int i = 0; i < (int)neighbours.size(); i++)
+   {
+      Vertex v = neighbours[i];
+      Edge e = boost::edge(from, v, _g).first;
+      boost::remove_edge(e, _g);
+
+      if (v == to)
+         continue;
+      
+      addBond(v, to, new_t);
+   }
+}
+
 double Skeleton::_avgEdgeLendth (const Vertex &v, int &nnei)
 {
    std::deque<Vertex> neighbors;
@@ -895,6 +1102,16 @@ void Skeleton::modifyGraph()
    //drawGraph(2000, 1000, "output/ggg2.png");
 
    rs.set("AvgBondLength", _avg_bond_length);
+   while (_dissolveShortEdges(0.45, true));
+
+   if (getSettings()["DebugSession"])
+    {
+       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+       img.fillWhite();
+       ImageDrawUtils::putGraph(img, _g);
+       ImageUtils::saveImageToFile(img, "output/ggg7.png");
+   }
+
 }
 
 void Skeleton::setBondType( Edge &e, BondType t )
