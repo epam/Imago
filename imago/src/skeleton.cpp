@@ -454,7 +454,10 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 							   {
 								   _reconnectBonds(neighbors_e[i], end);
 								   boost::remove_vertex(neighbors_e[i], _g);
-								   setBondType(*ei, SINGLE_UP);
+//								   setBondType(*ei, SINGLE_UP);
+								   Bond b = boost::get(boost::edge_type, _g, edge);
+								   b.type = SINGLE_UP;
+								   boost::put(boost::edge_type, _g, edge, b);
 								   ret = true;
 							   }
 						   }
@@ -473,7 +476,10 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 							   {
 								   _reconnectBonds(neighbors_b[i], beg);
 								   boost::remove_vertex(neighbors_b[i], _g);
-								   setBondType(*ei, SINGLE_UP);
+//								   setBondType(*ei, SINGLE_UP);
+								   Bond b = boost::get(boost::edge_type, _g, edge);
+								   b.type = SINGLE_UP;
+								   boost::put(boost::edge_type, _g, edge, b);
 								   ret = true;
 							   }
 						   }
