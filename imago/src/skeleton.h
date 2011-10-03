@@ -101,7 +101,9 @@ namespace imago
 
       double _multiBondErr; //TODO: add to RecognitionSettings?
       void _findMultiple();
+   public:
       bool _dissolveShortEdges (double coeff,const bool has2nb = false);
+   private:
       bool _dissolveIntermediateVertices ();
       double _avgEdgeLendth (const Vertex &v, int &nnei);
       typedef boost::tuple<bool, Edge, Edge> MakersReturn;
