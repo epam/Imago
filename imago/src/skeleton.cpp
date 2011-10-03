@@ -1108,7 +1108,7 @@ void Skeleton::modifyGraph()
    //drawGraph(2000, 1000, "output/ggg2.png");
 
    rs.set("AvgBondLength", _avg_bond_length);
-   while (_dissolveShortEdges(0.45, true));
+   //while (_dissolveShortEdges(0.45, true));
 
    if (getSettings()["DebugSession"])
     {
