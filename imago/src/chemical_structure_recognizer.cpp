@@ -233,6 +233,8 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       while (mol._dissolveShortEdges(0.45, true));
 
+      mol.deleteBadTriangles(2.0);
+      
       if (!layer_symbols.empty())
       {         
          LMARK;

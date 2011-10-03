@@ -68,7 +68,7 @@ namespace imago
       Vec2d getVertexPos( const Vertex &v1 ) const;
       BondType getBondType( const Edge &e ) const;
       Bond getBondInfo( const Edge &e ) const;
-      void setBondType( Edge &e, BondType t );
+      void setBondType( Edge e, BondType t );
 
       void reverseEdge( const Edge &e );
 
@@ -103,6 +103,7 @@ namespace imago
       void _findMultiple();
    public:
       bool _dissolveShortEdges (double coeff,const bool has2nb = false);
+      void deleteBadTriangles( double eps );
    private:
       bool _dissolveIntermediateVertices ();
       double _avgEdgeLendth (const Vertex &v, int &nnei);

@@ -13,6 +13,7 @@
  ***************************************************************************/
 
 #include <cmath>
+#include <set>
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/iteration_macros.hpp"
 #include "boost/foreach.hpp"
@@ -1117,10 +1118,101 @@ void Skeleton::modifyGraph()
        ImageDrawUtils::putGraph(img, _g);
        ImageUtils::saveImageToFile(img, "output/ggg7.png");
    }
+   
+   BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
+   {
+      const Vertex &beg = boost::source(edge, _g);
+      const Vertex &end = boost::target(edge, _g);
+      Vec2d beg_pos = boost::get(boost::vertex_pos, _g, beg);
+      const Vec2d &end_pos = boost::get(boost::vertex_pos, _g, end);
+      printf("(%lf, %lf) - (%lf, %lf) | %lf\n", beg_pos.x, beg_pos.y, end_pos.x, end_pos.y, boost::get(boost::edge_type, _g, edge).length);
+   }
 
 }
 
-void Skeleton::setBondType( Edge &e, BondType t )
+void Skeleton::deleteBadTriangles( double eps )
+{
+   std::set<Edge> edges_to_delete;
+   std::set<Vertex> vertices_to_delete;
+   
+   BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
+   {
+      if (edges_to_delete.find(edge) != edges_to_delete.end())
+         continue;
+      
+      Vertex beg = boost::source(edge, _g);
+      Vertex end = boost::target(edge, _g);
+
+      boost::graph_traits<SkeletonGraph>::adjacency_iterator b1, e1, b2, e2;
+      std::set<Vertex> intrsect, beg_neigh, end_neigh;
+      boost::tie(b1, e1) = boost::adjacent_vertices(beg, _g);
+      boost::tie(b2, e2) = boost::adjacent_vertices(end, _g);
+      beg_neigh.insert(b1, e1);
+      end_neigh.insert(b2, e2);
+      std::set_intersection(beg_neigh.begin(), beg_neigh.end(), end_neigh.begin(), end_neigh.end(), std::inserter(intrsect, intrsect.begin()));
+      
+      BOOST_FOREACH(Vertex v, intrsect)
+      {
+         if (v == beg || v == end || vertices_to_delete.find(v) != vertices_to_delete.end())
+            continue;
+         
+         double l_b, l_e, l_be;
+         //add asserts
+         l_b = boost::get(boost::edge_type, _g, boost::edge(v, beg, _g).first).length;
+         l_e = boost::get(boost::edge_type, _g, boost::edge(v, end, _g).first).length;         
+         l_be = boost::get(boost::edge_type, _g, edge).length;
+         if (fabs(l_b - (l_e + l_be)) < eps) //v - b
+         {
+            if (boost::degree(end, _g) == 2)
+            {
+               edges_to_delete.insert(edge);
+               edges_to_delete.insert(boost::edge(v, end, _g).first);
+               vertices_to_delete.insert(end);
+               setBondType(boost::edge(v, beg, _g).first, SINGLE_UP);
+            }
+            else
+               edges_to_delete.insert(boost::edge(v, beg, _g).first);
+            //v - e
+            //edge
+         }
+         else if (fabs(l_e - (l_b + l_be)) < eps) //v - e
+         {
+            //v - b
+            //edge
+            if (boost::degree(beg, _g) == 2)
+            {
+               edges_to_delete.insert(edge);
+               edges_to_delete.insert(boost::edge(v, beg, _g).first);
+               vertices_to_delete.insert(beg);
+               setBondType(boost::edge(v, end, _g).first, SINGLE_UP);      
+            }
+            else
+               edges_to_delete.insert(boost::edge(v, end, _g).first);
+         }
+         else if (fabs(l_be - (l_b + l_e)) < eps) //edge
+         {
+            //v - e
+            //v - b
+            if (boost::degree(v, _g) == 2)
+            {
+               edges_to_delete.insert(boost::edge(v, end, _g).first);
+               edges_to_delete.insert(boost::edge(v, beg, _g).first);
+               vertices_to_delete.insert(v);
+               setBondType(edge, SINGLE_UP);               
+            }
+            else
+               edges_to_delete.insert(edge);
+         }
+      }
+   }
+
+   BOOST_FOREACH(Edge edge, edges_to_delete)
+      boost::remove_edge(edge, _g);
+   BOOST_FOREACH(Vertex v, vertices_to_delete)
+      boost::remove_vertex(v, _g);
+}
+
+void Skeleton::setBondType( Edge e, BondType t )
 {
    Bond b = boost::get(boost::edge_type, _g, e);
 
