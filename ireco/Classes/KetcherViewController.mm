@@ -11,7 +11,7 @@
 
 @implementation KetcherViewController
 
-@synthesize webView, activityView, molfile, prevImage, recognizer, recognizerThread;
+@synthesize webView, activityView, findInReaxysButton, molfile, prevImage, recognizer, recognizerThread;
 
 #pragma mark -
 #pragma mark KetcherViewController
@@ -120,6 +120,11 @@
     } else {
         [webView loadHTMLString:@"<html><head></head><body>An error occured.</body></html>" baseURL:nil];
     }
+}
+
+- (NSString *)saveSmilesFromKetcher
+{
+   return [self.webView stringByEvaluatingJavaScriptFromString:@"ketcher.getSmiles();"];
 }
 
 - (void)webViewDidFinishLoad:(UIWebView *)webView

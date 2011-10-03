@@ -2,7 +2,7 @@
 
 @implementation MainViewController
 
-@synthesize imageView, toolbar, overlayViewController, ketcherViewController, capturedImage, recognizeButton;
+@synthesize imageView, toolbar, overlayViewController, ketcherViewController, reaxysViewController, capturedImage, recognizeButton, findInReaxysButton;
 
 
 #pragma mark -
@@ -21,6 +21,9 @@
     self.ketcherViewController = ketcher;
     [ketcher release];
 
+    ReaxysViewController *reaxys = [[ReaxysViewController alloc] initWithNibName:@"ReaxysViewController" bundle:nil];
+    self.reaxysViewController = reaxys;
+
     self.capturedImage = nil;
 
     if (![UIImagePickerController isSourceTypeAvailable:UIImagePickerControllerSourceTypeCamera])
@@ -31,6 +34,13 @@
         [toolbarItems removeObjectAtIndex:2];
         [self.toolbar setItems:toolbarItems animated:NO];
     } 
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+   self.reaxysViewController.smiles = [self.ketcherViewController saveSmilesFromKetcher];
+   
+   self.findInReaxysButton.enabled = (self.reaxysViewController.smiles != nil && self.reaxysViewController.smiles != @"");
 }
 
 - (void)viewDidUnload
@@ -207,6 +217,17 @@
    [self.navigationController pushViewController:ketcherViewController animated:YES]; 
    
    [self.ketcherViewController setupKetcher: [imageView image]];
+}
+
+- (void)findInReaxysAction:(id)sender
+{
+   NSString *smiles = [self.ketcherViewController saveSmilesFromKetcher];
+   
+   if (smiles != nil && smiles != @"") {
+      self.reaxysViewController.smiles = smiles;
+
+      [self.navigationController pushViewController:reaxysViewController animated:YES];
+   }
 }
    
 #pragma mark -

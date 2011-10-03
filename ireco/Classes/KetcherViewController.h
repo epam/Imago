@@ -25,6 +25,9 @@
 
 @property (nonatomic, retain) IBOutlet UIWebView *webView;
 @property (nonatomic, retain) IBOutlet UIActivityIndicatorView *activityView;
+
+@property (nonatomic, retain) IBOutlet UIBarButtonItem *findInReaxysButton;
+
 @property (nonatomic, retain) NSString *molfile;
 @property (nonatomic, retain) UIImage *prevImage;
 @property (nonatomic, retain) Recognizer *recognizer;
@@ -32,6 +35,7 @@
 
 - (void)setupKetcher:(UIImage *)image;
 - (void)loadMolfileToKetcher;
+- (NSString *)saveSmilesFromKetcher;
 - (void)recognizerThreadProc;
 - (void)recognizingProc:(UIImage *)image;
 
