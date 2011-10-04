@@ -8,10 +8,11 @@
 
 #import "indigo.h"
 #import "KetcherViewController.h"
+#import "MagnifierView.h"
 
 @implementation KetcherViewController
 
-@synthesize webView, activityView, molfile, prevImage, recognizer, recognizerThread;
+@synthesize webView, activityView, molfile, prevImage, recognizer, recognizerThread, touchTimer;
 
 #pragma mark -
 #pragma mark KetcherViewController
@@ -20,6 +21,10 @@
 {
    if (self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])
    {
+       // just create one loop and re-use it.
+       loupe = [[MagnifierView alloc] init];
+       loupe.viewToMagnify = self.view;
+
       self.recognizerThread = [[[NSThread alloc] initWithTarget:self selector:@selector(recognizerThreadProc) object:nil] autorelease];
       [self.recognizerThread start];
    }
@@ -55,6 +60,9 @@
    
    if (self.molfile != nil)
       [self.molfile release];
+    
+    [loupe release];
+    loupe = nil;
 
    [super dealloc];
 }
@@ -168,9 +176,54 @@
             
             return NO;
         }
+
+        if ([cmd isEqualToString:@"loupe"] && urlParamsArray.count > 1)
+        {
+            NSString *show = [[[[urlParamsArray objectAtIndex:1] componentsSeparatedByString:@"="] objectAtIndex:1] lowercaseString];
+            
+            if ([show isEqualToString:@"true"])
+            {
+                [self.view.superview addSubview:loupe];
+            } else
+            {
+                [loupe removeFromSuperview];
+            }
+            
+            return NO;
+        }
     }
         
     return YES; 
+}
+
+- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
+    NSLog(@"touchstart");
+    if (touches.count != 1)
+        return;
+	self.touchTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
+                                                       target:self
+                                                     selector:@selector(showLoupe)
+                                                     userInfo:nil
+                                                      repeats:NO];
+	UITouch *touch = [touches anyObject];
+	loupe.touchPoint = [touch locationInView:self.view];
+	[loupe setNeedsDisplay];
+}
+- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
+	UITouch *touch = [touches anyObject];
+	loupe.touchPoint = [touch locationInView:self.view];
+	[loupe setNeedsDisplay];
+}
+- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
+    if (touches.count != 0)
+        return;
+	[self.touchTimer invalidate];
+	self.touchTimer = nil;
+	[loupe removeFromSuperview];
+}
+- (void)showLoupe
+{
+    [self.view.superview addSubview:loupe];
 }
 
 // called when the parent application receives a memory warning

@@ -77,6 +77,7 @@
 		A748631E141A6360006AB1E6 /* vec2.js in Resources */ = {isa = PBXBuildFile; fileRef = A7484A1F141A6358006AB1E6 /* vec2.js */; };
 		A75C26A712AD496900EBBC45 /* ireco.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A512AD496900EBBC45 /* ireco.png */; };
 		A75C26A812AD496900EBBC45 /* irecohd.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A612AD496900EBBC45 /* irecohd.png */; };
+		A7838F411430966C00DBB6CE /* MagnifierView.m in Sources */ = {isa = PBXBuildFile; fileRef = A7838F401430966C00DBB6CE /* MagnifierView.m */; };
 		A79D4C0212AE849000A3C3DA /* Recognizer.mm in Sources */ = {isa = PBXBuildFile; fileRef = A79D4C0112AE849000A3C3DA /* Recognizer.mm */; };
 		A7A68494134C987600841AFC /* Entitlements.plist in Resources */ = {isa = PBXBuildFile; fileRef = A7A68493134C987600841AFC /* Entitlements.plist */; };
 		A7D5CBA512ADB83D00C60C51 /* KetcherViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA012ADB7E900C60C51 /* KetcherViewController.xib */; };
@@ -204,6 +205,8 @@
 		A7484A1F141A6358006AB1E6 /* vec2.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = vec2.js; sourceTree = "<group>"; };
 		A75C26A512AD496900EBBC45 /* ireco.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ireco.png; sourceTree = "<group>"; };
 		A75C26A612AD496900EBBC45 /* irecohd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = irecohd.png; sourceTree = "<group>"; };
+		A7838F3F1430966C00DBB6CE /* MagnifierView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MagnifierView.h; sourceTree = "<group>"; };
+		A7838F401430966C00DBB6CE /* MagnifierView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MagnifierView.m; sourceTree = "<group>"; };
 		A7988AA21343ADB800D37855 /* imago.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; name = imago.xcodeproj; path = ../imago_gen/imago.xcodeproj; sourceTree = "<group>"; };
 		A79D4C0012AE849000A3C3DA /* Recognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Recognizer.h; sourceTree = "<group>"; };
 		A79D4C0112AE849000A3C3DA /* Recognizer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Recognizer.mm; sourceTree = "<group>"; };
@@ -254,6 +257,8 @@
 		080E96DDFE201D6D7F000001 /* Classes */ = {
 			isa = PBXGroup;
 			children = (
+				A7838F3F1430966C00DBB6CE /* MagnifierView.h */,
+				A7838F401430966C00DBB6CE /* MagnifierView.m */,
 				A732666E12AD20B3001F7D75 /* MainViewController.h */,
 				A732666F12AD20B3001F7D75 /* MainViewController.mm */,
 				A7E234961281B61400C7CDC4 /* OverlayViewController.h */,
@@ -653,6 +658,7 @@
 				A732667012AD20B3001F7D75 /* MainViewController.mm in Sources */,
 				A7D5CBB312ADBF1100C60C51 /* KetcherViewController.mm in Sources */,
 				A79D4C0212AE849000A3C3DA /* Recognizer.mm in Sources */,
+				A7838F411430966C00DBB6CE /* MagnifierView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
