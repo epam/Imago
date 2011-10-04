@@ -11,11 +11,15 @@
 #import "chemical_structure_recognizer.h"
 #import "Recognizer.h"
 #import "MagnifierView.h"
+#import "ReaxysViewController.h"
 
 @interface KetcherViewController : UIViewController <UINavigationControllerDelegate, UIWebViewDelegate>
 {
+   ReaxysViewController *reaxysViewController;
+    
    UIWebView *webView;
    UIActivityIndicatorView *activityView;
+   UINavigationItem *navigationItem;
 @private
    NSString *molfile;
    UIImage *prevImage;
@@ -26,10 +30,11 @@
    NSTimer *touchTimer;
 }    
 
+@property (nonatomic, retain) ReaxysViewController *reaxysViewController;
+
 @property (nonatomic, retain) IBOutlet UIWebView *webView;
 @property (nonatomic, retain) IBOutlet UIActivityIndicatorView *activityView;
-
-@property (nonatomic, retain) IBOutlet UIBarButtonItem *findInReaxysButton;
+@property (nonatomic, retain) IBOutlet UINavigationItem *navigationItem;
 
 @property (nonatomic, retain) NSString *molfile;
 @property (nonatomic, retain) UIImage *prevImage;
@@ -37,6 +42,7 @@
 @property (nonatomic, retain) NSThread *recognizerThread;
 @property (nonatomic, retain) NSTimer *touchTimer;
 
+- (IBAction)findInReaxys:(id)sender;
 - (void)setupKetcher:(UIImage *)image;
 - (void)loadMolfileToKetcher;
 - (NSString *)saveSmilesFromKetcher;

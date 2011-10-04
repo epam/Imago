@@ -12,7 +12,7 @@
 
 @implementation KetcherViewController
 
-@synthesize webView, activityView, findInReaxysButton, molfile, prevImage, recognizer, recognizerThread, touchTimer;
+@synthesize webView, activityView, molfile, prevImage, recognizer, recognizerThread, touchTimer, navigationItem, reaxysViewController;
 
 #pragma mark -
 #pragma mark KetcherViewController
@@ -22,8 +22,8 @@
    if (self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])
    {
        // just create one loop and re-use it.
-       loupe = [[MagnifierView alloc] init];
-       loupe.viewToMagnify = self.view;
+       //loupe = [[MagnifierView alloc] init];
+       //loupe.viewToMagnify = self.view;
 
       self.recognizerThread = [[[NSThread alloc] initWithTarget:self selector:@selector(recognizerThreadProc) object:nil] autorelease];
       [self.recognizerThread start];
@@ -33,10 +33,22 @@
 
 - (void)viewDidLoad
 {
+   ReaxysViewController *reaxys = [[ReaxysViewController alloc] initWithNibName:@"ReaxysViewController" bundle:nil];
+   self.reaxysViewController = reaxys;
+   [reaxys release];
+    
+
    NSError *error = nil;
    NSString *html = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ketcher" ofType:@"html"] encoding:NSUTF8StringEncoding error:&error];
    [webView loadHTMLString:html baseURL:[NSURL fileURLWithPath: [[NSBundle mainBundle] bundlePath]]];
    [html release];
+}
+
+- (void)viewWillAppear:(BOOL)animated
+{
+    self.reaxysViewController.smiles = [self saveSmilesFromKetcher];
+    
+    self.navigationItem.rightBarButtonItem.enabled = (self.reaxysViewController.smiles != nil && self.reaxysViewController.smiles != @"");
 }
 
 - (void)viewDidUnload
@@ -199,6 +211,17 @@
     }
         
     return YES; 
+}
+
+- (IBAction)findInReaxys:(id)sender
+{
+    NSString *smiles = [self saveSmilesFromKetcher];
+    
+    if (smiles != nil && smiles != @"") {
+        self.reaxysViewController.smiles = smiles;
+        
+        [self.navigationController pushViewController:self.reaxysViewController animated:YES];
+    }
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
