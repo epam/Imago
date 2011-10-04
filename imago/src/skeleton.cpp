@@ -336,12 +336,9 @@ bool Skeleton::_isParallel( const Edge &first, const Edge &second ) const
 bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 {
    std::vector<Edge> toProcess;
-   boost::graph_traits<SkeletonGraph>::edge_iterator ei, ei_e;
-   boost::tie(ei, ei_e) = boost::edges(_g);
 
-   for (; ei != ei_e; ++ei)
+   BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
    {
-      const Edge &edge = *ei;
       const Vertex &beg = boost::source(edge, _g);
       const Vertex &end = boost::target(edge, _g);
 
@@ -462,7 +459,8 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 								   ret = true;
 							   }
 						   }
-					  return ret;
+					  if(ret)
+						  return ret;
 				  }
 
 				  if(( max_edge_beg < _avg_bond_length * coeff) &&
@@ -484,7 +482,8 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 								   ret = true;
 							   }
 						   }
-					  return ret;
+					  if(ret)
+						  return ret;
 				  }
 			  }
 			  if(edge_len < _avg_bond_length * (coeff))
