@@ -17,7 +17,7 @@
 		895D167113BBBC7600789128 /* irecopad.png in Resources */ = {isa = PBXBuildFile; fileRef = 895D167013BBBC7600789128 /* irecopad.png */; };
 		A704F75C1271BED80006F5C5 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A704F75B1271BED80006F5C5 /* libz.dylib */; };
 		A71E321D13462DF3006D4D50 /* libpng_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6728F13461AA40030A6E1 /* libpng_local.a */; };
-		A71E321E13462DF3006D4D50 /* libjpeg_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6729113461AA40030A6E1 /* libjpeg_local.a */; };
+		A71E321E13462DF3006D4D50 /* libjpeg_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6729113461AA40030A6E1 /* libjpeg_local.a */; settings = {ATTRIBUTES = (Required, ); }; };
 		A7226D1613FAA58D004E59D9 /* libgraph.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1013FAA58D004E59D9 /* libgraph.a */; };
 		A7226D1713FAA58D004E59D9 /* libindigo.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1113FAA58D004E59D9 /* libindigo.a */; };
 		A7226D1813FAA58D004E59D9 /* liblayout.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1213FAA58D004E59D9 /* liblayout.a */; };
@@ -87,6 +87,8 @@
 		A7D672A813461F8B0030A6E1 /* libopencv_core.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D672A713461F8B0030A6E1 /* libopencv_core.a */; };
 		A7D672AA134620020030A6E1 /* libopencv_imgproc.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D672A9134620020030A6E1 /* libopencv_imgproc.a */; };
 		A7D672AC1346227C0030A6E1 /* libopencv_lapack.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D672AB1346227C0030A6E1 /* libopencv_lapack.a */; };
+		A7D97DE31439B0EC00696495 /* ReaxysViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7D97DE11439B0EC00696495 /* ReaxysViewController.m */; };
+		A7D97DE41439B0EC00696495 /* ReaxysViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D97DE21439B0EC00696495 /* ReaxysViewController.xib */; };
 		A7D9A9CC1343B6A0004B0AF0 /* libimago_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7988AA91343ADB800D37855 /* libimago_static.a */; };
 		A7DB91D312804B8E00B51670 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7DB91D212804B8E00B51670 /* AudioToolbox.framework */; };
 		A7E234981281B61400C7CDC4 /* OverlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7E234971281B61400C7CDC4 /* OverlayViewController.m */; };
@@ -105,8 +107,15 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7FF303DDDE307FF303DDDE30;
+			remoteGlobalIDString = 7F7F6B5DDC607F7F6B5DDC60;
 			remoteInfo = imago_static;
+		};
+		A7A8103D142CF3BE00222FFD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
+			proxyType = 1;
+			remoteGlobalIDString = 7F7F6B50C1507F7F6B50C150;
+			remoteInfo = png_local;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -126,7 +135,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7FF303D4F4007FF303D4F400;
+			remoteGlobalIDString = 7F7F6B54F2307F7F6B54F230;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -219,6 +228,9 @@
 		A7D672A713461F8B0030A6E1 /* libopencv_core.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopencv_core.a; path = "../opencv/iphone/release-universal/libopencv_core.a"; sourceTree = "<group>"; };
 		A7D672A9134620020030A6E1 /* libopencv_imgproc.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopencv_imgproc.a; path = "../opencv/iphone/release-universal/libopencv_imgproc.a"; sourceTree = "<group>"; };
 		A7D672AB1346227C0030A6E1 /* libopencv_lapack.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libopencv_lapack.a; path = "../opencv/iphone/release-universal/libopencv_lapack.a"; sourceTree = "<group>"; };
+		A7D97DE01439B0EB00696495 /* ReaxysViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReaxysViewController.h; path = ../ReaxysViewController.h; sourceTree = "<group>"; };
+		A7D97DE11439B0EC00696495 /* ReaxysViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ReaxysViewController.m; path = ../ReaxysViewController.m; sourceTree = "<group>"; };
+		A7D97DE21439B0EC00696495 /* ReaxysViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ReaxysViewController.xib; sourceTree = "<group>"; };
 		A7DB91D212804B8E00B51670 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		A7E234961281B61400C7CDC4 /* OverlayViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OverlayViewController.h; sourceTree = "<group>"; };
 		A7E234971281B61400C7CDC4 /* OverlayViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OverlayViewController.m; sourceTree = "<group>"; };
@@ -259,6 +271,8 @@
 			children = (
 				A7838F3F1430966C00DBB6CE /* MagnifierView.h */,
 				A7838F401430966C00DBB6CE /* MagnifierView.m */,
+				A7D97DE01439B0EB00696495 /* ReaxysViewController.h */,
+				A7D97DE11439B0EC00696495 /* ReaxysViewController.m */,
 				A732666E12AD20B3001F7D75 /* MainViewController.h */,
 				A732666F12AD20B3001F7D75 /* MainViewController.mm */,
 				A7E234961281B61400C7CDC4 /* OverlayViewController.h */,
@@ -328,6 +342,7 @@
 				A75C26A612AD496900EBBC45 /* irecohd.png */,
 				8D1107310486CEB800E47090 /* imago_iphone-Info.plist */,
 				A7D5CBA012ADB7E900C60C51 /* KetcherViewController.xib */,
+				A7D97DE21439B0EC00696495 /* ReaxysViewController.xib */,
 			);
 			name = Resources;
 			sourceTree = "<group>";
@@ -512,6 +527,7 @@
 			buildRules = (
 			);
 			dependencies = (
+				A7A8103E142CF3BE00222FFD /* PBXTargetDependency */,
 				A7D672B4134625E90030A6E1 /* PBXTargetDependency */,
 				A7988AAC1343ADCF00D37855 /* PBXTargetDependency */,
 			);
@@ -642,6 +658,7 @@
 				A748631C141A6360006AB1E6 /* pool.js in Resources */,
 				A748631D141A6360006AB1E6 /* set.js in Resources */,
 				A748631E141A6360006AB1E6 /* vec2.js in Resources */,
+				A7D97DE41439B0EC00696495 /* ReaxysViewController.xib in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -659,6 +676,7 @@
 				A7D5CBB312ADBF1100C60C51 /* KetcherViewController.mm in Sources */,
 				A79D4C0212AE849000A3C3DA /* Recognizer.mm in Sources */,
 				A7838F411430966C00DBB6CE /* MagnifierView.m in Sources */,
+				A7D97DE31439B0EC00696495 /* ReaxysViewController.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -669,6 +687,11 @@
 			isa = PBXTargetDependency;
 			name = imago_static;
 			targetProxy = A7988AAB1343ADCF00D37855 /* PBXContainerItemProxy */;
+		};
+		A7A8103E142CF3BE00222FFD /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			name = png_local;
+			targetProxy = A7A8103D142CF3BE00222FFD /* PBXContainerItemProxy */;
 		};
 		A7D672B4134625E90030A6E1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
@@ -720,8 +743,7 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_ENTITLEMENTS = Entitlements.plist;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
 				COPY_PHASE_STRIP = YES;
 				GCC_FAST_MATH = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -745,10 +767,9 @@
 					"\"$(SRCROOT)/../opencv/iphone/release-universal\"",
 					"\"$(SRCROOT)/../third_party/indigo/ios\"",
 				);
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = BeerMat;
 				PROVISIONING_PROFILE = "";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = NO;

@@ -228,8 +228,13 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          TIME(GraphExtractor::extract(gd, layer_graphics, mol),
             "Extracting molecular graph");
       }
+
       TIME(wbe.singleUpFetch(mol), "Fetching single-up bonds");
 
+      while (mol._dissolveShortEdges(0.45, true));
+
+      mol.deleteBadTriangles(2.0);
+      
       if (!layer_symbols.empty())
       {         
          LMARK;
