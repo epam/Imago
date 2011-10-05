@@ -15,6 +15,7 @@
 		89504A4F13C73A05005B17C2 /* ff.font in Resources */ = {isa = PBXBuildFile; fileRef = 89504A4E13C73A05005B17C2 /* ff.font */; };
 		895D166F13BB95D700789128 /* MainWindow-iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 895D166E13BB95D700789128 /* MainWindow-iPad.xib */; };
 		895D167113BBBC7600789128 /* irecopad.png in Resources */ = {isa = PBXBuildFile; fileRef = 895D167013BBBC7600789128 /* irecopad.png */; };
+		A70049F1143CB63200E40CBA /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A70049F0143CB63200E40CBA /* MessageUI.framework */; };
 		A704F75C1271BED80006F5C5 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A704F75B1271BED80006F5C5 /* libz.dylib */; };
 		A71E321D13462DF3006D4D50 /* libpng_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6728F13461AA40030A6E1 /* libpng_local.a */; };
 		A71E321E13462DF3006D4D50 /* libjpeg_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6729113461AA40030A6E1 /* libjpeg_local.a */; settings = {ATTRIBUTES = (Required, ); }; };
@@ -90,7 +91,6 @@
 		A7D97DE31439B0EC00696495 /* ReaxysViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7D97DE11439B0EC00696495 /* ReaxysViewController.m */; };
 		A7D97DE41439B0EC00696495 /* ReaxysViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D97DE21439B0EC00696495 /* ReaxysViewController.xib */; };
 		A7D9A9CC1343B6A0004B0AF0 /* libimago_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7988AA91343ADB800D37855 /* libimago_static.a */; };
-		A7DB91D312804B8E00B51670 /* AudioToolbox.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A7DB91D212804B8E00B51670 /* AudioToolbox.framework */; };
 		A7E234981281B61400C7CDC4 /* OverlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7E234971281B61400C7CDC4 /* OverlayViewController.m */; };
 		A7E60C6C126E15F600BA2EFD /* libstdc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E60C6B126E15F600BA2EFD /* libstdc++.dylib */; };
 /* End PBXBuildFile section */
@@ -107,14 +107,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7F7F6B5DDC607F7F6B5DDC60;
+			remoteGlobalIDString = 7FF303DDDE307FF303DDDE30;
 			remoteInfo = imago_static;
 		};
 		A7A8103D142CF3BE00222FFD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7F7F6B50C1507F7F6B50C150;
+			remoteGlobalIDString = 7FF303D0C3207FF303D0C320;
 			remoteInfo = png_local;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -135,7 +135,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7F7F6B54F2307F7F6B54F230;
+			remoteGlobalIDString = 7FF303D4F4007FF303D4F400;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -153,6 +153,7 @@
 		895D166E13BB95D700789128 /* MainWindow-iPad.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = "MainWindow-iPad.xib"; path = "iPad/MainWindow-iPad.xib"; sourceTree = "<group>"; };
 		895D167013BBBC7600789128 /* irecopad.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = irecopad.png; sourceTree = "<group>"; };
 		8D1107310486CEB800E47090 /* imago_iphone-Info.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = "imago_iphone-Info.plist"; plistStructureDefinitionIdentifier = "com.apple.xcode.plist.structure-definition.iphone.info-plist"; sourceTree = "<group>"; };
+		A70049F0143CB63200E40CBA /* MessageUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = MessageUI.framework; path = System/Library/Frameworks/MessageUI.framework; sourceTree = SDKROOT; };
 		A704F75B1271BED80006F5C5 /* libz.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = libz.dylib; path = usr/lib/libz.dylib; sourceTree = SDKROOT; };
 		A7226D1013FAA58D004E59D9 /* libgraph.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libgraph.a; path = ../third_party/indigo/ios/libgraph.a; sourceTree = "<group>"; };
 		A7226D1113FAA58D004E59D9 /* libindigo.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libindigo.a; path = ../third_party/indigo/ios/libindigo.a; sourceTree = "<group>"; };
@@ -231,7 +232,6 @@
 		A7D97DE01439B0EB00696495 /* ReaxysViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; name = ReaxysViewController.h; path = ../ReaxysViewController.h; sourceTree = "<group>"; };
 		A7D97DE11439B0EC00696495 /* ReaxysViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; name = ReaxysViewController.m; path = ../ReaxysViewController.m; sourceTree = "<group>"; };
 		A7D97DE21439B0EC00696495 /* ReaxysViewController.xib */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = file.xib; path = ReaxysViewController.xib; sourceTree = "<group>"; };
-		A7DB91D212804B8E00B51670 /* AudioToolbox.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = AudioToolbox.framework; path = System/Library/Frameworks/AudioToolbox.framework; sourceTree = SDKROOT; };
 		A7E234961281B61400C7CDC4 /* OverlayViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OverlayViewController.h; sourceTree = "<group>"; };
 		A7E234971281B61400C7CDC4 /* OverlayViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OverlayViewController.m; sourceTree = "<group>"; };
 		A7E60C6B126E15F600BA2EFD /* libstdc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libstdc++.dylib"; path = "usr/lib/gcc/arm-apple-darwin10/4.2.1/libstdc++.dylib"; sourceTree = SDKROOT; };
@@ -242,6 +242,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A70049F1143CB63200E40CBA /* MessageUI.framework in Frameworks */,
 				A7226D1613FAA58D004E59D9 /* libgraph.a in Frameworks */,
 				A7226D1713FAA58D004E59D9 /* libindigo.a in Frameworks */,
 				A7226D1813FAA58D004E59D9 /* liblayout.a in Frameworks */,
@@ -259,7 +260,6 @@
 				2892E4100DC94CBA00A64D0F /* CoreGraphics.framework in Frameworks */,
 				A7E60C6C126E15F600BA2EFD /* libstdc++.dylib in Frameworks */,
 				A704F75C1271BED80006F5C5 /* libz.dylib in Frameworks */,
-				A7DB91D312804B8E00B51670 /* AudioToolbox.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -316,7 +316,6 @@
 				19C28FACFE9D520D11CA2CBB /* Products */,
 				A7E60C6B126E15F600BA2EFD /* libstdc++.dylib */,
 				A704F75B1271BED80006F5C5 /* libz.dylib */,
-				A7DB91D212804B8E00B51670 /* AudioToolbox.framework */,
 			);
 			name = CustomTemplate;
 			sourceTree = "<group>";
@@ -350,6 +349,7 @@
 		29B97323FDCFA39411CA2CEA /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				A70049F0143CB63200E40CBA /* MessageUI.framework */,
 				1DF5F4DF0D08C38300B7A737 /* UIKit.framework */,
 				1D30AB110D05D00D00671497 /* Foundation.framework */,
 				2892E40F0DC94CBA00A64D0F /* CoreGraphics.framework */,
@@ -744,6 +744,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_ENTITLEMENTS = Entitlements.plist;
 				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				COPY_PHASE_STRIP = YES;
 				GCC_FAST_MATH = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -767,9 +768,10 @@
 					"\"$(SRCROOT)/../opencv/iphone/release-universal\"",
 					"\"$(SRCROOT)/../third_party/indigo/ios\"",
 				);
-				ONLY_ACTIVE_ARCH = YES;
+				ONLY_ACTIVE_ARCH = NO;
 				PRODUCT_NAME = BeerMat;
 				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
 				VALIDATE_PRODUCT = NO;
@@ -803,8 +805,8 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_ENTITLEMENTS = Entitlements.plist;
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_VERSION = "";
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;

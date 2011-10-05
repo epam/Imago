@@ -12,7 +12,7 @@
 
 @implementation KetcherViewController
 
-@synthesize webView, activityView, molfile, prevImage, recognizer, recognizerThread, touchTimer, navigationItem, reaxysViewController;
+@synthesize webView, activityView, molfile, prevImage, recognizer, recognizerThread, touchTimer, navigationItem, reaxysViewController, mailComposerController;
 
 #pragma mark -
 #pragma mark KetcherViewController
@@ -60,6 +60,9 @@
    
    [webView release];
    [activityView release];
+    
+   [mailComposerController release];
+   [reaxysViewController release];
    
    keepAlive = NO;
    
@@ -194,6 +197,34 @@
             return NO;
         }
 
+        if ([cmd isEqualToString:@"mail"] && urlParamsArray.count > 1)
+        {
+            NSString *moldata = [[[[urlParamsArray objectAtIndex:1] componentsSeparatedByString:@"="] objectAtIndex:1] stringByReplacingPercentEscapesUsingEncoding:NSASCIIStringEncoding];
+            
+            MFMailComposeViewController *mailController = [[MFMailComposeViewController alloc] init];
+            self.mailComposerController = mailController;
+            [mailController release];
+            
+            if ([MFMailComposeViewController canSendMail])
+            {
+                self.mailComposerController.mailComposeDelegate = self;
+                
+                NSRange range = [moldata rangeOfString:@"\n"];
+                
+                if (range.location == NSNotFound)
+                {
+                    [self.mailComposerController setMessageBody:moldata isHTML:NO];
+                } else
+                {
+                    [self.mailComposerController addAttachmentData:[moldata dataUsingEncoding:[NSString defaultCStringEncoding]] mimeType:@"text/plain" fileName:@"beermat.mol"];
+                }
+                
+                [self presentModalViewController:self.mailComposerController animated:YES];
+            }
+            
+            return NO;
+        }
+        
         if ([cmd isEqualToString:@"loupe"] && urlParamsArray.count > 1)
         {
             NSString *show = [[[[urlParamsArray objectAtIndex:1] componentsSeparatedByString:@"="] objectAtIndex:1] lowercaseString];
@@ -222,6 +253,11 @@
         
         [self.navigationController pushViewController:self.reaxysViewController animated:YES];
     }
+}
+
+- (void)mailComposeController:(MFMailComposeViewController*)controller didFinishWithResult:(MFMailComposeResult)result error:(NSError*)error
+{
+    [self dismissModalViewControllerAnimated:YES];
 }
 
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
