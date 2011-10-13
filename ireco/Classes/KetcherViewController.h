@@ -13,8 +13,9 @@
 #import "Recognizer.h"
 #import "MagnifierView.h"
 #import "ReaxysViewController.h"
+#import "MainWindow.h"
 
-@interface KetcherViewController : UIViewController <UINavigationControllerDelegate, UIWebViewDelegate, MFMailComposeViewControllerDelegate>
+@interface KetcherViewController : UIViewController <UINavigationControllerDelegate, UIWebViewDelegate, MFMailComposeViewControllerDelegate, TapDetectingWindowDelegate>
 {
    ReaxysViewController *reaxysViewController;
    MFMailComposeViewController *mailComposerController;
@@ -30,6 +31,7 @@
    BOOL keepAlive;
    MagnifierView *loupe;
    NSTimer *touchTimer;
+   UITouch *lastTouch;
 }    
 
 @property (nonatomic, retain) ReaxysViewController *reaxysViewController;
@@ -44,6 +46,7 @@
 @property (nonatomic, retain) Recognizer *recognizer;
 @property (nonatomic, retain) NSThread *recognizerThread;
 @property (nonatomic, retain) NSTimer *touchTimer;
+@property (nonatomic, retain) UITouch *lastTouch;
 
 - (IBAction)findInReaxys:(id)sender;
 - (void)setupKetcher:(UIImage *)image;

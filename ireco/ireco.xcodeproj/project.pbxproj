@@ -76,6 +76,7 @@
 		A748631C141A6360006AB1E6 /* pool.js in Resources */ = {isa = PBXBuildFile; fileRef = A7484A1D141A6358006AB1E6 /* pool.js */; };
 		A748631D141A6360006AB1E6 /* set.js in Resources */ = {isa = PBXBuildFile; fileRef = A7484A1E141A6358006AB1E6 /* set.js */; };
 		A748631E141A6360006AB1E6 /* vec2.js in Resources */ = {isa = PBXBuildFile; fileRef = A7484A1F141A6358006AB1E6 /* vec2.js */; };
+		A754623F1447187700B1A4B9 /* MainWindow.m in Sources */ = {isa = PBXBuildFile; fileRef = A754623E1447187700B1A4B9 /* MainWindow.m */; };
 		A75C26A712AD496900EBBC45 /* ireco.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A512AD496900EBBC45 /* ireco.png */; };
 		A75C26A812AD496900EBBC45 /* irecohd.png in Resources */ = {isa = PBXBuildFile; fileRef = A75C26A612AD496900EBBC45 /* irecohd.png */; };
 		A7838F411430966C00DBB6CE /* MagnifierView.m in Sources */ = {isa = PBXBuildFile; fileRef = A7838F401430966C00DBB6CE /* MagnifierView.m */; };
@@ -213,6 +214,8 @@
 		A7484A1D141A6358006AB1E6 /* pool.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = pool.js; sourceTree = "<group>"; };
 		A7484A1E141A6358006AB1E6 /* set.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = set.js; sourceTree = "<group>"; };
 		A7484A1F141A6358006AB1E6 /* vec2.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = vec2.js; sourceTree = "<group>"; };
+		A754623D1447187700B1A4B9 /* MainWindow.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainWindow.h; sourceTree = "<group>"; };
+		A754623E1447187700B1A4B9 /* MainWindow.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = MainWindow.m; sourceTree = "<group>"; };
 		A75C26A512AD496900EBBC45 /* ireco.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = ireco.png; sourceTree = "<group>"; };
 		A75C26A612AD496900EBBC45 /* irecohd.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = irecohd.png; sourceTree = "<group>"; };
 		A7838F3F1430966C00DBB6CE /* MagnifierView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MagnifierView.h; sourceTree = "<group>"; };
@@ -283,6 +286,8 @@
 				A7D5CBB212ADBF1100C60C51 /* KetcherViewController.mm */,
 				A79D4C0012AE849000A3C3DA /* Recognizer.h */,
 				A79D4C0112AE849000A3C3DA /* Recognizer.mm */,
+				A754623D1447187700B1A4B9 /* MainWindow.h */,
+				A754623E1447187700B1A4B9 /* MainWindow.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -677,6 +682,7 @@
 				A79D4C0212AE849000A3C3DA /* Recognizer.mm in Sources */,
 				A7838F411430966C00DBB6CE /* MagnifierView.m in Sources */,
 				A7D97DE31439B0EC00696495 /* ReaxysViewController.m in Sources */,
+				A754623F1447187700B1A4B9 /* MainWindow.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
