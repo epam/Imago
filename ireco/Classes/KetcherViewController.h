@@ -7,15 +7,17 @@
 //
 
 #import <UIKit/UIKit.h>
+#import <MessageUI/MessageUI.h>
 
 #import "chemical_structure_recognizer.h"
 #import "Recognizer.h"
 #import "MagnifierView.h"
 #import "ReaxysViewController.h"
 
-@interface KetcherViewController : UIViewController <UINavigationControllerDelegate, UIWebViewDelegate>
+@interface KetcherViewController : UIViewController <UINavigationControllerDelegate, UIWebViewDelegate, MFMailComposeViewControllerDelegate>
 {
    ReaxysViewController *reaxysViewController;
+   MFMailComposeViewController *mailComposerController;
     
    UIWebView *webView;
    UIActivityIndicatorView *activityView;
@@ -31,6 +33,7 @@
 }    
 
 @property (nonatomic, retain) ReaxysViewController *reaxysViewController;
+@property (nonatomic, retain) MFMailComposeViewController *mailComposerController;
 
 @property (nonatomic, retain) IBOutlet UIWebView *webView;
 @property (nonatomic, retain) IBOutlet UIActivityIndicatorView *activityView;
