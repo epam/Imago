@@ -12,7 +12,7 @@
 
 @implementation KetcherViewController
 
-@synthesize webView, activityView, molfile, prevImage, recognizer, recognizerThread, touchTimer, navigationItem, reaxysViewController, mailComposerController;
+@synthesize webView, activityView, molfile, prevImage, recognizer, recognizerThread, touchTimer, navigationItem, reaxysViewController, mailComposerController, lastTouch;
 
 #pragma mark -
 #pragma mark KetcherViewController
@@ -22,8 +22,8 @@
    if (self = [super initWithNibName:nibNameOrNil bundle:nibBundleOrNil])
    {
        // just create one loop and re-use it.
-       //loupe = [[MagnifierView alloc] init];
-       //loupe.viewToMagnify = self.view;
+       loupe = [[MagnifierView alloc] init];
+       loupe.viewToMagnify = self.view;
 
       self.recognizerThread = [[[NSThread alloc] initWithTarget:self selector:@selector(recognizerThreadProc) object:nil] autorelease];
       [self.recognizerThread start];
@@ -37,7 +37,8 @@
    self.reaxysViewController = reaxys;
    [reaxys release];
     
-
+    [(MainWindow *)[[[UIApplication sharedApplication] delegate] window] startObserveView:self.webView andDelegate:self];
+    
    NSError *error = nil;
    NSString *html = [[NSString alloc] initWithContentsOfFile:[[NSBundle mainBundle] pathForResource:@"ketcher" ofType:@"html"] encoding:NSUTF8StringEncoding error:&error];
    [webView loadHTMLString:html baseURL:[NSURL fileURLWithPath: [[NSBundle mainBundle] bundlePath]]];
@@ -78,6 +79,8 @@
     
     [loupe release];
     loupe = nil;
+    
+    [lastTouch release];
 
    [super dealloc];
 }
@@ -231,7 +234,13 @@
             
             if ([show isEqualToString:@"true"])
             {
-                [self.view.superview addSubview:loupe];
+                self.touchTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
+                                                                   target:self
+                                                                 selector:@selector(showLoupe)
+                                                                 userInfo:nil
+                                                                  repeats:NO];
+                loupe.touchPoint = [self.lastTouch locationInView:self.view];
+                [loupe setNeedsDisplay];
             } else
             {
                 [loupe removeFromSuperview];
@@ -260,27 +269,14 @@
     [self dismissModalViewControllerAnimated:YES];
 }
 
-- (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event {
-    NSLog(@"touchstart");
-    if (touches.count != 1)
-        return;
-	self.touchTimer = [NSTimer scheduledTimerWithTimeInterval:0.5
-                                                       target:self
-                                                     selector:@selector(showLoupe)
-                                                     userInfo:nil
-                                                      repeats:NO];
-	UITouch *touch = [touches anyObject];
+- (void)userDidTouchStart:(UITouch *)touch {
+    self.lastTouch = touch;
+}
+- (void)userDidTouchMove:(UITouch *)touch {
 	loupe.touchPoint = [touch locationInView:self.view];
 	[loupe setNeedsDisplay];
 }
-- (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event {
-	UITouch *touch = [touches anyObject];
-	loupe.touchPoint = [touch locationInView:self.view];
-	[loupe setNeedsDisplay];
-}
-- (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event {
-    if (touches.count != 0)
-        return;
+- (void)userDidTouchEnd {
 	[self.touchTimer invalidate];
 	self.touchTimer = nil;
 	[loupe removeFromSuperview];
