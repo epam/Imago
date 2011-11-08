@@ -20,7 +20,7 @@ namespace imago
 
       if (!init)
       {
-         abbr_map["NO2"] = "[O-][N+]([*])=O";
+         abbr_map["NO2"] = "O=N([*])=O";
          abbr_map["Ph"] = "*C1=CC=CC";
          abbr_map["COOH"] = "OC(*)=O";
          abbr_map["SiPr"] = "CC(C)S*";
