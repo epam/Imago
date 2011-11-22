@@ -29,7 +29,7 @@ namespace imago
          abbr_map["HOOC"] = "OC(*)=O";
          abbr_map["Ph"] = "*C1=CC=CC=C1";
          abbr_map["CF3"] = "FC(F)(F)*";
-         abbr_map["NO2"] = "[O-][N+](*)=O";
+         abbr_map["NO2"] = "*N(=O)=O"; // This should not be [O-][N+](*)=O
          abbr_map["OiPr"] = "CC(C)O*";
          abbr_map["F3C"] = "FC(F)(F)*";
          abbr_map["ONO"] = "*ON=O";
