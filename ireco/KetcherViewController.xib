@@ -55,7 +55,6 @@
 						<int key="NSvFlags">301</int>
 						<string key="NSFrame">{{150, 220}, {20, 20}}</string>
 						<reference key="NSSuperview" ref="257139103"/>
-						<reference key="NSNextKeyView"/>
 						<bool key="IBUIOpaque">NO</bool>
 						<bool key="IBUIUserInteractionEnabled">NO</bool>
 						<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
@@ -75,10 +74,10 @@
 			<object class="IBUINavigationItem" id="875435080">
 				<string key="IBUITitle">Ketcher</string>
 				<object class="IBUIBarButtonItem" key="IBUIRightBarButtonItem" id="685041267">
+					<string key="IBUITitle">Reaxys</string>
 					<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 					<int key="IBUIStyle">1</int>
 					<reference key="IBUINavigationItem" ref="875435080"/>
-					<int key="IBUISystemItemIdentifier">12</int>
 				</object>
 				<string key="targetRuntimeIdentifier">IBCocoaTouchFramework</string>
 			</object>
@@ -202,7 +201,7 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">21</int>
+			<int key="maxID">22</int>
 		</object>
 		<object class="IBClassDescriber" key="IBDocument.Classes"/>
 		<int key="IBDocument.localizationMode">0</int>

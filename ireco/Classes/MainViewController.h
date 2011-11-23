@@ -4,10 +4,11 @@
 #import "OverlayViewController.h"
 #import "KetcherViewController.h"
 
-@interface MainViewController : UIViewController <UIImagePickerControllerDelegate,
+@interface MainViewController : UIViewController <UIImagePickerControllerDelegate, UIScrollViewDelegate,
                                                 OverlayViewControllerDelegate>
 {
     UIImageView *imageView;
+    UIScrollView *scrollView;
     UIToolbar *toolbar;
     
     OverlayViewController *overlayViewController; // the camera custom overlay view
@@ -20,6 +21,7 @@
 }
 
 @property (nonatomic, retain) IBOutlet UIImageView *imageView;
+@property (nonatomic, retain) IBOutlet UIScrollView *scrollView;
 @property (nonatomic, retain) IBOutlet UIToolbar *toolbar;
 
 @property (nonatomic, retain) OverlayViewController *overlayViewController;
