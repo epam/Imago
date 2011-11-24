@@ -33,6 +33,14 @@
 
 - (void)viewDidLoad
 {
+    UIBarButtonItem *mailButton = [[UIBarButtonItem alloc] initWithBarButtonSystemItem:UIBarButtonSystemItemCompose target:self action:@selector(sendMail:)];
+    NSArray *rightButtons = [[NSArray alloc] initWithObjects: self.navigationItem.rightBarButtonItem, mailButton, nil];
+    
+    [self.navigationItem setRightBarButtonItems:rightButtons];
+    
+    [mailButton release];
+    [rightButtons release];
+    
    ReaxysViewController *reaxys = [[ReaxysViewController alloc] initWithNibName:@"ReaxysViewController" bundle:nil];
    self.reaxysViewController = reaxys;
    [reaxys release];
@@ -153,6 +161,11 @@
    return [self.webView stringByEvaluatingJavaScriptFromString:@"ketcher.getSmiles();"];
 }
 
+- (NSString *)saveMolfileFromKetcher
+{
+    return [self.webView stringByEvaluatingJavaScriptFromString:@"ketcher.getMolfile();"];
+}
+
 - (void)webViewDidFinishLoad:(UIWebView *)webView
 {
 }
@@ -200,34 +213,6 @@
             return NO;
         }
 
-        if ([cmd isEqualToString:@"mail"] && urlParamsArray.count > 1)
-        {
-            NSString *moldata = [[[[urlParamsArray objectAtIndex:1] componentsSeparatedByString:@"="] objectAtIndex:1] stringByReplacingPercentEscapesUsingEncoding:NSASCIIStringEncoding];
-            
-            MFMailComposeViewController *mailController = [[MFMailComposeViewController alloc] init];
-            self.mailComposerController = mailController;
-            [mailController release];
-            
-            if ([MFMailComposeViewController canSendMail])
-            {
-                self.mailComposerController.mailComposeDelegate = self;
-                
-                NSRange range = [moldata rangeOfString:@"\n"];
-                
-                if (range.location == NSNotFound)
-                {
-                    [self.mailComposerController setMessageBody:moldata isHTML:NO];
-                } else
-                {
-                    [self.mailComposerController addAttachmentData:[moldata dataUsingEncoding:[NSString defaultCStringEncoding]] mimeType:@"text/plain" fileName:@"beermat.mol"];
-                }
-                
-                [self presentModalViewController:self.mailComposerController animated:YES];
-            }
-            
-            return NO;
-        }
-        
         if ([cmd isEqualToString:@"loupe"] && urlParamsArray.count > 1)
         {
             NSString *show = [[[[urlParamsArray objectAtIndex:1] componentsSeparatedByString:@"="] objectAtIndex:1] lowercaseString];
@@ -251,6 +236,24 @@
     }
         
     return YES; 
+}
+
+- (IBAction)sendMail:(id)sender
+{
+    NSString *moldata = [self saveMolfileFromKetcher];
+    
+    MFMailComposeViewController *mailController = [[MFMailComposeViewController alloc] init];
+    self.mailComposerController = mailController;
+    [mailController release];
+    
+    if ([MFMailComposeViewController canSendMail])
+    {
+        self.mailComposerController.mailComposeDelegate = self;
+        
+        [self.mailComposerController addAttachmentData:[moldata dataUsingEncoding:[NSString defaultCStringEncoding]] mimeType:@"text/plain" fileName:@"beermat.mol"];
+        
+        [self presentModalViewController:self.mailComposerController animated:YES];
+    }
 }
 
 - (IBAction)findInReaxys:(id)sender
