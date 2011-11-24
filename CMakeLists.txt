@@ -30,6 +30,8 @@ if(NOT WIN32)
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${IMAGO_C_FLAGS}")
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${IMAGO_C_FLAGS}")
 
+  message(${CMAKE_CXX_FLAGS})
+
   find_package(Threads REQUIRED)
   
   if(NOT APPLE)
