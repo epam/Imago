@@ -197,12 +197,18 @@
 {
     UIImage *img = [self imageRotatedByRadians:[imageView image] :-M_PI/2];
     [imageView setImage: img];
+    self.scrollView.zoomScale = 1.0;
+    [self updateScrollView];
+    self.scrollView.contentSize = self.scrollView.frame.size;
 }
 
 - (IBAction)rightAction:(id)sender
 {
     UIImage *img = [self imageRotatedByRadians:[imageView image] :M_PI/2];
     [imageView setImage: img];
+    self.scrollView.zoomScale = 1.0;
+    [self updateScrollView];
+    self.scrollView.contentSize = self.scrollView.frame.size;
 }
 
 
@@ -286,6 +292,7 @@
 
         self.scrollView.zoomScale = 1.0;
         [self updateScrollView];
+        self.scrollView.contentSize = self.scrollView.frame.size;
     }
 }
 

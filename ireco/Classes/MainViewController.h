@@ -33,6 +33,7 @@
 
 -(UIImage*)prepareImage:(UIImage*)anImage;
 -(UIImage*)imageRotatedByRadians:(UIImage*)anImage:(CGFloat)radians;
+-(void)updateScrollView;
 
 // toolbar buttons
 - (IBAction)photoLibraryAction:(id)sender;
