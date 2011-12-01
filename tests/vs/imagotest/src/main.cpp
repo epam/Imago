@@ -209,7 +209,7 @@ void testCombiner()
 // };
 
 // #define LOG123 TestClass().stream()
-
+/*
 void testRecognizer(int num)
 {
    try
@@ -257,7 +257,7 @@ void testRecognizer(int num)
       puts(e.what());
    }
 }
-
+*/
 void testContour()
 {
    try
@@ -442,77 +442,6 @@ void testOCR2( const char *name )
    }
 }
 
-void testRotation(const char *filename = 0)
-{
-   try
-   {
-      qword sid = SessionManager::getInstance().allocSID();
-      SessionManager::getInstance().setSID(sid);
-      
-      Image img;
-
-      /*ImageUtils::loadImageFromFile(img, "/home/winkie/flamingo_test/rotate/rotate1.png");
-      CharacterRecognizer cr(3);
-      
-      SegmentDeque segs;
-      Segmentator::segmentate(img, segs);
-
-      OrientationFinder of(cr);
-      int rot = of.findFromSymbols(segs);
-
-      printf("Orientation %d\n", rot);
-      */
-      const char *f = filename ? filename :
-         //"IMG_0052.JPG";
-         //"../../../data/from_caduff_2/IMG_0022.JPG";
-         "../../../../flamingo_test/iPad2/TS_3_iPad_2_1.JPG";
-         //"../../../ireco/first-delivery-images/photo09.jpg";
-
-      // std::vector<unsigned char> data;
-      // FILE *inf = fopen(f, "rb");
-      // while (!feof(inf))
-      // {
-      //    if (!feof(inf))
-      //       data.push_back(fgetc(inf));
-      // }
-      // fclose(inf);
-      //prefilterFile(data, img, cr);
-
-      getSettings()["DebugSession"] = true;
-      //getSettings()["Filter"] = "blur"; //for 34!
-      ChemicalStructureRecognizer &csr = getRecognizer();
-
-      ImageUtils::loadImageFromFile(img, f);
-      
-      prefilterImage(img, csr.getCharacterRecognizer());
-      Molecule mol;
-
-      csr.image2mol(img, mol);
-
-      //printf("Before: %d %d\n", img.getWidth(), img.getHeight());
-      //img.rotate90(false);
-      //printf("After: %d %d\n", img.getWidth(), img.getHeight());
-      //ImageUtils::saveImageToFile(img, "rot.png");
-
-      //FileOutput fout2("molecule2.mol");
-      //MolfileSaver saver(fout2);
-      //saver.saveMolecule(mol);
-
-
-      std::string molfile = expandSuperatoms(mol);
-
-      FileOutput fout("molecule.mol");
-      fout.writeString(molfile);
-
-      SessionManager::getInstance().releaseSID(sid);
-
-      
-   }
-   catch (std::exception &e)
-   {
-      puts(e.what());
-   }
-}
 void _ImageToMat(const Image &img, cv::Mat mat)
 {
    int w = img.getWidth(), h = img.getHeight();
@@ -732,8 +661,6 @@ void testClassifier()
       delete ts[i].first;
 }
 
-
-
 void testShapeContext( const char *filename )
 {
    qword sid = SessionManager::getInstance().allocSID();
@@ -880,6 +807,48 @@ void testApproximator(char *filename)
    ImageUtils::saveImageToFile(res, "dp.png");
 }
 
+void testRecognition(const char *filename = 0)
+{
+   try
+   {
+      qword sid = SessionManager::getInstance().allocSID();
+      SessionManager::getInstance().setSID(sid);
+      
+      Image img;
+
+      const char *f = filename ? filename :
+         //"IMG_0052.JPG";
+         //"../../../data/from_caduff_2/IMG_0022.JPG";
+         "../../../data/iPad2/TS_3_iPad_2_1.JPG";
+         //"../../../ireco/first-delivery-images/photo09.jpg";
+
+      getSettings()["DebugSession"] = true;
+      //getSettings()["Filter"] = "blur"; //for 34!
+      ChemicalStructureRecognizer &csr = getRecognizer();
+
+      ImageUtils::loadImageFromFile(img, f);
+      
+      prefilterImage(img, csr.getCharacterRecognizer());
+      Molecule mol;
+
+      csr.image2mol(img, mol);
+
+      std::string molfile = expandSuperatoms(mol);
+
+      FileOutput fout("molecule.mol");
+      fout.writeString(molfile);
+
+      SessionManager::getInstance().releaseSID(sid);
+
+      
+   }
+   catch (std::exception &e)
+   {
+      puts(e.what());
+   }
+}
+
+
 int main(int argc, char **argv)
 {
    //graphTest();
@@ -920,7 +889,7 @@ int main(int argc, char **argv)
    //makeFont();
    //testOCR2(argv[1]);
 
-   testRotation(argv[1]);
+   testRecognition(argv[1]);
    //calcDescriptors(argc, argv);
    //makeCVFont();
 
