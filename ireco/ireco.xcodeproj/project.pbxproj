@@ -26,6 +26,7 @@
 		A7226D1A13FAA58D004E59D9 /* libreaction.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1413FAA58D004E59D9 /* libreaction.a */; };
 		A7226D1B13FAA58D004E59D9 /* libtinyxml.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1513FAA58D004E59D9 /* libtinyxml.a */; };
 		A732667012AD20B3001F7D75 /* MainViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = A732666F12AD20B3001F7D75 /* MainViewController.mm */; };
+		A73610F0147E65AB0089C629 /* reaxys.png in Resources */ = {isa = PBXBuildFile; fileRef = A73610EF147E65AB0089C629 /* reaxys.png */; };
 		A7484A20141A635B006AB1E6 /* base64.js in Resources */ = {isa = PBXBuildFile; fileRef = A748310C141A631C006AB1E6 /* base64.js */; };
 		A7484A21141A635B006AB1E6 /* cis_trans.js in Resources */ = {isa = PBXBuildFile; fileRef = A748310E141A631C006AB1E6 /* cis_trans.js */; };
 		A7484A22141A635B006AB1E6 /* dfs.js in Resources */ = {isa = PBXBuildFile; fileRef = A748310F141A631C006AB1E6 /* dfs.js */; };
@@ -164,6 +165,7 @@
 		A7226D1513FAA58D004E59D9 /* libtinyxml.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtinyxml.a; path = ../third_party/indigo/ios/libtinyxml.a; sourceTree = "<group>"; };
 		A732666E12AD20B3001F7D75 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		A732666F12AD20B3001F7D75 /* MainViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MainViewController.mm; sourceTree = "<group>"; };
+		A73610EF147E65AB0089C629 /* reaxys.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = reaxys.png; sourceTree = "<group>"; };
 		A748310C141A631C006AB1E6 /* base64.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = base64.js; sourceTree = "<group>"; };
 		A748310E141A631C006AB1E6 /* cis_trans.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = cis_trans.js; sourceTree = "<group>"; };
 		A748310F141A631C006AB1E6 /* dfs.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = dfs.js; sourceTree = "<group>"; };
@@ -344,6 +346,7 @@
 				A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */,
 				A75C26A512AD496900EBBC45 /* ireco.png */,
 				A75C26A612AD496900EBBC45 /* irecohd.png */,
+				A73610EF147E65AB0089C629 /* reaxys.png */,
 				8D1107310486CEB800E47090 /* imago_iphone-Info.plist */,
 				A7D5CBA012ADB7E900C60C51 /* KetcherViewController.xib */,
 				A7D97DE21439B0EC00696495 /* ReaxysViewController.xib */,
@@ -664,6 +667,7 @@
 				A748631D141A6360006AB1E6 /* set.js in Resources */,
 				A748631E141A6360006AB1E6 /* vec2.js in Resources */,
 				A7D97DE41439B0EC00696495 /* ReaxysViewController.xib in Resources */,
+				A73610F0147E65AB0089C629 /* reaxys.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -712,7 +716,8 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Boris Karulin (TW63CWLY9S)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Boris Karulin (TW63CWLY9S)";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_FAST_MATH = YES;
@@ -721,7 +726,7 @@
 				GCC_PREFIX_HEADER = imago_iphone_Prefix.pch;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THUMB_SUPPORT = NO;
-				GCC_VERSION = "";
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = (
 					../third_party/indigo,
 					../imago/src,
@@ -738,7 +743,8 @@
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = BeerMat;
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				PROVISIONING_PROFILE = "FBAA1910-F9B2-44C4-BA72-B6FA3DBA96D1";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "FBAA1910-F9B2-44C4-BA72-B6FA3DBA96D1";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -749,8 +755,8 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_ENTITLEMENTS = Entitlements.plist;
-				CODE_SIGN_IDENTITY = "iPhone Distribution";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
+				CODE_SIGN_IDENTITY = "iPhone Developer: Boris Karulin (TW63CWLY9S)";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				GCC_FAST_MATH = YES;
 				GCC_GENERATE_DEBUGGING_SYMBOLS = NO;
@@ -759,7 +765,7 @@
 				GCC_PREFIX_HEADER = imago_iphone_Prefix.pch;
 				GCC_SYMBOLS_PRIVATE_EXTERN = YES;
 				GCC_THUMB_SUPPORT = NO;
-				GCC_VERSION = "";
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				HEADER_SEARCH_PATHS = (
 					../third_party/indigo,
 					../imago/src,
@@ -774,9 +780,9 @@
 					"\"$(SRCROOT)/../opencv/iphone/release-universal\"",
 					"\"$(SRCROOT)/../third_party/indigo/ios\"",
 				);
-				ONLY_ACTIVE_ARCH = NO;
+				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = BeerMat;
-				PROVISIONING_PROFILE = "";
+				PROVISIONING_PROFILE = "FBAA1910-F9B2-44C4-BA72-B6FA3DBA96D1";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";
@@ -790,7 +796,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Boris Karulin (TW63CWLY9S)";
 				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_VERSION = "";
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
@@ -812,9 +818,9 @@
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_ENTITLEMENTS = Entitlements.plist;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=*]" = "iPhone Developer: Boris Karulin (TW63CWLY9S)";
 				GCC_C_LANGUAGE_STANDARD = c99;
-				GCC_VERSION = "";
+				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
 				GCC_WARN_UNUSED_VARIABLE = YES;
 				HEADER_SEARCH_PATHS = (
@@ -826,7 +832,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PROVISIONING_PROFILE = "";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
+				"PROVISIONING_PROFILE[sdk=*]" = "FBAA1910-F9B2-44C4-BA72-B6FA3DBA96D1";
 				SDKROOT = iphoneos;
 			};
 			name = Release;

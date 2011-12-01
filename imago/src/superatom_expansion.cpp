@@ -20,11 +20,42 @@ namespace imago
 
       if (!init)
       {
-         abbr_map["NO2"] = "[O-][N+]([*])=O";
-         abbr_map["Ph"] = "*C1=CC=CC";
-         abbr_map["COOH"] = "OC(*)=O";
+         abbr_map["TfO"] = "FC(F)(F)S(=O)(=O)O*";
+         abbr_map["COOEt"] = "CCOC(*)=O";
+         abbr_map["iPrS"] = "CC(C)S*";
+         abbr_map["iPrO"] = "CC(C)O*";
          abbr_map["SiPr"] = "CC(C)S*";
-         abbr_map["SO2H"] = "OS([*])=O\0";
+         abbr_map["EtOOC"] = "CCOC(*)=O";
+         abbr_map["HOOC"] = "OC(*)=O";
+         abbr_map["Ph"] = "*C1=CC=CC=C1";
+         abbr_map["CF3"] = "FC(F)(F)*";
+         abbr_map["NO2"] = "*N(=O)=O"; // This should not be [O-][N+](*)=O
+         abbr_map["OiPr"] = "CC(C)O*";
+         abbr_map["F3C"] = "FC(F)(F)*";
+         abbr_map["ONO"] = "*ON=O";
+         abbr_map["NC"] = "*C#N";
+         abbr_map["OCN"] = "*N=C=O";
+         abbr_map["HO2S"] = "OS(*)=O";
+         abbr_map["H2O3P"] = "OP(O)(*)=O";
+         abbr_map["SO2H"] = "OS(*)=O";
+         abbr_map["ONO2"] = "*ON(=O)=O";
+         abbr_map["CN"] = "*C#N";
+         abbr_map["TMSO"] = "C[Si](C)(C)O*";
+         abbr_map["Si-Pr"] = "CC(C)S*";
+         abbr_map["OTf"] = "FC(F)(F)S(=O)(=O)O*";
+         abbr_map["O2N"] = "[O-][N+](*)=O";
+         abbr_map["PO3H2"] = "OP(O)(*)=O";
+         abbr_map["i-PrS"] = "CC(C)S*";
+         abbr_map["COOH"] = "OC(*)=O";
+         abbr_map["OTMS"] = "C[Si](C)(C)O*";
+         abbr_map["COOMe"] = "COC(*)=O";
+         abbr_map["O2NO"] = "*ON(=O)=O";
+         abbr_map["OBz"] = "*OC(=O)C1=CC=CC=C1";
+         abbr_map["HO3S"] = "OS(*)(=O)=O";
+         abbr_map["NCO"] = "*N=C=O";
+         abbr_map["BzO"] = "*OC(=O)C1=CC=CC=C1";
+         abbr_map["MeOOC"] = "COC(*)=O";
+         abbr_map["SO3H"] = "OS(*)(=O)=O\0";		
          init = true;
       }
 

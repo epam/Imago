@@ -2,7 +2,7 @@
 
 @implementation MainViewController
 
-@synthesize imageView, toolbar, overlayViewController, ketcherViewController, capturedImage, recognizeButton;
+@synthesize imageView, scrollView, toolbar, overlayViewController, ketcherViewController, capturedImage, recognizeButton;
 
 
 #pragma mark -
@@ -20,6 +20,9 @@
     KetcherViewController *ketcher = [[KetcherViewController alloc] initWithNibName:@"KetcherViewController" bundle:nil];
     self.ketcherViewController = ketcher;
     [ketcher release];
+
+    self.scrollView.maximumZoomScale = 4.0;
+    self.scrollView.minimumZoomScale = 1.0;
 
     self.capturedImage = nil;
 
@@ -194,12 +197,18 @@
 {
     UIImage *img = [self imageRotatedByRadians:[imageView image] :-M_PI/2];
     [imageView setImage: img];
+    self.scrollView.zoomScale = 1.0;
+    [self updateScrollView];
+    self.scrollView.contentSize = self.scrollView.frame.size;
 }
 
 - (IBAction)rightAction:(id)sender
 {
     UIImage *img = [self imageRotatedByRadians:[imageView image] :M_PI/2];
     [imageView setImage: img];
+    self.scrollView.zoomScale = 1.0;
+    [self updateScrollView];
+    self.scrollView.contentSize = self.scrollView.frame.size;
 }
 
 
@@ -209,8 +218,48 @@
 - (void)recognizeAction:(id)sender
 {
    [self.navigationController pushViewController:ketcherViewController animated:YES]; 
+    
+    UIImage *image = [self.imageView image];
+    
+    if (self.scrollView.zoomScale > 1.0) {
+        NSLog(@"%lf", self.scrollView.zoomScale);
+        CGRect rect = CGRectMake(self.scrollView.contentOffset.x / self.scrollView.contentSize.width * image.size.width,
+                                 self.scrollView.contentOffset.y / self.scrollView.contentSize.height * image.size.height,
+                                 image.size.width / self.scrollView.zoomScale, image.size.height / self.scrollView.zoomScale);
+        
+        NSLog(@"%lf %lf %lf %lf", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
+        CGImageRef imageRef = CGImageCreateWithImageInRect([image CGImage], rect);
+        image = [UIImage imageWithCGImage:imageRef]; 
+        CGImageRelease(imageRef);
+    }
    
-   [self.ketcherViewController setupKetcher: [imageView image]];
+   [self.ketcherViewController setupKetcher: image];
+}
+
+- (UIView *)viewForZoomingInScrollView:(UIScrollView *)scrollView
+{
+    return self.imageView;
+}
+
+- (void)updateScrollView
+{
+    UIImage *img = self.imageView.image;
+    CGSize areaSize = CGSizeMake(self.view.frame.size.width, self.view.frame.size.height - 44);
+    float imgRatio = img.size.width / img.size.height;
+    CGRect frame = self.scrollView.frame;
+    
+    if (areaSize.width / areaSize.height > imgRatio)
+    {
+        frame.size = CGSizeMake(areaSize.height * imgRatio, areaSize.height);
+    } else
+    {
+        frame.size = CGSizeMake(areaSize.width, areaSize.width / imgRatio);
+    }
+    
+    frame.origin.x = (areaSize.width - frame.size.width) / 2;
+    frame.origin.y = (areaSize.height - frame.size.height) / 2;
+    
+    self.scrollView.frame = frame;
 }
 
 #pragma mark -
@@ -240,11 +289,20 @@
     {
         UIImage *img = [self prepareImage:capturedImage];
         [self.imageView setImage:img];
+
+        self.scrollView.zoomScale = 1.0;
+        [self updateScrollView];
+        self.scrollView.contentSize = self.scrollView.frame.size;
     }
 }
 
 - (BOOL)shouldAutorotateToInterfaceOrientation:(UIInterfaceOrientation)interfaceOrientation {
    return YES;
+}
+
+- (void)didRotateFromInterfaceOrientation:(UIInterfaceOrientation)fromInterfaceOrientation {
+    if (self.capturedImage)
+        [self updateScrollView];
 }
 
 @end

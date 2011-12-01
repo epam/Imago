@@ -73,7 +73,7 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
    /*Q*/   "",
    /*R*/   "bhuena",
    /*S*/   "iecbnrg",
-   /*T*/   "ilaechmb",
+   /*T*/   "filaechmb",
    /*U*/   "",
    /*V*/   "",
    /*W*/   "",
