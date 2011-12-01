@@ -90,9 +90,20 @@ else(NOT WIN32)
 
   if(${CMAKE_SIZEOF_VOID_P} EQUAL 4) 
     set(OpenCV_LIBS_DIR ${CMAKE_SOURCE_DIR}/opencv/x86/lib)
+    set(INDIGO_LIBS_DIR ${CMAKE_SOURCE_DIR}/third_party/indigo/win32/)
   else(${CMAKE_SIZEOF_VOID_P} EQUAL 4)
     set(OpenCV_LIBS_DIR ${CMAKE_SOURCE_DIR}/opencv/x64/lib)    
+    set(INDIGO_LIBS_DIR ${CMAKE_SOURCE_DIR}/third_party/indigo/win64/)
   endif(${CMAKE_SIZEOF_VOID_P} EQUAL 4)
+
+  set(INDIGO_LIBS 
+      ${INDIGO_LIBS_DIR}/indigo.lib
+      ${INDIGO_LIBS_DIR}/reaction.lib
+      ${INDIGO_LIBS_DIR}/layout.lib
+      ${INDIGO_LIBS_DIR}/molecule.lib
+      ${INDIGO_LIBS_DIR}/graph.lib  
+      ${INDIGO_LIBS_DIR}/tinyxml.lib      
+     )
 
   set(OpenCV_LIBS optimized ${OpenCV_LIBS_DIR}/opencv_core220.lib
                   debug    ${OpenCV_LIBS_DIR}/opencv_core220d.lib
