@@ -1124,7 +1124,9 @@ void Skeleton::modifyGraph()
       const Vertex &end = boost::target(edge, _g);
       Vec2d beg_pos = boost::get(boost::vertex_pos, _g, beg);
       const Vec2d &end_pos = boost::get(boost::vertex_pos, _g, end);
+#ifdef DEBUG
       printf("(%lf, %lf) - (%lf, %lf) | %lf\n", beg_pos.x, beg_pos.y, end_pos.x, end_pos.y, boost::get(boost::edge_type, _g, edge).length);
+#endif
    }
 
 }
