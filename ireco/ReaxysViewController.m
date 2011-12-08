@@ -56,8 +56,7 @@
 
    if (self.smiles != nil && self.smiles != @"") {
       NSString *urlString = @"https://www.reaxys.com/reaxys/secured/hopinto.do?context=S";
-      urlString = [urlString stringByAppendingString:[[@"&query=SMILES%3D'" stringByAppendingString:self.smiles] stringByAppendingString:@"'"]];
-      urlString = [urlString stringByAppendingString:@"&qname=2-Hydroxymethylen-dihydrotestololactones"];
+      urlString = [urlString stringByAppendingString:[[@"&query=SMILES%3D'" stringByAppendingString: [self.smiles stringByAddingPercentEscapesUsingEncoding:NSASCIIStringEncoding]] stringByAppendingString:@"'"]];
       urlString = [urlString stringByAppendingString:@"&ln="];
       [webView loadRequest:[NSURLRequest requestWithURL:[NSURL URLWithString:urlString]]];
    }
