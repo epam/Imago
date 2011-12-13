@@ -97,11 +97,22 @@
     printf("Orientation:  %d\n",  anImage.imageOrientation);
     if (anImage.imageOrientation == 0)
         return anImage;
-    else /* if (anImage.imageOrientation == 3 || anImage.imageOrientation == 1) */ {
-        UIImage* sourceImage = anImage; 
-        
-        CGFloat targetWidth = anImage.size.height;
-        CGFloat targetHeight = anImage.size.width;
+    else 
+    {
+       UIImage* sourceImage = anImage; 
+       CGFloat targetWidth, targetHeight;  
+       
+       if (anImage.imageOrientation == 1)
+       {
+          targetWidth = anImage.size.width;
+          targetHeight = anImage.size.height;
+       }
+       else
+       {
+          targetWidth = anImage.size.height;
+          targetHeight = anImage.size.width;
+       }
+          
         
         CGImageRef imageRef = [sourceImage CGImage];
         CGBitmapInfo bitmapInfo = CGImageGetBitmapInfo(imageRef);
@@ -124,10 +135,6 @@
         
         return newImage; 
     }
-//    else {
-//        printf("Orientation:  %d",  anImage.imageOrientation);
-//        return anImage;
-//    }
 }
 
 /*
