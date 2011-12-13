@@ -94,9 +94,10 @@
 
 -(UIImage*)prepareImage:(UIImage*)anImage
 {
+    printf("Orientation:  %d\n",  anImage.imageOrientation);
     if (anImage.imageOrientation == 0)
         return anImage;
-    else if (anImage.imageOrientation == 3) {
+    else /* if (anImage.imageOrientation == 3 || anImage.imageOrientation == 1) */ {
         UIImage* sourceImage = anImage; 
         
         CGFloat targetWidth = anImage.size.height;
@@ -122,10 +123,11 @@
         CGImageRelease(ref);
         
         return newImage; 
-    } else {
-        printf("Orientation != {3, 0}");
-        return anImage;
     }
+//    else {
+//        printf("Orientation:  %d",  anImage.imageOrientation);
+//        return anImage;
+//    }
 }
 
 /*
