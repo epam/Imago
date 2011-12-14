@@ -201,7 +201,7 @@ void LabelCombiner::_locateLabels()
       double length = Vec2d::distance(b_pos, e_pos);
       ++next;
       //TODO: Find an appropriate length!
-      if (length > (_space * 0.5 + _cap_height)) // ||
+      if (length > (_space * 0.5 + 1.25 * _cap_height)) // ||
           //(fabs(k) > _parLinesEps && fabs(fabs(k) - PI) > _parLinesEps &&
           // fabs(k - PI_2) > _parLinesEps &&
           // fabs(fabs(k - PI_2) - PI) > _parLinesEps))
