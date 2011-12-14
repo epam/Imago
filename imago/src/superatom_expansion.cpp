@@ -27,6 +27,7 @@ namespace imago
          abbr_map["SiPr"] = "CC(C)S*";
          abbr_map["EtOOC"] = "CCOC(*)=O";
          abbr_map["HOOC"] = "OC(*)=O";
+         abbr_map["HO2C"] = "OC(*)=O";
          abbr_map["Ph"] = "*C1=CC=CC=C1";
          abbr_map["CF3"] = "FC(F)(F)*";
          abbr_map["NO2"] = "*N(=O)=O"; // This should not be [O-][N+](*)=O
@@ -47,6 +48,7 @@ namespace imago
          abbr_map["PO3H2"] = "OP(O)(*)=O";
          abbr_map["i-PrS"] = "CC(C)S*";
          abbr_map["COOH"] = "OC(*)=O";
+         abbr_map["CO2H"] = "OC(*)=O";
          abbr_map["OTMS"] = "C[Si](C)(C)O*";
          abbr_map["COOMe"] = "COC(*)=O";
          abbr_map["O2NO"] = "*ON(=O)=O";
