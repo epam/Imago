@@ -1,6 +1,7 @@
 #import <UIKit/UIKit.h>
 #import <AudioToolbox/AudioServices.h>
 
+#import "CropView.h"
 #import "OverlayViewController.h"
 #import "KetcherViewController.h"
 
@@ -20,6 +21,7 @@
     UIBarButtonItem *recognizeButton;
 }
 
+@property (nonatomic, retain) IBOutlet CropView *cropView;
 @property (nonatomic, retain) IBOutlet UIImageView *imageView;
 @property (nonatomic, retain) IBOutlet UIScrollView *scrollView;
 @property (nonatomic, retain) IBOutlet UIToolbar *toolbar;
@@ -40,6 +42,7 @@
 - (IBAction)cameraAction:(id)sender;
 - (IBAction)leftAction:(id)sender;
 - (IBAction)rightAction:(id)sender;
+- (IBAction)cropAction:(id)sender;
 // navigation bar
 - (IBAction)recognizeAction:(id)sender;
 
