@@ -94,7 +94,6 @@
 									<int key="NSvFlags">266</int>
 									<string key="NSFrame">{{0, 916}, {768, 44}}</string>
 									<reference key="NSSuperview" ref="324786583"/>
-									<reference key="NSWindow"/>
 									<reference key="NSNextKeyView"/>
 									<bool key="IBUIOpaque">NO</bool>
 									<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
@@ -125,6 +124,12 @@
 											<int key="IBUIStyle">1</int>
 											<reference key="IBUIToolbar" ref="1017248543"/>
 										</object>
+										<object class="IBUIBarButtonItem" id="987455273">
+											<string key="IBUITitle">Crop</string>
+											<string key="targetRuntimeIdentifier">IBIPadFramework</string>
+											<int key="IBUIStyle">1</int>
+											<reference key="IBUIToolbar" ref="1017248543"/>
+										</object>
 										<object class="IBUIBarButtonItem" id="505332479">
 											<string key="targetRuntimeIdentifier">IBIPadFramework</string>
 											<reference key="IBUIToolbar" ref="1017248543"/>
@@ -151,8 +156,7 @@
 											<int key="NSvFlags">274</int>
 											<string key="NSFrameSize">{768, 916}</string>
 											<reference key="NSSuperview" ref="83549843"/>
-											<reference key="NSWindow"/>
-											<reference key="NSNextKeyView" ref="1017248543"/>
+											<reference key="NSNextKeyView" ref="1006875064"/>
 											<object class="NSColor" key="IBUIBackgroundColor" id="537756421">
 												<int key="NSColorSpace">3</int>
 												<bytes key="NSWhite">MAA</bytes>
@@ -165,7 +169,6 @@
 									</array>
 									<string key="NSFrameSize">{768, 916}</string>
 									<reference key="NSSuperview" ref="324786583"/>
-									<reference key="NSWindow"/>
 									<reference key="NSNextKeyView" ref="53986212"/>
 									<string key="NSReuseIdentifierKey">_NS:206</string>
 									<reference key="IBUIBackgroundColor" ref="537756421"/>
@@ -175,10 +178,23 @@
 									<bool key="IBUIShowsHorizontalScrollIndicator">NO</bool>
 									<bool key="IBUIShowsVerticalScrollIndicator">NO</bool>
 								</object>
+								<object class="IBUIView" id="1006875064">
+									<reference key="NSNextResponder" ref="324786583"/>
+									<int key="NSvFlags">-2147483374</int>
+									<string key="NSFrameSize">{768, 916}</string>
+									<reference key="NSSuperview" ref="324786583"/>
+									<reference key="NSNextKeyView" ref="1017248543"/>
+									<string key="NSReuseIdentifierKey">_NS:212</string>
+									<object class="NSColor" key="IBUIBackgroundColor">
+										<int key="NSColorSpace">3</int>
+										<bytes key="NSWhite">MSAwAA</bytes>
+									</object>
+									<bool key="IBUIOpaque">NO</bool>
+									<string key="targetRuntimeIdentifier">IBIPadFramework</string>
+								</object>
 							</array>
 							<string key="NSFrame">{{0, 64}, {768, 960}}</string>
 							<reference key="NSSuperview"/>
-							<reference key="NSWindow"/>
 							<reference key="NSNextKeyView" ref="83549843"/>
 							<reference key="IBUIBackgroundColor" ref="537756421"/>
 							<bool key="IBUIClearsContextBeforeDrawing">NO</bool>
@@ -186,7 +202,6 @@
 							<string key="targetRuntimeIdentifier">IBIPadFramework</string>
 						</object>
 						<object class="IBUINavigationItem" key="IBUINavigationItem" id="141295288">
-							<reference key="IBUINavigationBar"/>
 							<string key="IBUITitle">BeerMat Demo</string>
 							<object class="IBUIBarButtonItem" key="IBUIRightBarButtonItem" id="591971863">
 								<bool key="IBUIEnabled">NO</bool>
@@ -270,6 +285,14 @@
 					<int key="connectionID">151</int>
 				</object>
 				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchOutletConnection" key="connection">
+						<string key="label">cropView</string>
+						<reference key="source" ref="416110686"/>
+						<reference key="destination" ref="1006875064"/>
+					</object>
+					<int key="connectionID">155</int>
+				</object>
+				<object class="IBConnectionRecord">
 					<object class="IBCocoaTouchEventConnection" key="connection">
 						<string key="label">leftAction:</string>
 						<reference key="source" ref="171753267"/>
@@ -316,6 +339,14 @@
 						<reference key="destination" ref="416110686"/>
 					</object>
 					<int key="connectionID">152</int>
+				</object>
+				<object class="IBConnectionRecord">
+					<object class="IBCocoaTouchEventConnection" key="connection">
+						<string key="label">cropAction:</string>
+						<reference key="source" ref="987455273"/>
+						<reference key="destination" ref="416110686"/>
+					</object>
+					<int key="connectionID">157</int>
 				</object>
 			</array>
 			<object class="IBMutableOrderedSet" key="objectRecords">
@@ -379,6 +410,7 @@
 						<array class="NSMutableArray" key="children">
 							<reference ref="1017248543"/>
 							<reference ref="83549843"/>
+							<reference ref="1006875064"/>
 						</array>
 						<reference key="parent" ref="416110686"/>
 					</object>
@@ -399,6 +431,7 @@
 							<reference ref="505332479"/>
 							<reference ref="197624855"/>
 							<reference ref="1022610834"/>
+							<reference ref="987455273"/>
 						</array>
 						<reference key="parent" ref="324786583"/>
 						<string key="objectName">Toolbar</string>
@@ -449,6 +482,16 @@
 						<reference key="object" ref="53986212"/>
 						<reference key="parent" ref="83549843"/>
 					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">153</int>
+						<reference key="object" ref="1006875064"/>
+						<reference key="parent" ref="324786583"/>
+					</object>
+					<object class="IBObjectRecord">
+						<int key="objectID">156</int>
+						<reference key="object" ref="987455273"/>
+						<reference key="parent" ref="1017248543"/>
+					</object>
 				</array>
 			</object>
 			<dictionary class="NSMutableDictionary" key="flattenedProperties">
@@ -460,6 +503,9 @@
 				<string key="142.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="144.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="150.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<string key="153.CustomClassName">CropView</string>
+				<string key="153.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
+				<string key="156.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
 				<string key="2.CustomClassName">MainWindow</string>
 				<dictionary class="NSMutableDictionary" key="2.IBAttributePlaceholdersKey"/>
 				<string key="2.IBPluginDependency">com.apple.InterfaceBuilder.IBCocoaTouchPlugin</string>
@@ -489,103 +535,9 @@
 			<nil key="activeLocalization"/>
 			<dictionary class="NSMutableDictionary" key="localizations"/>
 			<nil key="sourceID"/>
-			<int key="maxID">152</int>
+			<int key="maxID">157</int>
 		</object>
-		<object class="IBClassDescriber" key="IBDocument.Classes">
-			<array class="NSMutableArray" key="referencedPartialClassDescriptions">
-				<object class="IBPartialClassDescription">
-					<string key="className">MainViewController</string>
-					<string key="superclassName">UIViewController</string>
-					<dictionary class="NSMutableDictionary" key="actions">
-						<string key="cameraAction:">id</string>
-						<string key="leftAction:">id</string>
-						<string key="photoLibraryAction:">id</string>
-						<string key="recognizeAction:">id</string>
-						<string key="rightAction:">id</string>
-					</dictionary>
-					<dictionary class="NSMutableDictionary" key="actionInfosByName">
-						<object class="IBActionInfo" key="cameraAction:">
-							<string key="name">cameraAction:</string>
-							<string key="candidateClassName">id</string>
-						</object>
-						<object class="IBActionInfo" key="leftAction:">
-							<string key="name">leftAction:</string>
-							<string key="candidateClassName">id</string>
-						</object>
-						<object class="IBActionInfo" key="photoLibraryAction:">
-							<string key="name">photoLibraryAction:</string>
-							<string key="candidateClassName">id</string>
-						</object>
-						<object class="IBActionInfo" key="recognizeAction:">
-							<string key="name">recognizeAction:</string>
-							<string key="candidateClassName">id</string>
-						</object>
-						<object class="IBActionInfo" key="rightAction:">
-							<string key="name">rightAction:</string>
-							<string key="candidateClassName">id</string>
-						</object>
-					</dictionary>
-					<dictionary class="NSMutableDictionary" key="outlets">
-						<string key="imageView">UIImageView</string>
-						<string key="recognizeButton">UIBarButtonItem</string>
-						<string key="scrollView">UIScrollView</string>
-						<string key="toolbar">UIToolbar</string>
-					</dictionary>
-					<dictionary class="NSMutableDictionary" key="toOneOutletInfosByName">
-						<object class="IBToOneOutletInfo" key="imageView">
-							<string key="name">imageView</string>
-							<string key="candidateClassName">UIImageView</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="recognizeButton">
-							<string key="name">recognizeButton</string>
-							<string key="candidateClassName">UIBarButtonItem</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="scrollView">
-							<string key="name">scrollView</string>
-							<string key="candidateClassName">UIScrollView</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="toolbar">
-							<string key="name">toolbar</string>
-							<string key="candidateClassName">UIToolbar</string>
-						</object>
-					</dictionary>
-					<object class="IBClassDescriptionSource" key="sourceIdentifier">
-						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">./Classes/MainViewController.h</string>
-					</object>
-				</object>
-				<object class="IBPartialClassDescription">
-					<string key="className">MainWindow</string>
-					<string key="superclassName">UIWindow</string>
-					<object class="IBClassDescriptionSource" key="sourceIdentifier">
-						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">./Classes/MainWindow.h</string>
-					</object>
-				</object>
-				<object class="IBPartialClassDescription">
-					<string key="className">imago_iphoneAppDelegate</string>
-					<string key="superclassName">NSObject</string>
-					<dictionary class="NSMutableDictionary" key="outlets">
-						<string key="navigationController">UINavigationController</string>
-						<string key="window">UIWindow</string>
-					</dictionary>
-					<dictionary class="NSMutableDictionary" key="toOneOutletInfosByName">
-						<object class="IBToOneOutletInfo" key="navigationController">
-							<string key="name">navigationController</string>
-							<string key="candidateClassName">UINavigationController</string>
-						</object>
-						<object class="IBToOneOutletInfo" key="window">
-							<string key="name">window</string>
-							<string key="candidateClassName">UIWindow</string>
-						</object>
-					</dictionary>
-					<object class="IBClassDescriptionSource" key="sourceIdentifier">
-						<string key="majorKey">IBProjectSource</string>
-						<string key="minorKey">./Classes/imago_iphoneAppDelegate.h</string>
-					</object>
-				</object>
-			</array>
-		</object>
+		<object class="IBClassDescriber" key="IBDocument.Classes"/>
 		<int key="IBDocument.localizationMode">0</int>
 		<string key="IBDocument.TargetRuntimeIdentifier">IBIPadFramework</string>
 		<bool key="IBDocument.PluginDeclaredDependenciesTrackSystemTargetVersion">YES</bool>

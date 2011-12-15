@@ -95,6 +95,7 @@
 		A7D9A9CC1343B6A0004B0AF0 /* libimago_static.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7988AA91343ADB800D37855 /* libimago_static.a */; };
 		A7E234981281B61400C7CDC4 /* OverlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7E234971281B61400C7CDC4 /* OverlayViewController.m */; };
 		A7E60C6C126E15F600BA2EFD /* libstdc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E60C6B126E15F600BA2EFD /* libstdc++.dylib */; };
+		E45F69091499579F00033996 /* CropView.m in Sources */ = {isa = PBXBuildFile; fileRef = E45F69081499579F00033996 /* CropView.m */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -109,14 +110,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7FF303DDDE307FF303DDDE30;
+			remoteGlobalIDString = 0F852300B2884766B3ED8483;
 			remoteInfo = imago_static;
 		};
 		A7A8103D142CF3BE00222FFD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7FF303D0C3207FF303D0C320;
+			remoteGlobalIDString = 8D0DBB2A5EED4898A292FAD7;
 			remoteInfo = png_local;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -137,7 +138,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7FF303D4F4007FF303D4F400;
+			remoteGlobalIDString = 76776B066C7C45B19EE42586;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -240,6 +241,8 @@
 		A7E234961281B61400C7CDC4 /* OverlayViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = OverlayViewController.h; sourceTree = "<group>"; };
 		A7E234971281B61400C7CDC4 /* OverlayViewController.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = OverlayViewController.m; sourceTree = "<group>"; };
 		A7E60C6B126E15F600BA2EFD /* libstdc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libstdc++.dylib"; path = "usr/lib/gcc/arm-apple-darwin10/4.2.1/libstdc++.dylib"; sourceTree = SDKROOT; };
+		E45F69071499579F00033996 /* CropView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CropView.h; sourceTree = "<group>"; };
+		E45F69081499579F00033996 /* CropView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CropView.m; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -290,6 +293,8 @@
 				A79D4C0112AE849000A3C3DA /* Recognizer.mm */,
 				A754623D1447187700B1A4B9 /* MainWindow.h */,
 				A754623E1447187700B1A4B9 /* MainWindow.m */,
+				E45F69071499579F00033996 /* CropView.h */,
+				E45F69081499579F00033996 /* CropView.m */,
 			);
 			path = Classes;
 			sourceTree = "<group>";
@@ -687,6 +692,7 @@
 				A7838F411430966C00DBB6CE /* MagnifierView.m in Sources */,
 				A7D97DE31439B0EC00696495 /* ReaxysViewController.m in Sources */,
 				A754623F1447187700B1A4B9 /* MainWindow.m in Sources */,
+				E45F69091499579F00033996 /* CropView.m in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -716,8 +722,8 @@
 			buildSettings = {
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CODE_SIGN_IDENTITY = "iPhone Developer: Boris Karulin (TW63CWLY9S)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Boris Karulin (TW63CWLY9S)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = NO;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_FAST_MATH = YES;
@@ -743,8 +749,8 @@
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = BeerMat;
-				PROVISIONING_PROFILE = "FBAA1910-F9B2-44C4-BA72-B6FA3DBA96D1";
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "FBAA1910-F9B2-44C4-BA72-B6FA3DBA96D1";
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
@@ -755,7 +761,8 @@
 				ALWAYS_SEARCH_USER_PATHS = NO;
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_ENTITLEMENTS = Entitlements.plist;
-				CODE_SIGN_IDENTITY = "iPhone Developer: Boris Karulin (TW63CWLY9S)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=*]" = "iPhone Developer";
 				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				COPY_PHASE_STRIP = YES;
 				GCC_FAST_MATH = YES;
@@ -782,7 +789,8 @@
 				);
 				ONLY_ACTIVE_ARCH = YES;
 				PRODUCT_NAME = BeerMat;
-				PROVISIONING_PROFILE = "FBAA1910-F9B2-44C4-BA72-B6FA3DBA96D1";
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=*]" = "";
 				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 				TARGETED_DEVICE_FAMILY = "1,2";

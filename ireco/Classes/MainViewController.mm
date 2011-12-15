@@ -2,7 +2,7 @@
 
 @implementation MainViewController
 
-@synthesize imageView, scrollView, toolbar, overlayViewController, ketcherViewController, capturedImage, recognizeButton;
+@synthesize imageView, scrollView, toolbar, overlayViewController, ketcherViewController, capturedImage, recognizeButton, cropView;
 
 
 #pragma mark -
@@ -220,6 +220,11 @@
     self.scrollView.contentSize = self.scrollView.frame.size;
 }
 
+- (IBAction)cropAction:(id)sender
+{
+    if (self.capturedImage != nil)
+        cropView.hidden = !cropView.hidden;
+}
 
 #pragma mark -
 #pragma mark Navigation Bar Actions
@@ -229,13 +234,30 @@
    [self.navigationController pushViewController:ketcherViewController animated:YES]; 
     
     UIImage *image = [self.imageView image];
+    CGRect rect = CGRectZero;
+    
+    rect.size = [image size]; 
     
     if (self.scrollView.zoomScale > 1.0) {
         NSLog(@"%lf", self.scrollView.zoomScale);
-        CGRect rect = CGRectMake(self.scrollView.contentOffset.x / self.scrollView.contentSize.width * image.size.width,
-                                 self.scrollView.contentOffset.y / self.scrollView.contentSize.height * image.size.height,
-                                 image.size.width / self.scrollView.zoomScale, image.size.height / self.scrollView.zoomScale);
+        rect = CGRectMake(self.scrollView.contentOffset.x / self.scrollView.contentSize.width * image.size.width,
+                          self.scrollView.contentOffset.y / self.scrollView.contentSize.height * image.size.height,
+                          image.size.width / self.scrollView.zoomScale, image.size.height / self.scrollView.zoomScale);
+    }
+    
+    if (!self.cropView.isHidden)
+    {
+        CGRect cropFrame = [cropView frame];
+        CGRect scrollBounds = scrollView.bounds;
         
+        rect.origin.x += rect.size.width * (cropFrame.origin.x / scrollBounds.size.width); 
+        rect.origin.y += rect.size.height * (cropFrame.origin.y / scrollBounds.size.height);
+        rect.size.width *= cropFrame.size.width / scrollBounds.size.width;
+        rect.size.height *= cropFrame.size.height / scrollBounds.size.height;
+    }
+
+    if (self.scrollView.zoomScale > 1.0 || !self.cropView.isHidden)
+    {
         NSLog(@"%lf %lf %lf %lf", rect.origin.x, rect.origin.y, rect.size.width, rect.size.height);
         CGImageRef imageRef = CGImageCreateWithImageInRect([image CGImage], rect);
         image = [UIImage imageWithCGImage:imageRef]; 
@@ -269,6 +291,7 @@
     frame.origin.y = (areaSize.height - frame.size.height) / 2;
     
     self.scrollView.frame = frame;
+    [self.cropView setInitialFrame: frame];
 }
 
 #pragma mark -
