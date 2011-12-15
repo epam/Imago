@@ -98,6 +98,8 @@
 		A7E234981281B61400C7CDC4 /* OverlayViewController.m in Sources */ = {isa = PBXBuildFile; fileRef = A7E234971281B61400C7CDC4 /* OverlayViewController.m */; };
 		A7E60C6C126E15F600BA2EFD /* libstdc++.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A7E60C6B126E15F600BA2EFD /* libstdc++.dylib */; };
 		E45F69091499579F00033996 /* CropView.m in Sources */ = {isa = PBXBuildFile; fileRef = E45F69081499579F00033996 /* CropView.m */; };
+		E4C393F4149AADDE000BFA30 /* lasso.png in Resources */ = {isa = PBXBuildFile; fileRef = E4C393F2149AADDE000BFA30 /* lasso.png */; };
+		E4C393F5149AADDE000BFA30 /* rectangle.png in Resources */ = {isa = PBXBuildFile; fileRef = E4C393F3149AADDE000BFA30 /* rectangle.png */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -112,14 +114,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7FC6AB5DDEF07FC6AB5DDEF0;
+			remoteGlobalIDString = 0F852300B2884766B3ED8483;
 			remoteInfo = imago_static;
 		};
 		A7A8103D142CF3BE00222FFD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7FC6AB50C3E07FC6AB50C3E0;
+			remoteGlobalIDString = 8D0DBB2A5EED4898A292FAD7;
 			remoteInfo = png_local;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -140,7 +142,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 7FC6AB54F4C07FC6AB54F4C0;
+			remoteGlobalIDString = 76776B066C7C45B19EE42586;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -229,8 +231,8 @@
 		A79D4C0012AE849000A3C3DA /* Recognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Recognizer.h; sourceTree = "<group>"; };
 		A79D4C0112AE849000A3C3DA /* Recognizer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Recognizer.mm; sourceTree = "<group>"; };
 		A7A68493134C987600841AFC /* Entitlements.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
-		A7A84856149A549F00B17806 /* rgroup_table.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = rgroup_table.js; path = Ketcher/rnd/rgroup_table.js; sourceTree = "<group>"; };
-		A7A84858149A554C00B17806 /* editor.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = editor.js; path = Ketcher/rnd/editor.js; sourceTree = "<group>"; };
+		A7A84856149A549F00B17806 /* rgroup_table.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = rgroup_table.js; sourceTree = "<group>"; };
+		A7A84858149A554C00B17806 /* editor.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = editor.js; sourceTree = "<group>"; };
 		A7D5CBA012ADB7E900C60C51 /* KetcherViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = KetcherViewController.xib; sourceTree = "<group>"; };
 		A7D5CBA612ADB8B500C60C51 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = OverlayViewController.xib; sourceTree = "<group>"; };
@@ -247,6 +249,8 @@
 		A7E60C6B126E15F600BA2EFD /* libstdc++.dylib */ = {isa = PBXFileReference; lastKnownFileType = "compiled.mach-o.dylib"; name = "libstdc++.dylib"; path = "usr/lib/gcc/arm-apple-darwin10/4.2.1/libstdc++.dylib"; sourceTree = SDKROOT; };
 		E45F69071499579F00033996 /* CropView.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = CropView.h; sourceTree = "<group>"; };
 		E45F69081499579F00033996 /* CropView.m */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.objc; path = CropView.m; sourceTree = "<group>"; };
+		E4C393F2149AADDE000BFA30 /* lasso.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = lasso.png; sourceTree = "<group>"; };
+		E4C393F3149AADDE000BFA30 /* rectangle.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = rectangle.png; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -314,8 +318,6 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
-				A7A84858149A554C00B17806 /* editor.js */,
-				A7A84856149A549F00B17806 /* rgroup_table.js */,
 				A7226D1013FAA58D004E59D9 /* libgraph.a */,
 				A7226D1113FAA58D004E59D9 /* libindigo.a */,
 				A7226D1213FAA58D004E59D9 /* liblayout.a */,
@@ -460,6 +462,8 @@
 		A74849D5141A6358006AB1E6 /* action */ = {
 			isa = PBXGroup;
 			children = (
+				E4C393F2149AADDE000BFA30 /* lasso.png */,
+				E4C393F3149AADDE000BFA30 /* rectangle.png */,
 				A74849D6141A6358006AB1E6 /* arrow.png */,
 				A74849D7141A6358006AB1E6 /* charge_minus.png */,
 				A74849D8141A6358006AB1E6 /* charge_plus.png */,
@@ -483,6 +487,8 @@
 		A7484A10141A6358006AB1E6 /* rnd */ = {
 			isa = PBXGroup;
 			children = (
+				A7A84858149A554C00B17806 /* editor.js */,
+				A7A84856149A549F00B17806 /* rgroup_table.js */,
 				A7484A11141A6358006AB1E6 /* elem_table.js */,
 				A7484A12141A6358006AB1E6 /* events.js */,
 				A7484A13141A6358006AB1E6 /* render.js */,
@@ -681,6 +687,8 @@
 				A748631E141A6360006AB1E6 /* vec2.js in Resources */,
 				A7D97DE41439B0EC00696495 /* ReaxysViewController.xib in Resources */,
 				A73610F0147E65AB0089C629 /* reaxys.png in Resources */,
+				E4C393F4149AADDE000BFA30 /* lasso.png in Resources */,
+				E4C393F5149AADDE000BFA30 /* rectangle.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
