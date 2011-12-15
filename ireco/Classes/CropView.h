@@ -18,8 +18,10 @@ enum CropMove {
 @interface CropView : UIView {
     int cropMove;
     CGRect initialFrame;
+    CGRect currentFrame;
 }
 
 - (void)setInitialFrame:(CGRect)frame;
+- (CGRect)cropRect;
 
 @end

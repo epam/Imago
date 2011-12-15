@@ -224,6 +224,9 @@
 {
     if (self.capturedImage != nil)
         cropView.hidden = !cropView.hidden;
+    
+    if (!cropView.hidden)
+        [cropView setNeedsDisplay];
 }
 
 #pragma mark -
@@ -247,7 +250,7 @@
     
     if (!self.cropView.isHidden)
     {
-        CGRect cropFrame = [cropView frame];
+        CGRect cropFrame = [cropView cropRect];
         CGRect scrollBounds = scrollView.bounds;
         
         rect.origin.x += rect.size.width * (cropFrame.origin.x / scrollBounds.size.width); 
