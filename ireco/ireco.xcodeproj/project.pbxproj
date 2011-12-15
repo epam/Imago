@@ -83,6 +83,8 @@
 		A7838F411430966C00DBB6CE /* MagnifierView.m in Sources */ = {isa = PBXBuildFile; fileRef = A7838F401430966C00DBB6CE /* MagnifierView.m */; };
 		A79D4C0212AE849000A3C3DA /* Recognizer.mm in Sources */ = {isa = PBXBuildFile; fileRef = A79D4C0112AE849000A3C3DA /* Recognizer.mm */; };
 		A7A68494134C987600841AFC /* Entitlements.plist in Resources */ = {isa = PBXBuildFile; fileRef = A7A68493134C987600841AFC /* Entitlements.plist */; };
+		A7A84857149A549F00B17806 /* rgroup_table.js in Resources */ = {isa = PBXBuildFile; fileRef = A7A84856149A549F00B17806 /* rgroup_table.js */; };
+		A7A84859149A554C00B17806 /* editor.js in Resources */ = {isa = PBXBuildFile; fileRef = A7A84858149A554C00B17806 /* editor.js */; };
 		A7D5CBA512ADB83D00C60C51 /* KetcherViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA012ADB7E900C60C51 /* KetcherViewController.xib */; };
 		A7D5CBA812ADB8B500C60C51 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA612ADB8B500C60C51 /* MainWindow.xib */; };
 		A7D5CBA912ADB8B500C60C51 /* OverlayViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */; };
@@ -110,14 +112,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 0F852300B2884766B3ED8483;
+			remoteGlobalIDString = 7FC6AB5DDEF07FC6AB5DDEF0;
 			remoteInfo = imago_static;
 		};
 		A7A8103D142CF3BE00222FFD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 8D0DBB2A5EED4898A292FAD7;
+			remoteGlobalIDString = 7FC6AB50C3E07FC6AB50C3E0;
 			remoteInfo = png_local;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -138,7 +140,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 76776B066C7C45B19EE42586;
+			remoteGlobalIDString = 7FC6AB54F4C07FC6AB54F4C0;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -227,6 +229,8 @@
 		A79D4C0012AE849000A3C3DA /* Recognizer.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = Recognizer.h; sourceTree = "<group>"; };
 		A79D4C0112AE849000A3C3DA /* Recognizer.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = Recognizer.mm; sourceTree = "<group>"; };
 		A7A68493134C987600841AFC /* Entitlements.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
+		A7A84856149A549F00B17806 /* rgroup_table.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = rgroup_table.js; path = Ketcher/rnd/rgroup_table.js; sourceTree = "<group>"; };
+		A7A84858149A554C00B17806 /* editor.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; name = editor.js; path = Ketcher/rnd/editor.js; sourceTree = "<group>"; };
 		A7D5CBA012ADB7E900C60C51 /* KetcherViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = KetcherViewController.xib; sourceTree = "<group>"; };
 		A7D5CBA612ADB8B500C60C51 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = OverlayViewController.xib; sourceTree = "<group>"; };
@@ -310,6 +314,8 @@
 		29B97314FDCFA39411CA2CEA /* CustomTemplate */ = {
 			isa = PBXGroup;
 			children = (
+				A7A84858149A554C00B17806 /* editor.js */,
+				A7A84856149A549F00B17806 /* rgroup_table.js */,
 				A7226D1013FAA58D004E59D9 /* libgraph.a */,
 				A7226D1113FAA58D004E59D9 /* libindigo.a */,
 				A7226D1213FAA58D004E59D9 /* liblayout.a */,
@@ -612,6 +618,8 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A7A84859149A554C00B17806 /* editor.js in Resources */,
+				A7A84857149A549F00B17806 /* rgroup_table.js in Resources */,
 				A75C26A712AD496900EBBC45 /* ireco.png in Resources */,
 				A75C26A812AD496900EBBC45 /* irecohd.png in Resources */,
 				A7D5CBA512ADB83D00C60C51 /* KetcherViewController.xib in Resources */,
