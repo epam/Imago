@@ -36,6 +36,7 @@ namespace imago
          abbr_map["ONO"] = "*ON=O";
          abbr_map["NC"] = "*C#N";
          abbr_map["OCN"] = "*N=C=O";
+         abbr_map["OCH3"] = "CO[*]";
          abbr_map["HO2S"] = "OS(*)=O";
          abbr_map["H2O3P"] = "OP(O)(*)=O";
          abbr_map["SO2H"] = "OS(*)=O";
