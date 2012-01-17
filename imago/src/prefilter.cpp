@@ -537,6 +537,297 @@ void _prefilterInternal2( Image &img )
    _copyMatToImage(img, mat);*/
 }
 
+void _wiener2(cv::Mat &mat)
+{
+	cv::Mat dmat;
+	mat.convertTo(dmat, CV_64F, 1.0/255);
+	
+	//calculate local mean
+	cv::Mat localMean;
+	double ones[] = {1, 1, 1, 1, 1,
+					1, 1, 1, 1, 1,
+					1, 1, 1, 1, 1,
+					1, 1, 1, 1, 1,
+					1, 1, 1, 1, 1,};
+	cv::Mat kernel1(5, 5, CV_64F, ones);// = cv::Mat::ones(5, 5, CV_32F);
+	cv::filter2D(dmat, localMean, -1, kernel1);
+	localMean = localMean / kernel1.total();
+
+	imago::Image im2;
+	localMean.convertTo(mat, CV_8U, 255.0);
+_copyMatToImage(im2, mat);
+      ImageUtils::saveImageToFile(im2, "output/pref3_wienerLocalMean.png");
+	//cv::blur(dmat, localMean, cv::Size(3, 3));
+
+	//calculate local variance
+	cv::Mat localVar;
+	cv::pow(dmat, 2.0, localVar);//, localVar);
+	cv::filter2D(localVar, localVar, -1, kernel1);
+	localVar = localVar / kernel1.total();
+
+	
+	//cv::blur(localVar, localVar, cv::Size(5, 5));
+
+	cv::Mat temp;
+	cv::pow(localMean, 2.0, temp);
+	//cv::subtract(localVar, temp, localVar);
+	localVar = localVar - temp;
+im2.clear();
+localVar.convertTo(mat, CV_8U, 255.0);
+_copyMatToImage(im2, mat);
+      ImageUtils::saveImageToFile(im2, "output/pref3_wienerLocalVar.png");
+	//calculate noise
+	cv::Scalar vnoise = cv::mean(localVar);
+	double noise = vnoise[0];
+	
+	/*for(int i=0;i<localVar.cols;i++)
+		for(int j=0;j<localVar.rows;j++)
+		noise += localVar.at<double>(j, i);
+	noise /= (localVar.cols*localVar.rows);*/
+	
+	cv::Mat f;
+	f = dmat - localMean;
+	//g = localVar - noise; 
+	cv::Mat g;
+	g = localVar - noise;
+//g = max(g, 0);
+	g = cv::max(g, 0.0);
+
+//localVar = max(localVar, noise);
+	localVar = max(localVar, noise);
+
+//f = f ./ localVar;
+	cv::divide(f, localVar, f);
+	
+//f = f .* g;
+	cv::multiply(f, g, f);
+//f = f + localMean;
+	//cv::add(f, localMean, f);
+	f = f + localMean;
+	f.convertTo(mat, CV_8U, 255.0);
+}
+
+int greyThresh(cv::Mat mat)
+{
+	int channels[] = {0},
+	   histsize[] = {256};
+   float sranges[] = { 0, 256 };
+   const float* ranges[] = { sranges };
+   cv::Mat hist;
+   cv::calcHist(&mat, 1, channels, cv::Mat(),  hist, 1, histsize, ranges);
+   double cumsum[256]; 
+   double sum = 0;
+
+   cv::Scalar ssum = cv::sum(hist);
+   sum = ssum[0];
+  
+   for(int i=0;i<256;i++)
+   {
+	   float val=hist.at<float>(i);
+	   cumsum[i] = val/sum;
+   }
+   cv::Mat omega(1, 256, CV_64F);
+   double acumsum = 0, acumsum2 = 0;
+   for(int i=0;i<256;i++)
+   {
+	   double value = cumsum[i];
+	   acumsum += value;
+	   acumsum2 += value * (i + 1);
+	   omega.at<double>(i) = acumsum;
+	   cumsum[i] = acumsum2;
+   }
+   double mu_t = cumsum[255];
+
+   //sigma_b_squared = (mu_t * omega - mu).^2 ./ (omega .* (1 - omega));
+
+   cv::Mat sigma_b_squared(1, 256, CV_64F, cumsum);
+   cv::pow((mu_t*omega - sigma_b_squared), 2.0, sigma_b_squared); 
+   cv::multiply(omega, 1-omega, omega);
+   divide(sigma_b_squared, omega, sigma_b_squared);
+   double min, max;
+   cv::Point maxLoc;
+   cv::minMaxLoc(sigma_b_squared, &min, &max, NULL, &maxLoc);
+   double tmax = max + 1;
+   std::vector<int> bins;
+   do{
+	   bins.push_back(maxLoc.x);
+	   sigma_b_squared.at<double>(maxLoc.x) = 0;
+	   cv::minMaxLoc(sigma_b_squared, &min, &tmax, NULL, &maxLoc);
+   }while(tmax < max * 1.01 && tmax > max *0.99);
+
+   std::vector<int>::iterator it;
+   int cnt = 0;
+   for(it = bins.begin();it != bins.end(); it++)
+	   cnt += *it;
+   cnt = cnt / bins.size();
+   return cnt;
+}
+
+
+void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecognizer &_cr)
+{
+	int w = raw.getWidth();
+	int h = raw.getHeight();
+   
+	LPRINT(0, "loaded image %d x %d", w, h);
+
+	cv::Mat mat, rmat;
+	Image img;
+	bool debug_session = getSettings()["DebugSession"];
+
+   
+	int maxside = (w < h) ? h : w;
+	int n = maxside / 800;
+
+	//convert to gray scale
+	_copyImageToMat(raw, mat);
+	img.copy(raw);
+
+   {
+      int avg = raw.mean();
+
+      if (debug_session)
+         fprintf(stderr, "average brightness = %d\n", avg);
+      
+      if (avg < 155)
+      {
+         LPRINT(0, "adding constant gray");
+         byte *data = img.getData();
+         for (int i = 0; i < w * h; i++)
+            data[i] += 155 - avg;
+      }
+   }
+   
+   cv::Mat matred((mat.rows+1)/2, (mat.cols+1)/2, CV_8U);
+   //if(n > 1)
+   {
+   //Pydramid reduce
+	cv::pyrDown(mat, matred);
+   }
+
+   //make edges stronger
+   cv::Mat crmat;
+   cv::blur(matred, crmat, cv::Size(10, 10));
+   cv::subtract(matred, crmat, crmat);
+   cv::add(crmat, matred, matred);
+
+   //build structuring element
+   cv::Mat strel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(46, 46));
+   matred = 255 - matred;
+   //perform tophat transformation
+   cv::morphologyEx(matred, matred, cv::MORPH_TOPHAT, strel);
+   matred = 255 - matred;
+
+
+   imago::Image cimg;
+   if(debug_session)
+   {
+	   _copyMatToImage(cimg, matred);
+	   ImageUtils::saveImageToFile(cimg, "output/pref3_tophat.png");
+   }
+
+   //Compute histogram limits to adjust the image
+   //TODO: put this out from here
+   int channels[] = {0},
+	   histsize[] = {256};
+   float sranges[] = { 0, 256 };
+   const float* ranges[] = { sranges };
+   cv::Mat hist;
+   cv::calcHist(&matred, 1, channels, cv::Mat(),  hist, 1, histsize, ranges);
+   double cumsum[256]; 
+   double sum = 0;
+   for(int i=0;i<256;i++)
+   {
+	   sum+=hist.at<float>(i);
+	   cumsum[i] = sum;
+   }
+   for(int i=0;i<256;i++)
+	   cumsum[i]/=sum;
+   double min = 0, max=1.0;
+   
+   float lowlim=0, highlim=255;
+   for(int i=0;i<256;i++)
+	   if(cumsum[i] > min)
+	   {
+		   lowlim = i;
+		   break;
+	   }
+
+	for(int i=0;i<256;i++)
+		if(cumsum[i] >= max)
+		{
+			highlim = i;
+			break;
+		}
+	lowlim /= 255;
+	highlim /= 255;
+	
+	//image adjust
+	//TODO: put this as a separate class
+	unsigned char lmap[256];
+	for(int i=0;i<256;i++)
+		lmap[i] = ( i - 256 * lowlim)/( highlim - lowlim);
+
+	for(int i=0;i<matred.cols;i++)
+   {
+	   for (int j = 0;j<matred.rows;j++)
+	   {
+		   uchar value = matred.at<uchar>(j, i);
+		   matred.at<uchar>(j, i) = lmap[value];
+	   }
+   }
+
+	if (debug_session)
+	{
+		cimg.clear();
+		_copyMatToImage(cimg, matred);
+		ImageUtils::saveImageToFile(cimg, "output/pref3_imadjust.png");
+	}
+
+	//wiener filter
+	_wiener2(matred);
+
+
+	if (debug_session)
+	{
+		cimg.clear();
+		_copyMatToImage(cimg, matred);
+		ImageUtils::saveImageToFile(cimg, "output/pref3_wiener.png");
+	}
+
+	int thresh = greyThresh(matred);
+	//sharp edges
+	imago::Convolver cfilt(cimg);
+	cfilt.initSharp();
+	cfilt.apply();
+
+	_copyImageToMat(cimg, matred);
+	
+	cv::pyrUp(matred, mat);
+
+	//Perform binary thresholding using Otsu procedure
+	thresh = thresh - 16 > 0 ? thresh - 16 : 0; 
+	cv::threshold(mat, mat, thresh, 255, cv::THRESH_BINARY);//cv::THRESH_OTSU|
+
+	strel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
+   matred = 255 - mat;
+   //perform tophat transformation
+   cv::morphologyEx(mat, mat, cv::MORPH_OPEN, strel);
+   matred = 255 - mat;
+
+	cimg.clear();
+	_copyMatToImage(cimg, mat);
+
+	if (debug_session)
+	{
+		
+		ImageUtils::saveImageToFile(cimg, "output/pref3_after_pref.png");
+	}
+	image.copy(cimg);
+
+	LPRINT(0, "Filtering done");
+}
+
 
 void prefilterImage( Image &image, const CharacterRecognizer &cr )
 {
@@ -547,7 +838,8 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    image.clear();
    //_prefilterInternal2(image);
 
-   _prefilterInternal(raw, image, cr);
+   //_prefilterInternal(raw, image, cr);
+   _prefilterInternal3(raw, image, cr);
 }
 
 void prefilterFile(const char *filename, Image &image, const CharacterRecognizer &cr )
