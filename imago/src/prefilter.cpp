@@ -673,7 +673,7 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	LPRINT(0, "loaded image %d x %d", w, h);
 
 	cv::Mat mat, rmat;
-	Image img;
+	Image img, cimg;
 	bool debug_session = getSettings()["DebugSession"];
 
    
@@ -682,28 +682,20 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 
 	//convert to gray scale
 	_copyImageToMat(raw, mat);
-	img.copy(raw);
-
-   {
-      int avg = raw.mean();
-
-      if (debug_session)
-         fprintf(stderr, "average brightness = %d\n", avg);
-      
-      if (avg < 155)
-      {
-         LPRINT(0, "adding constant gray");
-         byte *data = img.getData();
-         for (int i = 0; i < w * h; i++)
-            data[i] += 155 - avg;
-      }
-   }
-   
+	
    cv::Mat matred((mat.rows+1)/2, (mat.cols+1)/2, CV_8U);
    //if(n > 1)
    {
    //Pydramid reduce
 	cv::pyrDown(mat, matred);
+   }
+
+   
+   
+   if(debug_session)
+   {
+	   _copyMatToImage(cimg, matred);
+	   ImageUtils::saveImageToFile(cimg, "output/pref3_pyrDown.png");
    }
 
    //make edges stronger
@@ -712,17 +704,25 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
    cv::subtract(matred, crmat, crmat);
    cv::add(crmat, matred, matred);
 
+   if(debug_session)
+   {
+	   cimg.clear();
+	   _copyMatToImage(cimg, matred);
+	   ImageUtils::saveImageToFile(cimg, "output/pref3_strongerEdges.png");
+   }
+
    //build structuring element
    cv::Mat strel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(60, 60));
    matred = 255 - matred;
    //perform tophat transformation
-   cv::morphologyEx(matred, matred, cv::MORPH_TOPHAT, strel);
+   cv::morphologyEx(matred, matred, cv::MORPH_TOPHAT, strel, cv::Point(-1, -1), 1, cv::BORDER_REPLICATE);
    matred = 255 - matred;
 
 
-   imago::Image cimg;
+   
    if(debug_session)
    {
+	   cimg.clear();
 	   _copyMatToImage(cimg, matred);
 	   ImageUtils::saveImageToFile(cimg, "output/pref3_tophat.png");
    }
@@ -813,7 +813,7 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	strel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
    mat = 255 - mat;
    //perform open transformation
-   cv::morphologyEx(mat, mat, cv::MORPH_OPEN, strel);
+   cv::morphologyEx(mat, mat, cv::MORPH_OPEN, strel, cv::Point(-1, -1), 1, cv::BORDER_REPLICATE);
    mat = 255 - mat;
 
 	cimg.clear();
