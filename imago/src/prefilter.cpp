@@ -14,6 +14,7 @@
 #include "image_utils.h"
 #include "binarizer.h"
 #include "jpg_loader.h"
+#include "thin_filter2.h"
 
 namespace imago
 {
@@ -712,7 +713,7 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
    cv::add(crmat, matred, matred);
 
    //build structuring element
-   cv::Mat strel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(46, 46));
+   cv::Mat strel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(60, 60));
    matred = 255 - matred;
    //perform tophat transformation
    cv::morphologyEx(matred, matred, cv::MORPH_TOPHAT, strel);
@@ -809,22 +810,30 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	thresh = thresh - 16 > 0 ? thresh - 16 : 0; 
 	cv::threshold(mat, mat, thresh, 255, cv::THRESH_BINARY);//cv::THRESH_OTSU|
 
-	strel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(3, 3));
-   matred = 255 - mat;
-   //perform tophat transformation
+	strel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3));
+   mat = 255 - mat;
+   //perform open transformation
    cv::morphologyEx(mat, mat, cv::MORPH_OPEN, strel);
-   matred = 255 - mat;
+   mat = 255 - mat;
 
 	cimg.clear();
 	_copyMatToImage(cimg, mat);
 
 	if (debug_session)
-	{
-		
+	{	
 		ImageUtils::saveImageToFile(cimg, "output/pref3_after_pref.png");
 	}
+
 	image.copy(cimg);
 
+	/*ThinFilter2 filt(image);
+	filt.apply();
+
+	if (debug_session)
+	{
+		ImageUtils::saveImageToFile(image, "output/pref3_after_prefthinning.png");
+	}
+*/
 	LPRINT(0, "Filtering done");
 }
 
