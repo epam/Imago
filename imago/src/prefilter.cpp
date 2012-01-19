@@ -882,9 +882,9 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 
    //build structuring element
    //min area = 36, coefficient = 3.4722e-004
-   if(matred.total() > 8640 )
+   if(matred.total() > 8640*3 )
    {
-	   int ssize = matred.total() * 3.4722e-004;
+	   int ssize = matred.total() * 3.4722e-004 / 3;
 	   cv::Mat strel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ssize, ssize));
 	   matred = 255 - matred;
 	   //perform tophat transformation
@@ -1052,6 +1052,10 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 
 
    double lineThickness = EstimateLineThickness(image);
+
+   if(lineThickness < 1)
+	   throw Exception("Image prefiltering failed");
+
    getSettings()["LineThickness"] = lineThickness;
    
    Image outImg(raw.getWidth(), raw.getHeight());
