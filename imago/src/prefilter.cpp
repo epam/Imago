@@ -845,7 +845,7 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	_copyImageToMat(raw, mat);
 	bool reduced = false;
    cv::Mat matred((mat.rows+1)/2, (mat.cols+1)/2, CV_8U);
-   if(maxside > 800)
+   if(maxside > 300)
    {
    //Pydramid reduce
 	cv::pyrDown(mat, matred);
@@ -997,7 +997,7 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	{
 		uchar dstruct[] = {0,0,0,
 						  0,1,1,
-						  0,1,0}; 
+						  0,1,1}; 
 		strel = cv::Mat(3, 3, CV_8U, dstruct);//cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(3, 3));
 	}
 
