@@ -37,7 +37,7 @@ namespace imago
       static bool testMinus( const Segment &img, int cap_height );
 
       static void putSegment( Image &img, const Segment &seg, bool careful = true );
-      static void cutSegment( Image &img, const Segment &seg );
+      static void cutSegment( Image &img, const Segment &seg, bool forceCut = false, byte val = 255 );
    };
 }
 

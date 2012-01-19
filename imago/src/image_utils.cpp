@@ -234,7 +234,7 @@ void ImageUtils::putSegment( Image &img, const Segment &seg, bool careful )
       }
 }
 
-void ImageUtils::cutSegment( Image &img, const Segment &seg )
+void ImageUtils::cutSegment( Image &img, const Segment &seg, bool forceCut, byte val )
 {
    int i, j, img_cols = img.getWidth(),
       seg_x = seg.getX(), seg_y = seg.getY(),
@@ -246,8 +246,8 @@ void ImageUtils::cutSegment( Image &img, const Segment &seg )
          int address = (j + seg_y) * img_cols + (i + seg_x);
 
          if (seg.getByte(i, j) == 0)
-            if (img[address] == 0)
-               img[address] = 255;
+            if (img[address] == 0 || forceCut)
+               img[address] = val;
       }
 }
 

@@ -170,7 +170,8 @@ bool Separator::_analyzeSpecialSegment( Segment *seg, SegmentDeque &layer_graphi
 {
    Image tmp;
    CvApproximator cvApprox;
-   GraphicsDetector gd(&cvApprox, 7.0);
+   double lnThickness = getSettings()["LineThickness"];
+   GraphicsDetector gd(&cvApprox, lnThickness * 1.5);//7.0
    Points2d lsegments;
 
    tmp.copy(*seg);

@@ -216,8 +216,9 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       {
 #if 1
+		  double lnThickness = getSettings()["LineThickness"];
          CvApproximator cvApprox;
-         GraphicsDetector gd(&cvApprox, 8.0);
+         GraphicsDetector gd(&cvApprox, lnThickness * 1.5);//8.0
 #else
          SimpleApproximator sApprox;
          GraphicsDetector gd(&sApprox, 0.3);

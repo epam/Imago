@@ -237,7 +237,17 @@ void Image::splitVert( int x, Image &left, Image &right ) const
  */
 void Image::extract( int x1, int y1, int x2, int y2, Image &res )
 {
-   throw Exception("Unimplemented method");
+	if(x1 < 0 || x2 > _width || 
+		y1 < 0 || y2 > _height)
+		throw Exception("Coordinates out of bounds");
+	res.clear();
+	res.init(x2 - x1, y2 - y1);
+
+	for(int i = x1; i < x2; i++)
+		for(int j = y1; j < y2; j++)
+		{
+			res.getByte(i - x1, j - y1) = this->getByte(i, j);
+		}
 }
 
 /** 
