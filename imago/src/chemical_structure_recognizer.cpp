@@ -190,15 +190,6 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       LMARK;
       if (!layer_symbols.empty())
       {
-		  BOOST_FOREACH(Segment *s, layer_symbols)
-		  {
-			  Image simg;
-			  s->extract(0, 0, s->getWidth(), s->getHeight(), simg);
-			  ThinFilter2 thinfilt(simg);
-			  thinfilt.apply();
-			  memcpy(s->getData(), simg.getData(), sizeof(byte) * simg.getWidth() * simg.getHeight()); //extract(0, 0, cs.getWidth(), cs.getHeight(), cs);
-		  }
-
          LabelCombiner lc(layer_symbols, layer_graphics,
                           rs["CapitalHeight"], _cr);
 
