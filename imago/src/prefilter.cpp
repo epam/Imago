@@ -17,6 +17,7 @@
 #include "stat_utils.h"
 #include "thin_filter2.h"
 #include "segment.h"
+#include "HistogramTools.h"
 
 namespace imago
 {
@@ -523,9 +524,12 @@ int EstimateLineThickness(Image &bwimg)
 	int h = bwimg.getHeight();
 	int d = 10; // 10 pixel grid
 
+	int aw, ah;
+
 	IntVector lthick;
 
-	if(w > d)
+	if(w < d)
+		d = std::max<int>(w >>1, 1) ; 
 	{
 		int startseg = -1;
 		for(int i = 0; i < w ; i += d)
@@ -535,9 +539,9 @@ int EstimateLineThickness(Image &bwimg)
 				byte val = bwimg.getByte(i, j);
 				if(val == 0 && (startseg == -1))
 					startseg = j;
-				if(val > 0 && startseg != -1)
+				if((val > 0 || j==(h-1)) && startseg != -1)
 				{
-					lthick.push_back(j - startseg);
+					lthick.push_back(j - startseg + 1);
 					startseg = -1;
 				}
 			}
@@ -545,6 +549,10 @@ int EstimateLineThickness(Image &bwimg)
 	}
 
 	if(h > d)
+		d = 10;
+	else
+		d = std::max<int>(h >>1, 1) ; 
+
 	{
 		int startseg = -1;
 		for(int j = 0; j< h; j+=d)
@@ -554,31 +562,25 @@ int EstimateLineThickness(Image &bwimg)
 				byte val = bwimg.getByte(i, j);
 				if(val == 0 && (startseg == -1))
 					startseg = i;
-				if(val > 0 && startseg != -1)
+				if((val > 0 || i==(w-1)) && startseg != -1)
 				{
-					lthick.push_back(i - startseg);
+					lthick.push_back(i - startseg + 1);
 					startseg = -1;
 				}
 			}
 		}
 	}
 	std::sort(lthick.begin(), lthick.end());
-	double thickness = StatUtils::interMean(lthick.begin(), lthick.end());
-
+	double thickness = 0;
+	if(lthick.size() > 0)
+		thickness = StatUtils::interMean(lthick.begin(), lthick.end());
+	
 	return thickness;
 }
 
-void CombineWeakStrong(const Image &weakimg, const Image &strongimg, Image &image)
+void CombineWeakStrong(SegmentDeque &weak_segments, SegmentDeque &strong_segments, Image &image)//const Image &weakimg, const Image &strongimg
 {
-	
-   int w = weakimg.getWidth();
-   int h = weakimg.getHeight();
    bool debug_session = getSettings()["DebugSession"];
-
-	SegmentDeque weak_segments;
-   SegmentDeque strong_segments;
-   Segmentator::segmentate(weakimg, weak_segments);
-   Segmentator::segmentate(strongimg, strong_segments);
 
    if (debug_session)
    {
@@ -586,7 +588,6 @@ void CombineWeakStrong(const Image &weakimg, const Image &strongimg, Image &imag
       fprintf(stderr, "%d strong segments\n", strong_segments.size());
    }
 
-   image.init(w, h);
    image.fillWhite();
 
    int i, j;
@@ -651,15 +652,6 @@ void CombineWeakStrong(const Image &weakimg, const Image &strongimg, Image &imag
             fprintf(stderr, "weak segment not found\n");
       }
    }
-
-   BOOST_FOREACH( Segment *s, weak_segments )
-      delete s;
-
-   BOOST_FOREACH( Segment *s, strong_segments )
-      delete s;
-
-   weak_segments.clear();
-   strong_segments.clear();
 }
 
 void _prefilterInternal2( Image &img )
@@ -726,7 +718,7 @@ _copyMatToImage(im2, mat);
       ImageUtils::saveImageToFile(im2, "output/pref3_wienerLocalVar.png");
 	//calculate noise
 	cv::Scalar vnoise = cv::mean(localVar);
-	double noise = vnoise[0];
+	double noise = 2 * vnoise[0];
 	
 	/*for(int i=0;i<localVar.cols;i++)
 		for(int j=0;j<localVar.rows;j++)
@@ -826,7 +818,7 @@ int greyThresh(cv::Mat mat, bool strong)
 }
 
 
-void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecognizer &_cr)
+void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecognizer &_cr, bool adaptiveThresh=false, bool strongThresh=false)
 {
 	int w = raw.getWidth();
 	int h = raw.getHeight();
@@ -841,8 +833,10 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	int maxside = (w < h) ? h : w;
 	int n = maxside / 800;
 
+	img.copy(raw);
+	
 	//convert to gray scale
-	_copyImageToMat(raw, mat);
+	_copyImageToMat(img, mat);
 	bool reduced = false;
    cv::Mat matred((mat.rows+1)/2, (mat.cols+1)/2, CV_8U);
    if(maxside > 300)
@@ -852,9 +846,9 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	reduced = true;
    }
    else
-	   matred = mat;
+	   cv::GaussianBlur(mat, matred, cv::Size(5, 5), 1, 1, cv::BORDER_REPLICATE);
 
-   
+  
    
    if(debug_session)
    {
@@ -865,13 +859,13 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
    //make edges stronger
    //min area = 1296, coeff =  5.7870e-005
    cv::Mat crmat;
-   if(matred.total() >= 51840)
+   /*if(matred.total() >= 51840)
    {
 	   int bsize = matred.total() *  5.7870e-005;
 	   cv::blur(matred, crmat, cv::Size(bsize, bsize));
 	   cv::subtract(matred, crmat, crmat);
 	   cv::add(crmat, matred, matred);
-   }
+   }*/
 
    if(debug_session)
    {
@@ -892,6 +886,12 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	   matred = 255 - matred;
    }
 
+    img.clear();
+   _copyMatToImage(img, matred);
+   //if(strongThresh)
+   _unsharpMask(img, 7, 4, 0);
+   _copyImageToMat(img, matred);
+   img.clear();
    
    if(debug_session)
    {
@@ -901,55 +901,8 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
    }
 
    //Compute histogram limits to adjust the image
-   //TODO: put this out from here
-   int channels[] = {0},
-	   histsize[] = {256};
-   float sranges[] = { 0, 256 };
-   const float* ranges[] = { sranges };
-   cv::Mat hist;
-   cv::calcHist(&matred, 1, channels, cv::Mat(),  hist, 1, histsize, ranges);
-   double cumsum[256]; 
-   double sum = 0;
-   for(int i=0;i<256;i++)
-   {
-	   sum+=hist.at<float>(i);
-	   cumsum[i] = sum;
-   }
-   for(int i=0;i<256;i++)
-	   cumsum[i]/=sum;
-   double min = 0, max=1.0;
-   
-   float lowlim=0, highlim=255;
-   for(int i=0;i<256;i++)
-	   if(cumsum[i] > min)
-	   {
-		   lowlim = i;
-		   break;
-	   }
-
-	for(int i=0;i<256;i++)
-		if(cumsum[i] >= max)
-		{
-			highlim = i;
-			break;
-		}
-	lowlim /= 255;
-	highlim /= 255;
-	
-	//image adjust
-	//TODO: put this as a separate class
-	unsigned char lmap[256];
-	for(int i=0;i<256;i++)
-		lmap[i] = ( i - 256 * lowlim)/( highlim - lowlim);
-
-	for(int i=0;i<matred.cols;i++)
-   {
-	   for (int j = 0;j<matred.rows;j++)
-	   {
-		   uchar value = matred.at<uchar>(j, i);
-		   matred.at<uchar>(j, i) = lmap[value];
-	   }
-   }
+   HistogramTools ht(matred);
+   ht.ImageAdjust(matred);
 
 	if (debug_session)
 	{
@@ -960,20 +913,25 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 
 	//wiener filter
 	_wiener2(matred);
+	
+	cimg.clear();
+	_copyMatToImage(cimg, matred);
 
 
 	if (debug_session)
 	{
-		cimg.clear();
-		_copyMatToImage(cimg, matred);
 		ImageUtils::saveImageToFile(cimg, "output/pref3_wiener.png");
 	}
 
 	
 	//sharp edges
-	imago::Convolver cfilt(cimg);
-	cfilt.initSharp();
-	cfilt.apply();
+		imago::Convolver cfilt(cimg);
+		cfilt.initSharp();
+		cfilt.apply();
+	
+   /*_unsharpMask(cimg, 4, 2, 0);
+   _copyImageToMat(cimg, matred);
+   */
 
 	_copyImageToMat(cimg, matred);
 	
@@ -984,8 +942,14 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	int thresh = greyThresh(mat, true);
 	int wthresh = greyThresh(mat, false);
 
+	if(strongThresh)
+		wthresh = 0.2*thresh+0.8*wthresh;
+
 	//Perform binary thresholding using Otsu procedure
 	//thresh = thresh - 16 > 0 ? thresh - 16 : 0; 
+	if(adaptiveThresh)
+		cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, 7, 7);
+	else
 	cv::threshold(mat, mat, wthresh, 255, cv::THRESH_BINARY);//cv::THRESH_OTSU|
 
 	cv::Mat strel;
@@ -1001,10 +965,10 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 		strel = cv::Mat(3, 3, CV_8U, dstruct);//cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(3, 3));
 	}
 
-	   mat = 255 - mat;
+	   //mat = 255 - mat;
 	   //perform open transformation
-	   cv::morphologyEx(mat, mat, cv::MORPH_OPEN, strel, cv::Point(-1, -1), 1, cv::BORDER_REPLICATE);
-	   mat = 255 - mat;
+	   //cv::morphologyEx(mat, mat, cv::MORPH_OPEN, strel, cv::Point(-1, -1), 1, cv::BORDER_REPLICATE);
+	   //mat = 255 - mat;
 	
 
 	cimg.clear();
@@ -1028,6 +992,18 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	LPRINT(0, "Filtering done");
 }
 
+bool isSplash(Segment *s, int lineSize)
+{
+	Image img;
+	if(s->getWidth() < lineSize && s->getHeight() < lineSize)
+		return true;
+	s->extract(0, 0, s->getWidth(), s->getHeight(), img);
+	int ls = EstimateLineThickness(img);
+	if(ls > 3* lineSize || ls < 1)
+		return true;
+	return false;
+}
+
 bool SegCompare (Segment *i, Segment *j) 
 { 
 	int area1 = i->getWidth() * i->getHeight();
@@ -1043,12 +1019,13 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    cimg.copy(image);
    int w = raw.getWidth();
    int h = raw.getHeight();
+   int imMean = raw.mean();
 
    image.clear();
    //_prefilterInternal2(image);
 
    //_prefilterInternal(raw, image, cr);
-   _prefilterInternal3(raw, image, cr);
+   _prefilterInternal3(raw, image, cr, false, true);
 
 
    double lineThickness = EstimateLineThickness(image);
@@ -1064,9 +1041,16 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    SegmentDeque segs, psegs;
    imago::Segmentator::segmentate(image, segs, std::min<double>(lineThickness, 3));
    SegmentDeque::iterator sit;
+   int xmin=outImg.getWidth(), xmax=0, 
+	   ymin=outImg.getHeight(), ymax=0;
    
    std::sort(segs.begin(), segs.end(), SegCompare); 
-
+   
+   int maxArea = segs[segs.size() -1]->getWidth() * segs[segs.size() -1]->getHeight();
+   int maxDensity = maxArea *segs[segs.size() -1]->density();
+   float dists = 0;
+   Vec2d center(0, 0);
+   int accumSize = 0;
    for(sit = segs.begin(); sit != segs.end(); sit++)
    {
 	  Segment *s = *sit;
@@ -1075,59 +1059,127 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 	   int sw = s->getWidth();
 	   int sh = s->getHeight();
 
-	   if(sx == 0 || sy == 0 || (sx + sw) == w || (sy + sh) == h)
+	   if(sx == 0 || sy == 0 || (sx + sw) == w || (sy + sh) == h || isSplash(s, lineThickness))
+	   {
+		   imago::ImageUtils::cutSegment(cimg, *s, true, imMean);
 		   continue;
+	   }
 
 	   Image p;
 	   cimg.extract(sx, sy, sx + sw, sy + sh, p); 
 	   
-	   double rms1 = 0;
-	   for(int i = 0; i <  sw; i++)
-		   for(int j = 0; j < sh; j++)
-		   {
-			   double val1 = (double)p.getByte(i, j);
-			   double val2 = (double)s->getByte(i, j);
-			   val1 = abs<double>( val1 - val2);
-			   rms1 += (val1 * val1);
-		   }
-	  //remove from copy image current segment
-	   //imago::ImageUtils::cutSegment(cimg, *s, true, p.mean());
-	   
 	   Image cs(p.getWidth(), p.getHeight());
 	   //_prefilterInternal3(p, cs, cr); 
 
-	   double rms2 = 0;
-	   for(int i = 0; i <  sw; i++)
-		   for(int j = 0; j < sh; j++)
-		   {
-			   double val1 = (double)p.getByte(i, j);
-			   double val2 = (double)cs.getByte(i, j);
-			   val1 = abs<double>( val1 - val2);
-			   rms2 += (val1 * val1);
-		   }
-	   //TODO: RMS
-		//if(rms2 < rms1)
-		//{
-		//   Segment *ns = new Segment();
-		//   ns->copy(*s);
-		//   memcpy(ns->getData(), cs.getData(), sizeof(byte) * cs.getWidth() * cs.getHeight()); //extract(0, 0, cs.getWidth(), cs.getHeight(), cs);
-		//   psegs.push_back(ns);
-		//}
-		//else
-			psegs.push_back(s);
+		if(xmin > sx)
+			xmin = sx;
+		if(xmax < (sx + sw))
+			xmax = (sx + sw);
+		if(ymin > sy)
+			ymin = sy;
+		if(ymax < (sy + sh))
+			ymax = (sy +sh);
+		float sarea = (s->getHeight()*s->getWidth()*s->getDensity()) / maxDensity;
+		if(sarea > 0.3)
+		{
+			center.add( s->getCenter());
+			accumSize++;
+		}
+		psegs.push_back(s);
    }
+
+   center.scale((double)(1.0/accumSize));
+
+   IntVector distsFromCenter;
+   SegmentDeque tsegs;
+   int dis;
+   for(sit = psegs.begin();sit != psegs.end(); sit++)
+   {
+	   Segment *s = *sit;
+	   dis = (int)Vec2d::distance(center, s->getCenter());
+	   //int dweight = maxArea / (s->getWidth() * s->getHeight());
+	   distsFromCenter.push_back(dis);
+	   tsegs.push_back(s);
+   }
+
+   std::sort(distsFromCenter.begin(), distsFromCenter.end());
+   int medInd = distsFromCenter.size();
+   int median = medInd % 2 != 0? distsFromCenter[medInd>>1]:(distsFromCenter[medInd>>1] + distsFromCenter[(medInd>>1) - 1])/2;
+
+   IntVector deviations;
+   for(int k=0;k<distsFromCenter.size();k++)
+   {
+	   int value = distsFromCenter[k] - median;
+	   if(value < 0)
+		   value = -value;
+	   deviations.push_back(value);
+   }
+   std::sort(deviations.begin(), deviations.end());
+   int mad = medInd % 2 != 0? deviations[medInd>>1]:(deviations[medInd>>1] + deviations[(medInd>>1) - 1])/2;
+
+   psegs.clear();
+   float koeff = 8.0;
+   for(sit = tsegs.begin();sit != tsegs.end(); sit++)
+   {
+	   Segment *s = *sit;
+	   int dis = (int)Vec2d::distance(center, s->getCenter());
+	   int density = s->getWidth() * s->getHeight() * s->getDensity();
+	   int dweight = maxDensity / density;
+	   int est = //dis > (median+2.3*mad ) || 
+		   ((lineThickness*lineThickness*4 > density) && dis > distsFromCenter[3*distsFromCenter.size()/4])? dis*dweight:dis;
+	   
+	   if(est < (median + koeff*mad))
+		   psegs.push_back(s);
+   }
+
 
    SegmentDeque::reverse_iterator rsit;
 
-   for(rsit = psegs.rbegin(); rsit != psegs.rend(); rsit++)
+   int i=0; 
+   if(getSettings()["DebugSession"])
    {
-	   Segment *s = *rsit;
-	   imago::ImageUtils::putSegment(outImg, *s);
-	   ImageUtils::saveImageToFile(outImg, "output/pref3_final.png");
+	   for(rsit = psegs.rbegin(); rsit != psegs.rend(); rsit++)
+	   {
+		   Segment *s = *rsit;
+		   imago::ImageUtils::putSegment(outImg, *s);
+	  
+		   ImageUtils::saveImageToFile(outImg, "output/pref3_final.png");
+		   Image ims;
+		   s->extract(0, 0, s->getWidth(), s->getHeight(), ims);
+		   char path[256] = "output/segs/";
+		   sprintf(path, "output/segs/%d.png", i);
+		   ImageUtils::saveImageToFile(ims, path);
+		   i++;   
+	   }
    }
 
+   cimg.clear();
+   cimg.copy(raw);
+
+   Image cs(cimg.getWidth(), cimg.getHeight());
+	_prefilterInternal3(cimg, cs, cr); 
+   if(getSettings()["DebugSession"])
+			ImageUtils::saveImageToFile(cs, "output/pref3_final.png");
+	
    
-   image.copy(outImg);
+	SegmentDeque weak_segments;
+   Segmentator::segmentate(cs, weak_segments);
+
+   cimg.clear();
+   cimg.init(cs.getWidth(), cs.getHeight());
+   CombineWeakStrong(weak_segments, psegs, cimg);
+	
+   if(getSettings()["DebugSession"])
+	   ImageUtils::saveImageToFile(cimg, "output/pref3_final.png");
+   
+   BOOST_FOREACH(Segment *s, weak_segments)
+	   delete s;
+   BOOST_FOREACH( Segment *s, segs )
+      delete s;
+   segs.clear();
+   psegs.clear();
+   weak_segments.clear();
+   image.copy(cimg);
 }
 
 void prefilterFile(const char *filename, Image &image, const CharacterRecognizer &cr )
