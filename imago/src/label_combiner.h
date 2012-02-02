@@ -19,6 +19,7 @@
 #include "stl_fwd.h"
 #include "superatom.h"
 #include "rectangle.h"
+#include "segment.h"
 
 namespace imago
 {
@@ -43,6 +44,16 @@ namespace imago
          line_y = 0; //cap_letters_count = 0;
          multi_line_y = multi_begin = -1;
       }
+
+	  int MaxSymbolWidth()
+	  {
+		  int maxwidth = 0;
+		  std::vector<Segment *>::iterator sit;
+		  for(sit = symbols.begin();sit != symbols.end(); sit++)
+			  if((*sit)->getWidth() > maxwidth)
+				  maxwidth = (*sit)->getWidth();
+		  return maxwidth;
+	  }
    };
 
    class LabelCombiner

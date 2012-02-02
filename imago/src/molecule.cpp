@@ -79,12 +79,8 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
       Label &l = labels[i];
       boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type
                               positions = boost::get(boost::vertex_pos, _g);
-	  /*int maxwidth = 0;
-	  for(int kl=0;kl<l.symbols.size();kl++)
-		  if(l.symbols[kl]->getWidth() > maxwidth)
-			  maxwidth = l.symbols[kl]->getWidth();*/
-
-	  space = l.rect.height;
+	  
+	  space = l.MaxSymbolWidth() * 1.5;
                      
       int nearest = 0;    
       Skeleton::Vertex nearest_vertex;           
@@ -102,6 +98,7 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
          if (boost::degree(boost::target(e, _g), _g) == 1)
             d2 = Algebra::distance2rect(boost::get(positions,
                                                  boost::target(e, _g)), l.rect);
+		 
 
          if (d1 <= d2 && d1 < space)
          {
@@ -126,7 +123,7 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
       printf("LABELS: %d %d\n", l.rect.x, l.rect.y);
 #endif
       nearest.clear();
-	  space = l.rect.height;
+	  space = l.MaxSymbolWidth() * 1.5;
       //TODO: check if it's needed to do on each iteration
       boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type
                               positions = boost::get(boost::vertex_pos, _g);
