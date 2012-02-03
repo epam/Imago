@@ -57,7 +57,7 @@ LabelCombiner::LabelCombiner( SegmentDeque &symbols_layer,
       _cap_height_error = (double)rs["CapHeightErr"];
       _space = _cap_height >> 1;
 
-      _fetchSymbols(other_layer);
+      //_fetchSymbols(other_layer);
 
       _locateLabels();
       BOOST_FOREACH(Label &l, _labels)

@@ -158,6 +158,8 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          TIME(sdb_count = wbe.singleDownFetch(mol), "Fetching single-down bonds");
          LPRINT(0, "Single-down bonds found: %d", sdb_count);
       }
+
+	  
       Separator sep(segments, _img);
 
       //Settings for handwriting separation

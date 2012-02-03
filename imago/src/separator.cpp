@@ -20,6 +20,7 @@
 #include <cmath>
 
 #include "boost/foreach.hpp"
+#include <opencv/cv.h>
 
 #include "approximator.h"
 #include "comdef.h"
@@ -47,6 +48,40 @@ Separator::Separator( SegmentDeque &segs, const Image &img ) : _segs(segs), _img
    rs.set("SegmentVerEps", 4);
    rs.set("SymHeightErr", 6);
    rs.set("DoubleBondDist", 20);   
+}
+
+void _getHuMomentsC(const Image &img, double hu[7])
+{
+   int w = img.getWidth(), h = img.getHeight();
+   cv::Mat mat(h, w, CV_8U);
+   for (int k = 0; k < h; k++)
+   {
+      for (int l = 0; l < w; l++)
+      {
+         mat.at<imago::byte> (k, l) = 255 - img.getByte(l, k);
+      }
+   }
+   cv::Moments moments = cv::moments(mat, true);
+   cv::HuMoments(moments, hu);
+}
+
+int Separator::HuClassifier(double hu[7])
+{
+	if(hu[1] > 0.273411)
+		return SEP_BOND;
+	if(hu[1] > 0.1569 && hu[1] < 0.2734)
+		if(hu[4] > -0.00238)
+			return SEP_BOND;
+		else
+			return SEP_SYMBOL;
+	if(hu[1] < 0.157 && (hu[0]<0.2483 && hu[2] > 0.0001 || 
+		hu[0]>0.2483 && hu[5] > 0.005 || 
+		hu[0]>0.2483 && hu[5] < 0.005 && hu[1] > 0.057 && hu[2] < 0.0017)) 
+			return SEP_BOND;
+	else
+		return SEP_SYMBOL;
+
+	return SEP_SUSPICIOUS;
 }
 
 void Separator::firstSeparation( SegmentDeque &layer_symbols, 
@@ -87,7 +122,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
              adequate_ratio_min = rs["MinSymRatio"];
       
       IntVector seg_marks, suspicious_segments;
-      
+
       /* Classification procedure */
       BOOST_FOREACH( Segment *s, _segs )
       {
@@ -95,40 +130,63 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 
          if (rs["DebugSession"])
             ImageUtils::saveImageToFile(*s, "output/tmp.png");
+		 //thin segment
+		 Image temp;
+		 s->extract(0, 0, s->getWidth(), s->getHeight(), temp);
+		 
+		  double hu[7];
+		_getHuMomentsC(temp, hu);
 
-         if (s->getHeight() >= cap_height - sym_height_err && 
-             s->getHeight() <= cap_height + sym_height_err &&
-             s->getHeight() <= cap_height * 2 &&
-             s->getWidth() <= 1.8 * cap_height) 
-         {
-            if (s->getRatio() > 0.96 && s->getRatio() < 1.05)
-            {
-               if (_analyzeSpecialSegment(s, layer_graphics, layer_symbols))
-               {
-                  layer_graphics.push_back(s);
-                  continue;
-               }
-            }
-            if (s->getRatio() > adequate_ratio_max)
-               if (ImageUtils::testSlashLine(*s, 0, 3.2)) //TODO: To rs immediately. Original is 1.0
-                  mark = SEP_BOND;
-               else
-                  mark = SEP_SPECIAL;
-            else
-               if (s->getRatio() < adequate_ratio_min)
-                  if (_testDoubleBondV(*s))
-                     mark = SEP_BOND;
-                  else
-                     mark = SEP_SUSPICIOUS;
-               else
-                  if (ImageUtils::testSlashLine(*s, 0, 3.0)) //TODO: To rs immediately. Original is 1.3 
-                     mark = SEP_BOND;
-                  else 
-                     mark = SEP_SYMBOL;
-         }
-         else
-            mark = SEP_BOND;
+		mark = HuClassifier(hu);
 
+		if(mark == SEP_SYMBOL && !(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= 1.8 * cap_height))
+			mark = SEP_SUSPICIOUS;
+		
+		 if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
+		 {
+			 ThinFilter2 tfilt(temp);
+			  tfilt.apply();
+
+			  Segment *thinseg = new Segment();
+			  thinseg->copy(*s);
+			  memcpy(thinseg->getData(), temp.getData(), temp.getWidth()*temp.getHeight() *sizeof(byte));
+
+			 if (s->getHeight() >= cap_height - sym_height_err && 
+				 s->getHeight() <= cap_height + sym_height_err &&
+				 s->getHeight() <= cap_height * 2 &&
+				 s->getWidth() <= 1.8 * cap_height) 
+			 {
+				if (thinseg->getRatio() > 0.96 && thinseg->getRatio() < 1.05)
+				{
+				   if (_analyzeSpecialSegment(thinseg, layer_graphics, layer_symbols))
+				   {
+					  layer_graphics.push_back(s);
+					  continue;
+				   }
+				}
+				if (thinseg->getRatio() > adequate_ratio_max)
+				   if (ImageUtils::testSlashLine(*thinseg, 0, 3.2)) //TODO: To rs immediately. Original is 1.0
+					  mark = SEP_BOND;
+				   else
+					  mark = SEP_SPECIAL;
+				else
+				   if (thinseg->getRatio() < adequate_ratio_min)
+					  if (_testDoubleBondV(*thinseg))
+						 mark = SEP_BOND;
+					  else
+						 mark = SEP_SUSPICIOUS;
+				   else
+					  if (ImageUtils::testSlashLine(*thinseg, 0, 3.0)) //TODO: To rs immediately. Original is 1.3 
+						 mark = SEP_BOND;
+					  else 
+						 mark = SEP_SYMBOL;
+			 }
+			 else
+				mark = SEP_BOND;
+			 delete thinseg;
+		 }
+
+		 
          switch (mark)
          {
          case SEP_BOND:
@@ -151,6 +209,8 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
          case SEP_SUSPICIOUS:
             layer_suspicious.push_back(s);
          }
+
+		 
       }
    }
 

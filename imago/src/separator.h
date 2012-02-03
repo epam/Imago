@@ -54,6 +54,7 @@ namespace imago
       static bool _segmentsComparator( Segment *a, Segment *b );
 
       Separator( const Separator &S );
+	  int HuClassifier(double hu[7]);
    };
 }
 
