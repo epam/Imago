@@ -75,6 +75,7 @@ std::string expandSuperatoms( const Molecule &molecule )
       abbrs.push_back(Abbreviation("COOMe", "COC(*)=O").onright("COOMe").onleft("MeOOC"));
       abbrs.push_back(Abbreviation("BzO", "*OC(=O)C1=CC=CC=C1").onright("OBz").onleft("BzO"));
       abbrs.push_back(Abbreviation("AcO", "CC(=O)O*").onright("OAc").onleft("AcO"));
+      abbrs.push_back(Abbreviation("NHBoc", "CC(C)(C)OC(=O)N*").onright("NHBoc").onleft("BocHN"));
 
       // This should not be [O-][N+](*)=O by request
       abbrs.push_back(Abbreviation("NO2", "*N(=O)=O").onright("NO2").onleft("O2N"));
