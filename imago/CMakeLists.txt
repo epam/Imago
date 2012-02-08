@@ -50,6 +50,8 @@ set(SRC
   src/munkres.cpp
 
   src/superatom_expansion.cpp
+  
+  src/HistogramTools.cpp
 )
 
 FILE(GLOB HEADERS "src/*.h")
