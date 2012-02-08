@@ -214,10 +214,12 @@ void LabelCombiner::_locateLabels()
 	  double width_e = s_e->getWidth();
 	  double width = (width_b+2*width_e)/3;
 	  double height = std::min(s_b->getHeight(), s_e->getHeight());
-	  if(height > 2*_cap_height/3)
-		  height /= 2.0;
-	  else
-		  height =std::max(s_b->getHeight(), s_e->getHeight());
+//#ifdef DEBUG
+//	  Image img(960, 720);
+//	  ImageUtils::putSegment(img, *s_b);
+//	  ImageUtils::putSegment(img, *s_e);
+//	  ImageUtils::saveImageToFile(img, "output/tmp.png");
+//#endif
 
 
 	  double x_b = width_b * sign_x / 2.0 + b_pos.x; 
@@ -225,7 +227,12 @@ void LabelCombiner::_locateLabels()
 
 	  double y_b = s_b->getHeight() * sign_y / 2.0  + b_pos.y;
 	  double y_e = -s_e->getHeight() * sign_y / 2.0  + e_pos.y;
-
+		
+	  if((s_b->getCenter().y < s_e->getCenter().y && s_e->getCenter().y > y_b - height/2 && s_e->getCenter().y < y_b + height/2) ||
+		  (s_e->getCenter().y < s_b->getCenter().y && s_b->getCenter().y > y_e - height/2 && s_b->getCenter().y < y_e + height/2))//(height > 3*_cap_height/4)
+		  height =std::max(s_b->getHeight(), s_e->getHeight());
+	  else
+		  height /= 2.0;
       //double length = Vec2d::distance(b_pos, e_pos);
       ++next;
       //TODO: Find an appropriate length!
