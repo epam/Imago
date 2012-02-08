@@ -298,8 +298,7 @@ void LabelLogic::process( Segment *seg, int line_y )
             throw LabelException("Unexpected symbol position");
       }
       //superscript
-      else if (med < line_y - 0.5 * _cap_height && digit_small == 0 &&
-               (digit_small == -1 || digit_small == 0))
+      else if (med < line_y - 0.5 * _cap_height && digit_small == 0)
       {
          was_super = 1;
          if (was_charge)
@@ -366,8 +365,7 @@ void LabelLogic::process( Segment *seg, int line_y )
          }
       }
       //subscript
-      else if (med > line_y - 0.5 * _cap_height &&
-               (digit_small == -1 || digit_small == 0))
+      else if (med > line_y - 0.5 * _cap_height)
       {
          //If subscript will appear before any letter, do some BADABUM
          if (_cur_atom->label_first == 0)
