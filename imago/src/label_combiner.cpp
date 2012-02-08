@@ -191,20 +191,51 @@ void LabelCombiner::_locateLabels()
    SegmentsGraph::edge_iterator ei, ei_end, next;
    tie(ei, ei_end) = boost::edges(seg_graph);
 
+
+   boost::property_map<segments_graph::SegmentsGraph, boost::vertex_seg_ptr_t>::
+	   type img_ptrs = boost::get(boost::vertex_seg_ptr, seg_graph);
+
    RecognitionSettings &rs = getSettings();
 
    for (next = ei; ei != ei_end; ei = next)
    {
       Vec2d b_pos = positions[boost::source(*ei, seg_graph)],
             e_pos = positions[boost::target(*ei, seg_graph)];
+	  Vec2d dif; 
+	  dif.diff(e_pos, b_pos);
+	  dif = dif.getNormalized();
+	  double sign_x = dif.x>0 ? 1:-1;
+	  double sign_y = dif.y>0 ? 1:-1;
+
+	  Segment *s_b = boost::get(img_ptrs, boost::vertex(boost::source(*ei, seg_graph), seg_graph));
+	  Segment *s_e = boost::get(img_ptrs, boost::vertex(boost::target(*ei, seg_graph), seg_graph));
       
-      double length = Vec2d::distance(b_pos, e_pos);
+	  double width_b = s_b->getWidth();
+	  double width_e = s_e->getWidth();
+	  double width = (width_b+2*width_e)/3;
+	  double height = std::min(s_b->getHeight(), s_e->getHeight());
+	  if(height > 2*_cap_height/3)
+		  height /= 2.0;
+	  else
+		  height =std::max(s_b->getHeight(), s_e->getHeight());
+
+
+	  double x_b = width_b * sign_x / 2.0 + b_pos.x; 
+	  double x_e = -width_e * sign_x / 2.0  + e_pos.x; 
+
+	  double y_b = s_b->getHeight() * sign_y / 2.0  + b_pos.y;
+	  double y_e = -s_e->getHeight() * sign_y / 2.0  + e_pos.y;
+
+      //double length = Vec2d::distance(b_pos, e_pos);
       ++next;
       //TODO: Find an appropriate length!
-      if (length > (_space * 0.5 + 1.25 * _cap_height)) // ||
+	  if ((fabs(y_e - y_b) < width && fabs((double)(s_b->getCenter().x - s_e->getCenter().x)) < width/2)|| 
+		  (fabs(x_e - x_b) < width && fabs((double)(s_b->getCenter().y - s_e->getCenter().y)) < height))//(_space * 0.5 + 1.25 * _cap_height)) // ||
           //(fabs(k) > _parLinesEps && fabs(fabs(k) - PI) > _parLinesEps &&
           // fabs(k - PI_2) > _parLinesEps &&
           // fabs(fabs(k - PI_2) - PI) > _parLinesEps))
+		  continue;
+	  else
          boost::remove_edge(*ei, seg_graph);
    }
    
