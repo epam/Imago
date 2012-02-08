@@ -14,6 +14,7 @@ assert(os.path.isdir(indir))
 symbols = []
 symbols += [chr(ord('A') + i) for i in xrange(0, 26)]
 symbols += [chr(ord('a') + i) for i in xrange(0, 26)]
+symbols += ['$', '%', '^', '&']
 symbols += [str(i) for i in xrange(0, 10)]
 
 f = open(outpath, 'w')
