@@ -14,8 +14,6 @@
 
 #include "boost/foreach.hpp"
 #include "boost/graph/iteration_macros.hpp"
-#include "image_draw_utils.h"
-#include "image_utils.h"
 
 #include "algebra.h"
 #include "molecule.h"
@@ -116,48 +114,7 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
 
    std::set<Skeleton::Vertex> only_nearest;
    labels.assign(_labels.begin(), _labels.end());
-   //for (int i = 0; i < labels.size(); ++i)
-   //{
-   //   Label &l = labels[i];
-   //   boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type
-   //                           positions = boost::get(boost::vertex_pos, _g);
-	  //
-	  //space = l.MaxSymbolWidth() * 1.5;
-   //                  
-   //   int nearest = 0;    
-   //   Skeleton::Vertex nearest_vertex;           
-   //   BGL_FORALL_EDGES(e, _g, SkeletonGraph)
-   //   {
-   //      double d1, d2;
-   //      d1 = d2 = 1e16;
-
-   ////TODO: image209 double bond disappears somewhere here
-
-   //      if (boost::degree(boost::source(e, _g), _g) == 1)
-   //         d1 = Algebra::distance2rect(boost::get(positions,
-   //                                              boost::source(e, _g)), l.rect);
-
-   //      if (boost::degree(boost::target(e, _g), _g) == 1)
-   //         d2 = Algebra::distance2rect(boost::get(positions,
-   //                                              boost::target(e, _g)), l.rect);
-		 //
-
-   //      if (d1 <= d2 && d1 < space)
-   //      {
-   //         nearest++;
-   //         nearest_vertex = boost::source(e, _g);
-   //      }
-   //      else if (d2 < d1 && d2 < space)
-   //      {
-   //         nearest++;
-   //         nearest_vertex = boost::target(e, _g);
-   //      }
-   //   }
-   //   if (nearest == 1)
-   //      only_nearest.insert(nearest_vertex);
-   //}
-
-//   BOOST_FOREACH(Label &l, _labels)
+   
    for (int i = 0; i < labels.size(); ++i)
    {
       Label &l = labels[i];
@@ -188,16 +145,7 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
          if (boost::degree(boost::target(e, _g), _g) == 1)
             d2 = Algebra::distance2rect(boost::get(positions,
                                                  boost::target(e, _g)), l.rect);
-#ifdef DEBUG
-		 imago::Image img(1000, 800);
-		 img.fillWhite();
-		 ImageDrawUtils::putLineSegment(img, boost::get(positions, boost::source(e, _g)), boost::get(positions, boost::target(e, _g)),
-			 0);
-		 for(int i = 0;i <l.symbols.size();i++)
-		 ImageUtils::putSegment(img, *l.symbols[i]);
 
-		 ImageUtils::saveImageToFile(img, "output/tmp.png");
-#endif
 		 if (d1 <= d2 && testCollision(boost::get(positions, boost::target(e, _g)), boost::get(positions, boost::source(e, _g)), l.rect) &&
 			 testNear(boost::get(positions, boost::source(e, _g)), l.rect, space))
             nearest.push_back(boost::source(e, _g));
@@ -205,47 +153,6 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
 			 testNear(boost::get(positions, boost::target(e, _g)), l.rect, space))
             nearest.push_back(boost::target(e, _g));
 	  }
-   //}
-
-   //   //TODO: check if it's needed to do on each iteration
-   //   boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type
-   //                           positions = boost::get(boost::vertex_pos, _g);
-
-   //   BGL_FORALL_EDGES(e, _g, SkeletonGraph)
-   //   {
-   //      double d1, d2;
-   //      d1 = d2 = 1e16;
-
-   ////TODO: image209 double bond disappears somewhere here
-
-   //      if (boost::degree(boost::source(e, _g), _g) == 1)
-   //         d1 = Algebra::distance2rect(boost::get(positions,
-   //                                              boost::source(e, _g)), l.rect);
-
-   //      if (boost::degree(boost::target(e, _g), _g) == 1)
-   //         d2 = Algebra::distance2rect(boost::get(positions,
-   //                                              boost::target(e, _g)), l.rect);
-
-   //      if (d1 <= d2 && d1 < space)
-   //         nearest.push_back(boost::source(e, _g));
-   //      else if (d2 < d1 && d2 < space)
-   //         nearest.push_back(boost::target(e, _g));
-   //   }
-
-   //   if (nearest.size() > 1)
-   //   {
-   //      for (std::vector<Skeleton::Vertex>::iterator it = nearest.begin(),
-   //           end = nearest.end(); it != nearest.end();)// || nearest.size() != 1;)
-   //      {
-   //         if (only_nearest.find(*it) == only_nearest.end())
-   //            ++it;
-   //         else
-   //         {
-   //            it = nearest.erase(it);
-   //         }
-   //      }
-   //   }
-
 
 
       int s = nearest.size();
