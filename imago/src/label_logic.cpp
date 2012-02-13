@@ -68,7 +68,7 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
    /*L*/   "iau",
    /*M*/   "egnotd",
    /*N*/   "aeibdop",
-   /*O*/   "s",
+   /*O*/   "sc",
    /*P*/   "hdtormu",
    /*Q*/   "",
    /*R*/   "bhuena",
@@ -80,7 +80,7 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
    /*X*/   "e",
    /*Y*/   "b",
    /*Z*/   "nr",
-           "ABCEFGHIKLMNOPQRSTUVWYZX", //XD //K removed in "handwriting"
+           "ABCEFGHIKLMNOPQRSTUVWYZX$%^&", //XD //K removed in "handwriting"
            "abcdeghiklmnoprstuyz",
    };
    
@@ -133,6 +133,7 @@ void LabelLogic::process( Segment *seg, int line_y )
    double sameLineEps = 0.13; //(double)getSettings()["SameLineEps"];
                              //changed in "handwriting"
    bool capital = false;
+   int digit_small = -1;
    char hwc = _hwcr.recognize(*seg);
 
    bool plus = ImageUtils::testPlus(*seg);
@@ -140,7 +141,7 @@ void LabelLogic::process( Segment *seg, int line_y )
    //TODO: This can slowdown recognition process! Check this!
    if (seg->getHeight() > 0.85 * _cap_height && (hwc == -1 || hwc < '0' || hwc > '9'))
       capital = true;
-   else if (plus)
+   else if (hwc == -1 && plus)
       capital = false;
    else
    {
@@ -149,12 +150,8 @@ void LabelLogic::process( Segment *seg, int line_y )
       
       // No time to combine the recognizers properly. 
       // Just use one on top of another for now.
-      if (hwc == 'N')
+      if (hwc == 'N' || hwc == 'H' || hwc == 'O' || hwc == 'P')
          capital = true;
-      else if (hwc == 'H')
-         capital = true;
-      else if (hwc == 'O')
-         capital = true; // can be O or o or 0
       else if (seg->getFeatures().recognizable)
       {
          c_big = _cr.recognize(*seg, CharacterRecognizer::upper, &d_big);
@@ -164,6 +161,11 @@ void LabelLogic::process( Segment *seg, int line_y )
             capital = true;
          else
          {
+            if (d_digit + 1e-6 < d_small)
+               digit_small = 0;
+            else if (d_digit > d_small + 1e-6)
+               digit_small = 1;
+            
             if (c_small == 's' && c_digit == '2')
             {
                if (d_small < d_digit)
@@ -243,8 +245,34 @@ void LabelLogic::process( Segment *seg, int line_y )
 
          //TODO: Lowercase letter can be that height too!
 
-         _cur_atom->label_first = sym;
-         was_letter = 1;
+         switch(sym)
+         {
+         case '$':
+            _cur_atom->label_first = 'C';
+            _cur_atom->label_second = 'l';
+            was_letter = 0;
+            break;
+         case '%':
+            _cur_atom->label_first = 'H';
+            _cur_atom->count = 2;
+            was_letter = 0;
+            break;
+         case '^':
+            _cur_atom->label_first = 'H';
+            _cur_atom->count = 3;
+            was_letter = 0;
+            break;
+         case '&':
+            _cur_atom->label_first = 'O';
+            _satom->atoms.resize(_satom->atoms.size() + 1);
+            _cur_atom = &_satom->atoms[_satom->atoms.size() - 1];
+            _cur_atom->label_first = 'C';
+            was_letter = 0;
+            break;
+         default:
+            _cur_atom->label_first = sym;
+            was_letter = 1;
+         }
          was_charge = 0;
          was_super = 0;
       }
@@ -255,7 +283,8 @@ void LabelLogic::process( Segment *seg, int line_y )
       int med = bottom - 0.5 * seg->getHeight();
       //small letter
       if (bottom >= (line_y - sameLineEps * _cap_height) &&
-          bottom <= (line_y + sameLineEps * _cap_height))
+          bottom <= (line_y + sameLineEps * _cap_height) &&
+          (digit_small == -1 || digit_small == 1))
       {
          if (was_letter)
          {
@@ -269,7 +298,7 @@ void LabelLogic::process( Segment *seg, int line_y )
             throw LabelException("Unexpected symbol position");
       }
       //superscript
-      else if (med < line_y - 0.5 * _cap_height)
+      else if (med < line_y - 0.5 * _cap_height && digit_small == 0)
       {
          was_super = 1;
          if (was_charge)
@@ -375,6 +404,7 @@ void LabelLogic::recognizeLabel( Label& label )
       {
          _postProcess();
       }
+      
    }
    _postProcess();
 

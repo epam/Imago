@@ -287,8 +287,8 @@ void LabelCombiner::_fillLabelInfo( Label &l )
    int new_line_sep = -1;
    for (int i = 0, first_cap = -1; i < size; i++)
    {
-      if (first_cap < 0 && symbols[i]->getHeight() > _cap_height_error *
-                                                       _cap_height)
+      if (first_cap < 0 && symbols[i]->getHeight() > _cap_height_error * 0.5 *
+                                                                   _cap_height)
       {
          first_cap = i;
          first_line_y = symbols[i]->getY() + symbols[i]->getHeight();

@@ -17,7 +17,7 @@
 #include "image_utils.h"
 
 using namespace imago;
-const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&";
 const std::string CharacterRecognizer::lower = "abcdefghijklmnopqrstuvwxyz";
 const std::string CharacterRecognizer::digits = "0123456789";
 

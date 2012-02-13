@@ -26,6 +26,9 @@
 		A7226D1A13FAA58D004E59D9 /* libreaction.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1413FAA58D004E59D9 /* libreaction.a */; };
 		A7226D1B13FAA58D004E59D9 /* libtinyxml.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1513FAA58D004E59D9 /* libtinyxml.a */; };
 		A732667012AD20B3001F7D75 /* MainViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = A732666F12AD20B3001F7D75 /* MainViewController.mm */; };
+		A7340DCB14E3C579006210FA /* reaction-automap.png in Resources */ = {isa = PBXBuildFile; fileRef = A7340DC814E3C579006210FA /* reaction-automap.png */; };
+		A7340DCC14E3C579006210FA /* rgroup-attpoints.png in Resources */ = {isa = PBXBuildFile; fileRef = A7340DC914E3C579006210FA /* rgroup-attpoints.png */; };
+		A7340DCD14E3C579006210FA /* rgroup-label.png in Resources */ = {isa = PBXBuildFile; fileRef = A7340DCA14E3C579006210FA /* rgroup-label.png */; };
 		A73610F0147E65AB0089C629 /* reaxys.png in Resources */ = {isa = PBXBuildFile; fileRef = A73610EF147E65AB0089C629 /* reaxys.png */; };
 		A7484A20141A635B006AB1E6 /* base64.js in Resources */ = {isa = PBXBuildFile; fileRef = A748310C141A631C006AB1E6 /* base64.js */; };
 		A7484A21141A635B006AB1E6 /* cis_trans.js in Resources */ = {isa = PBXBuildFile; fileRef = A748310E141A631C006AB1E6 /* cis_trans.js */; };
@@ -118,14 +121,14 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 0F852300B2884766B3ED8483;
+			remoteGlobalIDString = 120C5DF1DB3B48EBAF6CC248;
 			remoteInfo = imago_static;
 		};
 		A7A8103D142CF3BE00222FFD /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 8D0DBB2A5EED4898A292FAD7;
+			remoteGlobalIDString = 5B65F32B3C2649EC8627EC16;
 			remoteInfo = png_local;
 		};
 		A7D6728E13461AA40030A6E1 /* PBXContainerItemProxy */ = {
@@ -146,7 +149,7 @@
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
 			proxyType = 1;
-			remoteGlobalIDString = 76776B066C7C45B19EE42586;
+			remoteGlobalIDString = 19435F2421C34887BF3046CC;
 			remoteInfo = jpeg_local;
 		};
 /* End PBXContainerItemProxy section */
@@ -174,6 +177,12 @@
 		A7226D1513FAA58D004E59D9 /* libtinyxml.a */ = {isa = PBXFileReference; lastKnownFileType = archive.ar; name = libtinyxml.a; path = ../third_party/indigo/ios/libtinyxml.a; sourceTree = "<group>"; };
 		A732666E12AD20B3001F7D75 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		A732666F12AD20B3001F7D75 /* MainViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MainViewController.mm; sourceTree = "<group>"; };
+		A7340DC814E3C579006210FA /* reaction-automap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reaction-automap.png"; sourceTree = "<group>"; };
+		A7340DC914E3C579006210FA /* rgroup-attpoints.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "rgroup-attpoints.png"; sourceTree = "<group>"; };
+		A7340DCA14E3C579006210FA /* rgroup-label.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "rgroup-label.png"; sourceTree = "<group>"; };
+		A7340DCF14E3C597006210FA /* reaxys.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = reaxys.js; sourceTree = "<group>"; };
+		A7340DD114E3C5A7006210FA /* raphael-group-plugin.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "raphael-group-plugin.js"; sourceTree = "<group>"; };
+		A7340DD214E3C5A7006210FA /* raphael.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = raphael.js; sourceTree = "<group>"; };
 		A73610EF147E65AB0089C629 /* reaxys.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = reaxys.png; sourceTree = "<group>"; };
 		A748310C141A631C006AB1E6 /* base64.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = base64.js; sourceTree = "<group>"; };
 		A748310E141A631C006AB1E6 /* cis_trans.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = cis_trans.js; sourceTree = "<group>"; };
@@ -395,9 +404,20 @@
 			name = iPad;
 			sourceTree = "<group>";
 		};
+		A7340DCE14E3C597006210FA /* reaxys */ = {
+			isa = PBXGroup;
+			children = (
+				A7340DCF14E3C597006210FA /* reaxys.js */,
+			);
+			path = reaxys;
+			sourceTree = "<group>";
+		};
 		A748310B141A631C006AB1E6 /* Ketcher */ = {
 			isa = PBXGroup;
 			children = (
+				A7340DD114E3C5A7006210FA /* raphael-group-plugin.js */,
+				A7340DD214E3C5A7006210FA /* raphael.js */,
+				A7340DCE14E3C597006210FA /* reaxys */,
 				A748310C141A631C006AB1E6 /* base64.js */,
 				A748310D141A631C006AB1E6 /* chem */,
 				A7483118141A631C006AB1E6 /* ios */,
@@ -470,6 +490,9 @@
 		A74849D5141A6358006AB1E6 /* action */ = {
 			isa = PBXGroup;
 			children = (
+				A7340DC814E3C579006210FA /* reaction-automap.png */,
+				A7340DC914E3C579006210FA /* rgroup-attpoints.png */,
+				A7340DCA14E3C579006210FA /* rgroup-label.png */,
 				E4B09E6614A0CAD90062ECFE /* reaction-unmap.png */,
 				E4B09E5E14A0C8F70062ECFE /* reaction-arrow.png */,
 				E4B09E5F14A0C8F70062ECFE /* reaction-map.png */,
@@ -705,6 +728,9 @@
 				E4B09E6314A0C8F70062ECFE /* reaction-map.png in Resources */,
 				E4B09E6414A0C8F70062ECFE /* reaction-plus.png in Resources */,
 				E4B09E6714A0CAD90062ECFE /* reaction-unmap.png in Resources */,
+				A7340DCB14E3C579006210FA /* reaction-automap.png in Resources */,
+				A7340DCC14E3C579006210FA /* rgroup-attpoints.png in Resources */,
+				A7340DCD14E3C579006210FA /* rgroup-label.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -834,7 +860,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer: Boris Karulin (TW63CWLY9S)";
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -847,7 +874,8 @@
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
 				ONLY_ACTIVE_ARCH = YES;
-				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "A9D41C69-7FE9-4969-BA9E-7BBE88BDEB48";
+				PROVISIONING_PROFILE = "";
+				"PROVISIONING_PROFILE[sdk=iphoneos*]" = "";
 				SDKROOT = iphoneos;
 			};
 			name = Debug;
@@ -858,7 +886,7 @@
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_ENTITLEMENTS = Entitlements.plist;
 				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=*]" = "iPhone Developer: Boris Karulin (TW63CWLY9S)";
+				"CODE_SIGN_IDENTITY[sdk=*]" = "iPhone Developer";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -872,7 +900,7 @@
 				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PROVISIONING_PROFILE = "";
-				"PROVISIONING_PROFILE[sdk=*]" = "FBAA1910-F9B2-44C4-BA72-B6FA3DBA96D1";
+				"PROVISIONING_PROFILE[sdk=*]" = "";
 				SDKROOT = iphoneos;
 			};
 			name = Release;

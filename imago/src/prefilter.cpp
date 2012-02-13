@@ -679,6 +679,8 @@ void _prefilterInternal2( Image &img )
 
 void _wiener2(cv::Mat &mat)
 {
+   bool debug_session = getSettings()["DebugSession"];
+   
 	cv::Mat dmat;
 	mat.convertTo(dmat, CV_64F, 1.0/255);
 	
@@ -695,7 +697,8 @@ void _wiener2(cv::Mat &mat)
 
 	imago::Image im2;
 	localMean.convertTo(mat, CV_8U, 255.0);
-_copyMatToImage(im2, mat);
+   _copyMatToImage(im2, mat);
+   if (debug_session)
       ImageUtils::saveImageToFile(im2, "output/pref3_wienerLocalMean.png");
 	//cv::blur(dmat, localMean, cv::Size(3, 3));
 
@@ -712,9 +715,10 @@ _copyMatToImage(im2, mat);
 	cv::pow(localMean, 2.0, temp);
 	//cv::subtract(localVar, temp, localVar);
 	localVar = localVar - temp;
-im2.clear();
-localVar.convertTo(mat, CV_8U, 255.0);
-_copyMatToImage(im2, mat);
+   im2.clear();
+   localVar.convertTo(mat, CV_8U, 255.0);
+   _copyMatToImage(im2, mat);
+   if (debug_session)
       ImageUtils::saveImageToFile(im2, "output/pref3_wienerLocalVar.png");
 	//calculate noise
 	cv::Scalar vnoise = cv::mean(localVar);
@@ -1195,11 +1199,11 @@ void prefilterFile(const char *filename, Image &image, const CharacterRecognizer
 void prefilterFile(const std::vector<unsigned char> &data, Image &image, const CharacterRecognizer &cr )
 {
    //Imago cannot load and resize!
-   Image raw;
+   //Image raw;
 
-   JpgLoader().loadImage(raw, &data[0], &data[0] + data.size());
-
-   _prefilterInternal(raw, image, cr);
+   JpgLoader().loadImage(image, &data[0], &data[0] + data.size());
+   prefilterImage(image, cr);
+   //_prefilterInternal(raw, image, cr);
    //_prefilterInternal2(raw);	
 }
 
