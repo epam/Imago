@@ -31,6 +31,8 @@ namespace imago
       void firstSeparation( SegmentDeque &layer_symbols, 
          SegmentDeque &layer_graphics );
 
+	  void SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque &layer_graphics );
+
    private:
 
       SegmentDeque &_segs;

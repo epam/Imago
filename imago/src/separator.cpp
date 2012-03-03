@@ -36,6 +36,9 @@
 #include "stat_utils.h"
 #include "thin_filter2.h"
 #include "recognition_settings.h"
+#include "graph_extractor.h"
+#include "stat_utils.h"
+#include "algebra.h"
 
 using namespace imago;
 
@@ -82,6 +85,318 @@ int Separator::HuClassifier(double hu[7])
 		return SEP_SYMBOL;
 
 	return SEP_SUSPICIOUS;
+}
+
+void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
+{
+	Molecule mol;
+	Points2d lsegments;
+	 double lnThickness = getSettings()["LineThickness"];
+    CvApproximator cvApprox;
+	imago::Skeleton graph;
+    GraphicsDetector gd(&cvApprox, lnThickness * 1.5);
+
+	Image timg(_img.getWidth(), _img.getHeight());
+	timg.fillWhite();
+
+	SegmentDeque::iterator sit;
+	// put the graphic layer on the image
+	for(sit = layer_graphics.begin();sit != layer_graphics.end(); sit++)
+	{
+		ImageUtils::putSegment(timg, *(*sit));
+	}
+	//approximate graphics with line segments
+	gd.detect(timg, lsegments);
+
+	if(lsegments.empty())
+		return;
+	
+	double avg_size = 0;
+
+	vector<double> lengths;
+	// find the minimum and max of the line segments
+	for (int i = 0; i < (int)lsegments.size() / 2; i++)
+	{
+      Vec2d &p1 = lsegments[2 * i];
+      Vec2d &p2 = lsegments[2 * i + 1];
+
+      double dist = Vec2d::distance(p1, p2);
+	  lengths.push_back(dist);
+   }
+
+	double min = timg.getHeight() * timg.getWidth();  //*(std::min(lengths.begin(), lengths.end()));
+	double max = 0;
+	for(int i=0;i<lengths.size();i++)
+	{
+		if(lengths[i] < min)
+			min = lengths[i];
+		if(lengths[i] > max)
+			max = lengths[i];
+	}
+	if(abs(min - max) < 0.01)
+		return;
+
+	//avg_size = StatUtils::Median(lengths.begin(), lengths.end());
+	
+	// Clustering line segments in 2 groups
+	double c1 = min, c2 = max, c1_o = min, c2_o = max;
+	IntVector classes;
+	for(int i=0;i<(int)lsegments.size() / 2;i++)
+		classes.push_back(0);
+	int count1 = 0, count2=0;
+
+	do
+	{
+		c1_o = c1;
+		c2_o = c2;
+
+		for (int i = 0; i < (int)lsegments.size() / 2; i++)
+		{
+		  Vec2d &p1 = lsegments[2 * i];
+		  Vec2d &p2 = lsegments[2 * i + 1];
+
+		  double dist = Vec2d::distance(p1, p2);
+		  double dc1 = abs(dist - c1);
+		  double dc2 = abs(dist - c2);
+		  if(dc1 < dc2)
+			  classes[i] = 0;
+		  else
+			  classes[i] = 1;
+		}
+		count1 = 0;
+		count2=0;
+		
+		double sum1=0, sum2 = 0;
+		
+		for(int i=0;i<classes.size();i++)
+			if(classes[i] == 0)
+			{
+				count1++;
+				sum1 += Vec2d::distance(lsegments[2*i], lsegments[2*i+1]);
+			}
+			else
+			{
+				count2++;
+				sum2 += Vec2d::distance(lsegments[2*i], lsegments[2*i+1]);
+			}
+		c1 = sum1 / count1;
+		c2 = sum2 / count2;
+	
+	}while(abs(c1 - c1_o) > 0.1 || abs(c2 - c2_o) > 0.1);
+
+	if(count1 == 0 || count2 == 0 || count1 > count2)
+		return;
+
+	
+	vector<Rectangle> symbRects;
+	IntVector LineCount;
+	vector<bool> visited;
+	for(int i=0;i<classes.size(); i++)
+		visited.push_back(false);
+	int ri = -1;
+	// integrate the results by joining close to each other segments
+	for(int i=0;i<classes.size();i++)
+	{
+		if(classes[i] != 0 || visited[i])
+			continue;
+		 
+		Vec2d &p1 = lsegments[2 * i];
+		Vec2d &p2 = lsegments[2 * i + 1];
+
+		Rectangle rec(p1.x < p2.x ? p1.x : p2.x,
+			p1.y < p2.y? p1.y:p2.y, abs(p1.x - p2.x)+1, abs(p1.y - p2.y)+1);
+
+		symbRects.push_back(rec);
+		LineCount.push_back(1);
+		ri++;
+		visited[i] = true;
+
+		for(int j=i+1; j < classes.size(); j++)
+		{
+			if(classes[j] != 0 || visited[j])
+				continue;
+			
+			Vec2d &sp1 = lsegments[2 * j];
+			Vec2d &sp2 = lsegments[2 * j + 1];
+
+			double dist1 = Algebra::distance2rect(sp1, symbRects[ri]);
+			double dist2 = Algebra::distance2rect(sp2, symbRects[ri]);
+			
+			//update rectangle
+			if(dist1 < 5 || dist2 < 5)
+			{
+				int left = symbRects[ri].x < sp1.x ? symbRects[ri].x : sp1.x; 
+					left = left < sp2.x ? left : sp2.x;
+				
+				int right = (symbRects[ri].x + symbRects[ri].width) > sp1.x ? (symbRects[ri].x  + symbRects[ri].width): sp1.x; 
+					right = right > sp2.x ? right : sp2.x;
+
+				int top = symbRects[ri].y < sp1.y ?  symbRects[ri].y : sp1.y; 
+					top = top < sp2.y ? symbRects[ri].y : sp2.y;
+
+				int bottom = (symbRects[ri].y + symbRects[ri].height) > sp1.y ? (symbRects[ri].y + symbRects[ri].height):sp1.y;
+				bottom = bottom > sp2.y ? bottom : sp2.y;
+
+				symbRects[ri] = Rectangle(left, top, right - left, bottom - top);
+				LineCount[ri]++;
+				visited[j] = true;
+			}
+			}
+		}
+
+		if(symbRects.empty())
+			return;
+
+		bool found_symbol = false;
+		RecognitionSettings &rs = getSettings();
+			
+		int sym_height_err = rs["SymHeightErr"], cap_height = rs["CapitalHeight"];
+		double susp_seg_density = rs["SuspSegDensity"],
+			adequate_ratio_max = rs["MaxSymRatio"],
+			adequate_ratio_min = rs["MinSymRatio"],
+			line_thick = rs["LineThickness"];
+
+		for(int i=0;i< symbRects.size(); i++)
+		{
+			if(LineCount[i] < 2)
+				continue;
+
+			int left = (symbRects[i].x - line_thick )< 0 ? 0 : symbRects[i].x - line_thick ;
+			int top =  (symbRects[i].y - line_thick )< 0 ? 0 : symbRects[i].y - line_thick ;
+			int right = (symbRects[i].x + symbRects[i].width + line_thick)  > timg.getWidth()? timg.getWidth() :
+																				symbRects[i].x + symbRects[i].width + line_thick;
+			int bottom = (symbRects[i].y + symbRects[i].height + line_thick) > timg.getHeight() ? timg.getHeight():
+				(symbRects[i].y + symbRects[i].height  + line_thick);
+
+			Image extracted(right - left+1, bottom - top+1);
+			extracted.fillWhite();
+
+
+			timg.extract(left, top, right, bottom, extracted); 
+			
+			SegmentDeque segs;
+			Segment *s = NULL;
+			Segmentator::segmentate(extracted, segs);
+
+			for(SegmentDeque::iterator it = segs.begin(); it!=segs.end(); it++)
+			{
+				int area = (*it)->density() * (*it)->getWidth() * (*it)->getHeight();
+
+				int tarea = s != NULL ? (*it)->density() * (*it)->getWidth() * (*it)->getHeight():
+					0;
+				if(tarea < area)
+				{
+					s = new Segment();
+					s->copy(**it);
+					s->getX() += left;
+					s->getY() += top;
+				}
+				delete *it;
+			}
+
+			segs.clear();
+
+			int mark;
+			
+			//	classify object
+				
+			
+				double hu[7];
+			
+				_getHuMomentsC(*s, hu);
+
+				mark = HuClassifier(hu);
+
+				if(//mark == SEP_SYMBOL && 
+					//(!(extracted.getHeight() >= cap_height - sym_height_err && extracted.getHeight() <= cap_height + sym_height_err && extracted.getHeight() <= cap_height * 2 && extracted.getWidth() <= 1.8 * cap_height)
+					//|| 
+					extracted.getHeight() < 0.25 *cap_height)
+					mark = SEP_SUSPICIOUS;
+		
+				if (rs["DebugSession"])
+				{
+					Image test(timg.getWidth(), timg.getHeight());
+
+					test.fillWhite();
+
+					imago::ImageUtils::putSegment(test, *s);
+					ImageUtils::saveImageToFile(test, "output/tmp.png");
+				}
+
+				if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
+				{
+				
+				 if (s->getHeight() >= cap_height - sym_height_err && 
+					 s->getHeight() <= cap_height + sym_height_err &&
+					 s->getHeight() <= cap_height * 2 &&
+					 s->getWidth() <= 1.8 * cap_height) 
+				 {
+					if (s->getRatio() > 0.96 && s->getRatio() < 1.05)
+					{
+					   if (_analyzeSpecialSegment(s, layer_graphics, layer_symbols))
+					   {
+						  mark = SEP_BOND;//layer_graphics.push_back(s);
+						  continue;
+					   }
+					}
+					if (s->getRatio() > adequate_ratio_max)
+					   if (ImageUtils::testSlashLine(*s, 0, 3.2)) //TODO: To rs immediately. Original is 1.0
+						  mark = SEP_BOND;
+					   else
+						  mark = SEP_SPECIAL;
+					else
+					   if (s->getRatio() < adequate_ratio_min)
+						  if (_testDoubleBondV(*s))
+							 mark = SEP_BOND;
+						  else
+							 mark = SEP_SUSPICIOUS;
+					   else
+						  if (ImageUtils::testSlashLine(*s, 0, 3.0)) //TODO: To rs immediately. Original is 1.3 
+							 mark = SEP_BOND;
+						  else 
+							 mark = SEP_SUSPICIOUS;
+				 }
+				 else
+					mark = SEP_BOND;
+				} 
+				 
+				
+				 if(mark == SEP_SYMBOL)
+				 {
+					 
+
+					  /*left = (symbRects[i].x - line_thick) < 0 ? symbRects[i].x : (symbRects[i].x - line_thick);
+					  top = (symbRects[i].y - line_thick) < 0 ? symbRects[i].y : (symbRects[i].y - line_thick);
+					  right = (symbRects[i].x + symbRects[i].width + line_thick) > timg.getWidth()? symbRects[i].x + symbRects[i].width :
+					 																(symbRects[i].x + symbRects[i].width + line_thick);
+					  bottom = (symbRects[i].y + symbRects[i].height + line_thick) > timg.getHeight() ? symbRects[i].y + symbRects[i].height:
+					 (symbRects[i].y + symbRects[i].height + line_thick);*/
+					 
+					 //TODO: combine segmented lines and segmentation to get only the useful part
+					/*Segment *s = new Segment();
+					 s->getX() = left;
+					 s->getY() = top;
+
+					 s->init(right - left +1, bottom - top + 1);*/
+					 //timg.extract(left, top, right, bottom, *s);
+
+					 //memcpy(s->getData(), extracted.getData(), extracted.getWidth()*extracted.getHeight() *sizeof(byte));
+					 imago::ImageUtils::cutSegment(timg, *s, false, 255);
+					 layer_symbols.push_back(s);
+					 found_symbol = true;
+					 
+				 }
+				 else
+					 delete s;
+		}
+
+		if(found_symbol)
+		{
+			layer_graphics.clear();
+			
+			Segmentator::segmentate(timg, layer_graphics);
+		}
+	
 }
 
 void Separator::firstSeparation( SegmentDeque &layer_symbols, 
@@ -139,7 +454,10 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 
 		mark = HuClassifier(hu);
 
-		if(mark == SEP_SYMBOL && !(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= 1.8 * cap_height))
+		if(mark == SEP_SYMBOL && 
+			(!(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= 1.8 * cap_height)
+			|| s->getHeight() < 0.25 *cap_height)
+			)
 			mark = SEP_SUSPICIOUS;
 		
 		 if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
@@ -222,6 +540,8 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
       //else
         // layer_symbols.push_back(s);
    }
+
+   SeparateStuckedSymbols(layer_symbols, layer_graphics);
 
    std::sort(layer_symbols.begin(), layer_symbols.end(), _segmentsComparator);
 }

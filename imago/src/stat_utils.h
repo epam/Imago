@@ -148,6 +148,31 @@ namespace imago
 
          return res;
       }
+
+	  /**
+       * @brief   Calculates arithmetic mean of @c int array
+       *
+       * @exception  ERROR Thrown when array is empty
+       *
+       * @return  arithmetic mean value
+       */
+      template<typename ForwardIterator> 
+      static typename ForwardIterator::value_type Median( ForwardIterator begin, ForwardIterator end )
+      {
+         int count = std::distance(begin, end);
+
+         if (count == 0)
+            throw UnderflowException();
+
+         typename ForwardIterator::value_type res = 0;
+
+		 std::sort(begin, end);
+
+		 res = count % 2 == 0 ? (*(begin+count/2 ) + *(begin + count/2 + 1))/2 :
+			 *(begin + count/2);
+
+         return res;
+      }
    };
 }
 
