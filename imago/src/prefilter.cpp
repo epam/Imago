@@ -850,7 +850,10 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	reduced = true;
    }
    else
-	   cv::GaussianBlur(mat, matred, cv::Size(5, 5), 1, 1, cv::BORDER_REPLICATE);
+	   if(strongThresh)
+		cv::GaussianBlur(mat, matred, cv::Size(5, 5), 1, 1, cv::BORDER_REPLICATE);
+	   else
+		   cv::bilateralFilter(mat, matred, 5, 20, getSettings()["LineThickness"]);
 
   
    
@@ -880,9 +883,11 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 
    //build structuring element
    //min area = 36, coefficient = 3.4722e-004
-   if(matred.total() > 8640*3 )
+   int minA = 8640*3;
+   if(matred.total() > minA )
    {
 	   int ssize = matred.total() * 3.4722e-004 / 3;
+	   ssize = ssize < 20 ? 20 : ssize;
 	   cv::Mat strel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ssize, ssize));
 	   matred = 255 - matred;
 	   //perform tophat transformation
