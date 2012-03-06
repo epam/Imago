@@ -78,8 +78,8 @@ int Separator::HuClassifier(double hu[7])
 		else
 			return SEP_SYMBOL;
 	if(hu[1] < 0.157 && (hu[0]<0.2483 && hu[2] > 0.0001 || 
-		hu[0]>0.2483 && hu[5] > 0.005 || 
-		hu[0]>0.2483 && hu[5] < 0.005 && hu[1] > 0.057 && hu[2] < 0.0017)) 
+		hu[0]>0.2483 && hu[1] > 0.079 && hu[1] < 0.117 || 
+		hu[0]>0.2483 && hu[1] < 0.0792 && hu[1] > 0.057 && hu[0] < 0.3125)) 
 			return SEP_BOND;
 	else
 		return SEP_SYMBOL;
