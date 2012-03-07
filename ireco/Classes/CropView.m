@@ -64,71 +64,82 @@ const int THRESHOLD = 50;
     UIRectFrame(myFrame);    
 }
 
+- (void)userDidTouchStart:(UITouch *)touch {
+   CGPoint pos = [touch locationInView:self];
+   //CGRect frame = [self frame];
+   
+   cropMove = 0;
+   
+   if (ABS(pos.x - currentFrame.origin.x) < THRESHOLD)
+      cropMove += MoveLeft;
+   if (ABS(pos.y - currentFrame.origin.y) < THRESHOLD)
+      cropMove += MoveTop;
+   if (ABS(pos.x - CGRectGetMaxX(currentFrame)) < THRESHOLD)
+      cropMove += MoveRight;
+   if (ABS(pos.y - CGRectGetMaxY(currentFrame)) < THRESHOLD)
+      cropMove += MoveBottom;
+}
+
+- (void)userDidTouchMove:(UITouch *)touch {
+   CGPoint pos = [touch locationInView:[self superview]];
+   //CGRect frame = [self frame];
+   
+   pos.x = MAX(pos.x, initialFrame.origin.x);
+   pos.y = MAX(pos.y, initialFrame.origin.y);
+   pos.x = MIN(pos.x, CGRectGetMaxX(initialFrame));
+   pos.y = MIN(pos.y, CGRectGetMaxY(initialFrame));
+   
+   if (cropMove & MoveLeft) 
+   {
+      pos.x = MIN(pos.x, CGRectGetMaxX(currentFrame) - 4 * THRESHOLD);
+      currentFrame.size.width += currentFrame.origin.x - pos.x;
+      currentFrame.origin.x = pos.x;
+   } else if (cropMove & MoveRight)
+   {
+      pos.x = MAX(pos.x, currentFrame.origin.x + 4 * THRESHOLD);
+      currentFrame.size.width = pos.x - currentFrame.origin.x;
+   }
+   
+   if (cropMove & MoveTop)
+   {
+      pos.y = MIN(pos.y, CGRectGetMaxY(currentFrame) - 4 * THRESHOLD);
+      currentFrame.size.height += currentFrame.origin.y - pos.y;
+      currentFrame.origin.y = pos.y;
+   } else if (cropMove & MoveBottom)
+   {
+      pos.y = MAX(pos.y, currentFrame.origin.y + 4 * THRESHOLD);
+      currentFrame.size.height = pos.y - currentFrame.origin.y;
+   }
+   
+   if (cropMove > 0) {
+      [self setNeedsDisplay];
+   }
+   //self.frame = frame;
+}
+- (void)userDidTouchEnd {
+   cropMove = 0;
+}
+
 - (void)touchesBegan:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch *touch = [touches anyObject];
-    CGPoint pos = [touch locationInView:self];
-    //CGRect frame = [self frame];
-
-    cropMove = 0;
-    
-    if (ABS(pos.x - currentFrame.origin.x) < THRESHOLD)
-        cropMove += MoveLeft;
-    if (ABS(pos.y - currentFrame.origin.y) < THRESHOLD)
-        cropMove += MoveTop;
-    if (ABS(pos.x - CGRectGetMaxX(currentFrame)) < THRESHOLD)
-        cropMove += MoveRight;
-    if (ABS(pos.y - CGRectGetMaxY(currentFrame)) < THRESHOLD)
-        cropMove += MoveBottom;
+    [self userDidTouchStart: touch];
 }
 
 - (void)touchesMoved:(NSSet *)touches withEvent:(UIEvent *)event
 {
     UITouch *touch = [touches anyObject];
-    CGPoint pos = [touch locationInView:[self superview]];
-    //CGRect frame = [self frame];
-    
-    pos.x = MAX(pos.x, initialFrame.origin.x);
-    pos.y = MAX(pos.y, initialFrame.origin.y);
-    pos.x = MIN(pos.x, CGRectGetMaxX(initialFrame));
-    pos.y = MIN(pos.y, CGRectGetMaxY(initialFrame));
-    
-    if (cropMove & MoveLeft) 
-    {
-        pos.x = MIN(pos.x, CGRectGetMaxX(currentFrame) - 4 * THRESHOLD);
-        currentFrame.size.width += currentFrame.origin.x - pos.x;
-        currentFrame.origin.x = pos.x;
-    } else if (cropMove & MoveRight)
-    {
-        pos.x = MAX(pos.x, currentFrame.origin.x + 4 * THRESHOLD);
-        currentFrame.size.width = pos.x - currentFrame.origin.x;
-    }
-    
-    if (cropMove & MoveTop)
-    {
-        pos.y = MIN(pos.y, CGRectGetMaxY(currentFrame) - 4 * THRESHOLD);
-        currentFrame.size.height += currentFrame.origin.y - pos.y;
-        currentFrame.origin.y = pos.y;
-    } else if (cropMove & MoveBottom)
-    {
-        pos.y = MAX(pos.y, currentFrame.origin.y + 4 * THRESHOLD);
-        currentFrame.size.height = pos.y - currentFrame.origin.y;
-    }
-    
-    if (cropMove > 0) {
-        [self setNeedsDisplay];
-    }
-    //self.frame = frame;
+   [self userDidTouchMove: touch];
 }
 
 - (void)touchesEnded:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    cropMove = 0;
+   [self userDidTouchEnd];
 }
 
 - (void)touchesCancelled:(NSSet *)touches withEvent:(UIEvent *)event
 {
-    cropMove = 0;
+   [self userDidTouchEnd];
 }
 
 - (void)setInitialFrame:(CGRect)frame

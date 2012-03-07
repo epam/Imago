@@ -8,21 +8,69 @@
 
 #import "MainWindow.h"
 
-@implementation MainWindow
+@implementation ViewToObserve
 
 @synthesize viewToObserve;
 @synthesize controllerThatObserves;
 
+- (void)dealloc
+{
+   [viewToObserve release];
+   [super dealloc];
+}
+
+- (id) initWithData:(UIView *)view andDelegate:(id)delegate {
+   self = [super init];
+   if(self) {
+      viewToObserve = view;
+      controllerThatObserves = delegate;
+   }
+   
+   return self;
+}
+
+- (void)sendEvent:(UIEvent *)event 
+{
+   if (viewToObserve == nil || controllerThatObserves == nil)
+      return;
+   NSSet *touches = [event allTouches];
+   if (touches.count != 1)
+      return;
+   UITouch *touch = touches.anyObject;
+   if (touch.view != nil && [touch.view isDescendantOfView:viewToObserve] == NO)
+      return;
+   if (touch.phase == UITouchPhaseBegan)
+      [controllerThatObserves userDidTouchStart:touch];
+   else if (touch.phase == UITouchPhaseMoved)
+      [controllerThatObserves userDidTouchMove:touch];
+   else if (touch.phase == UITouchPhaseEnded || touch.phase == UITouchPhaseCancelled)
+      [controllerThatObserves userDidTouchEnd];
+}
+
+@end
+
+@implementation MainWindow
+
+@synthesize viewObj;
+@synthesize viewsObjs;
+
 - (void)startObserveView:(UIView *)view andDelegate:(id)delegate
 {
-    self.viewToObserve = view;
-    self.controllerThatObserves = delegate;
+    if(self.viewsObjs == nil) {
+       self.viewsObjs = [[NSMutableArray alloc] init ]; 
+    }
+    [self.viewsObjs addObject:[[ViewToObserve alloc] initWithData:view andDelegate:delegate ] ];
+    self.viewObj = [[ViewToObserve alloc] initWithData:view andDelegate:delegate ]; 
+   
 }
 
 - (void)dealloc
 {
-    [viewToObserve release];
-    [super dealloc];
+   if(self.viewsObjs != nil) {
+      [viewsObjs release];
+   }
+   [viewObj release];
+   [super dealloc];
 }
 
 /*- (void)forwardMove:(id)touch 
@@ -32,32 +80,12 @@
 
 - (void)sendEvent:(UIEvent *)event 
 {
-    [super sendEvent:event];
-    if (viewToObserve == nil || controllerThatObserves == nil)
-        return;
-    NSSet *touches = [event allTouches];
-    if (touches.count != 1)
-        return;
-    UITouch *touch = touches.anyObject;
-    if (touch.view != nil && [touch.view isDescendantOfView:viewToObserve] == NO)
-        return;
-    if (touch.phase == UITouchPhaseBegan)
-        [controllerThatObserves userDidTouchStart:touch];
-    else if (touch.phase == UITouchPhaseMoved)
-        [controllerThatObserves userDidTouchMove:touch];
-    else if (touch.phase == UITouchPhaseEnded || touch.phase == UITouchPhaseCancelled)
-        [controllerThatObserves userDidTouchEnd];
-
-    /*
-    NSArray *pointArray = [NSArray arrayWithObjects:[NSString stringWithFormat:@"%f", tapPoint.x],
-                           [NSString stringWithFormat:@"%f", tapPoint.y], nil];
-    if (touch.tapCount == 1) {
-        [self performSelector:@selector(forwardTap:) withObject:pointArray afterDelay:0.5];
-    }
-    else if (touch.tapCount > 1) {
-        [NSObject cancelPreviousPerformRequestsWithTarget:self selector:@selector(forwardTap:) object:pointArray];
-    }
-     */
+   [super sendEvent:event];
+   if (viewsObjs == nil)
+       return;
+   for (ViewToObserve *view in viewsObjs) {
+      [view sendEvent:event];
+   }
 }
 
 @end

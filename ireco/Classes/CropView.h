@@ -8,6 +8,8 @@
 
 #import <UIKit/UIKit.h>
 
+#import "MainWindow.h"
+
 enum CropMove {
     MoveLeft = 1,
     MoveRight = 2,
@@ -15,7 +17,7 @@ enum CropMove {
     MoveBottom = 8
 };
 
-@interface CropView : UIView {
+@interface CropView : UIView <TapDetectingWindowDelegate> {
     int cropMove;
     CGRect initialFrame;
     CGRect currentFrame;

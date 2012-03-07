@@ -4,9 +4,10 @@
 #import "CropView.h"
 #import "OverlayViewController.h"
 #import "KetcherViewController.h"
+#import "MainWindow.h"
 
 @interface MainViewController : UIViewController <UIImagePickerControllerDelegate, UIScrollViewDelegate,
-                                                OverlayViewControllerDelegate>
+                                                OverlayViewControllerDelegate, TapDetectingWindowDelegate>
 {
     UIImageView *imageView;
     UIScrollView *scrollView;

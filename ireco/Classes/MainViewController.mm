@@ -34,6 +34,10 @@
         [toolbarItems removeObjectAtIndex:2];
         [self.toolbar setItems:toolbarItems animated:NO];
     } 
+
+    // Track touch events in the whole application including navigartion toolbar
+    [(MainWindow *)[[[UIApplication sharedApplication] delegate] window] startObserveView:self.view andDelegate:self];
+    [(MainWindow *)[[[UIApplication sharedApplication] delegate] window] startObserveView:self.navigationController.view andDelegate:self];
 }
 
 - (void)viewWillAppear:(BOOL)animated
@@ -60,6 +64,20 @@
     
    [super dealloc];
 }
+
+- (void)userDidTouchStart:(UITouch *)touch {
+   if (!cropView.hidden)
+      [cropView userDidTouchStart:touch];
+}
+- (void)userDidTouchMove:(UITouch *)touch {
+   if (!cropView.hidden)
+      [cropView userDidTouchMove:touch];
+}
+- (void)userDidTouchEnd {
+   if (!cropView.hidden)
+      [cropView userDidTouchEnd];
+}
+
 
 #pragma mark -
 -(UIImage*)imageRotatedByRadians:(UIImage*)anImage:(CGFloat)radians 

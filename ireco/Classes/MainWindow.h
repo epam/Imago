@@ -14,12 +14,21 @@
 - (void)userDidTouchEnd;
 @end
 
-@interface MainWindow : UIWindow {
-    UIView *viewToObserve;
-    id <TapDetectingWindowDelegate> controllerThatObserves;
-}
+@interface ViewToObserve : NSObject
+{
+   UIView *viewToObserve;
+   id <TapDetectingWindowDelegate> controllerThatObserves;
+} 
 @property (nonatomic, retain) UIView *viewToObserve;
 @property (nonatomic, assign) id <TapDetectingWindowDelegate> controllerThatObserves;
+@end
+
+@interface MainWindow : UIWindow {
+   NSMutableArray *viewsObjs;
+   ViewToObserve *viewObj; 
+}
+@property (nonatomic, retain) ViewToObserve *viewObj;
+@property (nonatomic, retain) NSMutableArray *viewsObjs;
 
 - (void)startObserveView:(UIView *)view andDelegate:(id)delegate;
 
