@@ -250,8 +250,32 @@
     {
         self.mailComposerController.mailComposeDelegate = self;
         
-        [self.mailComposerController addAttachmentData:[moldata dataUsingEncoding:[NSString defaultCStringEncoding]] mimeType:@"text/plain" fileName:@"beermat.mol"];
-        
+        NSDateFormatter *formatter;
+        NSString        *dateString;
+       
+        formatter = [[NSDateFormatter alloc] init];
+        [formatter setDateFormat:@"dd-MM-yyyy HH:mm"];
+       
+        dateString = [formatter stringFromDate:[NSDate date]];
+       
+        [formatter release];
+       
+        [self.mailComposerController setSubject:@"BeerMat molecule and photo"];
+       
+        [self.mailComposerController 
+            addAttachmentData:[moldata dataUsingEncoding:[NSString defaultCStringEncoding]] 
+            mimeType:@"text/plain"
+            fileName:[NSString stringWithFormat: @"molfile %@.mol", dateString]];
+
+        if (prevImage != 0)
+        {
+            NSLog(@"Converting image into Jpeg...\n");
+            NSData *rawImage = UIImageJPEGRepresentation(prevImage, 1.0f);
+            [self.mailComposerController
+               addAttachmentData:rawImage
+               mimeType:@"image/jpeg"
+               fileName:[NSString stringWithFormat: @"photo %@.jpeg", dateString]];
+        }
         [self presentModalViewController:self.mailComposerController animated:YES];
     }
 }
