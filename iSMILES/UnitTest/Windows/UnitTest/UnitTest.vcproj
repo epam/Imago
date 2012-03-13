@@ -114,6 +114,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
+				AdditionalIncludeDirectories="../../../../libpng"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -165,10 +166,6 @@
 	<References>
 	</References>
 	<Files>
-		<Filter
-			Name="libjpeg"
-			>
-		</Filter>
 		<Filter
 			Name="libpng"
 			>
@@ -380,6 +377,14 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\src\Vectorization\ContourSplit.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\..\..\src\Vectorization\ContourSplit.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\src\Vectorization\ImageMap.cpp"
 					>
 				</File>
@@ -388,8 +393,20 @@
 					>
 				</File>
 				<File
+					RelativePath="..\..\..\src\Vectorization\Line.h"
+					>
+				</File>
+				<File
 					RelativePath="..\..\..\src\Vectorization\LinearApproximation.cpp"
 					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
 					RelativePath="..\..\..\src\Vectorization\LinearApproximation.h"
@@ -404,11 +421,19 @@
 					>
 				</File>
 				<File
-					RelativePath="..\..\..\src\Vectorization\Vectorize.cpp"
+					RelativePath="..\..\..\src\Vectorization\VertexRegroup.cpp"
 					>
+					<FileConfiguration
+						Name="Release|Win32"
+						ExcludedFromBuild="true"
+						>
+						<Tool
+							Name="VCCLCompilerTool"
+						/>
+					</FileConfiguration>
 				</File>
 				<File
-					RelativePath="..\..\..\src\Vectorization\Vectorize.h"
+					RelativePath="..\..\..\src\Vectorization\VertexRegroup.h"
 					>
 				</File>
 			</Filter>
@@ -458,7 +483,23 @@
 			</Filter>
 		</Filter>
 		<File
-			RelativePath="..\..\ut_draw_primitives.cpp"
+			RelativePath="..\..\..\src\Logger.h"
+			>
+		</File>
+		<File
+			RelativePath=".\main.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\src\Parameters.cpp"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\src\Parameters.h"
+			>
+		</File>
+		<File
+			RelativePath="..\..\..\src\Timer.h"
 			>
 		</File>
 	</Files>

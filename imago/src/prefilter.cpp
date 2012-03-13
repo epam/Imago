@@ -5,6 +5,7 @@
 #include "image.h"
 #include "log.h"
 #include "current_session.h"
+#include "log_ext.h"
 #include "exception.h"
 #include "segmentator.h"
 #include "output.h"
@@ -298,25 +299,31 @@ void _removeSpots (Image &img, int validcolor, int max_size)
 
 static void _prefilterInternal( const Image &raw, Image &image, const CharacterRecognizer &_cr )
 {
+	logEnterFunction();
+
+	getLogExt().append("Source image", image);
+
    int w = raw.getWidth();
    int h = raw.getHeight();
    LPRINT(0, "loaded image %d x %d", w, h);
    int maxside = (w < h) ? h : w;
    int n = maxside / 800;
-   bool debug_session = getSettings()["DebugSession"];
+   //bool debug_session = getSettings()["DebugSession"];
    Image img;
 
    if (n > 1)
    {
-      cv::Mat mat;
-      _copyImageToMat(raw, mat);
-      LPRINT(0, "resizing down %d times", n);
-      cv::Mat dst;
-      cv::resize(mat, dst, cv::Size(), 1.0 / n, 1.0 / n);
-      _copyMatToImage(img, dst);
+		  cv::Mat mat;
+		  _copyImageToMat(raw, mat);
+		  LPRINT(0, "resizing down %d times", n);
+		  cv::Mat dst;
+		  cv::resize(mat, dst, cv::Size(), 1.0 / n, 1.0 / n);
+		  _copyMatToImage(img, dst);
 
-   if (debug_session)
-      ImageUtils::saveImageToFile(img, "output/01_after_subsampling.png");
+	   //if (debug_session)
+		 // ImageUtils::saveImageToFile(img, "output/01_after_subsampling.png");
+	   
+	   getLogExt().append("After subsampling", img);
    }
    else
       img.copy(raw);
@@ -325,8 +332,10 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
       LPRINT(0, "blurring");
       _blur(img, 1);
 
-      if (debug_session)
-         ImageUtils::saveImageToFile(img, "output/02_after_blur.png");
+      //if (debug_session)
+      //   ImageUtils::saveImageToFile(img, "output/02_after_blur.png");
+
+	  getLogExt().append("After blurring", img);
    }
 
 
@@ -336,8 +345,10 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
    {
       int avg = img.mean();
 
-      if (debug_session)
-         fprintf(stderr, "average brightness = %d\n", avg);
+      //if (debug_session)
+      //   fprintf(stderr, "average brightness = %d\n", avg);
+
+	  getLogExt().append("Average brightness", avg);
       
       if (avg < 155)
       {
@@ -356,8 +367,9 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
       //pixDestroy(&pix);
       pix = newpix;
       }*/
-   if (debug_session)
-      ImageUtils::saveImageToFile(img, "output/03_after_normalization.png");
+   //if (debug_session)
+   //   ImageUtils::saveImageToFile(img, "output/03_after_normalization.png");
+   getLogExt().append("After normalization", img);
 
    Image weakimg;
    weakimg.copy(img);
@@ -367,38 +379,43 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
 
       _unsharpMask(img, 8, 4, 0);
       
-      if (debug_session)
-         ImageUtils::saveImageToFile(img, "output/04_after_strong_unsharp_mask.png");
+      //if (debug_session)
+      //   ImageUtils::saveImageToFile(img, "output/04_after_strong_unsharp_mask.png");
+	  getLogExt().append("After unsharp mask", img);
    }
 
    {
       Binarizer b(img, 50); //32
       b.apply();
 
-      if (debug_session)
-         ImageUtils::saveImageToFile(img, "output/05_after_strong_binarization.png");
+      //if (debug_session)
+      //   ImageUtils::saveImageToFile(img, "output/05_after_strong_binarization.png");
+	  getLogExt().append("After strong binarization", img);
    }
 
    Image strongimg;
    strongimg.copy(img);
    _removeSpots(strongimg, 0, 10);
 
-   if (debug_session)
-      ImageUtils::saveImageToFile(img, "output/06_after_spots_removal.png");
+   //if (debug_session)
+   //   ImageUtils::saveImageToFile(img, "output/06_after_spots_removal.png");
+   getLogExt().append("After spots removal", img);
 
    {
       LPRINT(0, "unsharp mask (weak)");
       _unsharpMask(weakimg, 10, 8, 0); //10 12
       
-      if (debug_session)
-         ImageUtils::saveImageToFile(weakimg, "output/07_after_weak_unsharp_mask.png");
+      //if (debug_session)
+      //   ImageUtils::saveImageToFile(weakimg, "output/07_after_weak_unsharp_mask.png");
+	  getLogExt().append("After weak unsharp mask", weakimg);
    }
 
    {
       Binarizer b(weakimg, 75);
       b.apply();
-      if (debug_session)
-         ImageUtils::saveImageToFile(weakimg, "output/08_after_weak_binarization.png");
+      //if (debug_session)
+      //   ImageUtils::saveImageToFile(weakimg, "output/08_after_weak_binarization.png");
+	  getLogExt().append("After weak binarization", weakimg);
    }
 
    SegmentDeque weak_segments;
@@ -406,11 +423,13 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
    Segmentator::segmentate(weakimg, weak_segments);
    Segmentator::segmentate(strongimg, strong_segments);
 
-   if (debug_session)
-   {
-      fprintf(stderr, "%d weak segments\n", weak_segments.size());
-      fprintf(stderr, "%d strong segments\n", strong_segments.size());
-   }
+   //if (debug_session)
+   //{
+   //   fprintf(stderr, "%d weak segments\n", weak_segments.size());
+   //   fprintf(stderr, "%d strong segments\n", strong_segments.size());
+   //}
+   getLogExt().append("Weak segments count", weak_segments.size());
+   getLogExt().append("Strong segments count", strong_segments.size());
 
    image.init(w, h);
    image.fillWhite();
@@ -473,8 +492,9 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
       if (!found)
       {
          // should not happen
-         if (debug_session)
-            fprintf(stderr, "weak segment not found\n");
+         //if (debug_session)
+         //   fprintf(stderr, "weak segment not found\n");
+		 getLogExt().append("Weak segment not found!");
       }
    }
 
@@ -514,8 +534,10 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
 
    LPRINT(0, "Filtering done");
 
-   if (debug_session)
-      ImageUtils::saveImageToFile(image, "output/09_final.png");
+   //if (debug_session)
+   //   ImageUtils::saveImageToFile(image, "output/09_final.png");
+   getLogExt().append("Final image", image);
+
 }
 
 int EstimateLineThickness(Image &bwimg)
@@ -580,13 +602,16 @@ int EstimateLineThickness(Image &bwimg)
 
 void CombineWeakStrong(SegmentDeque &weak_segments, SegmentDeque &strong_segments, Image &image)//const Image &weakimg, const Image &strongimg
 {
-   bool debug_session = getSettings()["DebugSession"];
+	logEnterFunction();
+   //bool debug_session = getSettings()["DebugSession"];
 
-   if (debug_session)
-   {
-      fprintf(stderr, "%d weak segments\n", weak_segments.size());
-      fprintf(stderr, "%d strong segments\n", strong_segments.size());
-   }
+   //if (debug_session)
+   //{
+   //   fprintf(stderr, "%d weak segments\n", weak_segments.size());
+   //   fprintf(stderr, "%d strong segments\n", strong_segments.size());
+   //}
+	getLogExt().append("Weak segments count", weak_segments.size());
+	getLogExt().append("Strong segments count", strong_segments.size());
 
    image.fillWhite();
 
@@ -648,10 +673,12 @@ void CombineWeakStrong(SegmentDeque &weak_segments, SegmentDeque &strong_segment
       if (!found)
       {
          // should not happen
-         if (debug_session)
-            fprintf(stderr, "weak segment not found\n");
+         //if (debug_session)
+         //   fprintf(stderr, "weak segment not found\n");
+		  getLogExt().append("Weak segment not found");
       }
    }
+
 }
 
 void _prefilterInternal2( Image &img )
@@ -679,7 +706,8 @@ void _prefilterInternal2( Image &img )
 
 void _wiener2(cv::Mat &mat)
 {
-   bool debug_session = getSettings()["DebugSession"];
+	logEnterFunction();
+   //bool debug_session = getSettings()["DebugSession"];
    
 	cv::Mat dmat;
 	mat.convertTo(dmat, CV_64F, 1.0/255);
@@ -698,8 +726,9 @@ void _wiener2(cv::Mat &mat)
 	imago::Image im2;
 	localMean.convertTo(mat, CV_8U, 255.0);
    _copyMatToImage(im2, mat);
-   if (debug_session)
-      ImageUtils::saveImageToFile(im2, "output/pref3_wienerLocalMean.png");
+   //if (debug_session)
+   //   ImageUtils::saveImageToFile(im2, "output/pref3_wienerLocalMean.png");
+   getLogExt().append("Wiener local mean", im2);
 	//cv::blur(dmat, localMean, cv::Size(3, 3));
 
 	//calculate local variance
@@ -718,8 +747,9 @@ void _wiener2(cv::Mat &mat)
    im2.clear();
    localVar.convertTo(mat, CV_8U, 255.0);
    _copyMatToImage(im2, mat);
-   if (debug_session)
-      ImageUtils::saveImageToFile(im2, "output/pref3_wienerLocalVar.png");
+   //if (debug_session)
+    //  ImageUtils::saveImageToFile(im2, "output/pref3_wienerLocalVar.png");
+   getLogExt().append("Wiener local var", im2);
 	//calculate noise
 	cv::Scalar vnoise = cv::mean(localVar);
 	double noise = 2 * vnoise[0];
@@ -824,6 +854,8 @@ int greyThresh(cv::Mat mat, bool strong)
 
 void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecognizer &_cr, bool adaptiveThresh=false, bool strongThresh=false)
 {
+	logEnterFunction();
+
 	int w = raw.getWidth();
 	int h = raw.getHeight();
    
@@ -831,7 +863,7 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 
 	cv::Mat mat, rmat;
 	Image img, cimg;
-	bool debug_session = getSettings()["DebugSession"];
+	//bool debug_session = getSettings()["DebugSession"];
 
    
 	int maxside = (w < h) ? h : w;
@@ -857,10 +889,11 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 
   
    
-   if(debug_session)
+   if(getLogExt().loggingEnabled()) // debug_session)
    {
 	   _copyMatToImage(cimg, matred);
-	   ImageUtils::saveImageToFile(cimg, "output/pref3_pyrDown.png");
+	   //ImageUtils::saveImageToFile(cimg, "output/pref3_pyrDown.png");
+	   getLogExt().append("Pyr down", cimg);
    }
 
    //make edges stronger
@@ -874,11 +907,12 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	   cv::add(crmat, matred, matred);
    }*/
 
-   if(debug_session)
+   if(getLogExt().loggingEnabled())// debug_session)
    {
 	   cimg.clear();
 	   _copyMatToImage(cimg, matred);
-	   ImageUtils::saveImageToFile(cimg, "output/pref3_strongerEdges.png");
+	   //ImageUtils::saveImageToFile(cimg, "output/pref3_strongerEdges.png");
+	   getLogExt().append("Stronger edges", cimg);
    }
 
    //build structuring element
@@ -902,22 +936,24 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
    _copyImageToMat(img, matred);
    img.clear();
    
-   if(debug_session)
+   if(getLogExt().loggingEnabled()) // debug_session)
    {
 	   cimg.clear();
 	   _copyMatToImage(cimg, matred);
-	   ImageUtils::saveImageToFile(cimg, "output/pref3_tophat.png");
+	   //ImageUtils::saveImageToFile(cimg, "output/pref3_tophat.png");
+	   getLogExt().append("Tophat", cimg);
    }
 
    //Compute histogram limits to adjust the image
    HistogramTools ht(matred);
    ht.ImageAdjust(matred);
 
-	if (debug_session)
+   if (getLogExt().loggingEnabled())// debug_session)
 	{
 		cimg.clear();
 		_copyMatToImage(cimg, matred);
-		ImageUtils::saveImageToFile(cimg, "output/pref3_imadjust.png");
+		//ImageUtils::saveImageToFile(cimg, "output/pref3_imadjust.png");
+		getLogExt().append("Imadjust", cimg);
 	}
 
 	//wiener filter
@@ -927,10 +963,11 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	_copyMatToImage(cimg, matred);
 
 
-	if (debug_session)
-	{
-		ImageUtils::saveImageToFile(cimg, "output/pref3_wiener.png");
-	}
+	//if (debug_session)
+	//{
+	//	ImageUtils::saveImageToFile(cimg, "output/pref3_wiener.png");
+	//}
+	getLogExt().append("Wiener", cimg);
 
 	
 	//sharp edges
@@ -983,10 +1020,11 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	cimg.clear();
 	_copyMatToImage(cimg, mat);
 
-	if (debug_session)
-	{	
-		ImageUtils::saveImageToFile(cimg, "output/pref3_after_pref.png");
-	}
+	//if (debug_session)
+	//{	
+	//	ImageUtils::saveImageToFile(cimg, "output/pref3_after_pref.png");
+	//}
+	getLogExt().append("After pref", cimg);
 
 	image.copy(cimg);
 
@@ -1022,6 +1060,8 @@ bool SegCompare (Segment *i, Segment *j)
 
 void prefilterImage( Image &image, const CharacterRecognizer &cr )
 {
+	logEnterFunction();
+
    Image raw, cimg;
    
    raw.copy(image);
@@ -1150,14 +1190,15 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 	   for(rsit = psegs.rbegin(); rsit != psegs.rend(); rsit++)
 	   {
 		   Segment *s = *rsit;
-		   imago::ImageUtils::putSegment(outImg, *s);
+		   imago::ImageUtils::putSegment(outImg, *s); // why in debug loop only?!
 	  
-		   ImageUtils::saveImageToFile(outImg, "output/pref3_final.png");
+		   //ImageUtils::saveImageToFile(outImg, "output/pref3_final.png");
 		   Image ims;
 		   s->extract(0, 0, s->getWidth(), s->getHeight(), ims);
-		   char path[256] = "output/segs/";
-		   sprintf(path, "output/segs/%d.png", i);
-		   ImageUtils::saveImageToFile(ims, path);
+		   //char path[256] = "output/segs/";
+		   //sprintf(path, "output/segs/%d.png", i);
+		   //ImageUtils::saveImageToFile(ims, path);
+		   getLogExt().append("Segment", ims);
 		   i++;   
 	   }
    }
@@ -1167,8 +1208,9 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 
    Image cs(cimg.getWidth(), cimg.getHeight());
 	_prefilterInternal3(cimg, cs, cr); 
-   if(getSettings()["DebugSession"])
-			ImageUtils::saveImageToFile(cs, "output/pref3_final.png");
+   //if(getSettings()["DebugSession"])
+	//		ImageUtils::saveImageToFile(cs, "output/pref3_final.png");
+	getLogExt().append("After _prefilterInternal3", cs);
 	
    
 	SegmentDeque weak_segments;
@@ -1178,8 +1220,9 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    cimg.init(cs.getWidth(), cs.getHeight());
    CombineWeakStrong(weak_segments, psegs, cimg);
 	
-   if(getSettings()["DebugSession"])
-	   ImageUtils::saveImageToFile(cimg, "output/pref3_final.png");
+   //if(getSettings()["DebugSession"])
+	//   ImageUtils::saveImageToFile(cimg, "output/pref3_final.png");
+   getLogExt().append("Pref3 final", cimg);
    
    BOOST_FOREACH(Segment *s, weak_segments)
 	   delete s;
@@ -1189,6 +1232,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    psegs.clear();
    weak_segments.clear();
    image.copy(cimg);
+
 }
 
 void prefilterFile(const char *filename, Image &image, const CharacterRecognizer &cr )

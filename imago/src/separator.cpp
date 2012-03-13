@@ -25,6 +25,7 @@
 #include "approximator.h"
 #include "comdef.h"
 #include "current_session.h"
+#include "log_ext.h"
 #include "graphics_detector.h"
 #include "exception.h"
 #include "image.h"
@@ -89,6 +90,10 @@ int Separator::HuClassifier(double hu[7])
 
 void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
 {
+	logEnterFunction();
+
+	// TODO: more logging here
+
 	Molecule mol;
 	Points2d lsegments;
 	 double lnThickness = getSettings()["LineThickness"];
@@ -313,7 +318,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 					extracted.getHeight() < 0.25 *cap_height)
 					mark = SEP_SUSPICIOUS;
 		
-				if (rs["DebugSession"])
+				/*if (rs["DebugSession"])
 				{
 					Image test(timg.getWidth(), timg.getHeight());
 
@@ -321,7 +326,9 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 					imago::ImageUtils::putSegment(test, *s);
 					ImageUtils::saveImageToFile(test, "output/tmp.png");
-				}
+				}*/
+
+				getLogExt().append("temp", *s);
 
 				if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
 				{
@@ -402,6 +409,8 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 void Separator::firstSeparation( SegmentDeque &layer_symbols, 
    SegmentDeque &layer_graphics )
 {
+	logEnterFunction();
+
    int cap_height;
    IntVector suspicious_segments;
    RecognitionSettings &rs = getSettings();
@@ -443,8 +452,11 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
       {
          int mark;
 
-         if (rs["DebugSession"])
-            ImageUtils::saveImageToFile(*s, "output/tmp.png");
+         //if (rs["DebugSession"])
+         //   ImageUtils::saveImageToFile(*s, "output/tmp.png");
+
+		 getLogExt().append("temp", *s);
+
 		 //thin segment
 		 Image temp;
 		 s->extract(0, 0, s->getWidth(), s->getHeight(), temp);
@@ -544,6 +556,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
    SeparateStuckedSymbols(layer_symbols, layer_graphics);
 
    std::sort(layer_symbols.begin(), layer_symbols.end(), _segmentsComparator);
+
 }
 
 bool Separator::_analyzeSpecialSegment( Segment *seg, SegmentDeque &layer_graphics, SegmentDeque &layer_symbols )
@@ -760,6 +773,8 @@ bool Separator::_checkSequence( IntPair &checking, IntPair &symbols_graphics, do
 
 bool Separator::_testDoubleBondV( Segment &segment )
 {
+	logEnterFunction();
+
    int double_bond_dist;
    double adequate_ratio_min;
    bool ret = false;
@@ -767,8 +782,9 @@ bool Separator::_testDoubleBondV( Segment &segment )
    Segment tmp, segment_tmp;
    RecognitionSettings &rs = gSession.get()->settings();
 
-   if (rs["DebugSession"])
-      ImageUtils::saveImageToFile(segment, "output/tmp_seg.png");
+   //if (rs["DebugSession"])
+   //   ImageUtils::saveImageToFile(segment, "output/tmp_seg.png");
+   getLogExt().append("segment", segment);
 
    adequate_ratio_min = rs["MinSymRatio"];
    double_bond_dist = rs["DoubleBondDist"];

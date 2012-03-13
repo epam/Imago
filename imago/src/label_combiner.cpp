@@ -23,6 +23,7 @@
 #include "label_combiner.h"
 #include "recognition_settings.h"
 #include "current_session.h"
+#include "log_ext.h"
 //#include "font.h"
 #include "character_recognizer.h"
 #include "rng_builder.h"
@@ -105,6 +106,8 @@ int LabelCombiner::_findCapitalHeight()
 
 void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
 {
+	logEnterFunction();
+
    SegmentDeque::iterator cur_s, next_s;
    SegmentDeque::iterator cur_l;
    int count = 0;
@@ -112,8 +115,9 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
    {
       next_s = cur_s + 1;
 
-      if (getSettings()["DebugSession"])
-         ImageUtils::saveImageToFile(**cur_s, "output/tmp_fetch.png");
+      //if (getSettings()["DebugSession"])
+      //   ImageUtils::saveImageToFile(**cur_s, "output/tmp_fetch.png");
+	  getLogExt().append("Work image", **cur_s);
 
       if ((*cur_s)->getHeight() > _cap_height + (int)getSettings()["SymHeightErr"])
          continue;
@@ -130,10 +134,12 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
          bool plus = ImageUtils::testPlus(**cur_s);
 
          if (minus)
-            puts("MINUS!!!");
+			 getLogExt().append("Minus detected");
+            //puts("MINUS!!!");
 
          if (plus)
-            puts("PLUS!!!");
+			 getLogExt().append("Plus detected");
+            //puts("PLUS!!!");
 
          if (!plus && !minus)
          {
@@ -171,6 +177,7 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
       }
    }
    layer.erase(layer.begin(), layer.begin() + count);
+
 }
 
 void LabelCombiner::extractLabels( std::deque<Label> &labels )
@@ -180,6 +187,8 @@ void LabelCombiner::extractLabels( std::deque<Label> &labels )
 
 void LabelCombiner::_locateLabels()
 {
+	logEnterFunction();
+
    using namespace segments_graph;
 
    SegmentsGraph seg_graph;
@@ -246,13 +255,15 @@ void LabelCombiner::_locateLabels()
          boost::remove_edge(*ei, seg_graph);
    }
    
-   if (rs["DebugSession"])
+   /*if (getLogExt().loggingEnabled())// rs["DebugSession"])
    {
       Image img(_imgWidth, _imgHeight);
       img.fillWhite();
       ImageDrawUtils::putGraph(img, seg_graph);
-      ImageUtils::saveImageToFile(img, "output/lc_rng.png");
-   }
+      //ImageUtils::saveImageToFile(img, "output/lc_rng.png");
+	  getLogExt().append("lc_rng", img);
+   }*/
+   getLogExt().append("seg_graph", seg_graph);
 
    std::vector<int> _components(boost::num_vertices(seg_graph));
    int cc = boost::connected_components(seg_graph, &_components[0]);
@@ -275,6 +286,7 @@ void LabelCombiner::_locateLabels()
       }
       //printf("\n");
    }
+
 }
 
 void LabelCombiner::_fillLabelInfo( Label &l )

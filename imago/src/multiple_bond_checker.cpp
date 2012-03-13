@@ -15,6 +15,7 @@
 #include "multiple_bond_checker.h"
 #include "algebra.h"
 #include "current_session.h"
+#include "log_ext.h"
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/iteration_macros.hpp"
 #include "boost/foreach.hpp"
@@ -42,6 +43,8 @@ MultipleBondChecker::~MultipleBondChecker()
 
 bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
 {
+	//logEnterFunction();
+
    first = frst, second = scnd;
    bf = _s.getBondInfo(first); bs = _s.getBondInfo(second);
 
@@ -221,6 +224,8 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
 
 bool MultipleBondChecker::checkTriple( Edge thrd )
 {
+	//logEnterFunction();
+
    third = thrd;
    bt = _s.getBondInfo(third);
 

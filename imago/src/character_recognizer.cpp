@@ -15,6 +15,8 @@
 #include "stl_fwd.h"
 #include "thin_filter2.h"
 #include "image_utils.h"
+#include "current_session.h"
+#include "log_ext.h"
 
 using namespace imago;
 const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&";
@@ -73,6 +75,7 @@ double CharacterRecognizer::_compareDescriptors( const std::vector<double> &d1,
 double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
                                               const SymbolFeatures &f2 )
 {
+
    double d = _compareDescriptors(f1.descriptors, f2.descriptors);
 
    if (f1.inner_contours_count == -1 || f2.inner_contours_count == -1)
@@ -90,17 +93,55 @@ double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
    return sqrt(d);
 }
 
+
 char CharacterRecognizer::recognize( const Segment &seg,
                                      const std::string &candidates,
                                      double *dist ) const
 {
+   logEnterFunction();
+
+   getLogExt().append("Candidates", candidates);
+   getLogExt().append("Source segment", seg);
+
+   if(getLogExt().loggingEnabled())
+   {
+	   Segment thinseg;
+	   thinseg.copy(seg);
+	   ThinFilter2 tf(thinseg);
+	   tf.apply();
+	   getLogExt().append("Thinned segment", thinseg);
+   }
+
    seg.initFeatures(_count);
-   return recognize(seg.getFeatures(), candidates, dist);
+   RecognitionProbability rec = recognize(seg.getFeatures(), candidates);
+   char result = rec.getBest(dist);
+
+   getLogExt().append("Recognized as", result);
+   if (dist) getLogExt().append("Distance", *dist);
+   getLogExt().appendMap("Probability map", rec);
+   
+   return result;
 }
 
-char CharacterRecognizer::recognize( const SymbolFeatures &features,
-                                     const std::string &candidates,
-                                     double *dist ) const
+char RecognitionProbability::getBest(double* dist) const
+{
+	double d = DBL_MAX;
+	char result = 0;
+	for (RecognitionProbability::const_iterator it = this->begin(); it != this->end(); it++)
+	{
+		if (it->second < d)
+		{
+			d = it->second;
+			result = it->first;
+		}
+	}
+	if (dist != NULL)
+		*dist = d;
+	return result;
+}
+
+ RecognitionProbability CharacterRecognizer::recognize( const SymbolFeatures &features,
+                                                        const std::string &candidates) const
 {
    if (!_loaded)
       throw OCRException("Font is not loaded");
@@ -165,19 +206,23 @@ char CharacterRecognizer::recognize( const SymbolFeatures &features,
 #endif
    }
 
-   char res = 0;
-   d = DBL_MAX;
+   RecognitionProbability result;
+
+   //char res = 0;
+   //d = DBL_MAX;
    BOOST_FOREACH(ResultsMapType::value_type &t, results)
    {
-      if (boost::get<0>(t.second) == max)
-         if (boost::get<1>(t.second) < d)
-            d = boost::get<1>(t.second), res = t.first;
+      //if (boost::get<0>(t.second) == max)
+      //  if (boost::get<1>(t.second) < d)
+      //      d = boost::get<1>(t.second), res = t.first;
+	   if (boost::get<0>(t.second) == max)
+		   result[t.first] = boost::get<1>(t.second);
    }
 
-   if (dist)
-      *dist = d;
+   //if (dist)
+   //   *dist = d;
    
-   return res;
+   return result;
 }
 
 void CharacterRecognizer::_loadFromFile( const std::string &filename )
@@ -303,6 +348,7 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    thinseg.copy(seg);
    ThinFilter2 tf(thinseg);
    tf.apply();
+
 
 #ifdef DEBUG
    printf(" (%d ic)", features.inner_contours_count);

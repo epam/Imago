@@ -18,6 +18,7 @@
 
 #include "comdef.h"
 #include "current_session.h"
+#include "log_ext.h"
 #include "graph_extractor.h"
 #include "graphics_detector.h"
 #include "image_utils.h"
@@ -30,6 +31,8 @@ using namespace imago;
 
 void GraphExtractor::extract( const GraphicsDetector &gd, const SegmentDeque &segments, Skeleton &graph )
 {
+	logEnterFunction();
+
    Image tmp;
    int w = 0, h = 0;
 
@@ -51,70 +54,77 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const SegmentDeque &se
 
    RecognitionSettings &rs = getSettings();
 
-   if (rs["DebugSession"])
-   {
-      ImageUtils::saveImageToFile(tmp, "output/tmp.png");
-   }
+   //if (rs["DebugSession"])
+   //{
+   //   ImageUtils::saveImageToFile(tmp, "output/tmp.png");
+   //}
+   getLogExt().append("Working image", tmp);
 
    //TODO: We were thinking about refactoring it.
    extract(gd, tmp, graph);
+
 }
 
 void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skeleton &graph )
 {
+	logEnterFunction();
+
    double avg_size = 0;
    Points2d lsegments;
 
    gd.detect(img, lsegments);
 
-   if (lsegments.empty())
-      return;
-
-   for (int i = 0; i < (int)lsegments.size() / 2; i++)
+   if (!lsegments.empty())
    {
-      Vec2d &p1 = lsegments[2 * i];
-      Vec2d &p2 = lsegments[2 * i + 1];
+	   for (int i = 0; i < (int)lsegments.size() / 2; i++)
+	   {
+		  Vec2d &p1 = lsegments[2 * i];
+		  Vec2d &p2 = lsegments[2 * i + 1];
 
-      double dist = Vec2d::distance(p1, p2);
+		  double dist = Vec2d::distance(p1, p2);
 
-      if (dist > 2.0)
-         avg_size += dist;
+		  if (dist > 2.0)
+			 avg_size += dist;
+	   }
+
+	   avg_size /= (lsegments.size() / 2);
+
+	   graph.setInitialAvgBondLength(avg_size);
+
+	   for (int i = 0; i < (int)lsegments.size() / 2; i++)
+	   {
+		  Vec2d &p1 = lsegments[2 * i];
+		  Vec2d &p2 = lsegments[2 * i + 1];
+
+		  double dist = Vec2d::distance(p1, p2);
+
+		  if (dist > 2.0)
+			 graph.addBond(p1, p2);      
+	   }
+
+	   RecognitionSettings &rs = getSettings();
+
+	   /*if (getLogExt().loggingEnabled()) // rs["DebugSession"])
+	   {
+		  Image tmp;
+
+		  tmp.emptyCopy(img);
+		  ImageDrawUtils::putGraph(tmp, (Skeleton::SkeletonGraph)graph);
+		  //ImageUtils::saveImageToFile(tmp, "output/graph_begin.png");		  
+	   }*/
+	   getLogExt().append("Source skeleton", (Skeleton::SkeletonGraph)graph);
+
+	   graph.modifyGraph();
+
+	   /*if (getLogExt().loggingEnabled()) // rs["DebugSession"])
+	   {
+		  Image tmp;
+
+		  tmp.emptyCopy(img);
+		  ImageDrawUtils::putGraph(tmp, (Skeleton::SkeletonGraph)graph);
+		  //ImageUtils::saveImageToFile(tmp, "output/graph_mod.png");		  
+	   }*/
+	   getLogExt().append("Modified skeleton", (Skeleton::SkeletonGraph)graph);
    }
-
-   avg_size /= (lsegments.size() / 2);
-
-   graph.setInitialAvgBondLength(avg_size);
-
-   for (int i = 0; i < (int)lsegments.size() / 2; i++)
-   {
-      Vec2d &p1 = lsegments[2 * i];
-      Vec2d &p2 = lsegments[2 * i + 1];
-
-      double dist = Vec2d::distance(p1, p2);
-
-      if (dist > 2.0)
-         graph.addBond(p1, p2);      
-   }
-
-   RecognitionSettings &rs = getSettings();
-
-   if (rs["DebugSession"])
-   {
-      Image tmp;
-
-      tmp.emptyCopy(img);
-      ImageDrawUtils::putGraph(tmp, (Skeleton::SkeletonGraph)graph);
-      ImageUtils::saveImageToFile(tmp, "output/graph_begin.png");
-   }
-
-   graph.modifyGraph();
-
-   if (rs["DebugSession"])
-   {
-      Image tmp;
-
-      tmp.emptyCopy(img);
-      ImageDrawUtils::putGraph(tmp, (Skeleton::SkeletonGraph)graph);
-      ImageUtils::saveImageToFile(tmp, "output/graph_mod.png");
-   }
+   
 }

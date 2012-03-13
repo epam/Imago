@@ -20,6 +20,7 @@
 
 #include "comdef.h"
 #include "current_session.h"
+#include "log_ext.h"
 #include "image.h"
 #include "image_utils.h"
 #include "image_draw_utils.h"
@@ -692,8 +693,9 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
       }
       catch (Exception &e)
       {
-         if (getSettings()["DebugSession"])
-            LPRINT(0, "Skipped exception: %s", e.what());
+		  getLogExt().append("_isSingleUp skipped exception", e.what());
+         //if (getSettings()["DebugSession"])
+         //   LPRINT(0, "Skipped exception: %s", e.what());
       }
    }
 

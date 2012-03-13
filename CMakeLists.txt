@@ -125,6 +125,7 @@ if(NOT IPHONE)
 add_subdirectory(imago_c)
 add_subdirectory(alter-ego)
 add_subdirectory(jimago)
+add_subdirectory(mol-compare)
 
 add_subdirectory(tests/vs/imagotest)
 # add_subdirectory(tests/dp)
