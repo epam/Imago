@@ -33,6 +33,7 @@
 #include "recognition_settings.h"
 #include "font.h"
 #include "current_session.h"
+#include "log_ext.h"
 #include "output.h"
 #include "prefilter.h"
 
@@ -54,6 +55,8 @@ GraphicsDetector::~GraphicsDetector()
 
 void GraphicsDetector::_decorner( Image &img ) const
 {
+	logEnterFunction();
+
    int x, y, i, j;
    RecognitionSettings &rs = getSettings();
 
@@ -91,8 +94,10 @@ void GraphicsDetector::_decorner( Image &img ) const
       }
    }
 
-   if (rs["DebugSession"])
-      ImageUtils::saveImageToFile(img, "output/decornered.png");
+   //if (rs["DebugSession"])
+   //   ImageUtils::saveImageToFile(img, "output/decornered.png");
+   getLogExt().append("Decornered image", img);
+
 }
 
 void GraphicsDetector::_extractPolygon( const Segment &seg, Points2d &poly ) const
@@ -211,6 +216,8 @@ int GraphicsDetector::_countBorderBlackPoints( const Image &img ) const
 
 void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ring_centers ) const
 {
+	logEnterFunction();
+
  /*  int circle_count;
    Segment circle;
    std::vector<double> circle_descriptors;
@@ -240,8 +247,9 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
          tmp.copy(**it);
          ThinFilter2(tmp).apply();
 
-         if (getSettings()["DebugSession"])
-            ImageUtils::saveImageToFile(tmp, "output/tmp_ring.png");
+         //if (getSettings()["DebugSession"])
+           // ImageUtils::saveImageToFile(tmp, "output/tmp_ring.png");
+		 getLogExt().append("Ring", tmp);
          
          if (isCircle(tmp))
          {
@@ -324,12 +332,15 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
       //}
       ++it;
    }
+
 }
 
 
 void GraphicsDetector::analyzeUnmappedLabels( std::deque<Label> &unmapped_labels, 
                                               Points2d &ring_centers )
 {
+	logEnterFunction();
+
    BOOST_FOREACH( Label &l, unmapped_labels )
    {
       //TODO: More convenient criteria here
@@ -343,6 +354,8 @@ void GraphicsDetector::analyzeUnmappedLabels( std::deque<Label> &unmapped_labels
 
 void GraphicsDetector::detect( const Image &img, Points2d &lsegments ) const
 {
+	logEnterFunction();
+
    SegmentDeque segs;
    Points2d poly;
    Image tmp;

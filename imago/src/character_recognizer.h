@@ -3,6 +3,7 @@
 
 #include <string>
 #include <vector>
+#include <map>
 
 #include "symbol_features.h"
 
@@ -14,17 +15,28 @@ namespace imago
    bool isCircle (Image &seg);
 
    class Segment;
+
+	class RecognitionProbability : public std::map<char, double>
+	  {
+	  public:
+		  /// returns best matched symbol & its distance
+		  char getBest(double* dist = NULL) const;
+		  /// returns the difference between best symbols recognized
+		  double getQuality() const;
+	  };
+
    class CharacterRecognizer
    {
-   public:
+   public:	  
       CharacterRecognizer( int k );
       CharacterRecognizer( int k, const std::string &filename );
 
-      char recognize( const SymbolFeatures &features,
-                      const std::string &candidates, double *err = 0) const;
+      RecognitionProbability recognize( const SymbolFeatures &features,
+                      const std::string &candidates) const;
 
       char recognize( const Segment &seg, const std::string &candidates,
-                      double *err = 0) const;
+                      double *distance = 0) const;
+
       inline int getDescriptorsCount() const {return _count;}
       ~CharacterRecognizer();
 

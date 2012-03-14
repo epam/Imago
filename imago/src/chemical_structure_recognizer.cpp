@@ -42,6 +42,7 @@
 #include "vec2d.h"
 #include "wedge_bond_extractor.h"
 #include "current_session.h"
+#include "log_ext.h"
 #include "label_logic.h"
 #include "orientation_finder.h"
 #include "approximator.h"
@@ -92,9 +93,13 @@ ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname )
 
 void ChemicalStructureRecognizer::_processFilter()
 {
+	logEnterFunction();
+
    RecognitionSettings &rs = getSettings();
 
    const char *str = rs["Filter"];
+
+   getLogExt().append("Filter type", str);
 
    if (strcmp(str, "blur") == 0)
    {
@@ -117,6 +122,8 @@ void ChemicalStructureRecognizer::_processFilter()
 
 void ChemicalStructureRecognizer::recognize( Molecule &mol ) 
 {
+	logEnterFunction();
+
    try
    {
       mol.clear();
@@ -138,11 +145,12 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       rs.set("imgHeight", _img.getHeight());
       rs.set("imgWidth", _img.getWidth());
-
-      if (rs["DebugSession"])
-      {
-         ImageUtils::saveImageToFile(_img, "output/real_img.png");
-      }
+	  
+      //if (rs["DebugSession"])
+      //{
+      //   ImageUtils::saveImageToFile(_img, "output/real_img.png");
+      //}
+	  getLogExt().append("Real image", _img);
 
       TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
 
@@ -172,7 +180,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       LPRINT(0, "Symbols: %i, Graphics: %i", layer_symbols.size(), 
          layer_graphics.size());
 
-      if (rs["DebugSession"])
+	  if (getLogExt().loggingEnabled()) // rs["DebugSession"])
       {
          Image symbols, graphics;
 
@@ -185,8 +193,10 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          BOOST_FOREACH( Segment *s, layer_graphics )
             ImageUtils::putSegment(graphics, *s, true);
 
-         ImageUtils::saveImageToFile(symbols, "output/letters.png");
-         ImageUtils::saveImageToFile(graphics, "output/graphics.png");
+         //ImageUtils::saveImageToFile(symbols, "output/letters.png");
+		 getLogExt().append("Letters", symbols);
+         //ImageUtils::saveImageToFile(graphics, "output/graphics.png");
+		 getLogExt().append("Graphics", graphics);
       }
 
       LMARK;
@@ -198,13 +208,14 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          if ((int)rs["CapitalHeight"] != -1)
             lc.extractLabels(mol.getLabels());
 
-         if (rs["DebugSession"])
+		 if (getLogExt().loggingEnabled()) // rs["DebugSession"])
          {
             Image symbols;
             symbols.emptyCopy(_img);
             BOOST_FOREACH( Segment *s, layer_symbols )
                ImageUtils::putSegment(symbols, *s, true);
-            ImageUtils::saveImageToFile(symbols, "output/letters2.png");
+            //ImageUtils::saveImageToFile(symbols, "output/letters2.png");
+			getLogExt().append("Symbols with layer_symbols added", symbols);
          }
 
          LPRINT(1, "Found %d superatoms", mol.getLabels().size());
@@ -275,6 +286,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
    {
       throw NoResultException("caused by: %s", e.what());
    }
+
 }
 
 void ChemicalStructureRecognizer::image2mol( Image &img, Molecule &mol )

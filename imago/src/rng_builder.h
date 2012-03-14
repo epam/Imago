@@ -92,8 +92,9 @@ namespace imago
                      boost::add_edge(ind2vert[i], ind2vert[j], g);
 
                      if (!isAdded)
-                        if (getSettings()["DebugSession"])
-                           LPRINT(0, "Warning: <RNG::build> edge is not added");
+					 {
+						 getLogExt().append("Warning: <RNG::build> edge is not added");
+					 }
 
                      weights[e] = distances[i + j * n];
                   }

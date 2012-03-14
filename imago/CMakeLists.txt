@@ -13,6 +13,7 @@ set(SRC
   src/font.cpp
   src/label_logic.cpp
   src/log.cpp
+  src/log_ext.cpp
   src/image_utils.cpp
   src/molfile_saver.cpp
   src/segmentator.cpp

@@ -21,6 +21,7 @@
 #include "label_combiner.h"
 #include "image_utils.h"
 #include "current_session.h"
+#include "log_ext.h"
 
 using namespace imago;
 
@@ -52,6 +53,10 @@ void LabelLogic::setSuperatom( Superatom *satom )
 
 void LabelLogic::_predict( const Segment *seg, std::string &letters )
 {
+	logEnterFunction();
+
+	getLogExt().append("Segment", *seg);
+
    const static char *comb[28] = //"Constants", not config but name ?
    {
    /*A*/   "lcmsur",//tgl
@@ -109,10 +114,14 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
          for (int i = 0; i < (int)strlen(comb[_cur_atom->label_first - 'A']); i++)
             letters.push_back(comb[_cur_atom->label_first - 'A'][i]);
    }
+
+   getLogExt().append("Letters", letters);
 }
 
 void LabelLogic::_postProcess()
 {
+	logEnterFunction();
+
    if (_cur_atom->label_first == 0)
    {
       _cur_atom->label_first = '?';
@@ -127,6 +136,10 @@ void LabelLogic::process( Segment *seg, int line_y )
 {
    //ImageUtils::saveImageToFile(*seg, "output/aaa.png");
 
+	logEnterFunction();
+
+	getLogExt().appendSegmentWithYLine("segment with baseline", *seg, line_y);
+
    std::string letters;
    int index_val = 0;
 
@@ -137,6 +150,8 @@ void LabelLogic::process( Segment *seg, int line_y )
    char hwc = _hwcr.recognize(*seg);
 
    bool plus = ImageUtils::testPlus(*seg);
+
+   getLogExt().append("plus", plus);
 
    //TODO: This can slowdown recognition process! Check this!
    if (seg->getHeight() > 0.85 * _cap_height && (hwc == -1 || hwc < '0' || hwc > '9'))
@@ -155,8 +170,12 @@ void LabelLogic::process( Segment *seg, int line_y )
       else if (seg->getFeatures().recognizable)
       {
          c_big = _cr.recognize(*seg, CharacterRecognizer::upper, &d_big);
+		 getLogExt().append("c_big", c_big);
          c_small = _cr.recognize(*seg, CharacterRecognizer::lower, &d_small);
+		 getLogExt().append("c_small", c_small);
          c_digit = _cr.recognize(*seg, CharacterRecognizer::digits, &d_digit);
+		 getLogExt().append("c_digit", c_digit);
+
          if (d_big < d_small + 0.00001 && d_big < d_digit + 0.00001)
             capital = true;
          else
@@ -185,6 +204,8 @@ void LabelLogic::process( Segment *seg, int line_y )
          }
       }
    }
+
+   getLogExt().append("capital", capital);
    
    if (capital) //seg->getHeight() > cap_height_error * _cap_height)
    {
@@ -281,6 +302,7 @@ void LabelLogic::process( Segment *seg, int line_y )
    {
       int bottom = seg->getY() + seg->getHeight();
       int med = bottom - 0.5 * seg->getHeight();
+	  getLogExt().append("med", med);
       //small letter
       if (bottom >= (line_y - sameLineEps * _cap_height) &&
           bottom <= (line_y + sameLineEps * _cap_height) &&
@@ -387,7 +409,10 @@ void LabelLogic::process( Segment *seg, int line_y )
 
 void LabelLogic::recognizeLabel( Label& label )
 {
+	logEnterFunction();
+
    setSuperatom(&label.satom);
+
    for (int i = 0; i < (int)label.symbols.size(); i++)
    {
       int y;
@@ -395,6 +420,8 @@ void LabelLogic::recognizeLabel( Label& label )
          y = label.line_y;
       else
          y = label.multi_line_y;
+
+	  getLogExt().append("selected y", y);
 
       try
       {

@@ -291,7 +291,7 @@ namespace imago
       approxContour = contour;
       contour_ext._approximize(approxContour);
       FourierDescriptors::calculate(approxContour, count, features.descriptors);
-      c = _cr.recognize(features, candidates, &d);
+	  c = _cr.recognize(features, candidates).getBest(&d);
       best_r = 0, best_c = c, best_d = d;
 
       //Rotated 90 cw
@@ -299,7 +299,7 @@ namespace imago
       approxContour = contour;
       contour_ext._approximize(approxContour);
       FourierDescriptors::calculate(approxContour, count, features.descriptors);
-      c = _cr.recognize(features, candidates, &d);
+      c = _cr.recognize(features, candidates).getBest(&d);
       if (d < best_d)
          best_r = 1, best_c = c, best_d = d;
 
@@ -308,7 +308,7 @@ namespace imago
       approxContour = contour;
       contour_ext._approximize(approxContour);
       FourierDescriptors::calculate(approxContour, count, features.descriptors);
-      c = _cr.recognize(features, candidates, &d);
+	  c = _cr.recognize(features, candidates).getBest(&d);
       if (d < best_d)
          best_r = 2, best_c = c, best_d = d;
 
@@ -317,7 +317,7 @@ namespace imago
       approxContour = contour;
       contour_ext._approximize(approxContour);
       FourierDescriptors::calculate(approxContour, count, features.descriptors);
-      c = _cr.recognize(features, candidates, &d);
+	  c = _cr.recognize(features, candidates).getBest(&d);
       if (d < best_d)
          best_r = 3, best_c = c, best_d = d;
 
