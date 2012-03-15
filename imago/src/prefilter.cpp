@@ -714,12 +714,14 @@ void _wiener2(cv::Mat &mat)
 	
 	//calculate local mean
 	cv::Mat localMean;
-	double ones[] = {1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1,};
-	cv::Mat kernel1(5, 5, CV_64F, ones);// = cv::Mat::ones(5, 5, CV_32F);
+	double ones[] = {1, 1, 1, 1, 1, 1, 1,
+					 1, 1, 1, 1, 1, 1, 1,
+					 1, 1, 1, 1, 1, 1, 1,
+					 1, 1, 1, 1, 1, 1, 1,
+					 1, 1, 1, 1, 1, 1, 1,
+					 1, 1, 1, 1, 1, 1, 1,
+					 1, 1, 1, 1, 1, 1, 1};
+	cv::Mat kernel1(7, 7, CV_64F, ones);// = cv::Mat::ones(5, 5, CV_32F);
 	cv::filter2D(dmat, localMean, -1, kernel1);
 	localMean = localMean / kernel1.total();
 
