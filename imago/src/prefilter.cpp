@@ -546,8 +546,6 @@ int EstimateLineThickness(Image &bwimg)
 	int h = bwimg.getHeight();
 	int d = 10; // 10 pixel grid
 
-	int aw, ah;
-
 	IntVector lthick;
 
 	if(w < d)
@@ -995,8 +993,11 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 
 	//Perform binary thresholding using Otsu procedure
 	//thresh = thresh - 16 > 0 ? thresh - 16 : 0; 
-	if(adaptiveThresh)
-		cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, 7, 7);
+	if(adaptiveThresh || !strongThresh)
+	{
+		double blockS = getSettings()["LineThickness"];
+		cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, (int)blockS*5, 7);
+	}
 	else
 	cv::threshold(mat, mat, wthresh, 255, cv::THRESH_BINARY);//cv::THRESH_OTSU|
 
