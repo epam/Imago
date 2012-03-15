@@ -28,7 +28,7 @@ namespace imago
    public:
       Segment();
 
-      void copy( const Segment &s );
+      void copy( const Segment &s, bool copy_all = true );	  
 
       int getX() const;
       int getY() const;

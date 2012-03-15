@@ -22,15 +22,20 @@ using namespace imago;
 const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&";
 const std::string CharacterRecognizer::lower = "abcdefghijklmnopqrstuvwxyz";
 const std::string CharacterRecognizer::digits = "0123456789";
+const std::string CharacterRecognizer::all = CharacterRecognizer::upper + CharacterRecognizer::lower + CharacterRecognizer::digits;
 
-CharacterRecognizer::CharacterRecognizer( int k ) : _loaded(false), _k(k)
+void CharacterRecognizer::_loadBuiltIn()
+{
+	initializeHandwrittenFont(); // method from font_lib.lib
+}
+
+CharacterRecognizer::CharacterRecognizer( int k ) : _k(k)
 {
    _mapping.resize(255, -1);
    _loadBuiltIn();
 }
 
-CharacterRecognizer::CharacterRecognizer( int k, const std::string &filename) :
-   _loaded(false), _k(k)
+CharacterRecognizer::CharacterRecognizer( int k, const std::string &filename) : _k(k)
 {
    _mapping.resize(255, -1);
    _loadFromFile(filename);
@@ -94,61 +99,80 @@ double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
 }
 
 
-char CharacterRecognizer::recognize( const Segment &seg,
-                                     const std::string &candidates,
-                                     double *dist ) const
+RecognitionDistance CharacterRecognizer::recognize_all( const Segment &seg,
+                      const std::string &candidates) const
 {
    logEnterFunction();
 
    getLogExt().append("Candidates", candidates);
    getLogExt().append("Source segment", seg);
 
-   if(getLogExt().loggingEnabled())
-   {
-	   Segment thinseg;
-	   thinseg.copy(seg);
-	   ThinFilter2 tf(thinseg);
-	   tf.apply();
-	   getLogExt().append("Thinned segment", thinseg);
-   }
+	seg.initFeatures(_count);
+	RecognitionDistance rec1 = recognize_by_features(seg.getFeatures(), candidates, true);
+	getLogExt().appendMap("Distance map for source", rec1);
+	
+	{
+		Segment upd;
+		upd.copy(seg, false);
+		if (SegmentTools::makeSegmentConnected(upd))
+		{
+			getLogExt().append("Connected segment", upd);
+
+			upd.initFeatures(_count);
+			RecognitionDistance rec2 = recognize_by_features(upd.getFeatures(), candidates, true);
+
+			getLogExt().appendMap("Distance map for connected", rec2);
+
+			rec1.mergeTables(rec2);
+			getLogExt().appendMap("Merged tables distance", rec1);
+		}
+		else
+		{
+			getLogExt().append("Attempt to make segment connected gives no result");
+		}
+	}
+
+
+
+   return rec1;
+}
+
+char CharacterRecognizer::recognize( const Segment &seg,
+                                     const std::string &candidates,
+                                     double *dist ) const
+{
+	//return recognize_all(seg, candidates).getBest(dist); // temp
+
+   logEnterFunction();
+
+   getLogExt().append("Candidates", candidates);
+   getLogExt().append("Source segment", seg);
 
    seg.initFeatures(_count);
-   RecognitionProbability rec = recognize(seg.getFeatures(), candidates);
+   RecognitionDistance rec = recognize_by_features(seg.getFeatures(), candidates);
    char result = rec.getBest(dist);
 
    getLogExt().append("Recognized as", result);
    if (dist) getLogExt().append("Distance", *dist);
-   getLogExt().appendMap("Probability map", rec);
+   getLogExt().appendMap("Distance map", rec);
    
    return result;
 }
 
-char RecognitionProbability::getBest(double* dist) const
-{
-	double d = DBL_MAX;
-	char result = 0;
-	for (RecognitionProbability::const_iterator it = this->begin(); it != this->end(); it++)
-	{
-		if (it->second < d)
-		{
-			d = it->second;
-			result = it->first;
-		}
-	}
-	if (dist != NULL)
-		*dist = d;
-	return result;
-}
 
- RecognitionProbability CharacterRecognizer::recognize( const SymbolFeatures &features,
-                                                        const std::string &candidates) const
+ RecognitionDistance CharacterRecognizer::recognize_by_features( const SymbolFeatures &features,
+                                                        const std::string &candidates, bool wide_range) const
 {
    if (!_loaded)
       throw OCRException("Font is not loaded");
    double d;
 
+   int classes_count = _k;
+   if (wide_range)
+	   classes_count = 20;
+
    std::vector<boost::tuple<char, int, double> > nearest;
-   nearest.reserve(_k);
+   nearest.reserve(classes_count);
 
    BOOST_FOREACH( char c, candidates )
    {
@@ -158,13 +182,13 @@ char RecognitionProbability::getBest(double* dist) const
       {
          d = _compareFeatures(features, cls.shapes[i]);
 
-         if ((int)nearest.size() < _k)
+         if ((int)nearest.size() < classes_count)
             nearest.push_back(boost::make_tuple(c, i, d));
          else
          {
             double far = boost::get<2>(nearest[0]), f;
             int far_ind = 0;
-            for (int j = 1; j < _k; j++)
+            for (int j = 1; j < classes_count; j++)
             {
                if ((f = boost::get<2>(nearest[j])) > far)
                {
@@ -206,7 +230,7 @@ char RecognitionProbability::getBest(double* dist) const
 #endif
    }
 
-   RecognitionProbability result;
+   RecognitionDistance result;
 
    //char res = 0;
    //d = DBL_MAX;
@@ -215,7 +239,7 @@ char RecognitionProbability::getBest(double* dist) const
       //if (boost::get<0>(t.second) == max)
       //  if (boost::get<1>(t.second) < d)
       //      d = boost::get<1>(t.second), res = t.first;
-	   if (boost::get<0>(t.second) == max)
+	   if (boost::get<0>(t.second) == max || wide_range)
 		   result[t.first] = boost::get<1>(t.second);
    }
 

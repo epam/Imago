@@ -131,7 +131,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 	double min = timg.getHeight() * timg.getWidth();  //*(std::min(lengths.begin(), lengths.end()));
 	double max = 0;
-	for(int i=0;i<lengths.size();i++)
+	for(size_t i=0;i<lengths.size();i++)
 	{
 		if(lengths[i] < min)
 			min = lengths[i];
@@ -173,7 +173,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		
 		double sum1=0, sum2 = 0;
 		
-		for(int i=0;i<classes.size();i++)
+		for(size_t i=0;i<classes.size();i++)
 			if(classes[i] == 0)
 			{
 				count1++;
@@ -196,11 +196,11 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 	vector<Rectangle> symbRects;
 	IntVector LineCount;
 	vector<bool> visited;
-	for(int i=0;i<classes.size(); i++)
+	for(size_t i=0;i<classes.size(); i++)
 		visited.push_back(false);
 	int ri = -1;
 	// integrate the results by joining close to each other segments
-	for(int i=0;i<classes.size();i++)
+	for(size_t i=0;i<classes.size();i++)
 	{
 		if(classes[i] != 0 || visited[i])
 			continue;
@@ -216,7 +216,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		ri++;
 		visited[i] = true;
 
-		for(int j=i+1; j < classes.size(); j++)
+		for(size_t j=i+1; j < classes.size(); j++)
 		{
 			if(classes[j] != 0 || visited[j])
 				continue;
@@ -261,7 +261,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 			adequate_ratio_min = rs["MinSymRatio"],
 			line_thick = rs["LineThickness"];
 
-		for(int i=0;i< symbRects.size(); i++)
+		for(size_t i=0;i< symbRects.size(); i++)
 		{
 			if(LineCount[i] < 2)
 				continue;

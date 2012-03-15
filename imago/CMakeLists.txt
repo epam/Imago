@@ -41,7 +41,6 @@ set(SRC
   src/skeleton.cpp
   src/rectangle.cpp
   src/character_recognizer.cpp
-  src/character_recognizer_font.cpp
   src/prefilter.cpp
   src/contour_extractor.cpp
   src/orientation_finder.cpp
@@ -49,6 +48,8 @@ set(SRC
   src/fourier_features.cpp
   src/shape_context.cpp
   src/munkres.cpp
+  src/segment_tools.cpp
+  src/recognition_distance.cpp
 
   src/superatom_expansion.cpp
   
@@ -84,3 +85,5 @@ add_library(imago_static STATIC ${SRC})
 target_link_libraries(imago_static ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(imago_static ${INDIGO_LIBS})
 target_link_libraries(imago_static ${OpenCV_LIBS}) 
+target_link_libraries(imago_static ${FONTLIB_LIBS})
+target_link_libraries(imago_static font_lib)

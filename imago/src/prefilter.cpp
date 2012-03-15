@@ -546,7 +546,7 @@ int EstimateLineThickness(Image &bwimg)
 	int h = bwimg.getHeight();
 	int d = 10; // 10 pixel grid
 
-	int aw, ah;
+//	int aw, ah;
 
 	IntVector lthick;
 
@@ -918,7 +918,7 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
    //build structuring element
    //min area = 36, coefficient = 3.4722e-004
    int minA = 8640*3;
-   if(matred.total() > minA )
+   if(matred.total() > (size_t)minA )
    {
 	   int ssize = matred.total() * 3.4722e-004 / 3;
 	   ssize = ssize < 20 ? 20 : ssize;
@@ -1156,7 +1156,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    int median = medInd % 2 != 0? distsFromCenter[medInd>>1]:(distsFromCenter[medInd>>1] + distsFromCenter[(medInd>>1) - 1])/2;
 
    IntVector deviations;
-   for(int k=0;k<distsFromCenter.size();k++)
+   for(size_t k=0;k<distsFromCenter.size();k++)
    {
 	   int value = distsFromCenter[k] - median;
 	   if(value < 0)

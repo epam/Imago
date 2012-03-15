@@ -16,6 +16,7 @@
 #define _font_h
 
 #include "symbol_features.h"
+#include "character_recognizer_data.h"
 #include "stl_fwd.h"
 #include <string>
 
@@ -24,7 +25,7 @@ namespace imago
    class Image;
    class Segment;
 
-   class Font
+   class Font : FontRecognizerData
    {
    public:
 
@@ -53,22 +54,13 @@ namespace imago
       int findCapitalHeight( SegmentDeque &segments ) const;
    public:
       Font(const Font& other);
-
-      struct FontItem
-      {
-         char sym;
-         SymbolFeatures features;
-      };
-
-      std::vector<FontItem> _symbols;
-      std::vector<int> _mapping;
-      int _count;
       
       double _compare( int ind, const SymbolFeatures &features ) const;
       static double _compareDescriptors( const std::vector<double> &d1,
                                          const std::vector<double> &d2 );
       void _loadFromImage( const char *imgname );
       void _loadFromFile( const char *filename );
+
       void _loadArial();
       void _loadArialBold();
       void _loadSerif();

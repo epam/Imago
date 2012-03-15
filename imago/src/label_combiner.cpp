@@ -90,7 +90,10 @@ int LabelCombiner::_findCapitalHeight()
          char c = _cr.recognize(*seg, CharacterRecognizer::upper, &d);
       }
       catch(OCRException &e)
-      {}
+      {
+		  logEnterFunction();
+		  getLogExt().append(e.what());
+	  }
       seg_height = seg->getHeight();
       
       if (d < min_d && seg_height >= mean_height)

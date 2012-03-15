@@ -1,8 +1,12 @@
 #include "log_ext.h"
 #include <direct.h>
+#include <sys/stat.h>
 
 #ifdef _WIN32
+#define MKDIR _mkdir
 #include <Windows.h>
+#else
+#define MKDIR mkdir
 #endif
 
 namespace imago
@@ -118,7 +122,7 @@ namespace imago
 		const std::string ImagesFolder = "htmlimgs";
 
 		sprintf(path, "%s/%s", Folder.c_str(), ImagesFolder.c_str());
-		if (mkdir(path) != 0)
+		if (MKDIR(path) != 0)
 		{
 			if (errno == EEXIST)
 			{

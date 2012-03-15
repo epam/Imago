@@ -120,6 +120,7 @@ option(EMBED_FONT "Embed font file" ON)
 #message("CMAKE_C_FLAGS = ${CMAKE_C_FLAGS}")
 message(${CMAKE_SIZEOF_VOID_P})
 
+add_subdirectory(font_lib)
 add_subdirectory(imago)
 if(NOT IPHONE)
 add_subdirectory(imago_c)

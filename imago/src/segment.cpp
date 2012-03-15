@@ -32,13 +32,15 @@ Segment::Segment()
    _density = _ratio = -1;
 }
 
-void Segment::copy( const Segment &s )
+void Segment::copy( const Segment &s, bool copy_all )
 {
-   Image::copy(s);
-   _x = s._x;
-   _y = s._y;
-
-   _features = s._features;
+	Image::copy(s);
+	if (copy_all)
+	{
+		_x = s._x;
+		_y = s._y;
+		_features = s._features;
+	}
 }
 
 /** 

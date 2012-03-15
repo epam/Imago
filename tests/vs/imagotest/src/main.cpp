@@ -363,7 +363,7 @@ void makeFont( )
      FileOutput fout("../../../data/fonts/TEST5.font");
      fout.printf("%d %d %d\n", count, fonts_count, 62);
 
-     for (int i = 0; i < fonts_count; i++)
+/*     for (int i = 0; i < fonts_count; i++)
         printf("%d\n", fonts[i]->_symbols.size());
 
 
@@ -388,12 +388,12 @@ void makeFont( )
               fout.writeCR();
            }
         }
-     }
+     } */
   }
   catch(Exception &e)
   {
      puts(e.what());
-  }
+  } 
 }
 
 void testOCR2( const char *name )
@@ -588,7 +588,7 @@ void testCvOCR( const char *_filename = 0)
    printf("%d\n", mat.channels());
    cv::HoughLinesP(mat, lines, 1, CV_PI / 180, 13, 30, 100);
    printf("LINES COUNT = %d\n", lines.size());
-   for (int i = 0; i < lines.size(); i += 2)
+   for (size_t i = 0; i < lines.size(); i += 2)
    {
       cv::Vec4i &v = lines[i];
       ImageDrawUtils::putLineSegment(lol, Vec2d(v[0], v[1]), Vec2d(v[2], v[3]), 0);
