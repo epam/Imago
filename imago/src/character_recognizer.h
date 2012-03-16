@@ -25,13 +25,12 @@ namespace imago
       CharacterRecognizer( int k );
       CharacterRecognizer( int k, const std::string &filename );
 
-      RecognitionDistance recognize_by_features( const SymbolFeatures &features,
+      RecognitionDistance recognize(const SymbolFeatures &features,
                       const std::string &candidates, bool wide_range = false) const;
 
-      RecognitionDistance recognize_all( const Segment &seg,
-                      const std::string &candidates) const;
+      RecognitionDistance recognize_all(const Segment &seg) const;
 
-	  char recognize( const Segment &seg, const std::string &candidates,
+	  char recognize(const Segment &seg, const std::string &candidates,
                       double *distance = 0) const;
 
       inline int getDescriptorsCount() const {return _count;}

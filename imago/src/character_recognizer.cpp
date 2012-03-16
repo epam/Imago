@@ -99,32 +99,50 @@ double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
 }
 
 
-RecognitionDistance CharacterRecognizer::recognize_all( const Segment &seg,
-                      const std::string &candidates) const
+RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg) const
 {
    logEnterFunction();
 
-   getLogExt().append("Candidates", candidates);
    getLogExt().append("Source segment", seg);
 
 	seg.initFeatures(_count);
-	RecognitionDistance rec1 = recognize_by_features(seg.getFeatures(), candidates, true);
-	getLogExt().appendMap("Distance map for source", rec1);
-	
-	{
-		Segment upd;
-		upd.copy(seg, false);
-		if (SegmentTools::makeSegmentConnected(upd))
-		{
-			getLogExt().append("Connected segment", upd);
+	RecognitionDistance rec;
 
-			upd.initFeatures(_count);
-			RecognitionDistance rec2 = recognize_by_features(upd.getFeatures(), candidates, true);
+	rec.mergeTables(recognize(seg.getFeatures(), all, true));
+
+	getLogExt().appendMap("Distance map for source", rec);
+
+	Segment connected;
+	connected.copy(seg, false);
+
+	int w = connected.getWidth();
+	int h = connected.getHeight();
+	int d = std::min(w, h) / 7 + 1; // MAGIC
+	getLogExt().append("w", w);
+	getLogExt().append("h", h);
+	getLogExt().append("d", d);
+
+	Points2i endpoints = SegmentTools::getEndpoints(connected);
+		
+	SegmentTools::logEndpoints(connected, endpoints, d);
+
+	if (endpoints.size() > 4)
+	{
+		getLogExt().append("Too many endpoints, connection procedure will not applied", endpoints.size());
+	}
+	else
+	{
+		if (SegmentTools::makeSegmentConnected(connected, endpoints, 2.0*d, 1.5*d))
+		{
+			getLogExt().append("Connected segment", connected);
+
+			connected.initFeatures(_count);
+			RecognitionDistance rec2 = recognize(connected.getFeatures(), all, true);
 
 			getLogExt().appendMap("Distance map for connected", rec2);
 
-			rec1.mergeTables(rec2);
-			getLogExt().appendMap("Merged tables distance", rec1);
+			rec.mergeTables(rec2);
+			getLogExt().appendMap("Merged tables distance", rec);
 		}
 		else
 		{
@@ -133,8 +151,52 @@ RecognitionDistance CharacterRecognizer::recognize_all( const Segment &seg,
 	}
 
 
+	/*{
+		Segment thinned;
+		thinned.copy(seg, false);
+		ThinFilter2 tf(thinned);
+		tf.apply();
 
-   return rec1;
+		getLogExt().append("Thinned segment", thinned);
+
+		thinned.initFeatures(_count);
+		RecognitionDistance rec2 = recognize(thinned.getFeatures(), all, true);
+
+		getLogExt().appendMap("Distance map for thinned", rec2);
+
+		rec.mergeTables(rec2);
+		getLogExt().appendMap("Merged tables distance", rec);
+	}*/
+
+	getLogExt().append("Adjust by endpoints count", endpoints.size());
+	
+	// note: "V"-connections are not endpoints!
+	// temporary, should use endpoints configuaration, not count only
+	switch(endpoints.size())
+	{
+	case 0:
+		rec.adjust(0.9, "0oO");
+		break;
+	case 1:
+		break;
+	case 2:
+		rec.adjust(0.96, "ILN");
+		break;
+	case 3:
+		rec.adjust(1.1, "H");		
+		rec.adjust(0.9, "3");
+		rec.adjust(0.96, "FM");
+		break;
+	case 4:
+		rec.adjust(0.96, "fHXK"); // usually have 4 endpoints only
+		break;
+	case 5:
+		rec.adjust(1.1, "N");
+		break;
+	};
+
+
+   return rec;
 }
 
 char CharacterRecognizer::recognize( const Segment &seg,
@@ -149,7 +211,7 @@ char CharacterRecognizer::recognize( const Segment &seg,
    getLogExt().append("Source segment", seg);
 
    seg.initFeatures(_count);
-   RecognitionDistance rec = recognize_by_features(seg.getFeatures(), candidates);
+   RecognitionDistance rec = recognize(seg.getFeatures(), candidates);
    char result = rec.getBest(dist);
 
    getLogExt().append("Recognized as", result);
@@ -160,7 +222,7 @@ char CharacterRecognizer::recognize( const Segment &seg,
 }
 
 
- RecognitionDistance CharacterRecognizer::recognize_by_features( const SymbolFeatures &features,
+ RecognitionDistance CharacterRecognizer::recognize( const SymbolFeatures &features,
                                                         const std::string &candidates, bool wide_range) const
 {
    if (!_loaded)
@@ -169,7 +231,7 @@ char CharacterRecognizer::recognize( const Segment &seg,
 
    int classes_count = _k;
    if (wide_range)
-	   classes_count = 20;
+	   classes_count = _count;
 
    std::vector<boost::tuple<char, int, double> > nearest;
    nearest.reserve(classes_count);

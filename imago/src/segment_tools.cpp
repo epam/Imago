@@ -43,7 +43,10 @@ namespace imago
 		for (Points2i::iterator it = p.begin(); it != p.end(); it++)
 			if (it->y + seg.getY() < line_y) above++;
 			else if (it->y + seg.getY() > line_y) below++;
-		return ((0.5 + below) / (1.0 + below + above));
+		if (below + above == 0) 
+			return 0.0;
+		else
+			return ((double)(below) / (double)(below + above));
 	}
 
 	Points2i SegmentTools::getInRange(const Segment& seg, Vec2i pos, int range)
@@ -68,15 +71,24 @@ namespace imago
 		return result;
 	}
 
+	void SegmentTools::logEndpoints(const Segment& seg, const Points2i& pts, int circle_radius)
+	{
+		if (getLogExt().loggingEnabled())
+		{
+			Segment endseg;
+			endseg.copy(seg);
+			for (Points2i::const_iterator it = pts.begin(); it != pts.end(); it++)
+				ImageDrawUtils::putCircle(endseg, it->x, it->y, circle_radius, 64); 
+			getLogExt().append("Segment with endpoints", endseg);
+		}
+	}
+
 	Points2i SegmentTools::getEndpoints(Segment& seg)
 	{
-		logEnterFunction();
-
 		Segment thinseg;
 		thinseg.copy(seg);
 		ThinFilter2 tf(thinseg);
 		tf.apply();
-		getLogExt().append("Thinned segment", thinseg);
 		
 		Points2i endpoints;
 
@@ -85,49 +97,39 @@ namespace imago
 			if (getInRange(thinseg, *it, 1).size() == 1)
 				endpoints.push_back(*it);
 
-		getLogExt().append("Endpoints count", endpoints.size());
-
-		if (getLogExt().loggingEnabled())
-		{
-			Segment endseg;
-			endseg.copy(thinseg);
-			for (Points2i::const_iterator it = endpoints.begin(); it != endpoints.end(); it++)
-				ImageDrawUtils::putCircle(endseg, it->x, it->y, 5, 0); // circle radius 5 hardcoded, visual element only
-			getLogExt().append("Segment with endpoints", endseg);
-		}
-
 		return endpoints;
 	}
 
 	/// returns true if changes made
-	bool SegmentTools::makeSegmentConnected(Segment& seg)
+	bool SegmentTools::makeSegmentConnected(Segment& seg, const Points2i& to_connect, double d1, double d2)
 	{
-		logEnterFunction();
-
 		bool changed = false;
-
-		int w = seg.getWidth();
-		int h = seg.getHeight();
-		int d = std::min(w, h) / 8 + 1; // MAGIC
-		getLogExt().append("w", w);
-		getLogExt().append("h", h);
-		getLogExt().append("d", d);
-
-		Points2i to_connect = getEndpoints(seg);
 	
+		// try to fill broken pixels inside
+		for (int x = 0; x < seg.getWidth(); x++)
+			for (int y = 0; y < seg.getHeight(); y++)
+			{
+				if (seg.getByte(x, y) != 0 && getInRange(seg, Vec2i(x,y), 2).size() >= 19)
+				{
+					seg.getByte(x, y) = 0;
+					changed = true;
+				}
+			}
+
+
 		// looks like hardcore complexity code, but practically to_connect.size() is below 5
 		for (Points2i::const_iterator it1 = to_connect.begin(); it1 != to_connect.end(); it1++)
 			for (Points2i::const_iterator it2 = to_connect.begin(); it2 != to_connect.end(); it2++)
 			{
 				if (it1 == it2) 
 					continue;
-				if (Vec2i::distance(*it1, *it2) < 2*d) // MAGIC
+				if (Vec2i::distance(*it1, *it2) < d1)
 				{
-					Points2i p1 = getInRange(seg, *it1, 2*d);
-					Points2i p2 = getInRange(seg, *it2, 2*d);
+					Points2i p1 = getInRange(seg, *it1, d1);
+					Points2i p2 = getInRange(seg, *it2, d1);
 					for (Points2i::const_iterator pit1 = p1.begin(); pit1 != p1.end(); pit1++)
 						for (Points2i::const_iterator pit2 = p2.begin(); pit2 != p2.end(); pit2++)
-							if (Vec2i::distance(*pit1, *pit2) < 1.5*d) // MAGIC AGAIN
+							if (Vec2i::distance(*pit1, *pit2) < d2)
 							{
 								ImageDrawUtils::putLineSegment(seg, *pit1, *pit2, 0);
 								changed = true;
@@ -138,3 +140,4 @@ namespace imago
 		return changed;
 	}
 }
+

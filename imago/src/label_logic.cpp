@@ -119,50 +119,57 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
    getLogExt().append("Letters", letters);
 }
 
+std::string substract(const std::string& fullset, const std::string& reduction)
+{
+	std::string result;
+	for (std::string::const_iterator it = fullset.begin(); it != fullset.end(); it++)
+		if (reduction.find(*it) == std::string::npos)
+			result += *it;
+	return result;
+}
+
+/*double calc_ratio(double max_amplitude, double value, double zero_point)
+{
+}*/
+
 void LabelLogic::process_ext( Segment *seg, int line_y )
 {
 	logEnterFunction();
 	getLogExt().appendSegmentWithYLine("segment with baseline", *seg, line_y);
 
+	RecognitionDistance pr = _cr.recognize_all(*seg);
+
+	// acquire image params
 	double underline = SegmentTools::getPercentageUnderLine(*seg, line_y);
 	double ratio = (double)SegmentTools::getRealHeight(*seg) / (double)_cap_height;
-	getLogExt().append("Percentage under baseline", underline);
-	getLogExt().append("Height ratio", ratio);
 
-	RecognitionDistance pr = _cr.recognize_all(*seg, CharacterRecognizer::all);
-
-	if (_cur_atom->label_first != 0 && _cur_atom->label_second != 0)
-	{
-		pr.adjust(0.98, CharacterRecognizer::digits);
-		
-		pr.adjust(1.0 - 0.2 * SegmentTools::getPercentageUnderLine(*seg, line_y) , CharacterRecognizer::digits);
-
-		getLogExt().append("Adjust for digits");
+	{ // adjust using image params
+		getLogExt().append("Percentage under baseline", underline);
+		// assume the 45% underline is zero-point
+		pr.adjust(1.0 - 0.3 * (underline - 0.45), CharacterRecognizer::digits);		
+	
+		getLogExt().append("Height ratio", ratio);
+		// assume the 75% height ratio is zero-point
+		pr.adjust(0.8 + 0.266 * ratio , CharacterRecognizer::lower + CharacterRecognizer::digits);	
 	}
-	else if (_cur_atom->label_first != 0 && _cur_atom->label_second == 0)
-	{
-		int idx = _cur_atom->label_first - 'A';
-		if (idx >= 0 && idx < 26)
+
+	{ // adjust using chemical structure logic
+		if (_cur_atom->label_first != 0 && _cur_atom->label_second == 0)
 		{
-			std::string set = comb[idx];
-			pr.adjust(1.2, CharacterRecognizer::lower);
-			pr.adjust(0.845, set); // ~1
-			getLogExt().append("Adjust for", set);
+			// can be a capital or digit or small
+			int idx = _cur_atom->label_first - 'A';
+			if (idx >= 0 && idx < 26)
+			{
+				// decrease probability of unallowed characters
+				pr.adjust(1.2, substract(CharacterRecognizer::lower, comb[idx]));		
+			}
+		} 
+		else if (_cur_atom->label_first == 0)
+		{
+			// should be a capital letter, increase probability of allowed characters
+			pr.adjust(0.85, substract(CharacterRecognizer::upper, "XJUVWQ"));
 		}
-		//pr.adjust(0.98, CharacterRecognizer::digits); // digits too
-
-		pr.adjust(1.0 - 0.2 * (underline - 0.5), CharacterRecognizer::digits);		
-
-		pr.adjust(0.9 + 0.1 * ratio , CharacterRecognizer::lower + CharacterRecognizer::digits);
-	} 
-	else if (_cur_atom->label_first == 0)
-	{
-		pr.adjust(0.85, CharacterRecognizer::upper); // 1.2 * 0.85 = 1.02
-		pr.adjust(1.2, "XJUVWQ"); // bad molecule first letters		
-		getLogExt().append("Adjust for upper");
 	}
-
-	#define in_set(ch,set) set.find(ch) != std::string::npos
 
 	int attempts_count = 0;
 
@@ -180,7 +187,7 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 
 
 	char ch = pr.getBest();
-	if (in_set(ch, CharacterRecognizer::upper /*also includes 'tricky'*/))
+	if (CharacterRecognizer::upper.find(ch) != std::string::npos) // it also includes 'tricky' symbols
 	{
 		_addAtom();
 		if (!_fixupTrickySubst(ch))
@@ -188,21 +195,26 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 			_cur_atom->label_first = ch;
 		}
 	} 
-	else if (in_set(ch, CharacterRecognizer::lower))
+	else if (CharacterRecognizer::lower.find(ch) != std::string::npos)
 	{		
-		if (_cur_atom->label_second == 0)
+		if (_cur_atom->label_second != 0)
 		{
-			_cur_atom->label_second = ch;
-		}
-		else
-		{
-			// strange case, two or more small letters, probably we did something wrong
 			getLogExt().append("Small letter comes after another small, fixup & retry");
 			pr.adjust(1.2, CharacterRecognizer::lower);
 			goto retry;
 		}
+		else if (_cur_atom->label_first == 0)
+		{
+			getLogExt().append("Small specified for non-set captial, fixup & retry");
+			pr.adjust(1.2, CharacterRecognizer::lower);
+			goto retry;
+		}
+		else
+		{
+			_cur_atom->label_second = ch;
+		}
 	}
-	else if (in_set(ch, CharacterRecognizer::digits))
+	else if (CharacterRecognizer::digits.find(ch) != std::string::npos)
 	{
 		if (_cur_atom->count != 0)
 		{

@@ -1,5 +1,6 @@
 #include "recognition_distance.h"
 #include <algorithm>
+#include "log_ext.h"
 
 namespace imago
 {
@@ -19,6 +20,8 @@ namespace imago
 
 	void RecognitionDistance::adjust(double factor, const std::string& sym_set)
 	{
+		//logEnterFunction();
+		getLogExt().append("Distance map adjust for " + sym_set, factor);
 		for (size_t u = 0; u < sym_set.size(); u++)
 			if (this->find(sym_set[u]) != this->end())
 				(*this)[sym_set[u]] *= factor;

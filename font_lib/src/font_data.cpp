@@ -1,4 +1,4 @@
-#include "character_recognizer.h"
+#include "character_recognizer_data.h"
 namespace imago
 {
 	CharacterRecognizerData::CharacterRecognizerData()
