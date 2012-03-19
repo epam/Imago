@@ -615,7 +615,8 @@ void LabelLogic::recognizeLabel( Label& label )
 
       try
       {
-         process_ext(label.symbols[i], y);
+         //process_ext(label.symbols[i], y);
+		  process(label.symbols[i], y);
       }
       catch(OCRException &e)
       {

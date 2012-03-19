@@ -9,6 +9,7 @@
 #include "segmentator.h"
 #include "molecule.h"
 #include "current_session.h"
+#include "log_ext.h"
 #include "wedge_bond_extractor.h"
 #include "separator.h"
 #include "image_utils.h"
@@ -28,6 +29,8 @@ namespace imago
 
    int OrientationFinder::findFromImage( const Image &img )
    {
+	   logEnterFunction();
+
       Image _img;
       _img.copy(img);
       int symbols[4] = {0};

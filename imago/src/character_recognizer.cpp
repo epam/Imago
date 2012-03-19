@@ -99,16 +99,17 @@ double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
 }
 
 
-RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg) const
+RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const std::string &candidates) const
 {
    logEnterFunction();
 
    getLogExt().append("Source segment", seg);
+   getLogExt().append("Candidates", candidates);
 
 	seg.initFeatures(_count);
 	RecognitionDistance rec;
 
-	rec.mergeTables(recognize(seg.getFeatures(), all, true));
+	rec.mergeTables(recognize(seg.getFeatures(), candidates, true));
 
 	getLogExt().appendMap("Distance map for source", rec);
 
@@ -117,13 +118,19 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg) const
 
 	int w = connected.getWidth();
 	int h = connected.getHeight();
-	int d = std::min(w, h) / 7 + 1; // MAGIC
+	double d = 1.0 + std::min(w, h) / 7; // MAGIC
 	getLogExt().append("w", w);
 	getLogExt().append("h", h);
 	getLogExt().append("d", d);
 
 	Points2i endpoints = SegmentTools::getEndpoints(connected);
 		
+	if (endpoints.size() == 2) // only two endpoints, possible broken 'O'
+	{
+		d *= 1.5;
+		getLogExt().append("new d", d);
+	}
+
 	SegmentTools::logEndpoints(connected, endpoints, d);
 
 	if (endpoints.size() > 4)
@@ -137,7 +144,7 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg) const
 			getLogExt().append("Connected segment", connected);
 
 			connected.initFeatures(_count);
-			RecognitionDistance rec2 = recognize(connected.getFeatures(), all, true);
+			RecognitionDistance rec2 = recognize(connected.getFeatures(), candidates, true);
 
 			getLogExt().appendMap("Distance map for connected", rec2);
 
@@ -160,7 +167,7 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg) const
 		getLogExt().append("Thinned segment", thinned);
 
 		thinned.initFeatures(_count);
-		RecognitionDistance rec2 = recognize(thinned.getFeatures(), all, true);
+		RecognitionDistance rec2 = recognize(thinned.getFeatures(), candidates, true);
 
 		getLogExt().appendMap("Distance map for thinned", rec2);
 
@@ -203,7 +210,7 @@ char CharacterRecognizer::recognize( const Segment &seg,
                                      const std::string &candidates,
                                      double *dist ) const
 {
-	//return recognize_all(seg, candidates).getBest(dist); // temp
+   return recognize_all(seg, candidates).getBest(dist);
 
    logEnterFunction();
 
@@ -491,7 +498,7 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    printf(" n %.2lf\n", err_n[min_n]);
 #endif
 
-   if (err_h[min_h] < err_n[min_n])
+   /*if (err_h[min_h] < err_n[min_n])
    {
       if (err_h[min_h] < 3.2)
          return 'H';
@@ -502,10 +509,10 @@ int HWCharacterRecognizer::recognize (Segment &seg)
       {
          return 'N';
       }
-   }
+   }*/
 
    static const std::string candidates =
-      "ABCDFGHIKMNPRS"
+      "ABCDFGHIKMNPRST"
       "aehiklnr" //u
       "1236";
    

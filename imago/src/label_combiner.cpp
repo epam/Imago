@@ -76,6 +76,8 @@ void LabelCombiner::setParameters( double capHeightError, double maxSymRatio,
 
 int LabelCombiner::_findCapitalHeight()
 {
+	logEnterFunction();
+
    //TODO: If it belongs here then rewrite
    int mean_height = 0, seg_height, cap_height = -1;
    BOOST_FOREACH(Segment *seg, _symbols_layer)

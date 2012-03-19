@@ -3,6 +3,7 @@
 #include "image.h"
 #include "image_draw_utils.h"
 #include "thin_filter2.h"
+#include <queue>
 
 namespace imago
 {
@@ -100,10 +101,196 @@ namespace imago
 		return endpoints;
 	}
 
+	Points2i SegmentTools::getPath(const Segment& seg, Vec2i start, Vec2i finish)
+	{
+		logEnterFunction();
+
+		Points2i result;
+		const int w = seg.getWidth();
+		const int h = seg.getHeight();
+		int* wavemap = new int[w*h]();
+
+		// TODO: add priority_queue here
+		typedef std::queue<std::pair<Vec2i, int> > WorkVector;
+		WorkVector v;
+		v.push(std::make_pair(start, 1));
+		while (!v.empty())
+		{
+			Vec2i cur_v = v.front().first;
+			int cur_d = v.front().second;
+			v.pop();
+			int idx = cur_v.x + cur_v.y * w;
+			if (cur_v.x >= 0 && cur_v.y >= 0 &&
+				 cur_v.x < w && cur_v.y < h 
+				&& seg.getByte(cur_v.x, cur_v.y) == 0
+				&& (wavemap[idx] > cur_d || wavemap[idx] == 0))
+			{
+				wavemap[idx] = cur_d;
+
+				#define lookup(dx,dy) v.push(std::make_pair(Vec2i(cur_v.x + (dx), cur_v.y + (dy)), cur_d+1));
+				lookup(1,0); lookup(-1,0); lookup(0,1); lookup(0,-1);
+				lookup(1,1); lookup(-1,1); lookup(1,-1); lookup(-1,-1);				
+				#undef lookup
+			}
+		}		
+
+		if (getLogExt().loggingEnabled())
+		{
+			Image temp(w, h);
+			for (int x = 0; x < w; x++)
+				for (int y = 0; y < h; y++)
+					temp.getByte(x,y) = (10 * wavemap[x + y * w]) % 256;
+			getLogExt().append("wavemap", temp);
+		}
+
+		while (true)
+		{
+			int end = wavemap[finish.x + finish.y * w];
+
+			if (end == 0 || end == 1 || result.size() > h*w)
+				break;
+
+			result.push_back(finish);
+
+			Points2i ways;
+			#define lookup(dx,dy) ways.push_back(Vec2i(finish.x + dx, finish.y + dy));
+			lookup(1,0); lookup(-1,0); lookup(0,1); lookup(0,-1);
+			lookup(1,1); lookup(-1,1); lookup(1,-1); lookup(-1,-1);				
+			#undef lookup
+
+			int best_v = end;
+			Vec2i best_w = finish;
+			for (size_t u = 0; u < ways.size(); u++)
+			{
+				if (ways[u].x >= 0 && ways[u].x < w &&
+					ways[u].y >= 0 && ways[u].y < h)
+				{
+					int value = wavemap[ways[u].x + ways[u].y * w];
+					if (value != 0 && value < best_v)
+					{
+						best_v = value;
+						best_w = ways[u];
+					}
+				}
+			}
+			finish = best_w;
+		}
+
+		delete[] wavemap;
+
+		return result;
+	}
+
+	Vec2i SegmentTools::getNearest(Vec2i start, const Points2i& pts)
+	{
+		Vec2i result = pts[0];
+		for (size_t u = 1; u < pts.size(); u++)
+			if (Vec2i::distance(start, pts[u]) < Vec2i::distance(start, result))
+				result = pts[u];
+		return result;
+	}
+
+	bool SegmentTools::makeSegmentConnected(Segment& seg, const Image& original_image)
+	{
+		logEnterFunction();
+
+		bool result = false;
+		
+		double line_thick = getSettings()["LineThickness"]; // already calculated
+		getLogExt().append("line_thick", line_thick);		
+
+		Points2i p = getEndpoints(seg);
+
+		// 60x60 max - performance issue else
+		if (p.size() >= 2 && seg.getWidth() < 60 && seg.getHeight() < 60)
+		{
+			Image src_crop(seg.getWidth(), seg.getHeight());
+
+			double intensity_filled = 0.0, intensity_blank = 0.0;
+			int count_filled = 0, count_blank = 0;
+
+			for (int u = 0; u < seg.getWidth(); u++)
+				for (int v = 0; v < seg.getHeight(); v++)
+				{
+					imago::byte b = original_image.getByte(seg.getX() + u, seg.getY() + v);
+					if (seg.getByte(u, v) == 0)
+					{
+						intensity_filled += b;
+						count_filled++;
+					}
+					else
+					{
+						intensity_blank += b;
+						count_blank++;
+					}
+					src_crop.getByte(u, v) = b;
+				}
+
+			if (count_filled > 0)
+				intensity_filled /= count_filled;
+
+			if (count_blank > 0)
+				intensity_blank /= count_blank;
+
+			// intensity_blank is > intensity_filled
+			getLogExt().append("Intensity blank", intensity_blank);
+			getLogExt().append("Intensity filled", intensity_filled);
+			
+			logEndpoints(seg, p, 5);
+			getLogExt().append("Image", src_crop);
+
+			double threshold = intensity_filled + (intensity_blank - intensity_filled) * 0.65; // MAGIC!!!
+
+			Segment shifted;
+			shifted.init(src_crop.getWidth(), src_crop.getHeight());
+			for (int u = 0; u < src_crop.getWidth(); u++)
+				for (int v = 0; v < src_crop.getHeight(); v++)
+					shifted.getByte(u, v) = src_crop.getByte(u, v) < threshold ? 0 : 255;					
+
+			getLogExt().append("Threshold shifted", shifted);
+
+			ThinFilter2(shifted).apply();
+
+			getLogExt().append("Thinned + Threshold shifted", shifted);
+
+			Points2i shifted_pts = getAllFilled(shifted);
+
+			if (!shifted_pts.empty())	
+				for (Points2i::iterator i1 = p.begin(); i1 != p.end(); i1++)
+					for (Points2i::iterator i2 = (i1 + 1); i2 != p.end(); i2++)
+					{
+						Vec2i start = getNearest(*i1, shifted_pts);
+						Vec2i end = getNearest(*i2, shifted_pts);
+						Points2i path = getPath(shifted, start, end);					
+						for (Points2i::iterator pp = path.begin(); pp != path.end(); pp++)
+						{
+							if (seg.getByte(pp->x, pp->y) != 0)
+							{
+								seg.getByte(pp->x, pp->y) = 0;
+								result = true;
+							}
+						}
+					}
+		}
+		
+		return result;
+	}
+
 	/// returns true if changes made
 	bool SegmentTools::makeSegmentConnected(Segment& seg, const Points2i& to_connect, double d1, double d2)
 	{
 		bool changed = false;
+
+		// try to fill broken pixels inside
+		for (int x = 0; x < seg.getWidth(); x++)
+			for (int y = 0; y < seg.getHeight(); y++)
+			{
+				if (seg.getByte(x, y) != 0 && getInRange(seg, Vec2i(x,y), 1).size() >= 6)
+				{
+					seg.getByte(x, y) = 0;
+					changed = true;
+				}
+			}
 	
 		// try to fill broken pixels inside
 		for (int x = 0; x < seg.getWidth(); x++)
@@ -119,10 +306,8 @@ namespace imago
 
 		// looks like hardcore complexity code, but practically to_connect.size() is below 5
 		for (Points2i::const_iterator it1 = to_connect.begin(); it1 != to_connect.end(); it1++)
-			for (Points2i::const_iterator it2 = to_connect.begin(); it2 != to_connect.end(); it2++)
+			for (Points2i::const_iterator it2 = (it1 + 1); it2 != to_connect.end(); it2++)
 			{
-				if (it1 == it2) 
-					continue;
 				if (Vec2i::distance(*it1, *it2) < d1)
 				{
 					Points2i p1 = getInRange(seg, *it1, d1);

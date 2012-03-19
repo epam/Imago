@@ -28,7 +28,7 @@ namespace imago
       RecognitionDistance recognize(const SymbolFeatures &features,
                       const std::string &candidates, bool wide_range = false) const;
 
-      RecognitionDistance recognize_all(const Segment &seg) const;
+      RecognitionDistance recognize_all(const Segment &seg, const std::string &candidates = all) const;
 
 	  char recognize(const Segment &seg, const std::string &candidates,
                       double *distance = 0) const;

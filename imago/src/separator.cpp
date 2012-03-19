@@ -69,22 +69,56 @@ void _getHuMomentsC(const Image &img, double hu[7])
    cv::HuMoments(moments, hu);
 }
 
+
+
 int Separator::HuClassifier(double hu[7])
 {
+	logEnterFunction();
+
 	if(hu[1] > 0.273411)
+	{
+		getLogExt().append("Entered into 1st case, cause hu[1] is", hu[1]);
+		
 		return SEP_BOND;
+	}
 	if(hu[1] > 0.1569 && hu[1] < 0.2734)
+	{
+		getLogExt().append("Entered into 2nd case, cause hu[1] is", hu[1]);
+		
 		if(hu[4] > -0.00238)
+		{
+			getLogExt().append("Entered into 2nd-1st case, cause hu[4] is", hu[4]);
 			return SEP_BOND;
+		}
 		else
+		{
+			getLogExt().append("Entered into 2nd-2nd case, cause hu[4] is", hu[4]);
 			return SEP_SYMBOL;
+		}
+	}
+	
 	if(hu[1] < 0.157 && (hu[0]<0.2483 && hu[2] > 0.0001 || 
 		hu[0]>0.2483 && hu[1] > 0.079 && hu[1] < 0.117 || 
-		hu[0]>0.2483 && hu[1] < 0.0792 && hu[1] > 0.057 && hu[0] < 0.3125)) 
+		hu[0]>0.2483 && hu[1] < 0.0792 && hu[1] > 0.057 && hu[0] < 0.3125))
+	{
+			getLogExt().append("Entered into 3rd case");
+			getLogExt().append("hu[0]", hu[0]);
+			getLogExt().append("hu[1]", hu[1]);
+			getLogExt().append("hu[2]", hu[2]);
 			return SEP_BOND;
+	}
 	else
+	{
+		getLogExt().append("Entered into 4th (else) case");
+		getLogExt().append("hu[0]", hu[0]);
+		getLogExt().append("hu[1]", hu[1]);
+		getLogExt().append("hu[2]", hu[2]);
 		return SEP_SYMBOL;
+	}
 
+	// this branch cannot be reached
+	
+	getLogExt().append("no case applied, return SEP_SUSPICIOUS");
 	return SEP_SUSPICIOUS;
 }
 
@@ -310,6 +344,8 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 			
 				_getHuMomentsC(*s, hu);
 
+				getLogExt().append("segment", *s);
+
 				mark = HuClassifier(hu);
 
 				if(//mark == SEP_SYMBOL && 
@@ -327,8 +363,8 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 					imago::ImageUtils::putSegment(test, *s);
 					ImageUtils::saveImageToFile(test, "output/tmp.png");
 				}*/
-
-				getLogExt().append("temp", *s);
+				
+				getLogExt().append("mark", mark);
 
 				if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
 				{
@@ -455,7 +491,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
          //if (rs["DebugSession"])
          //   ImageUtils::saveImageToFile(*s, "output/tmp.png");
 
-		 getLogExt().append("temp", *s);
+		 getLogExt().append("segment", *s);
 
 		 //thin segment
 		 Image temp;
@@ -471,6 +507,9 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 			|| s->getHeight() < 0.25 *cap_height)
 			)
 			mark = SEP_SUSPICIOUS;
+
+		getLogExt().append("mark", mark);
+		getLogExt().append("height", s->getHeight());
 		
 		 if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
 		 {
@@ -480,6 +519,8 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 			  Segment *thinseg = new Segment();
 			  thinseg->copy(*s);
 			  memcpy(thinseg->getData(), temp.getData(), temp.getWidth()*temp.getHeight() *sizeof(byte));
+
+			  getLogExt().append("ratio", thinseg->getRatio());
 
 			 if (s->getHeight() >= cap_height - sym_height_err && 
 				 s->getHeight() <= cap_height + sym_height_err &&
@@ -516,20 +557,30 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 			 delete thinseg;
 		 }
 
-		 
+				 
+
          switch (mark)
          {
          case SEP_BOND:
+			 getLogExt().append("SEP_BOND");
             layer_graphics.push_back(s);
             break;
          case SEP_SYMBOL:
+			 getLogExt().append("SEP_SYMBOL");
             layer_symbols.push_back(s);
             break;
          case SEP_SPECIAL:
+			 getLogExt().append("SEP_SPECIAL");
             if (_analyzeSpecialSegment(s, layer_graphics, layer_symbols))
+			{
+				getLogExt().append("to layer_graphics");
                layer_graphics.push_back(s);
+			}
             else
+			{
+				getLogExt().append("to layer_symbols");
                layer_symbols.push_back(s);
+			}
 
             /*if ((s)->getDensity() < susp_seg_density)
                layer_graphics.push_back(s);
@@ -537,6 +588,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
                layer_symbols.push_back(s);*/
             break;
          case SEP_SUSPICIOUS:
+			 getLogExt().append("SEP_SUSPICIOUS");
             layer_suspicious.push_back(s);
          }
 
