@@ -18,6 +18,7 @@
 #include <deque>
 #include <cstdio>
 #include <cmath>
+#include <stack>
 
 #include "boost/foreach.hpp"
 #include <opencv/cv.h>
@@ -71,6 +72,32 @@ void _getHuMomentsC(const Image &img, double hu[7])
 
 int Separator::HuClassifier(double hu[7])
 {
+	//double matpc[][3] = {
+	//	{0.239445987460827,	0.0778149678928670,	-0.384740698680061},
+	//	{0.889609936663605,	-0.366408195402987,	-0.0670250155791175},
+	//	{0.304641979881942,	0.869553202214745,	-0.191900867468113},
+	//	{0.0666904782761663,	0.141855697993849,	0.0667214690651129},
+	//	{0.159876932055093,	0.222103596196416,	0.671526195889114},
+	//	{0.151946955159813,	0.0662951511185019,	0.578530144516904},
+	//	{-0.0731909372361464,	0.172391995385271,	-0.143387533685890}
+	//};
+	//double pc1 = 0.0, pc2 = 0.0, pc3 = 0.0;
+
+	//for(int i=0;i<7;i++)
+	//{
+	//	pc1 += matpc[i][0]*hu[i];
+	//	pc2 += matpc[i][1]*hu[i];
+	//	pc3 += matpc[i][2]*hu[i];
+	//}
+
+	//if(pc1 > 0.5479 || (pc1> 0.321724 && pc1 < 0.523859) || 
+	//	(pc1<0.321724 && pc3>-0.0966595))//0.83333
+	//	return SEP_BOND;
+	//if(pc1< 0.5479 && pc1 > 0.523859 || 
+	//	(pc1<0.321724 && pc3<-0.0966595)) //0.039735
+	//	return SEP_SYMBOL;
+
+
 	if(hu[1] > 0.273411)
 		return SEP_BOND;
 	if(hu[1] > 0.1569 && hu[1] < 0.2734)
@@ -78,13 +105,12 @@ int Separator::HuClassifier(double hu[7])
 			return SEP_BOND;
 		else
 			return SEP_SYMBOL;
-	if(hu[1] < 0.157 && (hu[0]<0.2483 && hu[2] > 0.0001 || 
-		hu[0]>0.2483 && hu[1] > 0.079 && hu[1] < 0.117 || 
-		hu[0]>0.2483 && hu[1] < 0.0792 && hu[1] > 0.057 && hu[0] < 0.3125)) 
-			return SEP_BOND;
+	if(hu[1] < 0.157 && (hu[0] < 0.2483 && hu[2] > 0.0001 ||
+		hu[0] > 0.2483 && hu[1] > 0.079 && hu[1] < 0.117 ||
+		hu[0] > 0.2483 && hu[1] < 0.079 && hu[1] > 0.057 && hu[0] < 0.3125))
+		return SEP_BOND;
 	else
 		return SEP_SYMBOL;
-
 	return SEP_SUSPICIOUS;
 }
 
@@ -189,7 +215,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 	
 	}while(abs(c1 - c1_o) > 0.1 || abs(c2 - c2_o) > 0.1);
 
-	if(count1 == 0 || count2 == 0 || count1 > count2)
+	if(count1 == 0 || count2 == 0)
 		return;
 
 	
@@ -199,72 +225,132 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 	for(int i=0;i<classes.size(); i++)
 		visited.push_back(false);
 	int ri = -1;
+	RecognitionSettings &rs = getSettings();
+	double line_thick = rs["LineThickness"];
+
+
+	IntDeque symInds;
+	for(int i = 0;i<classes.size();i++)
+		if(classes[i] == 0)
+			symInds.push_back(i);
+	for(int i=0;i<symInds.size(); i++)
+		visited.push_back(false);
+
+	typedef std::deque<Vec2d> polygon;
+
+	deque<polygon> RectPoints;
+
 	// integrate the results by joining close to each other segments
-	for(int i=0;i<classes.size();i++)
+	//for(int i=0;i<classes.size();i++)
+	int i = -1, currInd;
+	int ncount;
+
+	do
 	{
-		if(classes[i] != 0 || visited[i])
+		i++;
+		if(i == symInds.size())
+			break;
+		currInd = symInds[i];
+		
+		if(visited[currInd])
 			continue;
-		 
-		Vec2d &p1 = lsegments[2 * i];
-		Vec2d &p2 = lsegments[2 * i + 1];
+		
+		Vec2d &p1 = lsegments[2 * currInd];
+		Vec2d &p2 = lsegments[2 * currInd + 1];
 
 		Rectangle rec(p1.x < p2.x ? p1.x : p2.x,
 			p1.y < p2.y? p1.y:p2.y, abs(p1.x - p2.x)+1, abs(p1.y - p2.y)+1);
 
 		symbRects.push_back(rec);
+		RectPoints.push_back(polygon());
 		LineCount.push_back(1);
 		ri++;
-		visited[i] = true;
+		RectPoints[ri].push_back(p1);
+		RectPoints[ri].push_back(p2);
+		bool added = false;
+		visited[currInd] = true;
+		int j = 0;
+		//for(int j=0; j < classes.size(); j++)
+		do{
 
-		for(int j=i+1; j < classes.size(); j++)
-		{
-			if(classes[j] != 0 || visited[j])
-				continue;
-			
-			Vec2d &sp1 = lsegments[2 * j];
-			Vec2d &sp2 = lsegments[2 * j + 1];
+			added = false;
 
-			double dist1 = Algebra::distance2rect(sp1, symbRects[ri]);
-			double dist2 = Algebra::distance2rect(sp2, symbRects[ri]);
-			
-			//update rectangle
-			if(dist1 < 5 || dist2 < 5)
+			for(j=0;j< symInds.size();j++)
 			{
-				int left = symbRects[ri].x < sp1.x ? symbRects[ri].x : sp1.x; 
-					left = left < sp2.x ? left : sp2.x;
+				int currInd2 = symInds[j];
+				if(visited[currInd2] || currInd == currInd2)
+					continue;
+			
+				Vec2d &sp1 = lsegments[2 * currInd2];
+				Vec2d &sp2 = lsegments[2 * currInd2 + 1];
+
+				double dist1 = Algebra::distance2rect(sp1, symbRects[ri]);
+				double dist2 = Algebra::distance2rect(sp2, symbRects[ri]);
+			
+				//update rectangle
+				if(dist1 < line_thick || dist2 < line_thick)
+				{
+					int left = symbRects[ri].x < sp1.x ? symbRects[ri].x : sp1.x; 
+						left = left < sp2.x ? left : sp2.x;
 				
-				int right = (symbRects[ri].x + symbRects[ri].width) > sp1.x ? (symbRects[ri].x  + symbRects[ri].width): sp1.x; 
-					right = right > sp2.x ? right : sp2.x;
+					int right = (symbRects[ri].x + symbRects[ri].width) > sp1.x ? (symbRects[ri].x  + symbRects[ri].width): sp1.x; 
+						right = right > sp2.x ? right : sp2.x;
 
-				int top = symbRects[ri].y < sp1.y ?  symbRects[ri].y : sp1.y; 
-					top = top < sp2.y ? symbRects[ri].y : sp2.y;
+					int top = symbRects[ri].y < sp1.y ?  symbRects[ri].y : sp1.y; 
+						top = top < sp2.y ? symbRects[ri].y : sp2.y;
 
-				int bottom = (symbRects[ri].y + symbRects[ri].height) > sp1.y ? (symbRects[ri].y + symbRects[ri].height):sp1.y;
-				bottom = bottom > sp2.y ? bottom : sp2.y;
+					int bottom = (symbRects[ri].y + symbRects[ri].height) > sp1.y ? (symbRects[ri].y + symbRects[ri].height):sp1.y;
+					bottom = bottom > sp2.y ? bottom : sp2.y;
 
-				symbRects[ri] = Rectangle(left, top, right - left, bottom - top);
-				LineCount[ri]++;
-				visited[j] = true;
+					symbRects[ri] = Rectangle(left, top, right - left, bottom - top);
+					RectPoints[ri].push_back(sp1);
+					RectPoints[ri].push_back(sp2);
+					LineCount[ri]++;
+					visited[currInd2] = true;
+					added = true;
+				}
 			}
-			}
-		}
+
+		}while(added);
+		
+		ncount = 0;
+		for(int nc=0;nc<visited.size();nc++)
+			ncount += visited[nc];
+
+	}while(ncount !=  symInds.size());
 
 		if(symbRects.empty())
 			return;
 
 		bool found_symbol = false;
-		RecognitionSettings &rs = getSettings();
+		
 			
 		int sym_height_err = rs["SymHeightErr"], cap_height = rs["CapitalHeight"];
 		double susp_seg_density = rs["SuspSegDensity"],
 			adequate_ratio_max = rs["MaxSymRatio"],
-			adequate_ratio_min = rs["MinSymRatio"],
-			line_thick = rs["LineThickness"];
+			adequate_ratio_min = rs["MinSymRatio"];
 
 		for(int i=0;i< symbRects.size(); i++)
 		{
 			if(LineCount[i] < 2)
 				continue;
+			if(LineCount[i] == 2 &&
+				Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
+					RectPoints[i][2], RectPoints[i][3], 0.1))
+			{
+				continue;
+			}
+
+			if(LineCount[i] == 3)
+			{
+				if(Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
+					RectPoints[i][2], RectPoints[i][3], 0.1) || 
+					Algebra::segmentsParallel(RectPoints[i][4], RectPoints[i][5],
+					RectPoints[i][2], RectPoints[i][3], 0.1) || 
+					Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
+					RectPoints[i][4], RectPoints[i][5], 0.1))
+					continue;
+			}
 
 			int left = (symbRects[i].x - line_thick )< 0 ? 0 : symbRects[i].x - line_thick ;
 			int top =  (symbRects[i].y - line_thick )< 0 ? 0 : symbRects[i].y - line_thick ;
@@ -273,8 +359,10 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 			int bottom = (symbRects[i].y + symbRects[i].height + line_thick) > timg.getHeight() ? timg.getHeight():
 				(symbRects[i].y + symbRects[i].height  + line_thick);
 
-			Image extracted(right - left+1, bottom - top+1);
+			Image extracted(right - left+1, bottom - top+1),
+				_2BClassified(right - left+1, bottom - top+1);
 			extracted.fillWhite();
+			_2BClassified.fillWhite();
 
 
 			timg.extract(left, top, right, bottom, extracted); 
@@ -285,7 +373,29 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 			for(SegmentDeque::iterator it = segs.begin(); it!=segs.end(); it++)
 			{
-				int area = (*it)->density() * (*it)->getWidth() * (*it)->getHeight();
+
+				for(int n=0;n<RectPoints[i].size();n++)
+				{
+					Vec2d pt = RectPoints[i][n];
+					int dx = pt.x - left;
+					int dy = pt.y - top;
+					
+					if((*it)->getX() < dx && ((*it)->getWidth() + (*it)->getX()) > dx && 
+						(*it)->getY() < dy && ((*it)->getHeight() + (*it)->getY()) > dy)
+					{
+						int sx = dx - (*it)->getX();
+						int sy = dy - (*it)->getY();
+
+						if((*it)->getByte(sx, sy) == 0)
+						{
+							ImageUtils::putSegment(_2BClassified, *(*it));
+							break;
+						}
+					}
+				}
+					
+
+				/*int area = (*it)->density() * (*it)->getWidth() * (*it)->getHeight();
 
 				int tarea = s != NULL ? (*it)->density() * (*it)->getWidth() * (*it)->getHeight():
 					0;
@@ -295,12 +405,19 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 					s->copy(**it);
 					s->getX() += left;
 					s->getY() += top;
-				}
+				}*/
 				delete *it;
 			}
 
 			segs.clear();
 
+			//_2BClassified.crop();
+			s = new Segment();
+			s ->init( _2BClassified.getWidth(),  _2BClassified.getHeight());
+			memcpy(s->getData(),  _2BClassified.getData(), sizeof(byte) *  _2BClassified.getWidth() *  _2BClassified.getHeight());
+			s->getX() = left;
+			s->getY() = top;
+			
 			int mark;
 			
 			//	classify object
@@ -312,7 +429,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 				mark = HuClassifier(hu);
 
-				if(//mark == SEP_SYMBOL && 
+				 if(//mark == SEP_SYMBOL && 
 					//(!(extracted.getHeight() >= cap_height - sym_height_err && extracted.getHeight() <= cap_height + sym_height_err && extracted.getHeight() <= cap_height * 2 && extracted.getWidth() <= 1.8 * cap_height)
 					//|| 
 					extracted.getHeight() < 0.25 *cap_height)
@@ -350,7 +467,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 					   if (ImageUtils::testSlashLine(*s, 0, 3.2)) //TODO: To rs immediately. Original is 1.0
 						  mark = SEP_BOND;
 					   else
-						  mark = SEP_SPECIAL;
+						  mark = LineCount[i] != 4?SEP_SYMBOL:SEP_BOND;
 					else
 					   if (s->getRatio() < adequate_ratio_min)
 						  if (_testDoubleBondV(*s))
