@@ -12,12 +12,28 @@ HistogramTools::HistogramTools(cv::Mat &img)
 	GetStretchLimits(_lowLim, _hiLim);
 }
 
-void HistogramTools::ImageAdjust(cv::Mat &result)
+void HistogramTools::ImageAdjust(cv::Mat &result, bool Sigmoid)
 {
 	unsigned char lmap[256];
 	for(int i=0;i<256;i++)
-		lmap[i] = ( i - 256 * _lowLim)/( _hiLim - _lowLim);
-
+	{
+		
+		lmap[i] = ( i - 255 * _lowLim)/( _hiLim - _lowLim);
+		if(Sigmoid)
+		{
+			float val = i/255.0;
+			if(val<_lowLim)
+				lmap[i] = 0;
+			else
+				if(val<(_hiLim - _lowLim)/2)
+					lmap[i] = 2*((val - _lowLim)/(_hiLim - _lowLim))*((val - _lowLim)/(_hiLim - _lowLim))*255;
+				else 
+					if(val<_hiLim)
+						lmap[i] = (1- 2*((val - _hiLim)/(_hiLim - _lowLim))*((val - _hiLim)/(_hiLim - _lowLim)))*255;
+					else
+						lmap[i] = 255;
+		}
+	}
 	for(int i=0;i<result.cols;i++)
    {
 	   for (int j = 0;j<result.rows;j++)

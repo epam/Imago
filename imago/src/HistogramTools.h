@@ -30,7 +30,7 @@ namespace imago
 	public:
 		HistogramTools(cv::Mat &img);
 		~HistogramTools(void){}
-		void ImageAdjust(cv::Mat &result);
+		void ImageAdjust(cv::Mat &result, bool Sigmoid = false);
 	private:
 		void GetStretchLimits(float &lowLim, float &highLim);
 		float _lowLim, _hiLim;

@@ -546,8 +546,6 @@ int EstimateLineThickness(Image &bwimg)
 	int h = bwimg.getHeight();
 	int d = 10; // 10 pixel grid
 
-//	int aw, ah;
-
 	IntVector lthick;
 
 	if(w < d)
@@ -714,12 +712,14 @@ void _wiener2(cv::Mat &mat)
 	
 	//calculate local mean
 	cv::Mat localMean;
-	double ones[] = {1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1,
-					1, 1, 1, 1, 1,};
-	cv::Mat kernel1(5, 5, CV_64F, ones);// = cv::Mat::ones(5, 5, CV_32F);
+	double ones[] = {1, 1, 1, 1, 1, 1, 1,
+					 1, 1, 1, 1, 1, 1, 1,
+					 1, 1, 1, 1, 1, 1, 1,
+					 1, 1, 1, 1, 1, 1, 1,
+					 1, 1, 1, 1, 1, 1, 1,
+					 1, 1, 1, 1, 1, 1, 1,
+					 1, 1, 1, 1, 1, 1, 1};
+	cv::Mat kernel1(7, 7, CV_64F, ones);// = cv::Mat::ones(5, 5, CV_32F);
 	cv::filter2D(dmat, localMean, -1, kernel1);
 	localMean = localMean / kernel1.total();
 
@@ -993,8 +993,14 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 
 	//Perform binary thresholding using Otsu procedure
 	//thresh = thresh - 16 > 0 ? thresh - 16 : 0; 
-	if(adaptiveThresh)
-		cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, 7, 7);
+	if(adaptiveThresh )//|| !strongThresh
+	{
+		//HistogramTools ht2(mat);
+		//ht2.ImageAdjust(mat, true);
+		double blockS = getSettings()["LineThickness"];
+		blockS = ((int)blockS % 2) == 0 ? blockS +1:blockS;
+		cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, (int)blockS*7, 7);
+	}
 	else
 	cv::threshold(mat, mat, wthresh, 255, cv::THRESH_BINARY);//cv::THRESH_OTSU|
 
