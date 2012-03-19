@@ -993,10 +993,13 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 
 	//Perform binary thresholding using Otsu procedure
 	//thresh = thresh - 16 > 0 ? thresh - 16 : 0; 
-	if(adaptiveThresh || !strongThresh)
+	if(adaptiveThresh )//|| !strongThresh
 	{
+		//HistogramTools ht2(mat);
+		//ht2.ImageAdjust(mat, true);
 		double blockS = getSettings()["LineThickness"];
-		cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, (int)blockS*5, 7);
+		blockS = ((int)blockS % 2) == 0 ? blockS +1:blockS;
+		cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, (int)blockS*7, 7);
 	}
 	else
 	cv::threshold(mat, mat, wthresh, 255, cv::THRESH_BINARY);//cv::THRESH_OTSU|
