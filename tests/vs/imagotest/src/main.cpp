@@ -807,7 +807,7 @@ void testApproximator(char *filename)
    ImageUtils::saveImageToFile(res, "dp.png");
 }
 
-void testRecognition(const char *filename = 0)
+void testRecognition(const char *filename, bool debug)
 {
    try
    {
@@ -823,7 +823,9 @@ void testRecognition(const char *filename = 0)
          //"../../../data/iPad2/TS_3_iPad_2_1.JPG";
          //"../../../ireco/first-delivery-images/photo09.jpg";
 
-      getSettings()["DebugSession"] = true;
+	  if (debug)
+		getSettings()["DebugSession"] = true;
+
       //getSettings()["Filter"] = "blur"; //for 34!
       ChemicalStructureRecognizer &csr = getRecognizer();
 
@@ -890,7 +892,7 @@ int main(int argc, char **argv)
    //makeFont();
    //testOCR2(argv[1]);
 
-   testRecognition(argv[1]);
+   testRecognition(argv[1], argc > 2 && strcmp(argv[2], "-l") == 0);
    //calcDescriptors(argc, argv);
    //makeCVFont();
 
