@@ -73,7 +73,12 @@ bool testNear(Vec2d &point, Rectangle &rec, int margin)
 bool testCollision(Vec2d &beg, Vec2d &end, Rectangle &rec)
 {
 	Vec2d perp(-(end.y - beg.y), end.x - beg.x);
-	perp = perp.getNormalized();
+	try{
+		perp = perp.getNormalized();
+	}catch(DivizionByZeroException &e)
+	{
+		return false;
+	}
 	//perp.diff(perp, end);
 
 	Vec2d vec1(rec.x, rec.y), vec2(rec.x + rec.width, rec.y),
@@ -99,7 +104,7 @@ bool testCollision(Vec2d &beg, Vec2d &end, Rectangle &rec)
 
 void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
 {
-   double space;
+   double space, space2;
    double bl = bondLength();
    if (bl > 100.0)
       space = 0.3 * bl; //0.3
@@ -125,7 +130,8 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
 
       nearest.clear();
 	  space = l.MaxSymbolWidth() * 1.5;
-
+	  space2 = l.rect.width < l.rect.height ? l.rect.width : l.rect.height;
+	   
 	     boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type
                               positions = boost::get(boost::vertex_pos, _g);
 
@@ -146,11 +152,13 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
             d2 = Algebra::distance2rect(boost::get(positions,
                                                  boost::target(e, _g)), l.rect);
 
-		 if (d1 <= d2 && testCollision(boost::get(positions, boost::target(e, _g)), boost::get(positions, boost::source(e, _g)), l.rect) &&
-			 testNear(boost::get(positions, boost::source(e, _g)), l.rect, space))
+		 if (d1 <= d2 && ((testCollision(boost::get(positions, boost::target(e, _g)), boost::get(positions, boost::source(e, _g)), l.rect) &&
+			 testNear(boost::get(positions, boost::source(e, _g)), l.rect, space)) ||
+			 testNear(boost::get(positions, boost::source(e, _g)), l.rect, space2/2)))
             nearest.push_back(boost::source(e, _g));
-         else if (d2 < d1 && testCollision(boost::get(positions, boost::source(e, _g)), boost::get(positions, boost::target(e, _g)), l.rect) &&
-			 testNear(boost::get(positions, boost::target(e, _g)), l.rect, space))
+         else if (d2 < d1 && ((testCollision(boost::get(positions, boost::source(e, _g)), boost::get(positions, boost::target(e, _g)), l.rect) &&
+			 testNear(boost::get(positions, boost::target(e, _g)), l.rect, space)) ||
+			 testNear(boost::get(positions, boost::target(e, _g)), l.rect, space2/2)))
             nearest.push_back(boost::target(e, _g));
 	  }
 
