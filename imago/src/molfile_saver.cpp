@@ -91,7 +91,7 @@ void MolfileSaver::_writeCtab()
    {
       bond_length = rs["AvgBondLength"];
    }
-   catch (Exception &e) //This exception means that we mess with edgeless graph.
+   catch (Exception &) //This exception means that we mess with edgeless graph.
    {
       bond_length = 1;
    }

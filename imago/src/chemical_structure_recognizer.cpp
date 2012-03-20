@@ -116,7 +116,9 @@ void ChemicalStructureRecognizer::_processFilter()
       conv.apply();
    }
 
-   //TODO: Check threshold
+
+   //TODO: Check threshold   
+
    Binarizer(_origImage, rs["BinarizationLvl"]).apply();
 }
 
@@ -150,7 +152,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       //{
       //   ImageUtils::saveImageToFile(_img, "output/real_img.png");
       //}
-	  getLogExt().append("Real image", _img);
+	  getLogExt().append("Cropped image", _img);
 
       TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
 

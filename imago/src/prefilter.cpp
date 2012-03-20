@@ -918,7 +918,7 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
    //build structuring element
    //min area = 36, coefficient = 3.4722e-004
    int minA = 8640*3;
-   if(matred.total() > minA )
+   if(matred.total() > (size_t)minA )
    {
 	   int ssize = matred.total() * 3.4722e-004 / 3;
 	   ssize = ssize < 20 ? 20 : ssize;
@@ -1090,14 +1090,14 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 
    getSettings()["LineThickness"] = lineThickness;
    
-   Image outImg(raw.getWidth(), raw.getHeight());
-   outImg.fillWhite();
+   //Image outImg(raw.getWidth(), raw.getHeight());
+   //outImg.fillWhite();
 
    SegmentDeque segs, psegs;
    imago::Segmentator::segmentate(image, segs, std::min<double>(lineThickness, 3));
    SegmentDeque::iterator sit;
-   int xmin=outImg.getWidth(), xmax=0, 
-	   ymin=outImg.getHeight(), ymax=0;
+   int xmin=raw.getWidth(), xmax=0, 
+	   ymin=raw.getHeight(), ymax=0;
    
    std::sort(segs.begin(), segs.end(), SegCompare); 
    
@@ -1162,7 +1162,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    int median = medInd % 2 != 0? distsFromCenter[medInd>>1]:(distsFromCenter[medInd>>1] + distsFromCenter[(medInd>>1) - 1])/2;
 
    IntVector deviations;
-   for(int k=0;k<distsFromCenter.size();k++)
+   for(size_t k=0;k<distsFromCenter.size();k++)
    {
 	   int value = distsFromCenter[k] - median;
 	   if(value < 0)
@@ -1190,24 +1190,11 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 
    SegmentDeque::reverse_iterator rsit;
 
-   int i=0; 
-   if(getSettings()["DebugSession"])
-   {
-	   for(rsit = psegs.rbegin(); rsit != psegs.rend(); rsit++)
-	   {
-		   Segment *s = *rsit;
-		   imago::ImageUtils::putSegment(outImg, *s); // why in debug loop only?!
-	  
-		   //ImageUtils::saveImageToFile(outImg, "output/pref3_final.png");
-		   Image ims;
-		   s->extract(0, 0, s->getWidth(), s->getHeight(), ims);
-		   //char path[256] = "output/segs/";
-		   //sprintf(path, "output/segs/%d.png", i);
-		   //ImageUtils::saveImageToFile(ims, path);
-		   getLogExt().append("Segment", ims);
-		   i++;   
-	   }
-   }
+    for(rsit = psegs.rbegin(); rsit != psegs.rend(); rsit++)
+	{
+		Segment *s = *rsit;
+		getLogExt().append("Segment", *s);
+	}
 
    cimg.clear();
    cimg.copy(raw);
@@ -1224,8 +1211,15 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 
    cimg.clear();
    cimg.init(cs.getWidth(), cs.getHeight());
+
+    for(rsit = weak_segments.rbegin(); rsit != weak_segments.rend(); rsit++)
+	{		
+		Segment *s = *rsit;		
+		SegmentTools::makeSegmentConnected(*s, raw);		
+	}
+
    CombineWeakStrong(weak_segments, psegs, cimg);
-	
+
    //if(getSettings()["DebugSession"])
 	//   ImageUtils::saveImageToFile(cimg, "output/pref3_final.png");
    getLogExt().append("Pref3 final", cimg);

@@ -9,6 +9,7 @@
 #include "segmentator.h"
 #include "molecule.h"
 #include "current_session.h"
+#include "log_ext.h"
 #include "wedge_bond_extractor.h"
 #include "separator.h"
 #include "image_utils.h"
@@ -28,11 +29,13 @@ namespace imago
 
    int OrientationFinder::findFromImage( const Image &img )
    {
+	   logEnterFunction();
+
       Image _img;
       _img.copy(img);
       int symbols[4] = {0};
       double scores[4] = {0.0};
-      double err;
+//      double err;
       static const std::string candidates =
          "ABCDFGHIKMNPRSTZ"
          "abehiklnru"
@@ -214,7 +217,7 @@ namespace imago
       {
          contour_ext.getRawContour(seg, contour);
       }
-      catch (NoContourException &e)
+      catch (NoContourException &)
       {
          return boost::make_tuple(-1, -1, -1);
       }

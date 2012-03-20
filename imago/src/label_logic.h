@@ -33,6 +33,7 @@ namespace imago
 
       void setSuperatom( Superatom *satom );
       void process( Segment *seg, int line_y );
+	  void process_ext( Segment *seg, int line_y );
 
       void recognizeLabel( Label &label );
 
@@ -45,8 +46,11 @@ namespace imago
       Atom *_cur_atom;
       bool flushed, was_super, was_charge, was_letter;
       LabelLogic( LabelLogic & );
+	  void _addAtom();
       void _predict( const Segment *seg, std::string &letters );
       void _postProcess();
+	  void _eraseHydrogen(Label& label);
+	  bool _fixupTrickySubst(char sym);
    };
 }
 

@@ -26,8 +26,9 @@
 using namespace imago;
 
 LabelLogic::LabelLogic( const CharacterRecognizer &cr, double capHeightError ) :
-_cr(cr),
-   cap_height_error(capHeightError), _hwcr(cr) //0.82 0.877 0.78
+   _cr(cr),
+   cap_height_error(capHeightError), _hwcr(cr), //0.82 0.877 0.78
+   _satom(NULL), _cur_atom(NULL)
 {
    cap_height_error = 0.56; //changed in "handwriting"
    _cap_height = (int)getSettings()["CapitalHeight"];
@@ -44,50 +45,50 @@ void LabelLogic::setSuperatom( Superatom *satom )
    //if (was_super && !was_charge)
    //   throw ERROR("Unexpected symbol position (isotope or charge)");
 
+	_cur_atom = NULL;
    _satom = satom;
-   satom->atoms.resize(satom->atoms.size() + 1);
-   _cur_atom = &satom->atoms[satom->atoms.size() - 1];
+   _addAtom();
    flushed = 1;
    was_super = was_letter = was_charge = 0;
 }
+
+const static char *comb[28] = //"Constants", not config but name ?
+{
+/*A*/   "lcmsur",//tgl
+/*B*/   "aehkrnz", //i
+/*C*/   "aoldrsef",
+/*D*/   "by",
+/*E*/   "turs",
+/*F*/   "er",
+/*G*/   "aed",
+/*H*/   "efgso",
+/*I*/   "",
+/*J*/   "",
+/*K*/   "r",
+/*L*/   "iau",
+/*M*/   "egnotd",
+/*N*/   "aeibdop",
+/*O*/   "sc",
+/*P*/   "hdtormu",
+/*Q*/   "",
+/*R*/   "bhuena",
+/*S*/   "iecbnrg",
+/*T*/   "filaechmb",
+/*U*/   "",
+/*V*/   "",
+/*W*/   "",
+/*X*/   "e",
+/*Y*/   "b",
+/*Z*/   "nr",
+        "ABCEFGHIKLMNOPQRSTUVWYZX$%^&", //XD //K removed in "handwriting"
+        "abcdeghiklmnoprstuyz",
+};
 
 void LabelLogic::_predict( const Segment *seg, std::string &letters )
 {
 	logEnterFunction();
 
 	getLogExt().append("Segment", *seg);
-
-   const static char *comb[28] = //"Constants", not config but name ?
-   {
-   /*A*/   "lcmsur",//tgl
-   /*B*/   "aehkrnz", //i
-   /*C*/   "aoldrsef",
-   /*D*/   "by",
-   /*E*/   "turs",
-   /*F*/   "er",
-   /*G*/   "aed",
-   /*H*/   "efgso",
-   /*I*/   "",
-   /*J*/   "",
-   /*K*/   "r",
-   /*L*/   "iau",
-   /*M*/   "egnotd",
-   /*N*/   "aeibdop",
-   /*O*/   "sc",
-   /*P*/   "hdtormu",
-   /*Q*/   "",
-   /*R*/   "bhuena",
-   /*S*/   "iecbnrg",
-   /*T*/   "filaechmb",
-   /*U*/   "",
-   /*V*/   "",
-   /*W*/   "",
-   /*X*/   "e",
-   /*Y*/   "b",
-   /*Z*/   "nr",
-           "ABCEFGHIKLMNOPQRSTUVWYZX$%^&", //XD //K removed in "handwriting"
-           "abcdeghiklmnoprstuyz",
-   };
    
    letters.clear();
 
@@ -118,18 +119,191 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
    getLogExt().append("Letters", letters);
 }
 
-void LabelLogic::_postProcess()
+std::string substract(const std::string& fullset, const std::string& reduction)
+{
+	std::string result;
+	for (std::string::const_iterator it = fullset.begin(); it != fullset.end(); it++)
+		if (reduction.find(*it) == std::string::npos)
+			result += *it;
+	return result;
+}
+
+/*double calc_ratio(double max_amplitude, double value, double zero_point)
+{
+}*/
+
+void LabelLogic::process_ext( Segment *seg, int line_y )
 {
 	logEnterFunction();
+	getLogExt().appendSegmentWithYLine("segment with baseline", *seg, line_y);
 
-   if (_cur_atom->label_first == 0)
-   {
-      _cur_atom->label_first = '?';
-      _cur_atom->label_second = 0;
-   }
+	RecognitionDistance pr = _cr.recognize_all(*seg);
 
-   if (!was_charge && _cur_atom->charge != 0)
-      _cur_atom->charge = 0;
+	// acquire image params
+	double underline = SegmentTools::getPercentageUnderLine(*seg, line_y);
+	double ratio = (double)SegmentTools::getRealHeight(*seg) / (double)_cap_height;
+
+	{ // adjust using image params
+		getLogExt().append("Percentage under baseline", underline);
+		// assume the 45% underline is zero-point
+		pr.adjust(1.0 - 0.3 * (underline - 0.45), CharacterRecognizer::digits);		
+	
+		getLogExt().append("Height ratio", ratio);
+		// assume the 75% height ratio is zero-point
+		pr.adjust(0.8 + 0.266 * ratio , CharacterRecognizer::lower + CharacterRecognizer::digits);	
+	}
+
+	{ // adjust using chemical structure logic
+		if (_cur_atom->label_first != 0 && _cur_atom->label_second == 0)
+		{
+			// can be a capital or digit or small
+			int idx = _cur_atom->label_first - 'A';
+			if (idx >= 0 && idx < 26)
+			{
+				// decrease probability of unallowed characters
+				pr.adjust(1.2, substract(CharacterRecognizer::lower, comb[idx]));		
+			}
+		} 
+		else if (_cur_atom->label_first == 0)
+		{
+			// should be a capital letter, increase probability of allowed characters
+			pr.adjust(0.85, substract(CharacterRecognizer::upper, "XJUVWQ"));
+		}
+	}
+
+	int attempts_count = 0;
+
+	retry:
+
+	if (attempts_count++ > 3)
+	{
+		getLogExt().append("Attempts count overreach 3, probably unrecognizable. skip");
+		return;
+	}
+
+	getLogExt().appendMap("Current distance map", pr);
+	getLogExt().append("Ranged best candidates", pr.getRangedBest());
+	getLogExt().append("Quality", pr.getQuality());
+
+
+	char ch = pr.getBest();
+	if (CharacterRecognizer::upper.find(ch) != std::string::npos) // it also includes 'tricky' symbols
+	{
+		_addAtom();
+		if (!_fixupTrickySubst(ch))
+		{
+			_cur_atom->label_first = ch;
+		}
+	} 
+	else if (CharacterRecognizer::lower.find(ch) != std::string::npos)
+	{		
+		if (_cur_atom->label_second != 0)
+		{
+			getLogExt().append("Small letter comes after another small, fixup & retry");
+			pr.adjust(1.2, CharacterRecognizer::lower);
+			goto retry;
+		}
+		else if (_cur_atom->label_first == 0)
+		{
+			getLogExt().append("Small specified for non-set captial, fixup & retry");
+			pr.adjust(1.2, CharacterRecognizer::lower);
+			goto retry;
+		}
+		else
+		{
+			_cur_atom->label_second = ch;
+		}
+	}
+	else if (CharacterRecognizer::digits.find(ch) != std::string::npos)
+	{
+		if (_cur_atom->count != 0)
+		{
+			getLogExt().append("Count specified twice, fixup & retry");
+			pr.adjust(1.2, CharacterRecognizer::digits);
+			goto retry;
+		}
+		else if (_cur_atom->label_first == 0)
+		{
+			getLogExt().append("Count specified for non-set atom, fixup & retry");
+			pr.adjust(1.2, CharacterRecognizer::digits);
+			goto retry;
+		}
+		else
+		{
+			_cur_atom->count = ch - '0';
+		}
+	}
+	else 
+	{
+		getLogExt().append("Current char not in supported set, skip", ch);
+	}
+}
+
+void LabelLogic::_addAtom()
+{
+	if (_cur_atom)
+	{
+		if (_cur_atom->label_first == 0 && _cur_atom->label_second == 0)
+		{
+			return;
+		}
+		else
+		{
+			char temp[2] = {0,0};
+			std::ostringstream added;
+			if (_cur_atom->label_first != 0)
+			{
+				temp[0] = _cur_atom->label_first;
+				added << temp;
+			}
+			if (_cur_atom->label_second != 0)
+			{
+				temp[0] = _cur_atom->label_second;
+				added << temp;
+			}
+			if (_cur_atom->count != 0)
+				added << " [count: " << _cur_atom->count << "]";
+			if (_cur_atom->isotope != 0)
+				added << " [isotope: " << _cur_atom->isotope << "]";
+			if (_cur_atom->charge != 0)
+				added << " [charge: " << _cur_atom->charge << "]";
+			
+			getLogExt().append("Add atom", added.str());
+		}
+	}
+
+	_satom->atoms.resize(_satom->atoms.size() + 1);
+	_cur_atom = &_satom->atoms[_satom->atoms.size() - 1];
+}
+
+bool LabelLogic::_fixupTrickySubst(char sym)
+{
+	switch(sym)
+	{
+	case '$':
+		_cur_atom->label_first = 'C';
+		_cur_atom->label_second = 'l';
+		was_letter = 0;
+		return true;
+	case '%':
+		_cur_atom->label_first = 'H';
+		_cur_atom->count = 2;
+		was_letter = 0;
+		return true;
+	case '^':
+		_cur_atom->label_first = 'H';
+		_cur_atom->count = 3;
+		was_letter = 0;
+		return true;
+	case '&':
+		_cur_atom->label_first = 'O';
+		_addAtom();
+		_cur_atom->label_first = 'C';
+		was_letter = 0;
+		return true;
+	}
+
+	return false;
 }
 
 void LabelLogic::process( Segment *seg, int line_y )
@@ -251,14 +425,12 @@ void LabelLogic::process( Segment *seg, int line_y )
             if (was_super && !was_charge)
             {
                int tmp = _cur_atom->charge;
-               _satom->atoms.resize(_satom->atoms.size() + 1);
-               _cur_atom = &_satom->atoms[_satom->atoms.size() - 1];
+               _addAtom();
                _cur_atom->isotope = tmp;
             }
             else
             {
-               _satom->atoms.resize(_satom->atoms.size() + 1);
-               _cur_atom = &_satom->atoms[_satom->atoms.size() - 1];
+               _addAtom();
             }
          }
          else
@@ -266,31 +438,12 @@ void LabelLogic::process( Segment *seg, int line_y )
 
          //TODO: Lowercase letter can be that height too!
 
-         switch(sym)
-         {
-         case '$':
-            _cur_atom->label_first = 'C';
-            _cur_atom->label_second = 'l';
-            was_letter = 0;
-            break;
-         case '%':
-            _cur_atom->label_first = 'H';
-            _cur_atom->count = 2;
-            was_letter = 0;
-            break;
-         case '^':
-            _cur_atom->label_first = 'H';
-            _cur_atom->count = 3;
-            was_letter = 0;
-            break;
-         case '&':
-            _cur_atom->label_first = 'O';
-            _satom->atoms.resize(_satom->atoms.size() + 1);
-            _cur_atom = &_satom->atoms[_satom->atoms.size() - 1];
-            _cur_atom->label_first = 'C';
-            was_letter = 0;
-            break;
-         default:
+		 if (_fixupTrickySubst(sym))
+		 {
+			 // anything already done in _fixupTrickySubst
+		 }
+		 else
+		 {
             _cur_atom->label_first = sym;
             was_letter = 1;
          }
@@ -327,8 +480,7 @@ void LabelLogic::process( Segment *seg, int line_y )
          {
             _postProcess();
 
-            _satom->atoms.resize(_satom->atoms.size() + 1);
-            _cur_atom = &_satom->atoms[_satom->atoms.size() - 1];
+            _addAtom();
 
             was_charge = 0;
             flushed = 1;
@@ -407,35 +559,24 @@ void LabelLogic::process( Segment *seg, int line_y )
    }
 }
 
-void LabelLogic::recognizeLabel( Label& label )
+void LabelLogic::_postProcess()
 {
-	logEnterFunction();
+	logEnterFunction();	
 
-   setSuperatom(&label.satom);
-
-   for (int i = 0; i < (int)label.symbols.size(); i++)
+   if (_cur_atom->label_first == 0)
    {
-      int y;
-      if (label.multi_begin < 0 || i < label.multi_begin)
-         y = label.line_y;
-      else
-         y = label.multi_line_y;
-
-	  getLogExt().append("selected y", y);
-
-      try
-      {
-         process(label.symbols[i], y);
-      }
-      catch(OCRException &)
-      {
-         _postProcess();
-      }
-      
+      _cur_atom->label_first = '?';
+      _cur_atom->label_second = 0;
    }
-   _postProcess();
 
-   //Came here from Molecule::recognizeLabels
+   if (!was_charge && _cur_atom->charge != 0)
+      _cur_atom->charge = 0;   
+}
+
+
+void LabelLogic::_eraseHydrogen(Label& label)
+{
+	//Came here from Molecule::recognizeLabels
    Superatom &sa = label.satom;
    if (sa.atoms.size() == 2)
    {
@@ -451,4 +592,41 @@ void LabelLogic::recognizeLabel( Label& label )
          sa.atoms.erase(sa.atoms.end() - 1);
       }
    }
+}
+
+void LabelLogic::recognizeLabel( Label& label )
+{
+   logEnterFunction();
+
+   setSuperatom(&label.satom);
+
+   getLogExt().append("symbols count", label.symbols.size());
+   getLogExt().append("label.multi_begin", label.multi_begin);
+
+   for (int i = 0; i < (int)label.symbols.size(); i++)
+   {
+      int y = label.multi_line_y;
+
+	  if (label.multi_begin < 0 || i < label.multi_begin)
+         y = label.line_y;
+
+	  getLogExt().append("i", i);
+	  getLogExt().append("selected y", y);
+
+      try
+      {
+         //process_ext(label.symbols[i], y);
+		  process(label.symbols[i], y);
+      }
+      catch(OCRException &e)
+      {
+		  getLogExt().append("Exception", e.what());
+         _postProcess();
+      }
+      
+   }
+
+   _postProcess();   
+
+   _eraseHydrogen(label);
 }

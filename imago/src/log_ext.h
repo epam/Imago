@@ -1,4 +1,6 @@
 #pragma once
+#ifndef _log_ext_h
+#define _log_ext_h
 
 #include <stdio.h>
 #include <vector>
@@ -208,4 +210,4 @@ namespace imago
 	
 } // end namespace
 
-
+#endif // _log_ext_h
