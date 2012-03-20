@@ -470,7 +470,7 @@ void LabelLogic::process( Segment *seg, int line_y )
                _cur_atom->label_second = '?';
          }
          else
-            throw LabelException("Unexpected symbol position");
+            throw LabelException("Unexpected symbol position (small instead of capital)");
       }
       //superscript
       else if (med < line_y - 0.5 * _cap_height && digit_small == 0)
@@ -543,7 +543,7 @@ void LabelLogic::process( Segment *seg, int line_y )
       {
          //If subscript will appear before any letter, do some BADABUM
          if (_cur_atom->label_first == 0)
-            throw LabelException("Unexpected symbol position");
+            throw LabelException("Unexpected symbol position (subscript instaed of capital)");
 
          if (seg->getFeatures().recognizable)
             index_val = _cr.recognize(*seg, CharacterRecognizer::digits) - '0';
@@ -553,7 +553,7 @@ void LabelLogic::process( Segment *seg, int line_y )
       }
       else
       {
-         throw LabelException("Unexpected symbol position");
+         throw LabelException("Unexpected symbol position (else)");
       }
       was_letter = 0;
    }
@@ -614,14 +614,22 @@ void LabelLogic::recognizeLabel( Label& label )
 	  getLogExt().append("selected y", y);
 
       try
-      {
-         //process_ext(label.symbols[i], y);
-		  process(label.symbols[i], y);
+      {         
+		 process(label.symbols[i], y);
       }
       catch(OCRException &e)
       {
-		  getLogExt().append("Exception", e.what());
-         _postProcess();
+		  try
+		  {
+			  getLogExt().append("Exception", e.what());
+			  getLogExt().append("Give another try to process_ext() now");
+			  process_ext(label.symbols[i], y);
+		  }
+		  catch(OCRException &e)
+		  {
+				getLogExt().append("Exception", e.what());
+				_postProcess();
+		  }
       }
       
    }
