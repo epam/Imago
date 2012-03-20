@@ -99,6 +99,116 @@ double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
 }
 
 
+struct EnpointsRecord
+{
+	char c;
+	int min, max;
+	EnpointsRecord(char _c, int _min, int _max)
+	{
+		c = _c;
+		min = _min;
+		max = _max;
+	};
+};
+
+// TODO: this should be separate header, probably configurable
+
+class EndpointsData : public std::vector<EnpointsRecord>
+{
+public:
+	EndpointsData()
+	{
+		push_back(EnpointsRecord('0', 0, 2));
+		push_back(EnpointsRecord('1', 1, 3));
+		push_back(EnpointsRecord('2', 2, 3));
+		push_back(EnpointsRecord('3', 3, 4));
+		push_back(EnpointsRecord('4', 2, 4));
+		push_back(EnpointsRecord('5', 2, 4));
+		push_back(EnpointsRecord('6', 1, 2));
+		push_back(EnpointsRecord('7', 2, 4));
+		push_back(EnpointsRecord('8', 0, 2));
+		push_back(EnpointsRecord('9', 1, 2));
+
+		push_back(EnpointsRecord('A', 2, 4));
+		push_back(EnpointsRecord('B', 0, 4));
+		push_back(EnpointsRecord('C', 2, 2));
+		push_back(EnpointsRecord('D', 0, 4));
+		push_back(EnpointsRecord('E', 3, 6));
+		push_back(EnpointsRecord('F', 3, 5));
+		push_back(EnpointsRecord('G', 2, 3));
+		push_back(EnpointsRecord('H', 4, 6));
+		push_back(EnpointsRecord('I', 2, 6));
+		push_back(EnpointsRecord('J', 2, 4));
+		push_back(EnpointsRecord('K', 4, 6));
+		push_back(EnpointsRecord('L', 2, 4));
+		push_back(EnpointsRecord('M', 2, 6));
+		push_back(EnpointsRecord('N', 2, 4));
+		push_back(EnpointsRecord('O', 0, 2));
+		push_back(EnpointsRecord('P', 1, 4));
+		push_back(EnpointsRecord('Q', 2, 4));
+		push_back(EnpointsRecord('R', 2, 4));
+		push_back(EnpointsRecord('S', 2, 2));
+		push_back(EnpointsRecord('T', 3, 4));
+		push_back(EnpointsRecord('U', 2, 3));
+		push_back(EnpointsRecord('V', 2, 3));
+		push_back(EnpointsRecord('W', 2, 4));
+		push_back(EnpointsRecord('X', 4, 4));
+		push_back(EnpointsRecord('Y', 3, 4));
+		push_back(EnpointsRecord('Z', 2, 4));
+
+		push_back(EnpointsRecord('a', 1, 2));
+		push_back(EnpointsRecord('b', 0, 2));
+		push_back(EnpointsRecord('c', 2, 2));
+		push_back(EnpointsRecord('d', 2, 4));
+		push_back(EnpointsRecord('e', 1, 2));
+		push_back(EnpointsRecord('f', 3, 4));
+		push_back(EnpointsRecord('g', 1, 2));
+		push_back(EnpointsRecord('h', 2, 4));
+		push_back(EnpointsRecord('i', 2, 2));
+		push_back(EnpointsRecord('j', 2, 2));
+		push_back(EnpointsRecord('k', 2, 4));
+		push_back(EnpointsRecord('l', 1, 2));
+		push_back(EnpointsRecord('m', 2, 6));
+		push_back(EnpointsRecord('n', 2, 4));
+		push_back(EnpointsRecord('o', 0, 2));
+		push_back(EnpointsRecord('p', 1, 3));
+		push_back(EnpointsRecord('q', 1, 2));
+		push_back(EnpointsRecord('r', 2, 2));
+		push_back(EnpointsRecord('s', 2, 2));
+		push_back(EnpointsRecord('t', 3, 4));
+		push_back(EnpointsRecord('u', 2, 3));
+		push_back(EnpointsRecord('v', 2, 3));
+		push_back(EnpointsRecord('w', 2, 4));
+		push_back(EnpointsRecord('x', 4, 4));
+		push_back(EnpointsRecord('y', 2, 4));
+		push_back(EnpointsRecord('z', 2, 5));
+	}
+};
+
+static void generateImpossibleToWrite(int endpoints, int endpoints_connected,
+	                                  std::string& probably, std::string& surely)
+{
+	logEnterFunction();
+	getLogExt().append("endpoints count", endpoints);
+	getLogExt().append("endpoints_connected count", endpoints_connected);
+
+	static EndpointsData data;
+
+	probably = "";
+	surely = "";
+	for (size_t u = 0; u < data.size(); u++)
+	{
+		if ((endpoints           < data[u].min - 1 || endpoints           > data[u].max + 1) &&
+			(endpoints_connected < data[u].min - 1 || endpoints_connected > data[u].max + 1) ||
+			(endpoints == 3 && endpoints_connected == 3 && data[u].min > 3))
+			surely.push_back( data[u].c );
+		else if ((endpoints      < data[u].min  || endpoints           > data[u].max ) &&
+			(endpoints_connected < data[u].min  || endpoints_connected > data[u].max ))
+			probably.push_back ( data[u].c );
+	}
+}
+
+
 RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const std::string &candidates) const
 {
    logEnterFunction();
@@ -124,6 +234,7 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 	getLogExt().append("d", d);
 
 	Points2i endpoints = SegmentTools::getEndpoints(connected);
+	int connected_endpoints = endpoints.size();
 		
 	if (endpoints.size() == 2) // only two endpoints, possible broken 'O'
 	{
@@ -142,6 +253,7 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 		if (SegmentTools::makeSegmentConnected(connected, endpoints, 2.0*d, 1.5*d))
 		{
 			getLogExt().append("Connected segment", connected);
+			connected_endpoints = SegmentTools::getEndpoints(connected).size();
 
 			connected.initFeatures(_count);
 			RecognitionDistance rec2 = recognize(connected.getFeatures(), candidates, true);
@@ -155,30 +267,15 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 		{
 			getLogExt().append("Attempt to make segment connected gives no result");
 		}
-	}
-
-
-	/*{
-		Segment thinned;
-		thinned.copy(seg, false);
-		ThinFilter2 tf(thinned);
-		tf.apply();
-
-		getLogExt().append("Thinned segment", thinned);
-
-		thinned.initFeatures(_count);
-		RecognitionDistance rec2 = recognize(thinned.getFeatures(), candidates, true);
-
-		getLogExt().appendMap("Distance map for thinned", rec2);
-
-		rec.mergeTables(rec2);
-		getLogExt().appendMap("Merged tables distance", rec);
-	}*/
-
-	getLogExt().append("Adjust by endpoints count", endpoints.size());
+	}	
 	
-	// note: "V"-connections are not endpoints!
-	// temporary, should use endpoints configuaration, not count only
+	std::string probably, surely;
+	generateImpossibleToWrite(endpoints.size(), connected_endpoints, probably, surely);
+
+	rec.adjust(1.1, probably);
+	rec.adjust(1.2, surely);
+	
+	// easy-to-write adjust
 	switch(endpoints.size())
 	{
 	case 0:
@@ -191,20 +288,13 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 		rec.adjust(0.96, "ILNSsZz");
 		break;
 	case 3:
-		rec.adjust(1.1, "H");		
 		rec.adjust(0.9, "3");
 		rec.adjust(0.96, "FM");
 		break;
 	case 4:
-		// X not so common, so excluded
-		rec.adjust(0.96, "fHK"); // usually have 4 endpoints only
-		break;
-	case 5:
-		// N, W - only 2 endpoints
-		rec.adjust(1.1, "NW0oOiILlUupPSsZzCc");
+		rec.adjust(0.96, "fHK");
 		break;
 	};
-
 
    return rec;
 }
@@ -213,7 +303,9 @@ char CharacterRecognizer::recognize( const Segment &seg,
                                      const std::string &candidates,
                                      double *dist ) const
 {
-   return recognize_all(seg, candidates).getBest(dist);
+	char res = recognize_all(seg, candidates).getBest(dist);
+	getLogExt().append("Result char", res);
+   return res;
 
    logEnterFunction();
 

@@ -194,6 +194,7 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 		{
 			_cur_atom->label_first = ch;
 		}
+		was_letter = true;
 	} 
 	else if (CharacterRecognizer::lower.find(ch) != std::string::npos)
 	{		
@@ -418,37 +419,55 @@ void LabelLogic::process( Segment *seg, int line_y )
       }
       else
       {
-         if (!flushed)
-         {
-            _postProcess();
+		  if (sym == 'I' && _cur_atom->label_first == 'I')
+		  {
+			  // HACK! II -> O
+			  getLogExt().append("Hack works! II -> O");
+			  _cur_atom->label_first = 'O';
+			  was_letter = 1;
+		  }
+		  else if (sym == 'O' && _cur_atom->label_first == 'T')
+		  {
+			  // HACK! OTO -> OTF
+			  getLogExt().append("Hack works! OTO -> OTF");
+			  _addAtom();
+			  _cur_atom->label_first = 'F';
+			  was_letter = 1;
+		  }
+		  else
+		  {
+			 if (!flushed)
+			 {
+				_postProcess();
             
-            if (was_super && !was_charge)
-            {
-               int tmp = _cur_atom->charge;
-               _addAtom();
-               _cur_atom->isotope = tmp;
-            }
-            else
-            {
-               _addAtom();
-            }
-         }
-         else
-            flushed = 0;
+				if (was_super && !was_charge)
+				{
+				   int tmp = _cur_atom->charge;
+				   _addAtom();
+				   _cur_atom->isotope = tmp;
+				}
+				else
+				{
+				   _addAtom();
+				}
+			 }
+			 else
+				flushed = 0;
 
-         //TODO: Lowercase letter can be that height too!
+			 //TODO: Lowercase letter can be that height too!
 
-		 if (_fixupTrickySubst(sym))
-		 {
-			 // anything already done in _fixupTrickySubst
-		 }
-		 else
-		 {
-            _cur_atom->label_first = sym;
-            was_letter = 1;
-         }
-         was_charge = 0;
-         was_super = 0;
+			 if (_fixupTrickySubst(sym))
+			 {
+				 // anything already done in _fixupTrickySubst
+			 }
+			 else
+			 {
+				_cur_atom->label_first = sym;
+				was_letter = 1;
+			 }
+			 was_charge = 0;
+			 was_super = 0;
+		  }
       }
    }
    else
