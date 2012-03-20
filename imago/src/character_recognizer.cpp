@@ -185,9 +185,10 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 		rec.adjust(0.9, "0oO");
 		break;
 	case 1:
+		rec.adjust(0.96, "Ppe");
 		break;
 	case 2:
-		rec.adjust(0.96, "ILN");
+		rec.adjust(0.96, "ILNSsZz");
 		break;
 	case 3:
 		rec.adjust(1.1, "H");		
@@ -195,10 +196,12 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 		rec.adjust(0.96, "FM");
 		break;
 	case 4:
-		rec.adjust(0.96, "fHXK"); // usually have 4 endpoints only
+		// X not so common, so excluded
+		rec.adjust(0.96, "fHK"); // usually have 4 endpoints only
 		break;
 	case 5:
-		rec.adjust(1.1, "N");
+		// N, W - only 2 endpoints
+		rec.adjust(1.1, "NW0oOiILlUupPSsZzCc");
 		break;
 	};
 

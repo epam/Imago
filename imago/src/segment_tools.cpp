@@ -262,15 +262,23 @@ namespace imago
 						Vec2i start = getNearest(*i1, shifted_pts);
 						Vec2i end = getNearest(*i2, shifted_pts);
 						Points2i path = getPath(shifted, start, end);					
-						for (Points2i::iterator pp = path.begin(); pp != path.end(); pp++)
+						if (path.size() < Vec2i::distance(*i1, *i2) * 1.73)
 						{
-							if (seg.getByte(pp->x, pp->y) != 0)
+							for (Points2i::iterator pp = path.begin(); pp != path.end(); pp++)
 							{
-								seg.getByte(pp->x, pp->y) = 0;
-								result = true;
+								if (seg.getByte(pp->x, pp->y) != 0)
+								{
+									seg.getByte(pp->x, pp->y) = 0;
+									result = true;
+								}
 							}
 						}
 					}
+		}
+
+		if (result)
+		{
+			getLogExt().append("Modified segment", seg);
 		}
 		
 		return result;
