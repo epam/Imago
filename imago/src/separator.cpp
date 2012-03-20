@@ -437,7 +437,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 				 if(//mark == SEP_SYMBOL && 
 					//(!(extracted.getHeight() >= cap_height - sym_height_err && extracted.getHeight() <= cap_height + sym_height_err && extracted.getHeight() <= cap_height * 2 && extracted.getWidth() <= 1.8 * cap_height)
 					//|| 
-					extracted.getHeight() < 0.25 *cap_height)
+					extracted.getHeight() < 0.25 *cap_height || (symbRects[i].height * symbRects[i].width > 2.5 * cap_height * cap_height))
 					mark = SEP_SUSPICIOUS;
 		
 				/*if (rs["DebugSession"])
