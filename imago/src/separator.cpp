@@ -344,6 +344,12 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 				if(Algebra::distance2segment(p1, RectPoints[i][2], RectPoints[i][3]) > line_thick &&
 					Algebra::distance2segment(p2, RectPoints[i][2], RectPoints[i][3]) > line_thick)
 					continue;
+				Line l1 = Algebra::points2line(p1, p2);
+				Line l2 = Algebra::points2line(RectPoints[i][2], RectPoints[i][3]);
+				Vec2d pintersect = Algebra::linesIntersection(l1, l2);
+				if(pintersect.y > (symbRects[i].height / 2) )
+					continue;
+
 			}
 
 			if(LineCount[i] == 3)
@@ -433,11 +439,11 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 				_getHuMomentsC(*s, hu);
 
 				mark = HuClassifier(hu);
-
+				double surf_coeff = 3.0;
 				 if(//mark == SEP_SYMBOL && 
 					//(!(extracted.getHeight() >= cap_height - sym_height_err && extracted.getHeight() <= cap_height + sym_height_err && extracted.getHeight() <= cap_height * 2 && extracted.getWidth() <= 1.8 * cap_height)
 					//|| 
-					extracted.getHeight() < 0.25 *cap_height || (symbRects[i].height * symbRects[i].width > 2.5 * cap_height * cap_height))
+					extracted.getHeight() < 0.25 *cap_height || (symbRects[i].height * symbRects[i].width > surf_coeff * cap_height * cap_height))
 					mark = SEP_SUSPICIOUS;
 		
 				/*if (rs["DebugSession"])
