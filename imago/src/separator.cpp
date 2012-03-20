@@ -334,11 +334,16 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		{
 			if(LineCount[i] < 2)
 				continue;
-			if(LineCount[i] == 2 &&
-				Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
-					RectPoints[i][2], RectPoints[i][3], 0.1))
+			if(LineCount[i] == 2 )
 			{
-				continue;
+				if(Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
+					RectPoints[i][2], RectPoints[i][3], 0.1))
+					continue;
+				Vec2d p1 = RectPoints[i][0];
+				Vec2d p2 = RectPoints[i][1];
+				if(Algebra::distance2segment(p1, RectPoints[i][2], RectPoints[i][3]) > line_thick &&
+					Algebra::distance2segment(p2, RectPoints[i][2], RectPoints[i][3]) > line_thick)
+					continue;
 			}
 
 			if(LineCount[i] == 3)
