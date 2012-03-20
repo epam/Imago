@@ -1218,7 +1218,10 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 		SegmentTools::makeSegmentConnected(*s, raw);		
 	}
 
-   CombineWeakStrong(weak_segments, psegs, cimg);
+	if(psegs.size() > 0)
+		CombineWeakStrong(weak_segments, psegs, cimg);
+	else
+		cimg.copy(cs);
 
    //if(getSettings()["DebugSession"])
 	//   ImageUtils::saveImageToFile(cimg, "output/pref3_final.png");
