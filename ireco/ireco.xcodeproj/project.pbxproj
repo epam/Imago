@@ -16,6 +16,7 @@
 		895D166F13BB95D700789128 /* MainWindow-iPad.xib in Resources */ = {isa = PBXBuildFile; fileRef = 895D166E13BB95D700789128 /* MainWindow-iPad.xib */; };
 		895D167113BBBC7600789128 /* irecopad.png in Resources */ = {isa = PBXBuildFile; fileRef = 895D167013BBBC7600789128 /* irecopad.png */; };
 		A70049F1143CB63200E40CBA /* MessageUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = A70049F0143CB63200E40CBA /* MessageUI.framework */; };
+		A70124BE1519ED2E009BDDB4 /* libfont_lib.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A70124AA1519CD57009BDDB4 /* libfont_lib.a */; };
 		A704F75C1271BED80006F5C5 /* libz.dylib in Frameworks */ = {isa = PBXBuildFile; fileRef = A704F75B1271BED80006F5C5 /* libz.dylib */; };
 		A71E321D13462DF3006D4D50 /* libpng_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6728F13461AA40030A6E1 /* libpng_local.a */; };
 		A71E321E13462DF3006D4D50 /* libjpeg_local.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7D6729113461AA40030A6E1 /* libjpeg_local.a */; settings = {ATTRIBUTES = (Required, ); }; };
@@ -27,8 +28,9 @@
 		A7226D1B13FAA58D004E59D9 /* libtinyxml.a in Frameworks */ = {isa = PBXBuildFile; fileRef = A7226D1513FAA58D004E59D9 /* libtinyxml.a */; };
 		A732667012AD20B3001F7D75 /* MainViewController.mm in Sources */ = {isa = PBXBuildFile; fileRef = A732666F12AD20B3001F7D75 /* MainViewController.mm */; };
 		A7340DCB14E3C579006210FA /* reaction-automap.png in Resources */ = {isa = PBXBuildFile; fileRef = A7340DC814E3C579006210FA /* reaction-automap.png */; };
-		A7340DCC14E3C579006210FA /* rgroup-attpoints.png in Resources */ = {isa = PBXBuildFile; fileRef = A7340DC914E3C579006210FA /* rgroup-attpoints.png */; };
-		A7340DCD14E3C579006210FA /* rgroup-label.png in Resources */ = {isa = PBXBuildFile; fileRef = A7340DCA14E3C579006210FA /* rgroup-label.png */; };
+		A7340DD514E3EF59006210FA /* raphael-group-plugin.js in Resources */ = {isa = PBXBuildFile; fileRef = A7340DD114E3C5A7006210FA /* raphael-group-plugin.js */; };
+		A7340DD614E3EF59006210FA /* raphael.js in Resources */ = {isa = PBXBuildFile; fileRef = A7340DD214E3C5A7006210FA /* raphael.js */; };
+		A7340DD714E3EF59006210FA /* reaxys.js in Resources */ = {isa = PBXBuildFile; fileRef = A7340DCF14E3C597006210FA /* reaxys.js */; };
 		A73610F0147E65AB0089C629 /* reaxys.png in Resources */ = {isa = PBXBuildFile; fileRef = A73610EF147E65AB0089C629 /* reaxys.png */; };
 		A7484A20141A635B006AB1E6 /* base64.js in Resources */ = {isa = PBXBuildFile; fileRef = A748310C141A631C006AB1E6 /* base64.js */; };
 		A7484A21141A635B006AB1E6 /* cis_trans.js in Resources */ = {isa = PBXBuildFile; fileRef = A748310E141A631C006AB1E6 /* cis_trans.js */; };
@@ -88,6 +90,9 @@
 		A7A68494134C987600841AFC /* Entitlements.plist in Resources */ = {isa = PBXBuildFile; fileRef = A7A68493134C987600841AFC /* Entitlements.plist */; };
 		A7A84857149A549F00B17806 /* rgroup_table.js in Resources */ = {isa = PBXBuildFile; fileRef = A7A84856149A549F00B17806 /* rgroup_table.js */; };
 		A7A84859149A554C00B17806 /* editor.js in Resources */ = {isa = PBXBuildFile; fileRef = A7A84858149A554C00B17806 /* editor.js */; };
+		A7C5CEAD1507AE06006CA19B /* rgroup-attpoints.png in Resources */ = {isa = PBXBuildFile; fileRef = A7C5CEAA1507AE06006CA19B /* rgroup-attpoints.png */; };
+		A7C5CEAE1507AE06006CA19B /* rgroup-fragment.png in Resources */ = {isa = PBXBuildFile; fileRef = A7C5CEAB1507AE06006CA19B /* rgroup-fragment.png */; };
+		A7C5CEAF1507AE06006CA19B /* rgroup-label.png in Resources */ = {isa = PBXBuildFile; fileRef = A7C5CEAC1507AE06006CA19B /* rgroup-label.png */; };
 		A7D5CBA512ADB83D00C60C51 /* KetcherViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA012ADB7E900C60C51 /* KetcherViewController.xib */; };
 		A7D5CBA812ADB8B500C60C51 /* MainWindow.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA612ADB8B500C60C51 /* MainWindow.xib */; };
 		A7D5CBA912ADB8B500C60C51 /* OverlayViewController.xib in Resources */ = {isa = PBXBuildFile; fileRef = A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */; };
@@ -110,6 +115,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		A70124A91519CD57009BDDB4 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
+			proxyType = 2;
+			remoteGlobalIDString = 44732F18258E462097C56209;
+			remoteInfo = font_lib;
+		};
 		A7988AA81343ADB800D37855 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = A7988AA21343ADB800D37855 /* imago.xcodeproj */;
@@ -178,8 +190,6 @@
 		A732666E12AD20B3001F7D75 /* MainViewController.h */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.c.h; path = MainViewController.h; sourceTree = "<group>"; };
 		A732666F12AD20B3001F7D75 /* MainViewController.mm */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.cpp.objcpp; path = MainViewController.mm; sourceTree = "<group>"; };
 		A7340DC814E3C579006210FA /* reaction-automap.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "reaction-automap.png"; sourceTree = "<group>"; };
-		A7340DC914E3C579006210FA /* rgroup-attpoints.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "rgroup-attpoints.png"; sourceTree = "<group>"; };
-		A7340DCA14E3C579006210FA /* rgroup-label.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "rgroup-label.png"; sourceTree = "<group>"; };
 		A7340DCF14E3C597006210FA /* reaxys.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = reaxys.js; sourceTree = "<group>"; };
 		A7340DD114E3C5A7006210FA /* raphael-group-plugin.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = "raphael-group-plugin.js"; sourceTree = "<group>"; };
 		A7340DD214E3C5A7006210FA /* raphael.js */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.javascript; path = raphael.js; sourceTree = "<group>"; };
@@ -246,6 +256,9 @@
 		A7A68493134C987600841AFC /* Entitlements.plist */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = text.plist.xml; path = Entitlements.plist; sourceTree = "<group>"; };
 		A7A84856149A549F00B17806 /* rgroup_table.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = rgroup_table.js; sourceTree = "<group>"; };
 		A7A84858149A554C00B17806 /* editor.js */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.javascript; path = editor.js; sourceTree = "<group>"; };
+		A7C5CEAA1507AE06006CA19B /* rgroup-attpoints.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "rgroup-attpoints.png"; sourceTree = "<group>"; };
+		A7C5CEAB1507AE06006CA19B /* rgroup-fragment.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "rgroup-fragment.png"; sourceTree = "<group>"; };
+		A7C5CEAC1507AE06006CA19B /* rgroup-label.png */ = {isa = PBXFileReference; lastKnownFileType = image.png; path = "rgroup-label.png"; sourceTree = "<group>"; };
 		A7D5CBA012ADB7E900C60C51 /* KetcherViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = KetcherViewController.xib; sourceTree = "<group>"; };
 		A7D5CBA612ADB8B500C60C51 /* MainWindow.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = MainWindow.xib; sourceTree = "<group>"; };
 		A7D5CBA712ADB8B500C60C51 /* OverlayViewController.xib */ = {isa = PBXFileReference; lastKnownFileType = file.xib; path = OverlayViewController.xib; sourceTree = "<group>"; };
@@ -275,6 +288,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A70124BE1519ED2E009BDDB4 /* libfont_lib.a in Frameworks */,
 				A70049F1143CB63200E40CBA /* MessageUI.framework in Frameworks */,
 				A7226D1613FAA58D004E59D9 /* libgraph.a in Frameworks */,
 				A7226D1713FAA58D004E59D9 /* libindigo.a in Frameworks */,
@@ -490,9 +504,10 @@
 		A74849D5141A6358006AB1E6 /* action */ = {
 			isa = PBXGroup;
 			children = (
+				A7C5CEAA1507AE06006CA19B /* rgroup-attpoints.png */,
+				A7C5CEAB1507AE06006CA19B /* rgroup-fragment.png */,
+				A7C5CEAC1507AE06006CA19B /* rgroup-label.png */,
 				A7340DC814E3C579006210FA /* reaction-automap.png */,
-				A7340DC914E3C579006210FA /* rgroup-attpoints.png */,
-				A7340DCA14E3C579006210FA /* rgroup-label.png */,
 				E4B09E6614A0CAD90062ECFE /* reaction-unmap.png */,
 				E4B09E5E14A0C8F70062ECFE /* reaction-arrow.png */,
 				E4B09E5F14A0C8F70062ECFE /* reaction-map.png */,
@@ -560,6 +575,7 @@
 			children = (
 				A7D6728F13461AA40030A6E1 /* libpng_local.a */,
 				A7D6729113461AA40030A6E1 /* libjpeg_local.a */,
+				A70124AA1519CD57009BDDB4 /* libfont_lib.a */,
 				A7988AA91343ADB800D37855 /* libimago_static.a */,
 			);
 			name = Products;
@@ -631,6 +647,13 @@
 /* End PBXProject section */
 
 /* Begin PBXReferenceProxy section */
+		A70124AA1519CD57009BDDB4 /* libfont_lib.a */ = {
+			isa = PBXReferenceProxy;
+			fileType = archive.ar;
+			path = libfont_lib.a;
+			remoteRef = A70124A91519CD57009BDDB4 /* PBXContainerItemProxy */;
+			sourceTree = BUILT_PRODUCTS_DIR;
+		};
 		A7988AA91343ADB800D37855 /* libimago_static.a */ = {
 			isa = PBXReferenceProxy;
 			fileType = archive.ar;
@@ -659,6 +682,9 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A7340DD514E3EF59006210FA /* raphael-group-plugin.js in Resources */,
+				A7340DD614E3EF59006210FA /* raphael.js in Resources */,
+				A7340DD714E3EF59006210FA /* reaxys.js in Resources */,
 				A7A84859149A554C00B17806 /* editor.js in Resources */,
 				A7A84857149A549F00B17806 /* rgroup_table.js in Resources */,
 				A75C26A712AD496900EBBC45 /* ireco.png in Resources */,
@@ -729,8 +755,9 @@
 				E4B09E6414A0C8F70062ECFE /* reaction-plus.png in Resources */,
 				E4B09E6714A0CAD90062ECFE /* reaction-unmap.png in Resources */,
 				A7340DCB14E3C579006210FA /* reaction-automap.png in Resources */,
-				A7340DCC14E3C579006210FA /* rgroup-attpoints.png in Resources */,
-				A7340DCD14E3C579006210FA /* rgroup-label.png in Resources */,
+				A7C5CEAD1507AE06006CA19B /* rgroup-attpoints.png in Resources */,
+				A7C5CEAE1507AE06006CA19B /* rgroup-fragment.png in Resources */,
+				A7C5CEAF1507AE06006CA19B /* rgroup-label.png in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -860,8 +887,8 @@
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=iphoneos*]" = "iPhone Distribution";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -885,8 +912,8 @@
 			buildSettings = {
 				ARCHS = "$(ARCHS_STANDARD_32_BIT)";
 				CODE_SIGN_ENTITLEMENTS = Entitlements.plist;
-				CODE_SIGN_IDENTITY = "iPhone Developer";
-				"CODE_SIGN_IDENTITY[sdk=*]" = "iPhone Developer";
+				CODE_SIGN_IDENTITY = "iPhone Distribution";
+				"CODE_SIGN_IDENTITY[sdk=*]" = "iPhone Distribution";
 				GCC_C_LANGUAGE_STANDARD = c99;
 				GCC_VERSION = com.apple.compilers.llvmgcc42;
 				GCC_WARN_ABOUT_RETURN_TYPE = YES;
@@ -898,6 +925,7 @@
 					..,
 				);
 				IPHONEOS_DEPLOYMENT_TARGET = 4.2;
+				ONLY_ACTIVE_ARCH = YES;
 				OTHER_CFLAGS = "-DNS_BLOCK_ASSERTIONS=1";
 				PROVISIONING_PROFILE = "";
 				"PROVISIONING_PROFILE[sdk=*]" = "";
