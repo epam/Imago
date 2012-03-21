@@ -1,12 +1,16 @@
 #include "log_ext.h"
-#include <direct.h>
+//#include <direct.h>
 #include <sys/stat.h>
+#include <errno.h>
 
 #ifdef _WIN32
 #define MKDIR _mkdir
 #include <Windows.h>
 #else
-#define MKDIR mkdir
+int MKDIR(const char *dirname)
+{
+	return mkdir(dirname, S_IRWXU|S_IRGRP|S_IXGRP);
+}
 #endif
 
 namespace imago
@@ -110,7 +114,7 @@ namespace imago
 	std::string log_ext::generateAnchor(const std::string& name)
 	{
 		char buf[1024] = {0};
-		sprintf(buf, "%s_%d", name.c_str(), CallIdent);
+		sprintf(buf, "%s_%lu", name.c_str(), CallIdent);
 		CallIdent++;
 		return buf;
 	}
@@ -136,11 +140,11 @@ namespace imago
 
 		if (html_name != NULL)
 		{
-			sprintf(path, "./%s/%d.png", ImagesFolder.c_str(), ImgIdent);
+			sprintf(path, "./%s/%lu.png", ImagesFolder.c_str(), ImgIdent);
 			(*html_name) = path;
 		}
 
-		sprintf(path, "%s/%s/%d.png", Folder.c_str(), ImagesFolder.c_str(), ImgIdent);
+		sprintf(path, "%s/%s/%lu.png", Folder.c_str(), ImagesFolder.c_str(), ImgIdent);
 
 		ImgIdent++;
 		return path;
@@ -159,7 +163,7 @@ namespace imago
 		}
 		if (output != NULL)
 		{
-			fprintf(output, "%s\n", data);
+			fprintf(output, "%s\n", data.c_str());
 			fflush(output);
 		}
 	}

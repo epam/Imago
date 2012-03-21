@@ -81,7 +81,7 @@ namespace imago
 			std::vector<t1> row1;
 			std::vector<t2> row2;
 
-			for (std::map<t1,t2>::const_iterator it = value.begin(); it != value.end(); it++)
+			for (typename std::map<t1,t2>::const_iterator it = value.begin(); it != value.end(); it++)
 			{
 				row1.push_back(it->first);
 				row2.push_back(it->second);
@@ -90,55 +90,6 @@ namespace imago
 			dump(getStringPrefix() + constructTable(name, row1, row2));
 		}
 	
-		template <> void append(const std::string& name, const segments_graph::SegmentsGraph& g)
-		{
-			if(!loggingEnabled()) return;
-
-			Image output(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-			output.fillWhite();
-			ImageDrawUtils::putGraph(output, g);
-			append(name, output);
-		}
-
-		template <> void append(const std::string& name, const Skeleton::SkeletonGraph& g)
-		{
-			if(!loggingEnabled()) return;
-
-			Image output(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-			output.fillWhite();
-			ImageDrawUtils::putGraph(output, g);
-			append(name, output);
-		}
-
-		template <> void append(const std::string& name, const Segment& seg)
-		{
-			if(!loggingEnabled()) return;
-
-			Segment shifted;
-			shifted.copy(seg);
-			shifted.getX() = 0;
-			shifted.getY() = 0;
-
-			Image output(shifted.getWidth(), shifted.getHeight());
-			ImageUtils::putSegment(output, shifted, false);
-			append(name, output);
-		}		
-
-		template <> void append(const std::string& caption, const Image& img)
-		{
-			if(!loggingEnabled()) return;
-
-			std::string htmlName;
-			std::string imageName = generateImageName(&htmlName);
-			ImageUtils::saveImageToFile(img, imageName.c_str());
-
-			std::string table = "<table style=\"display:inline;\"><tbody><tr>";		
-			table += "<td>" + filterHtml(caption) + "</td>";
-			table += "<td><img src=\"" + htmlName + "\" /></td>";
-			table += "</tr></tbody></table>";
-			
-			dump(getStringPrefix() + table);
-		}
 
 		void appendSegmentWithYLine(const std::string& name, const Segment& seg, int line_y);
 
@@ -187,6 +138,56 @@ namespace imago
 		}		
 	}; /// end class log_ext
 
+   template <> void log_ext::append(const std::string& caption, const Image& img)
+   {
+      if(!loggingEnabled()) return;
+      
+      std::string htmlName;
+      std::string imageName = generateImageName(&htmlName);
+      ImageUtils::saveImageToFile(img, imageName.c_str());
+      
+      std::string table = "<table style=\"display:inline;\"><tbody><tr>";		
+      table += "<td>" + filterHtml(caption) + "</td>";
+      table += "<td><img src=\"" + htmlName + "\" /></td>";
+      table += "</tr></tbody></table>";
+      
+      dump(getStringPrefix() + table);
+   }
+   
+   template <> void log_ext::append(const std::string& name, const segments_graph::SegmentsGraph& g)
+   {
+      if(!loggingEnabled()) return;
+      
+      Image output(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+      output.fillWhite();
+      ImageDrawUtils::putGraph(output, g);
+      append(name, output);
+   }
+   
+   template <> void log_ext::append(const std::string& name, const Skeleton::SkeletonGraph& g)
+   {
+      if(!loggingEnabled()) return;
+      
+      Image output(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+      output.fillWhite();
+      ImageDrawUtils::putGraph(output, g);
+      append(name, output);
+   }
+   
+   template <> void log_ext::append(const std::string& name, const Segment& seg)
+   {
+      if(!loggingEnabled()) return;
+      
+      Segment shifted;
+      shifted.copy(seg);
+      shifted.getX() = 0;
+      shifted.getY() = 0;
+      
+      Image output(shifted.getWidth(), shifted.getHeight());
+      ImageUtils::putSegment(output, shifted, false);
+      append(name, output);
+   }		
+   
 	namespace log_ext_service
 	{
 		class LogEnterFunction
