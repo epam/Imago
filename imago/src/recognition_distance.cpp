@@ -1,6 +1,7 @@
 #include "recognition_distance.h"
 #include <algorithm>
 #include "log_ext.h"
+#include <float.h>
 
 namespace imago
 {
