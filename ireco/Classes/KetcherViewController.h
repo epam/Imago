@@ -15,7 +15,7 @@
 #import "ReaxysViewController.h"
 #import "MainWindow.h"
 
-@interface KetcherViewController : UIViewController <UINavigationControllerDelegate, UIWebViewDelegate, MFMailComposeViewControllerDelegate, TapDetectingWindowDelegate>
+@interface KetcherViewController : UIViewController <UINavigationControllerDelegate, UIWebViewDelegate, MFMailComposeViewControllerDelegate, TapDetectingWindowDelegate, UIAlertViewDelegate>
 {
    ReaxysViewController *reaxysViewController;
    MFMailComposeViewController *mailComposerController;
@@ -54,5 +54,6 @@
 - (NSString *)saveSmilesFromKetcher;
 - (void)recognizerThreadProc;
 - (void)recognizingProc:(UIImage *)image;
+- (IBAction)sendMail:(id)sender;
 
 @end

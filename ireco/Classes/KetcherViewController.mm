@@ -147,13 +147,27 @@
 
 - (void)loadMolfileToKetcher
 {
-    if (self.molfile != nil)
-    {
-        NSString *jsLoadMol = [NSString stringWithFormat: @"ketcher.setMolecule('%@');", [self.molfile stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"]];
-        [self.webView performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject: jsLoadMol waitUntilDone: YES];
-    } else {
-        [webView loadHTMLString:@"<html><head></head><body>An error occured.</body></html>" baseURL:nil];
+    NSString *molfile_or_empty = self.molfile;
+    if (self.molfile == nil)
+       molfile_or_empty = @"";
+   
+    NSString *jsLoadMol = [NSString stringWithFormat: @"ketcher.setMolecule('%@');", [molfile_or_empty stringByReplacingOccurrencesOfString:@"\n" withString:@"\\n"]];
+    [self.webView performSelectorOnMainThread:@selector(stringByEvaluatingJavaScriptFromString:) withObject: jsLoadMol waitUntilDone: YES];
+   
+   if (self.molfile == nil) {
+        // Show a message box here to create a feedback
+        UIAlertView *alert = [[UIAlertView alloc] initWithTitle:@"Exception" message:@"Cannot recognize. Would you like to send a report?" delegate:self cancelButtonTitle:@"No" otherButtonTitles:@"Yes", nil];
+        [alert show];
+        [alert release];
     }
+}
+
+- (void)alertView:(UIAlertView *)actionSheet clickedButtonAtIndex:(NSInteger)buttonIndex {
+   // the user clicked one of the OK/Cancel buttons
+   if (buttonIndex == 1)
+   {
+      [self sendMail: self];
+   }
 }
 
 - (NSString *)saveSmilesFromKetcher
@@ -265,7 +279,14 @@
         [self.mailComposerController 
             addAttachmentData:[moldata dataUsingEncoding:[NSString defaultCStringEncoding]] 
             mimeType:@"text/plain"
-            fileName:[NSString stringWithFormat: @"molfile %@.mol", dateString]];
+            fileName:[NSString stringWithFormat: @"edited %@.mol", dateString]];
+        if (self.molfile != nil)
+        {
+           [self.mailComposerController 
+            addAttachmentData:[self.molfile dataUsingEncoding:[NSString defaultCStringEncoding]] 
+            mimeType:@"text/plain"
+            fileName:[NSString stringWithFormat: @"original %@.mol", dateString]];
+        }
 
         if (prevImage != 0)
         {
@@ -274,7 +295,13 @@
             [self.mailComposerController
                addAttachmentData:rawImage
                mimeType:@"image/jpeg"
-               fileName:[NSString stringWithFormat: @"photo %@.jpeg", dateString]];
+               fileName:[NSString stringWithFormat: @"photo %@.jpg", dateString]];
+            NSLog(@"Converting image into Png...\n");
+            NSData *rawImagePng = UIImagePNGRepresentation(prevImage);
+            [self.mailComposerController
+             addAttachmentData:rawImagePng
+             mimeType:@"image/png"
+             fileName:[NSString stringWithFormat: @"photo %@.png", dateString]];
         }
         [self presentModalViewController:self.mailComposerController animated:YES];
     }
