@@ -347,7 +347,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 				Line l1 = Algebra::points2line(p1, p2);
 				Line l2 = Algebra::points2line(RectPoints[i][2], RectPoints[i][3]);
 				Vec2d pintersect = Algebra::linesIntersection(l1, l2);
-				if(pintersect.y > (symbRects[i].height / 2) )
+				if( (symbRects[i].height - (pintersect.y - symbRects[i].y)) > (symbRects[i].height / 2) )
 					continue;
 
 			}
