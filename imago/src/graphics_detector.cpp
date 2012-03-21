@@ -96,7 +96,7 @@ void GraphicsDetector::_decorner( Image &img ) const
 
    //if (rs["DebugSession"])
    //   ImageUtils::saveImageToFile(img, "output/decornered.png");
-   getLogExt().append("Decornered image", img);
+   getLogExt().appendImage("Decornered image", img);
 
 }
 
@@ -249,7 +249,7 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
 
          //if (getSettings()["DebugSession"])
            // ImageUtils::saveImageToFile(tmp, "output/tmp_ring.png");
-		 getLogExt().append("Ring", tmp);
+		 getLogExt().appendSegment("Ring?", tmp);
          
          if (isCircle(tmp))
          {

@@ -164,7 +164,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		if(lengths[i] > max)
 			max = lengths[i];
 	}
-	if(abs(min - max) < 0.01)
+	if(fabs(min - max) < 0.01)
 		return;
 
 	//avg_size = StatUtils::Median(lengths.begin(), lengths.end());
@@ -187,8 +187,8 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		  Vec2d &p2 = lsegments[2 * i + 1];
 
 		  double dist = Vec2d::distance(p1, p2);
-		  double dc1 = abs(dist - c1);
-		  double dc2 = abs(dist - c2);
+		  double dc1 = fabs(dist - c1);
+		  double dc2 = fabs(dist - c2);
 		  if(dc1 < dc2)
 			  classes[i] = 0;
 		  else
@@ -213,7 +213,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		c1 = sum1 / count1;
 		c2 = sum2 / count2;
 	
-	}while(abs(c1 - c1_o) > 0.1 || abs(c2 - c2_o) > 0.1);
+	}while(fabs(c1 - c1_o) > 0.1 || fabs(c2 - c2_o) > 0.1);
 
 	if(count1 == 0 || count2 == 0)
 		return;
@@ -259,7 +259,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		Vec2d &p2 = lsegments[2 * currInd + 1];
 
 		Rectangle rec(p1.x < p2.x ? p1.x : p2.x,
-			p1.y < p2.y? p1.y:p2.y, abs(p1.x - p2.x)+1, abs(p1.y - p2.y)+1);
+			p1.y < p2.y? p1.y:p2.y, fabs(p1.x - p2.x)+1, fabs(p1.y - p2.y)+1);
 
 		symbRects.push_back(rec);
 		RectPoints.push_back(polygon());
@@ -456,7 +456,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 					ImageUtils::saveImageToFile(test, "output/tmp.png");
 				}*/
 
-				getLogExt().append("temp", *s);
+				getLogExt().appendSegment("temp", *s);
 
 				if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
 				{
@@ -583,7 +583,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
          //if (rs["DebugSession"])
          //   ImageUtils::saveImageToFile(*s, "output/tmp.png");
 
-		 getLogExt().append("temp", *s);
+		 getLogExt().appendSegment("temp", *s);
 
 		 //thin segment
 		 Image temp;
@@ -712,7 +712,7 @@ bool Separator::_isSuspiciousSymbol( Segment *cur_seg, SegmentDeque &layer_symbo
       int sym_y1 = s->getY(), sym_y2 = s->getY() + s->getHeight(),
          seg_y1 = cur_seg->getY(), seg_y2 = cur_seg->getY() + cur_seg->getHeight();
 
-      if (abs(sym_y2 - seg_y1) <= cap_height * 0.5 || abs(sym_y1 - seg_y2) <= cap_height * 0.5)
+      if (abs(sym_y2 - seg_y1) <= cap_height / 2 || abs(sym_y1 - seg_y2) <= cap_height / 2)
       {
          int sym_x = s->getX(), seg_x = cur_seg->getX();
 
@@ -912,7 +912,7 @@ bool Separator::_testDoubleBondV( Segment &segment )
 
    //if (rs["DebugSession"])
    //   ImageUtils::saveImageToFile(segment, "output/tmp_seg.png");
-   getLogExt().append("segment", segment);
+   getLogExt().appendSegment("segment", segment);
 
    adequate_ratio_min = rs["MinSymRatio"];
    double_bond_dist = rs["DoubleBondDist"];

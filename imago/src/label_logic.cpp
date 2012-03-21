@@ -88,7 +88,7 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
 {
 	logEnterFunction();
 
-	getLogExt().append("Segment", *seg);
+	getLogExt().appendSegment("Segment", *seg);
    
    letters.clear();
 
@@ -177,7 +177,7 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 
 	if (attempts_count++ > 3)
 	{
-		getLogExt().append("Attempts count overreach 3, probably unrecognizable. skip");
+		getLogExt().appendText("Attempts count overreach 3, probably unrecognizable. skip");
 		return;
 	}
 
@@ -200,13 +200,13 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 	{		
 		if (_cur_atom->label_second != 0)
 		{
-			getLogExt().append("Small letter comes after another small, fixup & retry");
+			getLogExt().appendText("Small letter comes after another small, fixup & retry");
 			pr.adjust(1.2, CharacterRecognizer::lower);
 			goto retry;
 		}
 		else if (_cur_atom->label_first == 0)
 		{
-			getLogExt().append("Small specified for non-set captial, fixup & retry");
+			getLogExt().appendText("Small specified for non-set captial, fixup & retry");
 			pr.adjust(1.2, CharacterRecognizer::lower);
 			goto retry;
 		}
@@ -219,13 +219,13 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 	{
 		if (_cur_atom->count != 0)
 		{
-			getLogExt().append("Count specified twice, fixup & retry");
+			getLogExt().appendText("Count specified twice, fixup & retry");
 			pr.adjust(1.2, CharacterRecognizer::digits);
 			goto retry;
 		}
 		else if (_cur_atom->label_first == 0)
 		{
-			getLogExt().append("Count specified for non-set atom, fixup & retry");
+			getLogExt().appendText("Count specified for non-set atom, fixup & retry");
 			pr.adjust(1.2, CharacterRecognizer::digits);
 			goto retry;
 		}
@@ -422,14 +422,14 @@ void LabelLogic::process( Segment *seg, int line_y )
 		  if (sym == 'I' && _cur_atom->label_first == 'I')
 		  {
 			  // HACK! II -> O
-			  getLogExt().append("Hack works! II -> O");
+			  getLogExt().appendText("Hack works! II -> O");
 			  _cur_atom->label_first = 'O';
 			  was_letter = 1;
 		  }
 		  else if (sym == 'O' && _cur_atom->label_first == 'T')
 		  {
 			  // HACK! OTO -> OTF
-			  getLogExt().append("Hack works! OTO -> OTF");
+			  getLogExt().appendText("Hack works! OTO -> OTF");
 			  _addAtom();
 			  _cur_atom->label_first = 'F';
 			  was_letter = 1;
@@ -456,8 +456,11 @@ void LabelLogic::process( Segment *seg, int line_y )
 
 			 //TODO: Lowercase letter can be that height too!
 
+			 getLogExt().append("Entered in capital branch", sym);
+
 			 if (_fixupTrickySubst(sym))
 			 {
+				 getLogExt().appendText("_fixupTrickySubst done");
 				 // anything already done in _fixupTrickySubst
 			 }
 			 else
@@ -484,7 +487,9 @@ void LabelLogic::process( Segment *seg, int line_y )
          {
             _predict(seg, letters);
             if (seg->getFeatures().recognizable)
+			{
                _cur_atom->label_second = _cr.recognize(*seg, letters);
+			}
             else
                _cur_atom->label_second = '?';
          }
@@ -641,7 +646,7 @@ void LabelLogic::recognizeLabel( Label& label )
 		  try
 		  {
 			  getLogExt().append("Exception", e.what());
-			  getLogExt().append("Give another try to process_ext() now");
+			  getLogExt().appendText("Give another try to process_ext() now");
 			  process_ext(label.symbols[i], y);
 		  }
 		  catch(OCRException &e)

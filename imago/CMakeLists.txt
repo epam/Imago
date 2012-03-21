@@ -50,6 +50,7 @@ set(SRC
   src/munkres.cpp
   src/segment_tools.cpp
   src/recognition_distance.cpp
+  src/virtual_fs.cpp
 
   src/superatom_expansion.cpp
   

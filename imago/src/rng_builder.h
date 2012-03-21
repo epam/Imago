@@ -93,7 +93,7 @@ namespace imago
 
                      if (!isAdded)
 					 {
-						 getLogExt().append("Warning: <RNG::build> edge is not added");
+						 getLogExt().appendText("Warning: <RNG::build> edge is not added");
 					 }
 
                      weights[e] = distances[i + j * n];

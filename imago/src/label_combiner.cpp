@@ -94,7 +94,7 @@ int LabelCombiner::_findCapitalHeight()
       catch(OCRException &e)
       {
 		  logEnterFunction();
-		  getLogExt().append(e.what());
+		  getLogExt().appendText(e.what());
 	  }
       seg_height = seg->getHeight();
       
@@ -122,7 +122,7 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
 
       //if (getSettings()["DebugSession"])
       //   ImageUtils::saveImageToFile(**cur_s, "output/tmp_fetch.png");
-	  getLogExt().append("Work image", **cur_s);
+	  getLogExt().appendSegment("Work segment", **cur_s);
 
       if ((*cur_s)->getHeight() > _cap_height + (int)getSettings()["SymHeightErr"])
          continue;
@@ -139,11 +139,11 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
          bool plus = ImageUtils::testPlus(**cur_s);
 
          if (minus)
-			 getLogExt().append("Minus detected");
+			 getLogExt().appendText("Minus detected");
             //puts("MINUS!!!");
 
          if (plus)
-			 getLogExt().append("Plus detected");
+			 getLogExt().appendText("Plus detected");
             //puts("PLUS!!!");
 
          if (!plus && !minus)
@@ -268,7 +268,7 @@ void LabelCombiner::_locateLabels()
       //ImageUtils::saveImageToFile(img, "output/lc_rng.png");
 	  getLogExt().append("lc_rng", img);
    }*/
-   getLogExt().append("seg_graph", seg_graph);
+   getLogExt().appendGraph("seg_graph", seg_graph);
 
    std::vector<int> _components(boost::num_vertices(seg_graph));
    int cc = boost::connected_components(seg_graph, &_components[0]);

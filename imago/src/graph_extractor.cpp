@@ -58,7 +58,7 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const SegmentDeque &se
    //{
    //   ImageUtils::saveImageToFile(tmp, "output/tmp.png");
    //}
-   getLogExt().append("Working image", tmp);
+   getLogExt().appendImage("Working image", tmp);
 
    //TODO: We were thinking about refactoring it.
    extract(gd, tmp, graph);
@@ -112,7 +112,7 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
 		  ImageDrawUtils::putGraph(tmp, (Skeleton::SkeletonGraph)graph);
 		  //ImageUtils::saveImageToFile(tmp, "output/graph_begin.png");		  
 	   }*/
-	   getLogExt().append("Source skeleton", (Skeleton::SkeletonGraph)graph);
+	   getLogExt().appendSkeleton("Source skeleton", (Skeleton::SkeletonGraph)graph);
 
 	   graph.modifyGraph();
 
@@ -124,7 +124,7 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
 		  ImageDrawUtils::putGraph(tmp, (Skeleton::SkeletonGraph)graph);
 		  //ImageUtils::saveImageToFile(tmp, "output/graph_mod.png");		  
 	   }*/
-	   getLogExt().append("Modified skeleton", (Skeleton::SkeletonGraph)graph);
+	   getLogExt().appendSkeleton("Modified skeleton", (Skeleton::SkeletonGraph)graph);
    }
    
 }

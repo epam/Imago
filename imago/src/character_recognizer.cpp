@@ -213,7 +213,7 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 {
    logEnterFunction();
 
-   getLogExt().append("Source segment", seg);
+   getLogExt().appendSegment("Source segment", seg);
    getLogExt().append("Candidates", candidates);
 
 	seg.initFeatures(_count);
@@ -252,7 +252,7 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 	{
 		if (SegmentTools::makeSegmentConnected(connected, endpoints, 2.0*d, 1.5*d))
 		{
-			getLogExt().append("Connected segment", connected);
+			getLogExt().appendSegment("Connected segment", connected);
 			connected_endpoints = SegmentTools::getEndpoints(connected).size();
 
 			connected.initFeatures(_count);
@@ -265,7 +265,7 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 		}
 		else
 		{
-			getLogExt().append("Attempt to make segment connected gives no result");
+			getLogExt().appendText("Attempt to make segment connected gives no result");
 		}
 	}	
 	
@@ -289,10 +289,13 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 		break;
 	case 3:
 		rec.adjust(0.9, "3");
-		rec.adjust(0.96, "FM");
+		rec.adjust(0.96, "F");
 		break;
 	case 4:
 		rec.adjust(0.96, "fHK");
+		break;
+	case 6:
+		rec.adjust(0.94, "^");
 		break;
 	};
 
@@ -310,7 +313,7 @@ char CharacterRecognizer::recognize( const Segment &seg,
    logEnterFunction();
 
    getLogExt().append("Candidates", candidates);
-   getLogExt().append("Source segment", seg);
+   getLogExt().appendSegment("Source segment", seg);
 
    seg.initFeatures(_count);
    RecognitionDistance rec = recognize(seg.getFeatures(), candidates);

@@ -1,10 +1,12 @@
 #include "log_ext.h"
-//#include <direct.h>
 #include <sys/stat.h>
 #include <errno.h>
+#include "output.h"
+#include "png_saver.h"
 
 #ifdef _WIN32
 #define MKDIR _mkdir
+#include <direct.h>
 #include <Windows.h>
 #else
 int MKDIR(const char *dirname)
@@ -15,7 +17,7 @@ int MKDIR(const char *dirname)
 
 namespace imago
 {
-	log_ext::FunctionRecord::FunctionRecord(std::string n)
+	FunctionRecord::FunctionRecord(const std::string& n)
 	{
 		name = n;
 		anchor = n;
@@ -28,7 +30,7 @@ namespace imago
 		#endif
 	}
 
-	std::string log_ext::FunctionRecord::getPlatformSpecificInfo()
+	std::string FunctionRecord::getPlatformSpecificInfo()
 	{
 		std::string result = "";
 		#ifdef _WIN32
@@ -46,20 +48,89 @@ namespace imago
 	
 	///////////////////////////////////////////////////////
 
+
 	log_ext::log_ext(const std::string folder)
 	{
 		Folder = folder;
-		ImgIdent = CallIdent = 0;			
-		output = NULL;
+		ImgIdent = CallIdent = 0;
+		UseVirtualFS = false;
+		pVFS = NULL;
+		FileOutput = NULL;
 	}
 
 	log_ext::~log_ext()
 	{
-		if (output != NULL)
+		if (UseVirtualFS)
 		{
-			fclose(output);
+		}
+		else if (FileOutput != NULL)
+		{
+			fclose(FileOutput);
 		}
 	}
+
+	bool log_ext::loggingEnabled() const 
+	{
+		return getSettings()["DebugSession"];
+	}
+
+	void log_ext::appendText(const std::string& text)
+	{
+		if(!loggingEnabled()) return;
+
+		dump(getStringPrefix() + "<b>" + filterHtml(text) + "</b>");
+	}
+
+	void log_ext::appendImage(const std::string& caption, const Image& img)
+	{
+		if(!loggingEnabled()) return;
+      
+		std::string htmlName;
+		std::string imageName = generateImageName(&htmlName);
+		  
+		dumpImage(imageName, img);
+      
+		std::string table = "<table style=\"display:inline;\"><tbody><tr>";		
+		table += "<td>" + filterHtml(caption) + "</td>";
+		table += "<td><img src=\"" + htmlName + "\" /></td>";
+		table += "</tr></tbody></table>";
+      
+		dump(getStringPrefix() + table);
+	}
+   
+	void log_ext::appendGraph(const std::string& name, const segments_graph::SegmentsGraph& g)
+	{
+		if(!loggingEnabled()) return;
+      
+		Image output(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+		output.fillWhite();
+		ImageDrawUtils::putGraph(output, g);
+		appendImage(name, output);
+	}
+   
+	void log_ext::appendSkeleton(const std::string& name, const Skeleton::SkeletonGraph& g)
+	{
+		if(!loggingEnabled()) return;
+      
+		Image output(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+		output.fillWhite();
+		ImageDrawUtils::putGraph(output, g);
+		appendImage(name, output);
+	}
+   
+	void log_ext::appendSegment(const std::string& name, const Segment& seg)
+	{
+		if(!loggingEnabled()) return;
+      
+		Segment shifted;
+		shifted.copy(seg);
+		shifted.getX() = 0;
+		shifted.getY() = 0;
+      
+		Image output(shifted.getWidth(), shifted.getHeight());
+		ImageUtils::putSegment(output, shifted, false);
+		appendImage(name, output);
+	}	  
 
 	void log_ext::appendSegmentWithYLine(const std::string& name, const Segment& seg, int line_y)
 	{
@@ -68,19 +139,7 @@ namespace imago
 		ImageUtils::putSegment(output, seg, false);
 		ImageDrawUtils::putLineSegment(output, Vec2i(0, line_y), Vec2i(output.getWidth(), line_y), 64);
 
-		append(name, output);
-	}
-
-	bool log_ext::loggingEnabled() const 
-	{
-		return getSettings()["DebugSession"];
-	}
-
-	void log_ext::append(const std::string& text)
-	{
-		if(!loggingEnabled()) return;
-
-		dump(getStringPrefix() + "<b>" + filterHtml(text) + "</b>");
+		appendImage(name, output);
 	}
 
 	void log_ext::enterFunction(const std::string& name)
@@ -155,16 +214,47 @@ namespace imago
 		return paragraph ? "<p>" : "<br>";
 	}
 
+	void log_ext::dumpImage(const std::string& filename, const Image& data)
+	{
+		if (UseVirtualFS)
+		{
+			if (pVFS)
+			{
+				std::string buf;
+				ArrayOutput outputer(buf);
+				PngSaver saver(outputer);
+				saver.saveImage(data);
+				pVFS->createNewFile(filename, buf);
+			}
+		}
+		else
+		{
+			ImageUtils::saveImageToFile(data, filename.c_str());
+		}
+	}
+
 	void log_ext::dump(const std::string& data)
 	{
-		if (output == NULL)
+		const std::string log_file = Folder + "/log.html";
+
+		if (UseVirtualFS)
 		{
-			output = fopen((Folder + "/log.html").c_str(), "w");
+			if (pVFS != NULL)
+			{
+				pVFS->appendData(log_file, data + "\n");
+			}
 		}
-		if (output != NULL)
+		else
 		{
-			fprintf(output, "%s\n", data.c_str());
-			fflush(output);
+			if (FileOutput == NULL)
+			{
+				FileOutput = fopen(log_file.c_str(), "w");
+			}
+			if (FileOutput != NULL)
+			{
+				fprintf(FileOutput, "%s\n", data.c_str());
+				fflush(FileOutput);
+			}
 		}
 	}
 

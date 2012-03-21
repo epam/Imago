@@ -984,7 +984,7 @@ void Skeleton::modifyGraph()
       ImageUtils::saveImageToFile(img, "output/ggg0.png");
     
    }*/
-   getLogExt().append("init", _g);
+   getLogExt().appendSkeleton("init", _g);
 
    _joinVertices(0.1);
 
@@ -1010,7 +1010,7 @@ void Skeleton::modifyGraph()
     
     }*/
 
-   getLogExt().append("after join verticies", _g);
+   getLogExt().appendSkeleton("after join verticies", _g);
 
    while (_dissolveShortEdges(0.1))
       ;
@@ -1023,7 +1023,7 @@ void Skeleton::modifyGraph()
        ImageUtils::saveImageToFile(img, "output/ggg2.png");
     
     }*/
-   getLogExt().append("after dissolve short edges", _g);
+   getLogExt().appendSkeleton("after dissolve short edges", _g);
 
    while (_dissolveIntermediateVertices())
       ;
@@ -1039,7 +1039,7 @@ void Skeleton::modifyGraph()
        ImageUtils::saveImageToFile(img, "output/ggg3.png");
     
     }*/
-    getLogExt().append("after dissolve intermediate vertrices", _g);
+    getLogExt().appendSkeleton("after dissolve intermediate vertrices", _g);
 
     //_repairBroken(); // DP: disabled
    
@@ -1056,7 +1056,7 @@ void Skeleton::modifyGraph()
        ImageDrawUtils::putGraph(img, _g);
        ImageUtils::saveImageToFile(img, "output/ggg4.png");
     }*/
-	getLogExt().append("after find multiple", _g);
+	getLogExt().appendSkeleton("after find multiple", _g);
 
     recalcAvgBondLength();
    
@@ -1071,7 +1071,7 @@ void Skeleton::modifyGraph()
        ImageDrawUtils::putGraph(img, _g);
        ImageUtils::saveImageToFile(img, "output/ggg5.png");
     }*/
-	getLogExt().append("after dissolve edges 2", _g);
+	getLogExt().appendSkeleton("after dissolve edges 2", _g);
 
     recalcAvgBondLength();
 
@@ -1112,7 +1112,7 @@ void Skeleton::modifyGraph()
        ImageDrawUtils::putGraph(img, _g);
        ImageUtils::saveImageToFile(img, "output/ggg6.png");
     }*/
-	getLogExt().append("after shrinking", _g);
+	getLogExt().appendSkeleton("after shrinking", _g);
 
    
    //if (rs["DebugSession"])

@@ -47,13 +47,13 @@ bool WedgeBondExtractor::_pointsCompare( const SegCenter &c, const SegCenter &d 
       res = true;
    if (a.x < b.x) 
       res = false;
-   if (abs(a.x - b.x) <= 3)
+   if (fabs(a.x - b.x) <= 3)
    {
       if (a.y > b.y)
          res = true;
       if (a.y < b.y)
          res = false;
-      if (abs(a.y - b.y) <= 3)
+      if (fabs(a.y - b.y) <= 3)
          res = false;
    }
 
@@ -115,7 +115,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
    for (int i = 0; i != (int)segs_info.size(); i++)
       for (int j = i + 1; j != (int)segs_info.size(); j++)
       {
-         if (segs_info[i].used && segs_info[j].used && abs(segs_info[i].angle - segs_info[j].angle) < 0.1)
+         if (segs_info[i].used && segs_info[j].used && fabs(segs_info[i].angle - segs_info[j].angle) < 0.1)
          {
             //f++;
             DoubleVector distances;
@@ -179,7 +179,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
                   for (; l != (int)distances.size(); l++)
                   {
                      //TODO: Check this with care and tender
-                     if (abs(distances[l - 1] - distances[l]) > 10)
+                     if (fabs(distances[l - 1] - distances[l]) > 10)
                         break;
                   }
 
@@ -615,8 +615,8 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
       if (border)
       {
          dist2line0 = A0 * cur.x + B0 * cur.y + C0;
-         dist2line1 = abs(A1 * cur.x + B1 * cur.y + C1);
-         dist2line2 = abs(A2 * cur.x + B2 * cur.y + C2);
+         dist2line1 = fabs(A1 * cur.x + B1 * cur.y + C1);
+         dist2line2 = fabs(A2 * cur.x + B2 * cur.y + C2);
 
          if (dist2line0 >= 0)
          {
@@ -661,7 +661,7 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
    Vec2d p4(pb1);
 
 
-   double S1 = abs(p1.x * p2.y - p2.x * p1.y +
+   double S1 = fabs(p1.x * p2.y - p2.x * p1.y +
                    p2.x * p3.y - p3.x * p2.y +
                    p3.x * p4.y - p4.x * p3.y +
                    p4.x * p1.y - p1.x * p4.y) * 0.5;

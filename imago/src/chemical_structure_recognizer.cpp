@@ -152,7 +152,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       //{
       //   ImageUtils::saveImageToFile(_img, "output/real_img.png");
       //}
-	  getLogExt().append("Cropped image", _img);
+	  getLogExt().appendImage("Cropped image", _img);
 
       TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
 
@@ -196,9 +196,9 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
             ImageUtils::putSegment(graphics, *s, true);
 
          //ImageUtils::saveImageToFile(symbols, "output/letters.png");
-		 getLogExt().append("Letters", symbols);
+		 getLogExt().appendImage("Letters", symbols);
          //ImageUtils::saveImageToFile(graphics, "output/graphics.png");
-		 getLogExt().append("Graphics", graphics);
+		 getLogExt().appendImage("Graphics", graphics);
       }
 
       LMARK;
@@ -217,7 +217,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
             BOOST_FOREACH( Segment *s, layer_symbols )
                ImageUtils::putSegment(symbols, *s, true);
             //ImageUtils::saveImageToFile(symbols, "output/letters2.png");
-			getLogExt().append("Symbols with layer_symbols added", symbols);
+			getLogExt().appendImage("Symbols with layer_symbols added", symbols);
          }
 
          LPRINT(1, "Found %d superatoms", mol.getLabels().size());

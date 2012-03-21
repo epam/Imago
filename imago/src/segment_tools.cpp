@@ -80,7 +80,7 @@ namespace imago
 			endseg.copy(seg);
 			for (Points2i::const_iterator it = pts.begin(); it != pts.end(); it++)
 				ImageDrawUtils::putCircle(endseg, it->x, it->y, circle_radius, 64); 
-			getLogExt().append("Segment with endpoints", endseg);
+			getLogExt().appendSegment("Segment with endpoints", endseg);
 		}
 	}
 
@@ -103,7 +103,7 @@ namespace imago
 
 	Points2i SegmentTools::getPath(const Segment& seg, Vec2i start, Vec2i finish)
 	{
-		logEnterFunction();
+		//logEnterFunction();
 
 		Points2i result;
 		const int w = seg.getWidth();
@@ -134,14 +134,14 @@ namespace imago
 			}
 		}		
 
-		if (getLogExt().loggingEnabled())
+		/*if (getLogExt().loggingEnabled())
 		{
 			Image temp(w, h);
 			for (int x = 0; x < w; x++)
 				for (int y = 0; y < h; y++)
 					temp.getByte(x,y) = (10 * wavemap[x + y * w]) % 256;
-			getLogExt().append("wavemap", temp);
-		}
+			getLogExt().appendImage("wavemap", temp);
+		}*/
 
 		while (true)
 		{
@@ -192,18 +192,17 @@ namespace imago
 
 	bool SegmentTools::makeSegmentConnected(Segment& seg, const Image& original_image)
 	{
-		logEnterFunction();
-
 		bool result = false;
 		
-		double line_thick = getSettings()["LineThickness"]; // already calculated
-		getLogExt().append("line_thick", line_thick);		
-
 		Points2i p = getEndpoints(seg);
 
-		// 60x60 max - performance issue else
-		if (p.size() >= 2 && seg.getWidth() < 60 && seg.getHeight() < 60)
+		if (p.size() >= 2 && seg.getWidth() < 60 && seg.getHeight() < 60 && seg.getHeight() > 10)
 		{
+			logEnterFunction();
+
+			double line_thick = getSettings()["LineThickness"]; // already calculated
+			getLogExt().append("line_thick", line_thick);		
+
 			Image src_crop(seg.getWidth(), seg.getHeight());
 
 			double intensity_filled = 0.0, intensity_blank = 0.0;
@@ -236,22 +235,47 @@ namespace imago
 			getLogExt().append("Intensity blank", intensity_blank);
 			getLogExt().append("Intensity filled", intensity_filled);
 			
+			getLogExt().appendSegment("Source", seg);
 			logEndpoints(seg, p, 5);
-			getLogExt().append("Image", src_crop);
+			getLogExt().appendImage("Image", src_crop);
 
-			double threshold = intensity_filled + (intensity_blank - intensity_filled) * 0.65; // MAGIC!!!
+			double threshold = intensity_filled + (intensity_blank - intensity_filled) * 0.55; // MAGIC!!!
 
 			Segment shifted;
 			shifted.init(src_crop.getWidth(), src_crop.getHeight());
 			for (int u = 0; u < src_crop.getWidth(); u++)
+			{
 				for (int v = 0; v < src_crop.getHeight(); v++)
-					shifted.getByte(u, v) = src_crop.getByte(u, v) < threshold ? 0 : 255;					
+				{
+					double average = 0.0;
+					int count = 0;
+					
+					// process average filter here
+					int range = 1;
+					for (int dx = -range; dx <= range; dx++)
+					{
+						for (int dy = -range; dy <= range; dy++)
+						{
+							if (dx + u >= 0 && dx + u < src_crop.getWidth() &&
+								dy + v >= 0 && dy + v < src_crop.getHeight())
+							{
+								average += src_crop.getByte(dx + u, dy + v);
+								count++;
+							}
+						}
+					}
 
-			getLogExt().append("Threshold shifted", shifted);
+					if (count) average /= count;
+
+					shifted.getByte(u, v) = average < threshold ? 0 : 255;
+				}
+			}
+
+			getLogExt().appendSegment("Threshold shifted", shifted);
 
 			ThinFilter2(shifted).apply();
 
-			getLogExt().append("Thinned + Threshold shifted", shifted);
+			getLogExt().appendSegment("Thinned + Threshold shifted", shifted);
 
 			Points2i shifted_pts = getAllFilled(shifted);
 
@@ -264,6 +288,7 @@ namespace imago
 						Points2i path = getPath(shifted, start, end);					
 						if (path.size() < Vec2i::distance(*i1, *i2) * 1.73)
 						{
+							// TODO: here use shifted (not thinned!) for fill pixels!
 							for (Points2i::iterator pp = path.begin(); pp != path.end(); pp++)
 							{
 								if (seg.getByte(pp->x, pp->y) != 0)
@@ -274,12 +299,13 @@ namespace imago
 							}
 						}
 					}
-		}
 
-		if (result)
-		{
-			getLogExt().append("Modified segment", seg);
-		}
+
+			if (result)
+			{
+				getLogExt().appendSegment("Modified segment", seg);
+			}
+		}		
 		
 		return result;
 	}
