@@ -15,5 +15,6 @@ namespace imago
 	public:
 		bool createNewFile(const std::string& filename, const std::string& data);
 		bool appendData(const std::string& filename, const std::string& data);		
+		void getData(std::vector<char>& output) const;
 	};
 };

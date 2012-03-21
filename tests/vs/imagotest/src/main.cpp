@@ -43,6 +43,7 @@
 #include "classification.h"
 #include "fourier_features.h"
 #include "munkres.h"
+#include "log_ext.h"
 
 using namespace imago;
 
@@ -823,8 +824,13 @@ void testRecognition(const char *filename, bool debug)
          //"../../../data/iPad2/TS_3_iPad_2_1.JPG";
          //"../../../ireco/first-delivery-images/photo09.jpg";
 
+	  VirtualFS vfs;
+
 	  if (debug)
-		getSettings()["DebugSession"] = true;
+	  {
+		getSettings()["DebugSession"] = true;		
+		//getLogExt().SetVirtualFS(vfs);
+	  }
 
       //getSettings()["Filter"] = "blur"; //for 34!
       ChemicalStructureRecognizer &csr = getRecognizer();
@@ -840,6 +846,14 @@ void testRecognition(const char *filename, bool debug)
 
       FileOutput fout("molecule.mol");
       fout.writeString(molfile);
+
+	  if (!vfs.empty())
+	  {
+		  FileOutput flogdump("log_vfs.txt");
+		  std::vector<char> logdata;
+		  vfs.getData(logdata);
+		  flogdump.write(&logdata.at(0), logdata.size());
+	  }
 
       SessionManager::getInstance().releaseSID(sid);
 
