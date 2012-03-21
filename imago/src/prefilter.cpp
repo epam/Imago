@@ -16,6 +16,7 @@
 #include "thin_filter2.h"
 #include "segment.h"
 #include "HistogramTools.h"
+#include "scanner.h"
 
 namespace imago
 {
@@ -1247,6 +1248,7 @@ void prefilterFile(const char *filename, Image &image, const CharacterRecognizer
 
 void prefilterFile(const std::vector<unsigned char> &data, Image &image, const CharacterRecognizer &cr )
 {
+   LPRINT(0 , "prefilterFile");
    //Imago cannot load and resize!
    //Image raw;
 
@@ -1255,8 +1257,18 @@ void prefilterFile(const std::vector<unsigned char> &data, Image &image, const C
    //_prefilterInternal(raw, image, cr);
    //_prefilterInternal2(raw);	
 }
+   
+void prefilterPngData(const std::vector<unsigned char> &data, Image &image, const CharacterRecognizer &cr )
+{
+   LPRINT(0 , "prefilterPngData");
+      
+   LPRINT(0, "data size %d", data.size());
+   BufferScanner scanner(&data[0], data.size());
+   PngLoader(scanner).loadImage(image);
+   prefilterImage(image, cr);
+}
 
-
+	
 // NOTE: the input image must be thinned
 bool isCircle (Image &seg)
 {

@@ -33,13 +33,15 @@
 
 @implementation Recognizer
 
+
 - (NSString *)recognize: (UIImage *)image
 {
    NSAutoreleasePool *pool = [[NSAutoreleasePool alloc] init];
-    
+       
    NSLog(@"Loading image...\n");
-   NSData *rawImage = UIImageJPEGRepresentation(image, 1.0f);
-   std::vector<unsigned char> jpgImage((unsigned char *)[rawImage bytes], (unsigned char *)[rawImage bytes] + [rawImage length]);
+   NSData *rawImage = UIImagePNGRepresentation(image);
+   //NSData *rawImage = UIImageJPEGRepresentation(image, 1.0f);
+   std::vector<unsigned char> pngImage((unsigned char *)[rawImage bytes], (unsigned char *)[rawImage bytes] + [rawImage length]);
 
    [pool drain];
 
@@ -51,8 +53,9 @@
       LPRINT(0 , "Let the recognition begin");
       
       imago::Image img;
-      imago::prefilterFile(jpgImage, img, csr->getCharacterRecognizer());
-
+      imago::prefilterPngData(pngImage, img, csr->getCharacterRecognizer());
+      //imago::prefilterFile(pngImage, img, csr->getCharacterRecognizer());
+      
       //Recognize molecule
       imago::Molecule mol;
       
