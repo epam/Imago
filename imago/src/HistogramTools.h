@@ -28,12 +28,12 @@ namespace imago
 	class HistogramTools
 	{
 	public:
-		HistogramTools(cv::Mat &img);
+		HistogramTools(cv::Mat &img, float saturation = 0.0);
 		~HistogramTools(void){}
 		void ImageAdjust(cv::Mat &result, bool Sigmoid = false);
 	private:
 		void GetStretchLimits(float &lowLim, float &highLim);
-		float _lowLim, _hiLim;
+		float _lowLim, _hiLim, _percent_saturation;
 		cv::Mat _image;
 		HistogramTools(){}
 	};
