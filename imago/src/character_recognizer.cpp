@@ -25,6 +25,20 @@ const std::string CharacterRecognizer::lower = "abcdefghijklmnopqrstuvwxyz";
 const std::string CharacterRecognizer::digits = "0123456789";
 const std::string CharacterRecognizer::all = CharacterRecognizer::upper + CharacterRecognizer::lower + CharacterRecognizer::digits;
 
+bool imago::isPossibleCharacter(const Segment& seg, bool loose_cmp)
+{
+	CharacterRecognizer temp(3);
+	RecognitionDistance rd = temp.recognize_all(seg, CharacterRecognizer::all);
+	double best_dist;
+	rd.getBest(&best_dist);
+	if (best_dist < 4.5 && rd.getQuality() > 0.01) 
+		return true;
+	if (loose_cmp && (best_dist < 5.0 && rd.getQuality() > 0.1 
+		           || best_dist < 5.5 && rd.getQuality() > 0.5))
+		return true;
+	return false;
+}
+
 CharacterRecognizer::CharacterRecognizer( int k ) : _k(k)
 {
    _mapping.resize(255, -1);
@@ -192,25 +206,19 @@ public:
 	}
 };
 
-static void generateImpossibleToWrite(int endpoints, int endpoints_connected,
-	                                  std::string& probably, std::string& surely)
+static void generateImpossibleToWrite(int endpoints_count, std::string& probably, std::string& surely)
 {
-	logEnterFunction();
-	getLogExt().append("endpoints count", endpoints);
-	getLogExt().append("endpoints_connected count", endpoints_connected);
-
 	static EndpointsData data;
 
 	probably = "";
 	surely = "";
 	for (size_t u = 0; u < data.size(); u++)
 	{
-		if ((endpoints           < data[u].min - 1 || endpoints           > data[u].max + 1) &&
-			(endpoints_connected < data[u].min - 1 || endpoints_connected > data[u].max + 1) ||
-			(endpoints == 3 && endpoints_connected == 3 && data[u].min > 3))
+		if (endpoints_count == 3 && data[u].min > 3) // HACK
 			surely.push_back( data[u].c );
-		else if ((endpoints      < data[u].min  || endpoints           > data[u].max ) &&
-			(endpoints_connected < data[u].min  || endpoints_connected > data[u].max ))
+		else if (endpoints_count < data[u].min - 1 || endpoints_count > data[u].max + 1)
+			surely.push_back( data[u].c );
+		else if (endpoints_count < data[u].min || endpoints_count > data[u].max )
 			probably.push_back ( data[u].c );
 	}
 }
@@ -224,60 +232,16 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
    getLogExt().append("Candidates", candidates);
 
 	seg.initFeatures(_count);
-	RecognitionDistance rec;
-
-	rec.mergeTables(recognize(seg.getFeatures(), candidates, true));
+	RecognitionDistance rec = recognize(seg.getFeatures(), candidates, true);
 
 	getLogExt().appendMap("Distance map for source", rec);
 
-	Segment connected;
-	connected.copy(seg, false);
+	Points2i endpoints = SegmentTools::getEndpoints(seg);
 
-	int w = connected.getWidth();
-	int h = connected.getHeight();
-	double d = 1.0 + std::min(w, h) / 7; // MAGIC
-	getLogExt().append("w", w);
-	getLogExt().append("h", h);
-	getLogExt().append("d", d);
+	SegmentTools::logEndpoints(seg, endpoints);
 
-	Points2i endpoints = SegmentTools::getEndpoints(connected);
-	int connected_endpoints = endpoints.size();
-		
-	if (endpoints.size() == 2) // only two endpoints, possible broken 'O'
-	{
-		d *= 1.5;
-		getLogExt().append("new d", d);
-	}
-
-	SegmentTools::logEndpoints(connected, endpoints, d);
-
-	if (endpoints.size() > 4)
-	{
-		getLogExt().append("Too many endpoints, connection procedure will not applied", endpoints.size());
-	}
-	else
-	{
-		if (SegmentTools::makeSegmentConnected(connected, endpoints, 2.0*d, 1.5*d))
-		{
-			getLogExt().appendSegment("Connected segment", connected);
-			connected_endpoints = SegmentTools::getEndpoints(connected).size();
-
-			connected.initFeatures(_count);
-			RecognitionDistance rec2 = recognize(connected.getFeatures(), candidates, true);
-
-			getLogExt().appendMap("Distance map for connected", rec2);
-
-			rec.mergeTables(rec2);
-			getLogExt().appendMap("Merged tables distance", rec);
-		}
-		else
-		{
-			getLogExt().appendText("Attempt to make segment connected gives no result");
-		}
-	}	
-	
 	std::string probably, surely;
-	generateImpossibleToWrite(endpoints.size(), connected_endpoints, probably, surely);
+	generateImpossibleToWrite(endpoints.size(), probably, surely);
 
 	rec.adjust(1.1, probably);
 	rec.adjust(1.2, surely);
@@ -306,6 +270,10 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 		break;
 	};
 
+   getLogExt().appendMap("Adjusted (result) distance map", rec);
+   getLogExt().append("Result candidates", rec.getBest());
+   getLogExt().append("Recognition quality", rec.getQuality());
+
    return rec;
 }
 
@@ -313,24 +281,7 @@ char CharacterRecognizer::recognize( const Segment &seg,
                                      const std::string &candidates,
                                      double *dist ) const
 {
-	char res = recognize_all(seg, candidates).getBest(dist);
-	getLogExt().append("Result char", res);
-   return res;
-
-   logEnterFunction();
-
-   getLogExt().append("Candidates", candidates);
-   getLogExt().appendSegment("Source segment", seg);
-
-   seg.initFeatures(_count);
-   RecognitionDistance rec = recognize(seg.getFeatures(), candidates);
-   char result = rec.getBest(dist);
-
-   getLogExt().append("Recognized as", result);
-   if (dist) getLogExt().append("Distance", *dist);
-   getLogExt().appendMap("Distance map", rec);
-   
-   return result;
+   return recognize_all(seg, candidates).getBest(dist);
 }
 
 

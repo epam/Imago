@@ -371,7 +371,7 @@ void GraphicsDetector::detect( const Image &img, Points2d &lsegments ) const
       poly.clear();
       _extractPolygon(*s, poly);
 
-      for (int i = 0; i < (int)poly.size() - 1; i++)
+	  for (int i = 0; i < (int)poly.size() - 1; i++)
       {
          lsegments.push_back(poly[i]);
          lsegments.push_back(poly[i + 1]);

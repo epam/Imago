@@ -87,30 +87,47 @@ const static char *comb[28] = //"Constants", not config but name ?
 void LabelLogic::_predict( const Segment *seg, std::string &letters )
 {
 	logEnterFunction();
-
-	getLogExt().appendSegment("Segment", *seg);
    
    letters.clear();
 
    letters = comb[26]; //All capital letters
    
    if (_cur_atom->label_first == 0)
-      return;
+   {
+	   getLogExt().appendText("No label_first, exit");
+       return;
+   }
 
    if (_cur_atom->label_second == 0)
    {
       if (_cur_atom->label_first == 'C')
+	  {
+		  getLogExt().appendText("label_first is C branch");
          letters.erase(letters.begin() + 7); //cuz of D
+	  }
       if (_cur_atom->label_first == 'E')
+	  {
+		  getLogExt().appendText("label_first is E branch");
          letters.erase(letters.begin() + 8);
+	  }
       if (_cur_atom->label_first == 'A')
+	  {
+		  getLogExt().appendText("label_first is A branch");
          letters.erase(letters.begin() + 7); //cuz of Al
+	  }
 
       if (seg->getHeight() <= cap_height_error * _cap_height)
+	  {
+		  getLogExt().appendText("Too small height branch");
          letters.clear();
+	  }
 
       if (_cur_atom->label_first == '?')
+	  {
+		  getLogExt().appendText("All small letters branch");
          letters = comb[27]; //All small letters
+	  }
+
       else if(_cur_atom->label_first >= 'A' && _cur_atom->label_first <= 'Z') //just for sure 
          for (int i = 0; i < (int)strlen(comb[_cur_atom->label_first - 'A']); i++)
             letters.push_back(comb[_cur_atom->label_first - 'A'][i]);
@@ -242,36 +259,8 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 
 void LabelLogic::_addAtom()
 {
-	if (_cur_atom)
-	{
-		if (_cur_atom->label_first == 0 && _cur_atom->label_second == 0)
-		{
-			return;
-		}
-		else
-		{
-			char temp[2] = {0,0};
-			std::ostringstream added;
-			if (_cur_atom->label_first != 0)
-			{
-				temp[0] = _cur_atom->label_first;
-				added << temp;
-			}
-			if (_cur_atom->label_second != 0)
-			{
-				temp[0] = _cur_atom->label_second;
-				added << temp;
-			}
-			if (_cur_atom->count != 0)
-				added << " [count: " << _cur_atom->count << "]";
-			if (_cur_atom->isotope != 0)
-				added << " [isotope: " << _cur_atom->isotope << "]";
-			if (_cur_atom->charge != 0)
-				added << " [charge: " << _cur_atom->charge << "]";
-			
-			getLogExt().append("Add atom", added.str());
-		}
-	}
+	if (_cur_atom && _cur_atom->label_first == 0 && _cur_atom->label_second == 0)
+		return;
 
 	_satom->atoms.resize(_satom->atoms.size() + 1);
 	_cur_atom = &_satom->atoms[_satom->atoms.size() - 1];
@@ -456,8 +445,6 @@ void LabelLogic::process( Segment *seg, int line_y )
 
 			 //TODO: Lowercase letter can be that height too!
 
-			 getLogExt().append("Entered in capital branch", sym);
-
 			 if (_fixupTrickySubst(sym))
 			 {
 				 getLogExt().appendText("_fixupTrickySubst done");
@@ -585,8 +572,6 @@ void LabelLogic::process( Segment *seg, int line_y )
 
 void LabelLogic::_postProcess()
 {
-	logEnterFunction();	
-
    if (_cur_atom->label_first == 0)
    {
       _cur_atom->label_first = '?';

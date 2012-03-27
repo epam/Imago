@@ -433,18 +433,33 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 			
 			//	classify object
 				
-			
+				getLogExt().appendSegment("segment", *s);
+
 				double hu[7];
 			
 				_getHuMomentsC(*s, hu);
 
 				mark = HuClassifier(hu);
+				getLogExt().append("mark", mark);
+
 				double surf_coeff = 3.0;
 				 if(//mark == SEP_SYMBOL && 
 					//(!(extracted.getHeight() >= cap_height - sym_height_err && extracted.getHeight() <= cap_height + sym_height_err && extracted.getHeight() <= cap_height * 2 && extracted.getWidth() <= 1.8 * cap_height)
 					//|| 
 					extracted.getHeight() < 0.25 *cap_height || (symbRects[i].height * symbRects[i].width > surf_coeff * cap_height * cap_height))
+				 {
 					mark = SEP_SUSPICIOUS;
+					getLogExt().appendText("mark -> SEP_SUSPICIOUS");
+				 }
+
+				 /*if (mark == SEP_SUSPICIOUS)
+				 {
+					 if (isPossibleCharacter(*s))
+					 {
+						 mark = SEP_SYMBOL;
+						 getLogExt().appendText("mark -> SEP_SYMBOL");
+					 }
+				 }*/
 		
 				/*if (rs["DebugSession"])
 				{
@@ -454,9 +469,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 					imago::ImageUtils::putSegment(test, *s);
 					ImageUtils::saveImageToFile(test, "output/tmp.png");
-				}*/
-
-				getLogExt().appendSegment("temp", *s);
+				}*/				
 
 				if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
 				{

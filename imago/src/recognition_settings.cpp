@@ -42,16 +42,17 @@ void RecognitionSettings::initConfig( int number )
       "AddVertexEps",
       "SameLineEps",
       "DebugSession",
-	  "LineThickness"};
+	  "LineThickness",
+      "RGBLoad" };
 
    const int names_size = (int)(sizeof(names) / sizeof(names[0]));
 
    RecognitionSettings::Parameter values[CONF_COUNT][names_size] = {
-      { 0, 0.85, 200, "none",  1.14, 0.34, 40, 0.2,  0.34, 5.2, 0.08, false, 6 },
-      { 1, 0.87, 220, "blur",  1.14, 0.34, 40, 0.3,  0.34, 5.2, 0.11, false, 6 },
-      { 2, 0.78, 200, "sharp", 1.14, 0.34, 40, 0.3,  0.4,  5.8, 0.13, false, 6 },
-      { 3, 0.85, 150, "none",  1.14, 0.34, 40, 0.25, 0.44, 5.2, 0.1, false, 6 },
-      { 4, 0.82, 150, "blur",  1.14, 0.34, 40, 0.3,  0.34, 5.2, 0.1, false, 6 } };
+      { 0, 0.85, 200, "none",  1.14, 0.34, 40, 0.2,  0.34, 5.2, 0.08, false, 6, false },
+      { 1, 0.87, 220, "blur",  1.14, 0.34, 40, 0.3,  0.34, 5.2, 0.11, false, 6, false },
+      { 2, 0.78, 200, "sharp", 1.14, 0.34, 40, 0.3,  0.4,  5.8, 0.13, false, 6, false },
+      { 3, 0.85, 150, "none",  1.14, 0.34, 40, 0.25, 0.44, 5.2, 0.1, false, 6, false },
+      { 4, 0.82, 150, "blur",  1.14, 0.34, 40, 0.3,  0.34, 5.2, 0.1, false, 6, false } };
 
    for (int i = 0; i != names_size; i++)
       set(names[i], values[number][i]);

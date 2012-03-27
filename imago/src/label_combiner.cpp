@@ -86,25 +86,31 @@ int LabelCombiner::_findCapitalHeight()
    double d = DBL_MAX, min_d = DBL_MAX;
    BOOST_FOREACH(Segment *seg, _symbols_layer)
    {
+	  char c = 0;
       try
       {
-         char c = _cr.recognize(*seg, CharacterRecognizer::upper, &d);
+		  c = _cr.recognize(*seg, CharacterRecognizer::all, &d);
       }
       catch(OCRException &e)
       {
 		  logEnterFunction();
 		  getLogExt().appendText(e.what());
 	  }
-      seg_height = seg->getHeight();
+	  if (CharacterRecognizer::upper.find(c) != std::string::npos)
+	  {
+		seg_height = seg->getHeight();
       
-      if (d < min_d && seg_height >= mean_height)
-         min_d = d, cap_height = seg_height;
+		if (d < min_d && seg_height >= mean_height)
+			 min_d = d, cap_height = seg_height;
+	  }
    }
 
    //TODO: temporary!
    //if (cap_height == -1)
      // throw LogicException("Cannot determine CapHeight");
    
+   getLogExt().append("Capital height", cap_height);
+
    return cap_height;
 }
 

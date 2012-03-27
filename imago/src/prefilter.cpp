@@ -538,11 +538,11 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
 
 }
 
-int EstimateLineThickness(Image &bwimg)
+int EstimateLineThickness(Image &bwimg, int grid)
 {
 	int w = bwimg.getWidth();
 	int h = bwimg.getHeight();
-	int d = 10; // 10 pixel grid
+	int d = grid; // 10 pixel grid
 
 	IntVector lthick;
 
@@ -567,7 +567,7 @@ int EstimateLineThickness(Image &bwimg)
 	}
 
 	if(h > d)
-		d = 10;
+		d = grid;
 	else
 		d = std::max<int>(h >>1, 1) ; 
 
@@ -868,6 +868,7 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	int n = maxside / 800;
 
 	img.copy(raw);
+	getLogExt().appendImage("Source image", img);
 	
 	//convert to gray scale
 	_copyImageToMat(img, mat);
@@ -885,7 +886,6 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	   else
 		   cv::bilateralFilter(mat, matred, 5, 20, getSettings()["LineThickness"]);
 
-  
    
    if(getLogExt().loggingEnabled()) // debug_session)
    {
@@ -1049,7 +1049,7 @@ bool isSplash(Segment *s, int lineSize)
 	if(s->getWidth() < lineSize && s->getHeight() < lineSize)
 		return true;
 	s->extract(0, 0, s->getWidth(), s->getHeight(), img);
-	int ls = EstimateLineThickness(img);
+	int ls = EstimateLineThickness(img, 10);
 	if(ls > 3* lineSize || ls < 1)
 		return true;
 	return false;
@@ -1066,6 +1066,18 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 {
 	logEnterFunction();
 
+	if (getSettings()["RGBLoad"])
+	{
+		for (int y = 0; y < image.getHeight(); y++)
+			for (int x = 0; x < image.getWidth(); x++)
+				image.getByte(x, y) = (image.getByte(x, y) != 255) ? 0 : 255;
+
+		getSettings()["LineThickness"] = EstimateLineThickness(image, 10);
+		getLogExt().append("LineThickness", (int)getSettings()["LineThickness"]);
+
+		return;
+	}
+
    Image raw, cimg;
    
    raw.copy(image);
@@ -1081,7 +1093,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    _prefilterInternal3(raw, image, cr, false, true);
 
 
-   double lineThickness = EstimateLineThickness(image);
+   double lineThickness = EstimateLineThickness(image, 10);
 
    if(lineThickness < 1)
 	   throw Exception("Image prefiltering failed");
@@ -1213,7 +1225,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
     for(rsit = weak_segments.rbegin(); rsit != weak_segments.rend(); rsit++)
 	{		
 		Segment *s = *rsit;		
-		SegmentTools::makeSegmentConnected(*s, raw);		
+		SegmentTools::makeSegmentConnected(*s, raw, 0.5);		
 	}
 
 	if(psegs.size() > 0)

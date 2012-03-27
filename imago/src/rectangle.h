@@ -34,6 +34,28 @@ namespace imago
 
       int x, y;
       int width, height;
+
+	  int x1() const { return x; }
+	  int x2() const { return x + width; }
+	  int y1() const { return y; }
+	  int y2() const { return y + height; }
+
+	  void adjustBorder(int border)
+	  {
+		  x += border;
+		  y += border;
+		  width -= 2*border;
+		  height -= 2*border;
+	  }
+
+	  Rectangle( int x1, int y1, int x2, int y2, int border )
+	  {
+		  x = x1;
+		  y = y1;
+		  width  = x2 - x1;
+		  height = y2 - y1;
+		  adjustBorder(border);
+	  }
    };
 }
 

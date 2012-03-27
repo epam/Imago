@@ -84,7 +84,7 @@ namespace imago
 		}
 	}
 
-	Points2i SegmentTools::getEndpoints(Segment& seg)
+	Points2i SegmentTools::getEndpoints(const Segment& seg)
 	{
 		Segment thinseg;
 		thinseg.copy(seg);
@@ -101,16 +101,23 @@ namespace imago
 		return endpoints;
 	}
 
-	Points2i SegmentTools::getPath(const Segment& seg, Vec2i start, Vec2i finish)
+	SegmentTools::WaveMap::WaveMap(const Image& img)
 	{
-		//logEnterFunction();
+		copy(img);
+		wavemap = new int[getWidth()*getHeight()]();
+	}
 
-		Points2i result;
-		const int w = seg.getWidth();
-		const int h = seg.getHeight();
-		int* wavemap = new int[w*h]();
+	SegmentTools::WaveMap::~WaveMap()
+	{
+		if (wavemap)
+		{
+			delete []wavemap;
+			wavemap = NULL;
+		}
+	}
 
-		// TODO: add priority_queue here
+	void SegmentTools::WaveMap::fillByStartPoint(const Vec2i& start)
+	{
 		typedef std::queue<std::pair<Vec2i, int> > WorkVector;
 		WorkVector v;
 		v.push(std::make_pair(start, 1));
@@ -119,10 +126,12 @@ namespace imago
 			Vec2i cur_v = v.front().first;
 			int cur_d = v.front().second;
 			v.pop();
-			int idx = cur_v.x + cur_v.y * w;
-			if (cur_v.x >= 0 && cur_v.y >= 0 &&
-				 cur_v.x < w && cur_v.y < h 
-				&& seg.getByte(cur_v.x, cur_v.y) == 0
+			
+			int idx = cur_v.x + cur_v.y * getWidth();
+
+			if (cur_v.x >= 0 && cur_v.y >= 0
+				&& cur_v.x < getWidth() && cur_v.y < getHeight()
+				&& getByte(cur_v.x, cur_v.y) == 0
 				&& (wavemap[idx] > cur_d || wavemap[idx] == 0))
 			{
 				wavemap[idx] = cur_d;
@@ -133,21 +142,26 @@ namespace imago
 				#undef lookup
 			}
 		}		
+	}
 
-		/*if (getLogExt().loggingEnabled())
+	bool SegmentTools::WaveMap::isAccesssible(const Vec2i& finish)
+	{
+		return wavemap[finish.x + finish.y * getWidth()] != 0;
+	}
+
+	Points2i SegmentTools::WaveMap::getPath(const Vec2i& other)
+	{
+		Vec2i finish = other;
+
+		Points2i result;
+
+		size_t length_limit = getWidth()*getHeight();
+
+		while (isAccesssible(finish))
 		{
-			Image temp(w, h);
-			for (int x = 0; x < w; x++)
-				for (int y = 0; y < h; y++)
-					temp.getByte(x,y) = (10 * wavemap[x + y * w]) % 256;
-			getLogExt().appendImage("wavemap", temp);
-		}*/
+			int end = wavemap[finish.x + finish.y * getWidth()];
 
-		while (true)
-		{
-			int end = wavemap[finish.x + finish.y * w];
-
-			if (end == 0 || end == 1 || result.size() > h*w)
+			if (end == 0 || end == 1 || result.size() > length_limit)
 				break;
 
 			result.push_back(finish);
@@ -162,10 +176,10 @@ namespace imago
 			Vec2i best_w = finish;
 			for (size_t u = 0; u < ways.size(); u++)
 			{
-				if (ways[u].x >= 0 && ways[u].x < w &&
-					ways[u].y >= 0 && ways[u].y < h)
+				if (ways[u].x >= 0 && ways[u].x < getWidth() &&
+					ways[u].y >= 0 && ways[u].y < getHeight())
 				{
-					int value = wavemap[ways[u].x + ways[u].y * w];
+					int value = wavemap[ways[u].x + ways[u].y * getWidth()];
 					if (value != 0 && value < best_v)
 					{
 						best_v = value;
@@ -176,12 +190,11 @@ namespace imago
 			finish = best_w;
 		}
 
-		delete[] wavemap;
-
 		return result;
 	}
 
-	Vec2i SegmentTools::getNearest(Vec2i start, const Points2i& pts)
+	
+	Vec2i SegmentTools::getNearest(const Vec2i& start, const Points2i& pts)
 	{
 		Vec2i result = pts[0];
 		for (size_t u = 1; u < pts.size(); u++)
@@ -190,122 +203,145 @@ namespace imago
 		return result;
 	}
 
-	bool SegmentTools::makeSegmentConnected(Segment& seg, const Image& original_image)
+	bool SegmentTools::makeSegmentConnected(Segment& seg, const Image& original_image, double threshold_factor)
 	{
+		logEnterFunction();
+
 		bool result = false;
 		
-		Points2i p = getEndpoints(seg);
+		Points2i src_endpoints = getEndpoints(seg);
+		logEndpoints(seg, src_endpoints);
 
-		if (p.size() >= 2 && seg.getWidth() < 60 && seg.getHeight() < 60 && seg.getHeight() > 10)
+		Image original_crop(seg.getWidth(), seg.getHeight());
+
+		double intensity_filled = 0.0, intensity_blank = 0.0;
+		int count_filled = 0, count_blank = 0;
+
+		for (int u = 0; u < seg.getWidth(); u++)
+			for (int v = 0; v < seg.getHeight(); v++)
+			{
+				imago::byte b = original_image.getByte(seg.getX() + u, seg.getY() + v);
+				if (seg.getByte(u, v) == 0)
+				{
+					intensity_filled += b;
+					count_filled++;
+				}
+				else
+				{
+					intensity_blank += b;
+					count_blank++;
+				}
+				original_crop.getByte(u, v) = b;
+			}
+
+		if (count_filled == 0)
 		{
-			logEnterFunction();
+			getLogExt().appendText("Nothing filled, exiting");
+			return result;
+		}
 
-			double line_thick = getSettings()["LineThickness"]; // already calculated
-			getLogExt().append("line_thick", line_thick);		
+		if (count_filled > 0)
+			intensity_filled /= count_filled;			
 
-			Image src_crop(seg.getWidth(), seg.getHeight());
+		if (count_blank > 0)
+			intensity_blank /= count_blank;
 
-			double intensity_filled = 0.0, intensity_blank = 0.0;
-			int count_filled = 0, count_blank = 0;
-
-			for (int u = 0; u < seg.getWidth(); u++)
-				for (int v = 0; v < seg.getHeight(); v++)
-				{
-					imago::byte b = original_image.getByte(seg.getX() + u, seg.getY() + v);
-					if (seg.getByte(u, v) == 0)
-					{
-						intensity_filled += b;
-						count_filled++;
-					}
-					else
-					{
-						intensity_blank += b;
-						count_blank++;
-					}
-					src_crop.getByte(u, v) = b;
-				}
-
-			if (count_filled > 0)
-				intensity_filled /= count_filled;
-
-			if (count_blank > 0)
-				intensity_blank /= count_blank;
-
-			// intensity_blank is > intensity_filled
-			getLogExt().append("Intensity blank", intensity_blank);
-			getLogExt().append("Intensity filled", intensity_filled);
+		// intensity_blank is > intensity_filled
+		getLogExt().append("Intensity blank", intensity_blank);
+		getLogExt().append("Intensity filled", intensity_filled);
 			
-			getLogExt().appendSegment("Source", seg);
-			logEndpoints(seg, p, 5);
-			getLogExt().appendImage("Image", src_crop);
+		getLogExt().appendImage("Source image crop", original_crop);
 
-			double threshold = intensity_filled + (intensity_blank - intensity_filled) * 0.55; // MAGIC!!!
+		double threshold = intensity_filled + (intensity_blank - intensity_filled) * threshold_factor;
 
-			Segment shifted;
-			shifted.init(src_crop.getWidth(), src_crop.getHeight());
-			for (int u = 0; u < src_crop.getWidth(); u++)
+		Segment threshold_shifted;
+		threshold_shifted.init(original_crop.getWidth(), original_crop.getHeight());
+
+		for (int u = 0; u < original_crop.getWidth(); u++)
+		{
+			for (int v = 0; v < original_crop.getHeight(); v++)
 			{
-				for (int v = 0; v < src_crop.getHeight(); v++)
-				{
-					double average = 0.0;
-					int count = 0;
+				double average = 0.0;
+				int count = 0;
 					
-					// process average filter here
-					int range = 1;
-					for (int dx = -range; dx <= range; dx++)
+				// process average filter here
+				int range = 1;
+				for (int dx = -range; dx <= range; dx++)
+				{
+					for (int dy = -range; dy <= range; dy++)
 					{
-						for (int dy = -range; dy <= range; dy++)
+						if (dx + u >= 0 && dx + u < original_crop.getWidth() &&
+							dy + v >= 0 && dy + v < original_crop.getHeight())
 						{
-							if (dx + u >= 0 && dx + u < src_crop.getWidth() &&
-								dy + v >= 0 && dy + v < src_crop.getHeight())
-							{
-								average += src_crop.getByte(dx + u, dy + v);
-								count++;
-							}
+							average += original_crop.getByte(dx + u, dy + v);
+							count++;
 						}
 					}
-
-					if (count) average /= count;
-
-					shifted.getByte(u, v) = average < threshold ? 0 : 255;
 				}
+
+				if (count) average /= count;
+
+				threshold_shifted.getByte(u, v) = average < threshold ? 0 : 255;
 			}
+		}
 
-			getLogExt().appendSegment("Threshold shifted", shifted);
+		getLogExt().appendSegment("Threshold shifted and binarized", threshold_shifted);			
 
-			ThinFilter2(shifted).apply();
+		WaveMap connected(threshold_shifted);
+		if (src_endpoints.empty())
+		{
+			Points2i all = getAllFilled(seg);
+			if (!all.empty())
+				connected.fillByStartPoint(all[0]);
+		}
+		else
+		{
+			for (size_t u = 0; u < src_endpoints.size(); u++)
+				connected.fillByStartPoint(src_endpoints[u]);
+		}
 
-			getLogExt().appendSegment("Thinned + Threshold shifted", shifted);
+		// now modify according endpoints accessed
+		for (int u = 0; u < connected.getWidth(); u++)
+			for (int v = 0; v < connected.getHeight(); v++)
+				if (!connected.isAccesssible(Vec2i(u,v)))
+					threshold_shifted.getByte(u, v) = 255; // make blank
 
-			Points2i shifted_pts = getAllFilled(shifted);
+		getLogExt().appendSegment("Modified connectivity by wavemap", threshold_shifted);
 
-			if (!shifted_pts.empty())	
-				for (Points2i::iterator i1 = p.begin(); i1 != p.end(); i1++)
-					for (Points2i::iterator i2 = (i1 + 1); i2 != p.end(); i2++)
-					{
-						Vec2i start = getNearest(*i1, shifted_pts);
-						Vec2i end = getNearest(*i2, shifted_pts);
-						Points2i path = getPath(shifted, start, end);					
-						if (path.size() < Vec2i::distance(*i1, *i2) * 1.73)
-						{
-							// TODO: here use shifted (not thinned!) for fill pixels!
-							for (Points2i::iterator pp = path.begin(); pp != path.end(); pp++)
-							{
-								if (seg.getByte(pp->x, pp->y) != 0)
-								{
-									seg.getByte(pp->x, pp->y) = 0;
-									result = true;
-								}
-							}
-						}
-					}
+		/*// now remove too thin and probably wrong lines
+		for (int u = 0; u < connected.getWidth(); u++)
+			for (int v = 0; v < connected.getHeight(); v++)
+				if (getInRange(threshold_shifted, Vec2i(u,v), 1).size() <= 3)
+					threshold_shifted.getByte(u, v) = 255; // make blank
 
+		// now try to fix broken pixels inside
+		for (int u = 0; u < connected.getWidth(); u++)
+			for (int v = 0; v < connected.getHeight(); v++)
+				if (getInRange(threshold_shifted, Vec2i(u,v), 1).size() >= 7)
+					threshold_shifted.getByte(u, v) = 0; // make filled
 
-			if (result)
-			{
-				getLogExt().appendSegment("Modified segment", seg);
-			}
-		}		
+		for (int u = 0; u < connected.getWidth(); u++)
+			for (int v = 0; v < connected.getHeight(); v++)
+				if (getInRange(threshold_shifted, Vec2i(u,v), 2).size() >= 21)
+					threshold_shifted.getByte(u, v) = 0; // make filled			
+
+		getLogExt().appendSegment("Modified by pixel operations", threshold_shifted); */
+
+		Points2i mod_endpoints = getEndpoints(threshold_shifted);			
+
+		result = mod_endpoints.size() <= src_endpoints.size()
+				    && getAllFilled(threshold_shifted).size() > getAllFilled(seg).size() / 2
+					&& getAllFilled(threshold_shifted).size() < getAllFilled(seg).size() * 2;
+
+		if (result)
+		{
+			seg.copy(threshold_shifted, false);
+			getLogExt().appendSegment("Modified segment (result)", seg);
+		}
+		else
+		{
+			getLogExt().appendText("Connectivity became worser, ignoring");
+		}
 		
 		return result;
 	}

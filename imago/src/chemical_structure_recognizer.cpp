@@ -195,7 +195,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       Points2d ringCenters;
 
       {
-#if 1
+#if 0
 		  double lnThickness = getSettings()["LineThickness"];
          CvApproximator cvApprox;
          GraphicsDetector gd(&cvApprox, lnThickness * 1.5);//8.0

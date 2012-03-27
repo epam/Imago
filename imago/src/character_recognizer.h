@@ -18,6 +18,8 @@ namespace imago
    bool isCircle (Image &seg);
 
    class Segment;
+
+   bool isPossibleCharacter(const Segment& seg, bool loose_cmp = false);
 	
    class CharacterRecognizer: CharacterRecognizerData
    {
