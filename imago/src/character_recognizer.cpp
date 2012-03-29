@@ -142,7 +142,7 @@ public:
 		push_back(EnpointsRecord('0', 0, 2));
 		push_back(EnpointsRecord('1', 1, 3));
 		push_back(EnpointsRecord('2', 2, 3));
-		push_back(EnpointsRecord('3', 3, 4));
+		push_back(EnpointsRecord('3', 2, 4));
 		push_back(EnpointsRecord('4', 2, 4));
 		push_back(EnpointsRecord('5', 2, 4));
 		push_back(EnpointsRecord('6', 1, 2));

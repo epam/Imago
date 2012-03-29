@@ -28,6 +28,7 @@
 #include "segment.h"
 #include "thin_filter2.h"
 #include "vec2d.h"
+#include "log_ext.h"
 
 namespace imago
 {
@@ -185,10 +186,10 @@ namespace imago
 
       double density = (double)sum / s;
 
-#ifdef DEBUG
-      if (density > 0.4)
-         printf("Test Plus (density > 0.4): max_sq = %d <> s = %d", max_sq, s);
-#endif
+   if (density > 0.4)
+   {
+	   getLogExt().append("[testPlus] Density", density);     
+   }
 
       //TODO: write more convenient criteria
       return (density > 0.4 && max_sq < 0.38 * s); //0.55

@@ -195,8 +195,10 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
       Points2d ringCenters;
 
       {
-#if 0
+		  getLogExt().appendText("Before line vectorization");
+#if 1
 		  double lnThickness = getSettings()["LineThickness"];
+		  getLogExt().append("Line Thickness", lnThickness);
          CvApproximator cvApprox;
          GraphicsDetector gd(&cvApprox, lnThickness * 1.5);//8.0
 #else
@@ -232,6 +234,10 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          GraphicsDetector().analyzeUnmappedLabels(unmapped_labels, ringCenters);
          LPRINT(0, "Found %i rings", ringCenters.size());
       }
+	  else
+	  {
+		  getLogExt().appendText("Layer_symbols is empty!");
+	  }
 
       mol.aromatize(ringCenters);
 

@@ -4,6 +4,8 @@
 
 namespace imago
 {
+	const int RGB_MAX_IMAGE_DIM = 1280;  // maximal resolution in pixels for the longer side
+
 	struct RGBData
 	{
 		static const int CHANNELS_COUNT = 4;

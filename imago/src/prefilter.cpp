@@ -884,7 +884,10 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	   if(strongThresh)
 		cv::GaussianBlur(mat, matred, cv::Size(5, 5), 1, 1, cv::BORDER_REPLICATE);
 	   else
-		   cv::bilateralFilter(mat, matred, 5, 20, getSettings()["LineThickness"]);
+	   {
+		   double lt = getSettings()["LineThickness"];
+		   cv::bilateralFilter(mat, matred, 5, 20, lt);
+	   }
 
    
    if(getLogExt().loggingEnabled()) // debug_session)
@@ -1072,8 +1075,9 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 			for (int x = 0; x < image.getWidth(); x++)
 				image.getByte(x, y) = (image.getByte(x, y) != 255) ? 0 : 255;
 
-		getSettings()["LineThickness"] = EstimateLineThickness(image, 10);
-		getLogExt().append("LineThickness", (int)getSettings()["LineThickness"]);
+		double line_thickness = EstimateLineThickness(image, 10);
+		getSettings()["LineThickness"] = line_thickness;
+		getLogExt().append("Line Thickness", line_thickness);
 
 		return;
 	}
@@ -1222,11 +1226,13 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    cimg.clear();
    cimg.init(cs.getWidth(), cs.getHeight());
 
+#if 0
     for(rsit = weak_segments.rbegin(); rsit != weak_segments.rend(); rsit++)
 	{		
 		Segment *s = *rsit;		
 		SegmentTools::makeSegmentConnected(*s, raw, 0.5);		
 	}
+#endif
 
 	if(psegs.size() > 0)
 		CombineWeakStrong(weak_segments, psegs, cimg);

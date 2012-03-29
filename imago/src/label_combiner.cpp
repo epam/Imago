@@ -80,8 +80,12 @@ int LabelCombiner::_findCapitalHeight()
    //TODO: If it belongs here then rewrite
    int mean_height = 0, seg_height, cap_height = -1;
    BOOST_FOREACH(Segment *seg, _symbols_layer)
-      mean_height += seg->getHeight();
+   {
+	   getLogExt().append("Height", seg->getHeight());
+	   mean_height += seg->getHeight();
+   }
    mean_height /= _symbols_layer.size();
+   getLogExt().append("Mean height", mean_height);
 
    double d = DBL_MAX, min_d = DBL_MAX;
    BOOST_FOREACH(Segment *seg, _symbols_layer)
@@ -99,9 +103,18 @@ int LabelCombiner::_findCapitalHeight()
 	  if (CharacterRecognizer::upper.find(c) != std::string::npos)
 	  {
 		seg_height = seg->getHeight();
+		getLogExt().append("Segment height", seg_height);
       
 		if (d < min_d && seg_height >= mean_height)
-			 min_d = d, cap_height = seg_height;
+		{
+			 min_d = d;
+			 cap_height = seg_height;
+		} 
+		else if (d < min_d && seg_height > cap_height && (d < 3.0 && c != 'O') )
+		{
+			min_d = d;
+			cap_height = seg_height;
+		}
 	  }
    }
 
@@ -285,16 +298,15 @@ void LabelCombiner::_locateLabels()
                    type seg_ptrs = boost::get(boost::vertex_seg_ptr, seg_graph);
    _labels.resize(cc);
    for (int i = 0; i < (int)components.size(); i++)
-   {
-      //printf("Component %d\n\t", i);
+   {      
+	   getLogExt().append("Component", i);
+	   getLogExt().appendVector("Subcomponents", components[i]);
       _labels[i].symbols.resize(components[i].size());
       for (int j = 0; j < (int)components[i].size(); j++)
       {
-         //printf("%d ", components[i][j]);
          _labels[i].symbols[j] = boost::get(seg_ptrs, boost::vertex(
                                             components[i][j], seg_graph));
       }
-      //printf("\n");
    }
 
 }

@@ -808,7 +808,7 @@ void testApproximator(char *filename)
    ImageUtils::saveImageToFile(res, "dp.png");
 }
 
-void testRecognition(const char *filename, bool debug)
+void testRecognition(const char *filename, bool debug, bool rgbload)
 {
    try
    {
@@ -835,7 +835,7 @@ void testRecognition(const char *filename, bool debug)
       //getSettings()["Filter"] = "blur"; //for 34!
       ChemicalStructureRecognizer &csr = getRecognizer();
 
-	  getSettings()["RGBLoad"] = true;
+	  getSettings()["RGBLoad"] = rgbload;
 	  //ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\others\\OTf_molecule.JPG");
 	  /*ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\ok\\Dec_2011_01.JPG");
 	  ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\ok\\Dec_2011_03.JPG");
@@ -920,7 +920,8 @@ int main(int argc, char **argv)
    //makeFont();
    //testOCR2(argv[1]);
 
-   testRecognition(argv[1], argc > 2 && strcmp(argv[2], "-l") == 0);
+   testRecognition(argv[1], argc > 2 && strcmp(argv[2], "-log") == 0,
+	                        argc > 3 && strcmp(argv[3], "-rgb") == 0);
    //calcDescriptors(argc, argv);
    //makeCVFont();
 

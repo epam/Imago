@@ -562,7 +562,10 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 #endif
 
    if (_segs.size() == 0)
+   {
+	   getLogExt().appendText("Warning, _segs.size is 0!");
       cap_height = -1;
+   }
    else
       cap_height = _estimateCapHeight();   
 
@@ -739,6 +742,8 @@ bool Separator::_isSuspiciousSymbol( Segment *cur_seg, SegmentDeque &layer_symbo
 
 int Separator::_estimateCapHeight()
 {
+	logEnterFunction();
+
    typedef std::vector<IntPair> PairIntVector; 
    PairIntVector seq_pairs;
    IntVector heights, seq_lengths;
@@ -753,11 +758,14 @@ int Separator::_estimateCapHeight()
 #endif
    }
 
+   getLogExt().appendVector("Heights", heights);   
+
 #ifdef DEBUG
    puts("");
 #endif
 
    int seg_ver_eps = rs["SegmentVerEps"];
+   getLogExt().append("Seg_ver_eps", seg_ver_eps);
 
    for (int i = 0; i != (int)heights.size();)
    {
@@ -854,6 +862,8 @@ int Separator::_estimateCapHeight()
          }
       }
    }
+
+   getLogExt().append("Return", cap_height);
 
    return cap_height;
 }

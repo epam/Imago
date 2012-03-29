@@ -47,6 +47,7 @@ namespace imago
       bool flushed, was_super, was_charge, was_letter;
       LabelLogic( LabelLogic & );
 	  void _addAtom();
+	  void _fixupSingleAtom();
       void _predict( const Segment *seg, std::string &letters );
       void _postProcess();
 	  void _eraseHydrogen(Label& label);

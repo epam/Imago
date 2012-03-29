@@ -257,10 +257,31 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 	}
 }
 
+void LabelLogic::_fixupSingleAtom()
+{
+	if (_cur_atom && _cur_atom->label_first == 'Q' && _cur_atom->label_second == 0)
+	{
+		getLogExt().appendText("Hack: Q -> C");
+		_cur_atom->label_first = 'C';
+	}
+	if (_cur_atom && _cur_atom->label_first == 'X' && _cur_atom->label_second == 0)
+	{
+		getLogExt().appendText("Hack: X -> H");
+		_cur_atom->label_first = 'H';
+	}
+	if (_cur_atom && _cur_atom->label_first == 'A' && _cur_atom->label_second == 0)
+	{
+		getLogExt().appendText("Hack: A -> H");
+		_cur_atom->label_first = 'H';
+	}
+}
+
 void LabelLogic::_addAtom()
 {
 	if (_cur_atom && _cur_atom->label_first == 0 && _cur_atom->label_second == 0)
 		return;
+
+	_fixupSingleAtom();	
 
 	_satom->atoms.resize(_satom->atoms.size() + 1);
 	_cur_atom = &_satom->atoms[_satom->atoms.size() - 1];
@@ -393,9 +414,7 @@ void LabelLogic::process( Segment *seg, int line_y )
           sym == 'v' || sym == 'w')
          sym = toupper(sym);
 
-#ifdef DEBUG
-      printf("LLogic sym = %c\n", sym);
-#endif
+	  getLogExt().append("LLogic sym", sym);
       
       if (sym >= 'a' && sym <= 'z')
       {
@@ -408,6 +427,7 @@ void LabelLogic::process( Segment *seg, int line_y )
       }
       else
       {
+		  //  ------------------------------ evil hack section ------------------------------
 		  if (sym == 'I' && _cur_atom->label_first == 'I')
 		  {
 			  // HACK! II -> O
@@ -423,6 +443,7 @@ void LabelLogic::process( Segment *seg, int line_y )
 			  _cur_atom->label_first = 'F';
 			  was_letter = 1;
 		  }
+		  // ------------------------------ ------------------------------
 		  else
 		  {
 			 if (!flushed)
@@ -572,6 +593,8 @@ void LabelLogic::process( Segment *seg, int line_y )
 
 void LabelLogic::_postProcess()
 {
+	_fixupSingleAtom();
+
    if (_cur_atom->label_first == 0)
    {
       _cur_atom->label_first = '?';

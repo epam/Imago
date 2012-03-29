@@ -101,6 +101,10 @@ void GraphicsDetector::_decorner( Image &img ) const
 
 void GraphicsDetector::_extractPolygon( const Segment &seg, Points2d &poly ) const
 {
+	logEnterFunction();
+
+	getLogExt().appendSegment("Segment", seg);
+
    int begin = -1;
    bool closed = true;
    int i, j, x, y, c;
@@ -178,8 +182,19 @@ void GraphicsDetector::_extractPolygon( const Segment &seg, Points2d &poly ) con
       contour.push_back(tmp); //WATCH
    }
 
+   getLogExt().append("eps" , _approx_eps);
+
    if (_approximator)
       _approximator->apply(_approx_eps, contour, poly);
+
+	if (getLogExt().loggingEnabled())
+	{		
+		Segment temp;
+		temp.copy(seg, false);		
+		for (size_t u = 0; u < poly.size(); u++)
+			ImageDrawUtils::putCircle(temp, poly[u].x, poly[u].y, 5, 0);
+		getLogExt().appendImage("Segment with polypoints", temp);
+	}
 
    for (i = 0; i < (int)poly.size(); i++)
    {

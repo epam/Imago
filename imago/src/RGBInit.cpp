@@ -4,23 +4,47 @@
 
 namespace imago
 {
+	/* code organization constants. Fixed values, not method params. 
+		*/
 	const int    INK = 0;                      // preferred intensity means filled
-	const int    BLANK = 255;                  // intensity means blank
-	const int    MAX_IMAGE_DIM = 4096;         // maximal resolution in pixels for longes side
-
+	const int    BLANK = 255;                  // intensity means blank	
 	const int    COLOR_CHANNEL = 3;            // intensity channel		
-	const double INK_THRESHOLD = 0.995;	       // % for initial ink coverage
+
+	/* Affects: recognition quality (MED), recognition time(HI, cause of MAX_REFINE_ITERS)
+	   Depends on: real image ink coverage ratio(MED)
+	   */
+	const double INK_THRESHOLD = 0.995;	       // 1-% for initial ink coverage
+	
+	/* Affects: recognition quality (LO), recognition time(LO)
+	   Depends on: jpeg artifacts / camera noise / etc(LO)
+	   */
 	const int    INTERPOLATION_LEVEL = 3;      // (2*n+1)^2 kernel for mean filter will be used
 
+	/* Affects: recognition quality (MED), recognition time(LO)
+	   Depends on: line thickness(HI,BOUND)
+	   */
 	const int    DIFF_STEP_RANGE = 2;          // one step pixels count
 	const int    DIFF_ITERATIONS = 4;          // max steps count
+	// this should be greater than line thickness / 2
+	const int    MAX_DELTA_PATH = DIFF_STEP_RANGE*DIFF_ITERATIONS;
 
+	/* Affects: recognition quality(LO)
+	   Depends on: line thickness(LO,BOUND)
+	   */
 	const int    ERASE_NOISE_THRESHOLD = 32;   // pixels count, less that will be erased as noise
 
+	/* Affects: recognition of rectangle-cropped images; sticky notes, etc (HI)
+	   Depends on: line thickness(HI,BOUND) */
 	const double AREA_THRESHOLD_FACTOR = 0.30; // %, minimal rectangle coverage of image
 	const int    RECTANGULAR_WINDOWSIZE = 8;   // maximal rectangle side width
 	const double RECTANGULAR_THRESHOLD = 0.95; // %, for rectange testing
 
+	/* Affects: recognition quality(LO), recognition time(HI)
+		*/
+	const int    MAX_CROPS = 1; // 1 is sufficient in most cases
+	const int    MAX_REFINE_ITERS = 5;
+
+	// ---------------------------------------------------------------------------------
 
 	RGBData::RGBData(unsigned char r, unsigned char g, unsigned char b, unsigned char I)
 	{
@@ -93,7 +117,8 @@ namespace imago
 	class ImageInterface
 	{
 	public:
-		virtual bool isFilled(int x, int y) const = 0;
+		virtual bool isFilled(int x, int y) const = 0; // check value is passed the bounds
+		virtual unsigned char getIntensity(int x, int y) const = 0; // get raw intensity value 0..255
 		virtual int width() const = 0;
 		virtual int height() const = 0;
 	};
@@ -101,18 +126,27 @@ namespace imago
 	class WeakSegmentator : public Basic2dStorage<int>
 	{
 	public:
-		WeakSegmentator(const ImageInterface &img, int lookup_range) 
-			: Basic2dStorage<int>(img.width(), img.height(), 0)
-		{	
+		int appendData(const ImageInterface &img, int lookup_range)
+		{
 			logEnterFunction();
+			
+			// TODO: calc useful pixels only
+			added_pixels = 0;
 
-			int id = 1;
 			for (int y = 0; y < height(); y++)
 				for (int x = 0; x < width(); x++)
 					if (at(x,y) == 0 && img.isFilled(x,y))
 						fill(img, id++, x, y, lookup_range);
 
-			getLogExt().append("Segments count", SegmentPoints.size());			
+			getLogExt().append("Added pixels", added_pixels);
+			getLogExt().append("Segments count", SegmentPoints.size());
+
+			return added_pixels;
+		}
+
+		WeakSegmentator(const ImageInterface &img) 
+			: Basic2dStorage<int>(img.width(), img.height(), 0), id(1)
+		{	
 		}
 
 		~WeakSegmentator()
@@ -168,11 +202,11 @@ namespace imago
 			for (size_t u = 0; u < SegmentPoints.size(); u++)
 			{
 				Rectangle bounds;
-				if (getArea(u) > area_threshold 
+				if (getRectangularArea(u) > area_threshold 
 					&& hasRectangularStructure(u, RECTANGULAR_WINDOWSIZE, RECTANGULAR_THRESHOLD, bounds))
 				{
 					getLogExt().append("Has rectangular structure, id", u);	
-					bounds.adjustBorder(DIFF_ITERATIONS*2 + RECTANGULAR_WINDOWSIZE*2);
+					bounds.adjustBorder(MAX_DELTA_PATH + RECTANGULAR_WINDOWSIZE*2); // *2, why?
 					crop = bounds;
 					return true;
 				}
@@ -180,76 +214,68 @@ namespace imago
 			return false;
 		}
 
-	protected:
-		// only rectangular check
-		int getArea(int id)
+		void getBoundingBox(Rectangle& bound) const
 		{
-			Points2i& p = SegmentPoints[id];
+			bound.x = bound.y = RGB_MAX_IMAGE_DIM;
+			bound.width = bound.height = 0;
+			for (std::map<int, Points2i>::const_iterator it = SegmentPoints.begin(); it != SegmentPoints.end(); it++)
+				getRectBounds(it->second, bound, false);
+		}
+
+	protected:
+		void getRectBounds(const Points2i& p, Rectangle& bounds, bool reinit = true) const
+		{
 			int min_x = width(), max_x = 0, min_y = height(), max_y = 0;
-			for (Points2i::iterator it = p.begin(); it != p.end(); it++)
+			if (!reinit)
+			{
+				min_x = bounds.x1();
+				min_y = bounds.y1();
+				max_x = bounds.x2();
+				max_y = bounds.y2();
+			}
+			for (Points2i::const_iterator it = p.begin(); it != p.end(); it++)
 			{
 				min_x = std::min(min_x, it->x);
 				min_y = std::min(min_y, it->y);
 				max_x = std::max(max_x, it->x);
 				max_y = std::max(max_y, it->y);
 			}
-			return (max_x - min_x) * (max_y - min_y);
+			bounds = Rectangle(min_x, min_y, max_x, max_y, 0);
 		}
-
-		void getAllBounds(Rectangle& bound)
+		
+		int getRectangularArea(int id)
 		{
-			int min_x = width(), max_x = 0, min_y = height(), max_y = 0;
-			for (std::map<int, Points2i>::iterator it = SegmentPoints.begin(); it != SegmentPoints.end(); it++)
-			{
-				Points2i& p = it->second;			
-				for (Points2i::iterator it = p.begin(); it != p.end(); it++)
-				{
-					min_x = std::min(min_x, it->x);
-					min_y = std::min(min_y, it->y);
-					max_x = std::max(max_x, it->x);
-					max_y = std::max(max_y, it->y);
-				}
-			}
-			bound = Rectangle(min_x, min_y, max_x, max_y, 0);
-		}
+			Rectangle bounds;
+			getRectBounds(SegmentPoints[id], bounds);
+			return bounds.width * bounds.height;
+		}		
 
 		bool hasRectangularStructure(int id, int window_size, double threshold, Rectangle& bound)
 		{
 			Points2i& p = SegmentPoints[id];
 			
-			if (p.empty())
-				return false;
-
-			int map_x[MAX_IMAGE_DIM] = {0};
-			int map_y[MAX_IMAGE_DIM] = {0};
+			int map_x[RGB_MAX_IMAGE_DIM] = {0};
+			int map_y[RGB_MAX_IMAGE_DIM] = {0};
 			for (Points2i::iterator it = p.begin(); it != p.end(); it++)
 			{
 				map_x[it->x]++;
 				map_y[it->y]++;
 			}
 
-			double x1c, x2c, y1c, y2c;
-			bool result = get2centers(map_x, width(), x1c, x2c) && get2centers(map_y, height(), y1c, y2c);			
-			
-			if (result)
+			double x1c, x2c, y1c, y2c;			
+			if (get2centers(map_x, width(), x1c, x2c) && get2centers(map_y, height(), y1c, y2c))
 			{
-				int map_x[MAX_IMAGE_DIM] = {0};
-				int map_y[MAX_IMAGE_DIM] = {0};
 				// now update maps
+				memset(map_x, 0, sizeof(map_x));
+				memset(map_y, 0, sizeof(map_y));
 				for (Points2i::iterator it = p.begin(); it != p.end(); it++)
 				{
 					if (it->y > y1c && it->y < y2c) map_x[it->x]++;
 					if (it->x > x1c && it->x < x2c) map_y[it->y]++;
 				}
 				// and centers
-				result = get2centers(map_x, width(), x1c, x2c) && get2centers(map_y, height(), y1c, y2c);			
-			}
-
-			if (result)
-			{
-				if (fabs(x1c - x2c) < 2*window_size || fabs(y1c - y2c) < 2*window_size)
-					result = false;
-				else
+				if (get2centers(map_x, width(), x1c, x2c) && get2centers(map_y, height(), y1c, y2c) &&
+					fabs(x1c - x2c) > 2*window_size && fabs(y1c - y2c) > 2*window_size)
 				{
 					int good = 0, bad = 0;
 					for (Points2i::iterator it = p.begin(); it != p.end(); it++)
@@ -258,31 +284,19 @@ namespace imago
 							good++;
 						else
 							bad++;
-					result = (double)good / (good+bad) > threshold;
+					if ((double)good / (good+bad) > threshold)
+					{
+						bound = Rectangle(x1c, y1c, x2c, y2c, 0);
+						return true;
+					}
 				}
 			}
 
-			if (result)
-			{
-				bound = Rectangle(x1c, y1c, x2c, y2c, 0);
-			}
-
-			/*if (result && getLogExt().loggingEnabled())
-			{
-				Image temp(width(), height());
-				for (Points2i::iterator it = p.begin(); it != p.end(); it++)
-					temp.getByte(it->x, it->y) = 0;
-				ImageDrawUtils::putCircle(temp, x1c,y1c, window_size,0);
-				ImageDrawUtils::putCircle(temp, x2c,y1c, window_size,0);
-				ImageDrawUtils::putCircle(temp, x1c,y2c, window_size,0);
-				ImageDrawUtils::putCircle(temp, x2c,y2c, window_size,0);
-				getLogExt().appendImage("points", temp);
-			}*/
-
-			return result;
+			return false;
 		}
 
 		std::map<int, Points2i> SegmentPoints;
+		int id, added_pixels;
 
 	private:
 		void fill(const ImageInterface &img, int id, int sx, int sy, int lookup_range)
@@ -300,6 +314,8 @@ namespace imago
 				{
 					at(cur.x,cur.y) = id;
 					SegmentPoints[id].push_back(cur);
+					added_pixels++;
+
 					for (int dx = -lookup_range; dx <= lookup_range; dx++)
 						for (int dy = -lookup_range; dy <= lookup_range; dy++)
 						{
@@ -311,6 +327,7 @@ namespace imago
 								// -- connectivity maker code
 								if (at(cur.x + dx/2, cur.y + dy/2) == 0)
 									at(cur.x + dx/2, cur.y + dy/2) = id;
+								added_pixels++;
 								// end hack
 								v.push(t);
 							}
@@ -360,14 +377,15 @@ namespace imago
 		}
 	};
 
-	int getIntensityBound(RGBStorage& data, const Rectangle& crop)
+	int getIntensityBound(RGBStorage& data, const Rectangle& crop, WeakSegmentator* ws = NULL)
 	{
 		logEnterFunction();
 
 		Hist<256> distHist;
 		for (int y = crop.y1(); y < crop.y2(); y++)
 			for (int x = crop.x1(); x < crop.x2(); x++)
-				distHist.addData(data.getMaximalIntensityDiff(COLOR_CHANNEL, x, y, DIFF_ITERATIONS));
+				if (ws == NULL || 0 == ws->at(x - crop.x1(), y - crop.y1()))
+					distHist.addData(data.getMaximalIntensityDiff(COLOR_CHANNEL, x, y, DIFF_ITERATIONS));
 		int result = distHist.getValueMoreThan(INK_THRESHOLD);
 		getLogExt().append("Intensity diff bound", result);
 		return result;
@@ -377,7 +395,7 @@ namespace imago
 	{
 		logEnterFunction();
 
-		int minv = 255, maxv = 0;
+		int minv = BLANK, maxv = INK;
 		for (int y = 0; y < ws.height(); y++)
 			for (int x = 0; x < ws.width(); x++)
 			{
@@ -397,7 +415,7 @@ namespace imago
 			img.clear();
 			img.init(ws.width(), ws.height());
 
-			double factor = 255.0 / (maxv - minv);
+			double factor = double(BLANK) / double(maxv - minv);
 
 			for (int y = 0; y < img.getHeight(); y++)
 			{
@@ -429,6 +447,11 @@ namespace imago
 			return rgb.getMaximalIntensityDiff(COLOR_CHANNEL, crop.x + x, crop.y + y, DIFF_ITERATIONS) >= diff_bound;
 		}
 
+		virtual unsigned char getIntensity(int x, int y) const
+		{
+			return rgb.at(crop.x + x, crop.y + y).L[COLOR_CHANNEL];
+		}
+
 		virtual int width() const
 		{
 			return crop.width;
@@ -438,6 +461,17 @@ namespace imago
 		{
 			return crop.height;
 		}
+
+		int getBound() const 
+		{
+			return diff_bound;
+		}
+
+		void updateBound(int v)
+		{
+			diff_bound = v;
+		}
+
 	private:
 		RGBStorage& rgb;
 		Rectangle& crop;
@@ -452,15 +486,39 @@ namespace imago
 		Rectangle crop(0, 0, rgb.width(), rgb.height());
 		RGBStorage interpolated(rgb, INTERPOLATION_LEVEL);
 		
-		while(true)
+		// maximal crops allowed loop
+		for (int crop_attempt = 0; crop_attempt <= MAX_CROPS; crop_attempt++)
 		{
-			int bound = getIntensityBound(interpolated, crop);						
-			WeakSegmentator ws(ImageAdapter(rgb, crop, bound), DIFF_ITERATIONS);					
-			ws.eraseNoise(ERASE_NOISE_THRESHOLD);
-			if (!ws.needCrop(crop))
+			ImageAdapter img_a(rgb, crop, getIntensityBound(interpolated, crop));
+			WeakSegmentator ws(img_a);
+			int added0 = ws.appendData(img_a, DIFF_ITERATIONS);
+			int pixelAddBoundary = added0 / 10;
+
+			if (crop_attempt == MAX_CROPS || !ws.needCrop(crop))
 			{
+				// refine loop
+				for (int refine_iter = 1; refine_iter <= MAX_REFINE_ITERS; refine_iter++)
+				{
+					if (getLogExt().loggingEnabled())
+					{
+						Image temp;
+						normalizeOuput(temp, ws, rgb, crop);
+						getLogExt().appendImage("Working image", temp);
+					}
+
+					img_a.updateBound(getIntensityBound(interpolated, crop, &ws));
+					int added_n = ws.appendData(img_a, DIFF_ITERATIONS);
+					if (added_n < ERASE_NOISE_THRESHOLD || added_n < pixelAddBoundary)
+					{
+						getLogExt().append("Crossed useful refinements boundary on iteration", refine_iter);
+						break;
+					}
+				}
+
+				// ws.eraseNoise(ERASE_NOISE_THRESHOLD); // temporary. function is wrong
+
 				ws.performPixelOptimizations();
-				normalizeOuput(img, ws, rgb, crop);				
+				normalizeOuput(img, ws, rgb, crop);
 				break;
 			}
 		}
