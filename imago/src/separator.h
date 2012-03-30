@@ -16,6 +16,10 @@
 #define _separator_h
 
 #include "stl_fwd.h"
+#include <queue>
+#include <vector>
+#include "rectangle.h"
+#include "algebra.h"
 
 namespace imago
 {
@@ -57,6 +61,82 @@ namespace imago
 
       Separator( const Separator &S );
 	  int HuClassifier(double hu[7]);
+
+	  struct SegmentIndx
+	  {
+		  std::pair<Vec2d, Vec2d> _lineSegment;
+		  int _indx;
+	  };
+	  
+	  class LineSegmentComparer
+	  {
+	  public:
+		  LineSegmentComparer()
+		  {
+			  _rec = Rectangle(0, 0, 0, 0);
+		  }
+
+		  void SetRectangle(Rectangle rec)
+		  {
+			  _rec = rec;
+		  }
+		  
+		  LineSegmentComparer(Rectangle rec)
+		  {
+			  SetRectangle(rec);
+		  }
+		  
+		  bool operator() (const SegmentIndx &lhs, const SegmentIndx &rhs) const
+		  {
+			  double d1 = Algebra::distance2rect(lhs._lineSegment.first, _rec);
+			  double d2 = Algebra::distance2rect(lhs._lineSegment.second, _rec);
+
+			  double d3 = Algebra::distance2rect(rhs._lineSegment.first, _rec);
+			  double d4 = Algebra::distance2rect(rhs._lineSegment.second, _rec);
+
+			  double min1 = d1 < d2 ? d1  : d2;
+			  double min2 = d3 < d4 ? d3 : d4;
+
+			  return min1 > min2;
+		  }
+		  
+	  private:
+		  Rectangle _rec;
+	  };
+
+	  class PriorityQueue: public std::priority_queue<SegmentIndx, std::vector<SegmentIndx>, LineSegmentComparer>
+	  {
+	  public:
+		  PriorityQueue(){
+
+		  }
+		  
+		  void SetRectangle(const Rectangle &rec)
+		  {
+			  std::vector<SegmentIndx> segs;
+			  
+			  
+			  if(!this->empty())
+			  {
+				  do{
+					  segs.push_back(this->top());
+					  this->pop();
+				  }while(!this->c.empty());
+				    
+				  _rec = rec;
+				  
+				  this->comp.SetRectangle(_rec);
+				  
+				  for(int i = 0;i<segs.size();i++)
+				  {
+					  this->push(segs[i]);
+				  }
+			  }
+		  }
+
+	  private:
+		  Rectangle _rec;
+	  };
    };
 }
 

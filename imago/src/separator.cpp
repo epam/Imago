@@ -19,6 +19,7 @@
 #include <cstdio>
 #include <cmath>
 #include <stack>
+#include <queue>
 
 #include "boost/foreach.hpp"
 #include <opencv/cv.h>
@@ -97,7 +98,13 @@ int Separator::HuClassifier(double hu[7])
 	//	(pc1<0.321724 && pc3<-0.0966595)) //0.039735
 	//	return SEP_SYMBOL;
 
+	if(hu[1] > 0.204424 || (hu[1] <0.07919 && hu[0] < 0.248338))
+		return SEP_BOND;
+	if(hu[1] <0.07919 && hu[0] > 0.248338)
+		return SEP_SYMBOL;
+	return SEP_SUSPICIOUS;
 
+	///TODO: to be removed
 	if(hu[1] > 0.273411)
 		return SEP_BOND;
 	if(hu[1] > 0.1569 && hu[1] < 0.2734)
@@ -228,11 +235,20 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 	RecognitionSettings &rs = getSettings();
 	double line_thick = rs["LineThickness"];
 
-
+	PriorityQueue pq;
 	IntDeque symInds;
 	for(int i = 0;i<classes.size();i++)
 		if(classes[i] == 0)
+		{
 			symInds.push_back(i);
+			Vec2d p1 = lsegments[2 * i];
+			Vec2d p2 = lsegments[2 * i + 1];
+			SegmentIndx si;
+			si._indx = i;
+			si._lineSegment.first = p1;
+			si._lineSegment.second = p2;
+			pq.push(si);
+		}
 	for(int i=0;i<symInds.size(); i++)
 		visited.push_back(false);
 
@@ -269,17 +285,26 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		RectPoints[ri].push_back(p2);
 		bool added = false;
 		visited[currInd] = true;
+
+		pq.SetRectangle(symbRects[ri]);
 		int j = 0;
 		//for(int j=0; j < classes.size(); j++)
 		do{
 
 			added = false;
-
-			for(j=0;j< symInds.size();j++)
+			if(pq.empty())
+				break;
+			//for(j=0;j< symInds.size();j++)
 			{
-				int currInd2 = symInds[j];
+				SegmentIndx si = pq.top();
+
+				int currInd2 = si._indx;//symInds[j];
 				if(visited[currInd2] || currInd == currInd2)
+				{
+					pq.pop();
+					added = true;
 					continue;
+				}
 			
 				Vec2d &sp1 = lsegments[2 * currInd2];
 				Vec2d &sp2 = lsegments[2 * currInd2 + 1];
@@ -307,6 +332,9 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 					RectPoints[ri].push_back(sp2);
 					LineCount[ri]++;
 					visited[currInd2] = true;
+					pq.SetRectangle(symbRects[ri]);
+					pq.pop();
+
 					added = true;
 				}
 			}
@@ -347,7 +375,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 				Line l1 = Algebra::points2line(p1, p2);
 				Line l2 = Algebra::points2line(RectPoints[i][2], RectPoints[i][3]);
 				Vec2d pintersect = Algebra::linesIntersection(l1, l2);
-				if( (symbRects[i].height - (pintersect.y - symbRects[i].y)) > (symbRects[i].height / 2) )
+				if(pintersect.y > (symbRects[i].height / 2) )
 					continue;
 
 			}
@@ -623,7 +651,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 
 			  Segment *thinseg = new Segment();
 			  thinseg->copy(*s);
-			  memcpy(thinseg->getData(), temp.getData(), temp.getWidth()*temp.getHeight() *sizeof(byte));
+			  //memcpy(thinseg->getData(), temp.getData(), temp.getWidth()*temp.getHeight() *sizeof(byte));
 
 			 if (s->getHeight() >= cap_height - sym_height_err && 
 				 s->getHeight() <= cap_height + sym_height_err &&
