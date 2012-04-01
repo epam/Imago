@@ -5,38 +5,16 @@
 
 namespace imago
 {
-	class FontRecognizerData
-	{
-	public:
-		void initializeArial();
-		void initializeArialBold();
-		void initializeSerif();
-
-      struct FontItem
-      {
-         char sym;
-         SymbolFeatures features;
-      };
-
-	  FontRecognizerData();
-
-	protected:
-		int _count;
-		std::vector<FontItem> _symbols;
-		std::vector<int> _mapping;      
-	};
-
    class CharacterRecognizerData
    {
    public:
-		void initializeHandwrittenFont();
 
 		struct SymbolClass
 		{
 			char sym;
 			std::vector<SymbolFeatures> shapes;
 		};
-		CharacterRecognizerData();
+      CharacterRecognizerData(): _loaded(false) {};
 
    protected:
 	   bool _loaded;

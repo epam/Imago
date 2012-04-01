@@ -2,7 +2,6 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include "output.h"
-#include "png_saver.h"
 
 #ifdef _WIN32
 #define MKDIR _mkdir
@@ -220,11 +219,13 @@ namespace imago
 		{
 			if (pVFS)
 			{
-				std::string buf;
-				ArrayOutput outputer(buf);
-				PngSaver saver(outputer);
-				saver.saveImage(data);
-				pVFS->createNewFile(filename, buf);
+            //FIX(Smolov): Removed Png(Jpeg)Loader/Saver
+            //TODO: Check if it's still correct
+            std::vector<byte> bin_data;
+            std::string buf;
+            ImageUtils::saveImageToBuffer(data, ".png", bin_data);
+            std::copy(bin_data.begin(), bin_data.end(), buf.begin());
+            pVFS->createNewFile(filename, buf);
 			}
 		}
 		else

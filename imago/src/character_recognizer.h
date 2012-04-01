@@ -5,13 +5,13 @@
 #include <vector>
 #include <map>
 
+#include "character_recognizer_data.h"
 #include "symbol_features.h"
 
 #include "segment.h"
 #include "stl_fwd.h"
 #include "recognition_distance.h"
 #include "segment_tools.h"
-#include "character_recognizer_data.h"
 
 namespace imago
 {
@@ -19,19 +19,19 @@ namespace imago
 
    class Segment;
 	
-   class CharacterRecognizer : CharacterRecognizerData
+   class CharacterRecognizer: CharacterRecognizerData
    {
-   public:	  
+   public:
       CharacterRecognizer( int k );
       CharacterRecognizer( int k, const std::string &filename );
 
-      RecognitionDistance recognize(const SymbolFeatures &features,
-                      const std::string &candidates, bool wide_range = false) const;
+      RecognitionDistance recognize( const SymbolFeatures &features,
+                                     const std::string &candidates, bool wide_range = false ) const;
 
-      RecognitionDistance recognize_all(const Segment &seg, const std::string &candidates = all) const;
+      RecognitionDistance recognize_all( const Segment &seg, const std::string &candidates = all ) const;
 
-	  char recognize(const Segment &seg, const std::string &candidates,
-                      double *distance = 0) const;
+	  char recognize( const Segment &seg, const std::string &candidates,
+                      double *distance = 0 ) const;
 
       inline int getDescriptorsCount() const {return _count;}
       ~CharacterRecognizer();
@@ -40,12 +40,11 @@ namespace imago
 
       static double _compareFeatures( const SymbolFeatures &f1,
                                       const SymbolFeatures &f2 );
-   private:      
-	   void _loadBuiltIn();
-      void _loadFromFile( const std::string &filename );
+   private:
+      void _loadData( std::istream &in );
       static double _compareDescriptors( const std::vector<double> &d1,
                                          const std::vector<double> &d2 );      
-      int _k;      
+      int _k;
    };
 
    class HWCharacterRecognizer
@@ -75,11 +74,7 @@ namespace imago
    protected:
       const CharacterRecognizer &_cr;
       void _readFile(const char *filename, SymbolFeatures &features);
-	  
 };
-
-
-   
 
 }
 

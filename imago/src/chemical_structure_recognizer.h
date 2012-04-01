@@ -15,8 +15,6 @@
 #ifndef _chemical_structure_recognizer_h
 #define _chemical_structure_recognizer_h
 
-#include "boost/shared_ptr.hpp"
-
 #include "image.h"
 #include "character_recognizer.h"
 #include "stl_fwd.h"

@@ -1,4 +1,3 @@
-
 include_directories(../imago_c/src)
 
 set(SRC
@@ -6,4 +5,6 @@ set(SRC
   )
 
 add_executable(alter_ego ${SRC})
-target_link_libraries(alter_ego imago_c_static)
+
+add_dependencies(alter_ego imago_c)
+target_link_libraries(alter_ego imago_c)

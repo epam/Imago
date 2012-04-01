@@ -1,5 +1,5 @@
 /****************************************************************************
-s * Copyright (C) 2009-2010 GGA Software Services LLC
+ * Copyright (C) 2009-2010 GGA Software Services LLC
  * 
  * This file is part of Imago toolkit.
  * 
@@ -15,6 +15,13 @@ s * Copyright (C) 2009-2010 GGA Software Services LLC
 #ifndef _image_utils_h
 #define _image_utils_h
 
+#include <vector>
+
+namespace cv 
+{
+   class Mat;
+}
+
 namespace imago
 {
    class Image;
@@ -23,9 +30,16 @@ namespace imago
    class ImageUtils
    {
    public:
+      inline static void copyImageToMat( const Image &img, cv::Mat &mat );
+      inline static void copyMatToImage( const cv::Mat &mat, Image &img );
 
       static void loadImageFromFile( Image &img, const char *FileName, ... );
       static void saveImageToFile( const Image &img, const char *FileName, ... );
+
+      static void loadImageFromBuffer( const std::vector<byte> &buffer, Image &img);
+      static void ImageUtils::saveImageToBuffer( const Image &img,
+         const std::string &format, std::vector<byte> &buffer );
+      //static void saveImageToBuffer( const Image &img, const char *FileName, ... );
 
       static bool testSlashLine( Segment &img, double *angle, double eps );
       static bool testVertHorLine( Segment &img, int &angle );

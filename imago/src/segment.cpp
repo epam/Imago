@@ -14,7 +14,7 @@
 
 #include <deque>
 #include <vector>
-#include "boost/foreach.hpp"
+#include <boost/foreach.hpp>
 
 #include "rectangle.h"
 #include "segment.h"
@@ -22,7 +22,6 @@
 #include "fourier_descriptors.h"
 #include "segmentator.h"
 #include "output.h"
-#include "png_saver.h"
 #include "exception.h"
 
 using namespace imago;

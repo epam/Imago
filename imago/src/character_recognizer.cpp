@@ -1,16 +1,17 @@
-#include "boost/foreach.hpp"
-#include "boost/tuple/tuple.hpp"
+#include <iostream>
+#include <fstream>
+#include <sstream>
+#include <boost/foreach.hpp>
+#include <boost/tuple/tuple.hpp>
 #include <map>
 #include <cmath>
 #include <cfloat>
-#include <cstdio>
 #include <deque>
 
 #include "character_recognizer.h"
 #include "segment.h"
 #include "exception.h"
 #include "scanner.h"
-#include "png_loader.h"
 #include "segmentator.h"
 #include "stl_fwd.h"
 #include "thin_filter2.h"
@@ -24,21 +25,27 @@ const std::string CharacterRecognizer::lower = "abcdefghijklmnopqrstuvwxyz";
 const std::string CharacterRecognizer::digits = "0123456789";
 const std::string CharacterRecognizer::all = CharacterRecognizer::upper + CharacterRecognizer::lower + CharacterRecognizer::digits;
 
-void CharacterRecognizer::_loadBuiltIn()
-{
-	initializeHandwrittenFont(); // method from font_lib.lib
-}
-
 CharacterRecognizer::CharacterRecognizer( int k ) : _k(k)
 {
    _mapping.resize(255, -1);
-   _loadBuiltIn();
+   std::string fontdata;
+   extern const char *_imago_fontdata[];
+   for (int i = 0; _imago_fontdata[i] != 0; ++i)
+      fontdata += _imago_fontdata[i];
+
+   std::istringstream in(fontdata);
+   _loadData(in);
 }
 
 CharacterRecognizer::CharacterRecognizer( int k, const std::string &filename) : _k(k)
 {
    _mapping.resize(255, -1);
-   _loadFromFile(filename);
+   std::ifstream in(filename.c_str());
+   if (in == 0)
+      throw FileNotFoundException("%s", filename.c_str());
+
+   _loadData(in);
+   in.close();
 }
 
 CharacterRecognizer::~CharacterRecognizer()
@@ -416,37 +423,35 @@ char CharacterRecognizer::recognize( const Segment &seg,
    return result;
 }
 
-void CharacterRecognizer::_loadFromFile( const std::string &filename )
+void CharacterRecognizer::_loadData( std::istream &in )
 {
-   FILE *f = fopen(filename.c_str(), "r");
    int fonts_count, letters_count;
-   fscanf(f, "%d %d\n", &_count, &letters_count);
+   in >> _count >> letters_count;
    _classes.resize(letters_count);
    for (int i = 0; i < letters_count; i++)
    {
       SymbolClass &cls = _classes[i];
-      fscanf(f, "%c %d\n", &cls.sym, &fonts_count);
+      in >> cls.sym >> fonts_count;
       _mapping[cls.sym] = i;
       cls.shapes.resize(fonts_count);
       for (int j = 0; j < fonts_count; j++)
       {
          SymbolFeatures &sf = cls.shapes[j];
-         fscanf(f, "%d\n", &sf.inner_contours_count);
+         in >> sf.inner_contours_count;
          sf.descriptors.resize(2 * _count);
          for (int k = 0; k < 2 * _count; k++)
-            fscanf(f, "%lf ", &sf.descriptors[k]);
+            in >> sf.descriptors[k];
 
          sf.inner_descriptors.resize(sf.inner_contours_count);
          for (int k = 0; k < sf.inner_contours_count; k++)
          {
             sf.inner_descriptors[k].resize(2 * _count);
             for (int l = 0; l < 2 * _count; l++)
-               fscanf(f, "%lf ", &sf.inner_descriptors[k][l]);
+               in >> sf.inner_descriptors[k][l];
          }
       }
    }
 
-   fclose(f);
    _loaded = true;
 }
 
@@ -517,11 +522,8 @@ HWCharacterRecognizer::HWCharacterRecognizer( const CharacterRecognizer &cr ) : 
 
 void HWCharacterRecognizer::_readFile(const char *filename, SymbolFeatures &features)
 {
-   FileScanner scanner(filename);
-   PngLoader loader(scanner);
    Image img;
-      
-   loader.loadImage(img);
+   ImageUtils::loadImageFromFile(img, filename);
    SegmentDeque segments;
       
    Segmentator::segmentate(img, segments, 3, 0);

@@ -144,7 +144,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 	
 	double avg_size = 0;
 
-	vector<double> lengths;
+	std::vector<double> lengths;
 	// find the minimum and max of the line segments
 	for (int i = 0; i < (int)lsegments.size() / 2; i++)
 	{
@@ -219,9 +219,9 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		return;
 
 	
-	vector<Rectangle> symbRects;
+	std::vector<Rectangle> symbRects;
 	IntVector LineCount;
-	vector<bool> visited;
+	std::vector<bool> visited;
 	for(int i=0;i<classes.size(); i++)
 		visited.push_back(false);
 	int ri = -1;
@@ -238,7 +238,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 	typedef std::deque<Vec2d> polygon;
 
-	deque<polygon> RectPoints;
+	std::deque<polygon> RectPoints;
 
 	// integrate the results by joining close to each other segments
 	//for(int i=0;i<classes.size();i++)

@@ -31,7 +31,6 @@
 #include "molecule.h"
 #include "fourier_descriptors.h"
 #include "recognition_settings.h"
-#include "font.h"
 #include "current_session.h"
 #include "log_ext.h"
 #include "output.h"

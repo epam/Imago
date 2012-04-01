@@ -17,298 +17,324 @@
 #include <algorithm>
 #include <string>
 
+#include <opencv/cv.h>
+#include <opencv/highgui.h>
+
 #include "image.h"
 #include "image_utils.h"
 #include "image_draw_utils.h"
 #include "output.h"
-#include "png_loader.h"
-#include "png_saver.h"
-#include "jpg_loader.h"
 #include "scanner.h"
 #include "segment.h"
 #include "thin_filter2.h"
 #include "vec2d.h"
 
-using namespace imago;
-
-bool ImageUtils::testVertHorLine( Segment &img, int &angle )
+namespace imago
 {
-   Image tmp;
-
-   tmp.copy(img);
-   ThinFilter2(tmp).apply();
-   tmp.crop();
-
-   int w = tmp.getWidth(), h = tmp.getHeight();
-
-   if (w < 2 && w < h)
+   bool ImageUtils::testVertHorLine( Segment &img, int &angle )
    {
-      angle = -1;
-      return true;
-   }
+      Image tmp;
 
-   if (h < 2 && h < w)
-   {
-      angle = 1;
-      return true;
-   }
+      tmp.copy(img);
+      ThinFilter2(tmp).apply();
+      tmp.crop();
 
-   angle = 0;
+      int w = tmp.getWidth(), h = tmp.getHeight();
 
-   return false;
-}
-
-bool ImageUtils::testSlashLine( Segment &img, double *angle, double eps )
-{
-   const double SLASH_LINE_DENSITY = 0.46; //TODO: Handwriting, original 0.56
-   double density, thetha, r;
-
-   //ImageUtils::saveImageToFile(img, "output/origin.png");
-
-   Image tmp;   
-
-   tmp.copy(img);   
-   ThinFilter2(tmp).apply();   
-   
-   thetha = PI_2 + atan2((double)img.getHeight(), (double)img.getWidth());
-   r = 0;
-   density = tmp.density();
-   ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
-   density = tmp.density() / density;
-   //ImageUtils::saveImageToFile(tmp, "output/origin_orient1.png");
-
-   if (density < SLASH_LINE_DENSITY)
-   {
-      if (angle != 0)
-         *angle = thetha;
-      return true;
-   }
-
-   tmp.copy(img);
-   ThinFilter2(tmp).apply();   
-
-   thetha = -thetha;
-   r = cos(thetha) * img.getWidth();
-   density = tmp.density();
-   ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
-   density = tmp.density() / density;
-   //ImageUtils::saveImageToFile(tmp, "output/origin_orient2.png");
-   
-   if (density < SLASH_LINE_DENSITY)
-   {
-      if (angle != 0)
-         *angle = thetha;
-      return true;
-   }
-
-   if (angle != 0)
-      *angle = thetha;
-
-   return false;
-}
-
-int ImageUtils::findCornerRect( const Segment &img, bool corner, bool side,
-                                bool orient, int &out_w, int &out_h )
-{
-   //
-   int x, y, w, h, dy, dx;
-   int max_sq = 0;
-
-   if (!corner)
-      y = 0, dy = 1;
-   else
-      y = img.getHeight() - 1, dy = -1;
-
-   if (!side)
-      x = 0, dx = 1;
-   else
-      x = img.getWidth() - 1, dx = -1;
-
-   int lim_y = (dy > 0) ? img.getHeight() : 0;
-   int lim_x = (dx > 0) ? img.getWidth() : 0;
-
-
-   out_w = out_h = 0;
-   for (h = 1; y != lim_y; y += dy, h++)
-   {
-      if (img.getByte(0, y) != 255)
-         break;
-      for (w = 1; x != lim_x; x += dx, w++)
+      if (w < 2 && w < h)
       {
-         if (img.getByte(x, y) != 255)
-         {
-            if (!side)
-               lim_x = std::min(x, lim_x);
-            else
-               lim_x = std::max(x, lim_x);
-            
-            break;
-         }
-
-         if (!orient && w > h)
-            break;
-
-         if (orient && h > w)
-            continue;
-
-         if (w * h > max_sq)
-         {
-            max_sq = w * h;
-            out_w = w;
-            out_h = h;
-         }
+         angle = -1;
+         return true;
       }
+
+      if (h < 2 && h < w)
+      {
+         angle = 1;
+         return true;
+      }
+
+      angle = 0;
+
+      return false;
+   }
+
+   bool ImageUtils::testSlashLine( Segment &img, double *angle, double eps )
+   {
+      const double SLASH_LINE_DENSITY = 0.46; //TODO: Handwriting, original 0.56
+      double density, thetha, r;
+
+      //ImageUtils::saveImageToFile(img, "output/origin.png");
+
+      Image tmp;   
+
+      tmp.copy(img);   
+      ThinFilter2(tmp).apply();   
+   
+      thetha = PI_2 + atan2((double)img.getHeight(), (double)img.getWidth());
+      r = 0;
+      density = tmp.density();
+      ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
+      density = tmp.density() / density;
+      //ImageUtils::saveImageToFile(tmp, "output/origin_orient1.png");
+
+      if (density < SLASH_LINE_DENSITY)
+      {
+         if (angle != 0)
+            *angle = thetha;
+         return true;
+      }
+
+      tmp.copy(img);
+      ThinFilter2(tmp).apply();   
+
+      thetha = -thetha;
+      r = cos(thetha) * img.getWidth();
+      density = tmp.density();
+      ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
+      density = tmp.density() / density;
+      //ImageUtils::saveImageToFile(tmp, "output/origin_orient2.png");
+   
+      if (density < SLASH_LINE_DENSITY)
+      {
+         if (angle != 0)
+            *angle = thetha;
+         return true;
+      }
+
+      if (angle != 0)
+         *angle = thetha;
+
+      return false;
+   }
+
+   int ImageUtils::findCornerRect( const Segment &img, bool corner, bool side,
+                                   bool orient, int &out_w, int &out_h )
+   {
+      //
+      int x, y, w, h, dy, dx;
+      int max_sq = 0;
+
+      if (!corner)
+         y = 0, dy = 1;
+      else
+         y = img.getHeight() - 1, dy = -1;
 
       if (!side)
-         x = 0;
+         x = 0, dx = 1;
       else
-         x = img.getWidth() - 1;
-   }
-   return max_sq;
-}
+         x = img.getWidth() - 1, dx = -1;
 
-bool ImageUtils::testPlus( const Segment &img )
-{
-   int sq[4];
-   int w[4], h[4];
-   int sum = 0;
-   int s = img.getWidth() * img.getHeight();
+      int lim_y = (dy > 0) ? img.getHeight() : 0;
+      int lim_x = (dx > 0) ? img.getWidth() : 0;
 
-   sq[0] = ImageUtils::findCornerRect(img, 0, 0, 0, w[0], h[0]);
-   sq[1] = ImageUtils::findCornerRect(img, 0, 1, 0, w[1], h[1]);
-   sq[2] = ImageUtils::findCornerRect(img, 1, 0, 0, w[2], h[2]);
-   sq[3] = ImageUtils::findCornerRect(img, 1, 1, 0, w[3], h[3]);
 
-   sum = sq[0] + sq[1] + sq[2] + sq[3];
-
-   int max_sq = *std::max_element(sq, sq + 4);
-
-   double density = (double)sum / s;
-
-   if (density > 0.4)
-      printf("AAAAAAAA: %d <> %d", max_sq, s);
-
-   //TODO: write more convenient criteria
-   return (density > 0.4 && max_sq < 0.38 * s); //0.55
-}
-
-bool ImageUtils::testMinus( const Segment &img, int cap_height )
-{
-   int w = img.getWidth(), h = img.getHeight();
-   int black = 0;
-   int total = w * h;
-   for (int i = 0; i < total; i++)
-   {
-      if (img[i] == 0)
-         black++;
-   }
-
-   double density = (double)black / total;
-   double ratio = (double)h / w;
-
-   return (ratio < 0.33 && density > 0.7 && w < 0.75 * cap_height); //0.95
-}
-
-void ImageUtils::putSegment( Image &img, const Segment &seg, bool careful )
-{
-   int i, j, img_cols = img.getWidth(),
-      seg_x = seg.getX(), seg_y = seg.getY(),
-      seg_rows = seg.getHeight(), seg_cols = seg.getWidth(),
-      img_size = img.getWidth() * img.getHeight();
-
-   for (j = 0; j < seg_rows; j++)
-      for (i = 0; i < seg_cols; i++)
+      out_w = out_h = 0;
+      for (h = 1; y != lim_y; y += dy, h++)
       {
-         int address = (j + seg_y) * img_cols + (i + seg_x);
-
-         if (address < img_size)
-         { 
-            if (careful)
+         if (img.getByte(0, y) != 255)
+            break;
+         for (w = 1; x != lim_x; x += dx, w++)
+         {
+            if (img.getByte(x, y) != 255)
             {
-               if (img[address] == 255)
+               if (!side)
+                  lim_x = std::min(x, lim_x);
+               else
+                  lim_x = std::max(x, lim_x);
+            
+               break;
+            }
+
+            if (!orient && w > h)
+               break;
+
+            if (orient && h > w)
+               continue;
+
+            if (w * h > max_sq)
+            {
+               max_sq = w * h;
+               out_w = w;
+               out_h = h;
+            }
+         }
+
+         if (!side)
+            x = 0;
+         else
+            x = img.getWidth() - 1;
+      }
+      return max_sq;
+   }
+
+   bool ImageUtils::testPlus( const Segment &img )
+   {
+      int sq[4];
+      int w[4], h[4];
+      int sum = 0;
+      int s = img.getWidth() * img.getHeight();
+
+      sq[0] = ImageUtils::findCornerRect(img, 0, 0, 0, w[0], h[0]);
+      sq[1] = ImageUtils::findCornerRect(img, 0, 1, 0, w[1], h[1]);
+      sq[2] = ImageUtils::findCornerRect(img, 1, 0, 0, w[2], h[2]);
+      sq[3] = ImageUtils::findCornerRect(img, 1, 1, 0, w[3], h[3]);
+
+      sum = sq[0] + sq[1] + sq[2] + sq[3];
+
+      int max_sq = *std::max_element(sq, sq + 4);
+
+      double density = (double)sum / s;
+
+#ifdef DEBUG
+      if (density > 0.4)
+         printf("Test Plus (density > 0.4): max_sq = %d <> s = %d", max_sq, s);
+#endif
+
+      //TODO: write more convenient criteria
+      return (density > 0.4 && max_sq < 0.38 * s); //0.55
+   }
+
+   bool ImageUtils::testMinus( const Segment &img, int cap_height )
+   {
+      int w = img.getWidth(), h = img.getHeight();
+      int black = 0;
+      int total = w * h;
+      for (int i = 0; i < total; i++)
+      {
+         if (img[i] == 0)
+            black++;
+      }
+
+      double density = (double)black / total;
+      double ratio = (double)h / w;
+
+      return (ratio < 0.33 && density > 0.7 && w < 0.75 * cap_height); //0.95
+   }
+
+   void ImageUtils::putSegment( Image &img, const Segment &seg, bool careful )
+   {
+      int i, j, img_cols = img.getWidth(),
+         seg_x = seg.getX(), seg_y = seg.getY(),
+         seg_rows = seg.getHeight(), seg_cols = seg.getWidth(),
+         img_size = img.getWidth() * img.getHeight();
+
+      for (j = 0; j < seg_rows; j++)
+         for (i = 0; i < seg_cols; i++)
+         {
+            int address = (j + seg_y) * img_cols + (i + seg_x);
+
+            if (address < img_size)
+            { 
+               if (careful)
+               {
+                  if (img[address] == 255)
+                     img[address] = seg.getByte(i, j);
+               }
+               else
                   img[address] = seg.getByte(i, j);
             }
-            else
-               img[address] = seg.getByte(i, j);
          }
-      }
-}
-
-void ImageUtils::cutSegment( Image &img, const Segment &seg, bool forceCut, byte val )
-{
-   int i, j, img_cols = img.getWidth(),
-      seg_x = seg.getX(), seg_y = seg.getY(),
-      seg_rows = seg.getHeight(), seg_cols = seg.getWidth();
-
-   for (j = 0; j < seg_rows; j++)
-      for (i = 0; i < seg_cols; i++)
-      {
-         int address = (j + seg_y) * img_cols + (i + seg_x);
-
-         if (seg.getByte(i, j) == 0)
-            if (img[address] == 0 || forceCut)
-               img[address] = val;
-      }
-}
-
-void ImageUtils::loadImageFromFile( Image &img, const char *format, ... )
-{
-   char str[MAX_LINE];
-   va_list args;
-
-   va_start(args, format);   
-   vsnprintf(str, sizeof(str), format, args);
-   va_end(args);
-
-   const char *FileName = str;
-
-   img.clear(); 
-   
-   std::string fname(FileName);
-
-   if (fname.length() < 5)
-      throw Exception("Unknown file format");
-
-   std::string extension = fname.substr(fname.length() - 3, 3);
-
-   std::transform(extension.begin(), extension.end(), extension.begin(), ::tolower);
-
-   if (extension == "jpg")
-   {
-      JpgLoader jpg_loader;
-
-      if (!jpg_loader.loadImage(img, fname.c_str()))
-      {
-         throw Exception("Error reading JPG file");
-      }
-
-      return;
-   }
-   
-   if (extension == "png")
-   {
-      FileScanner fscan(FileName);
-      PngLoader png_loader(fscan);
-      png_loader.loadImage(img);
-      return;
    }
 
-   throw Exception("Unknown file format");
-}
+   void ImageUtils::cutSegment( Image &img, const Segment &seg, bool forceCut, byte val )
+   {
+      int i, j, img_cols = img.getWidth(),
+         seg_x = seg.getX(), seg_y = seg.getY(),
+         seg_rows = seg.getHeight(), seg_cols = seg.getWidth();
 
-void ImageUtils::saveImageToFile( const Image &img, const char *format, ... )
-{
-   char str[MAX_LINE];
-   va_list args;
+      for (j = 0; j < seg_rows; j++)
+         for (i = 0; i < seg_cols; i++)
+         {
+            int address = (j + seg_y) * img_cols + (i + seg_x);
 
-   va_start(args, format);   
-   vsnprintf(str, sizeof(str), format, args);
-   va_end(args);
+            if (seg.getByte(i, j) == 0)
+               if (img[address] == 0 || forceCut)
+                  img[address] = val;
+         }
+   }
 
-   const char *FileName = str;
+   void ImageUtils::copyImageToMat ( const Image &img, cv::Mat &mat)
+   {
+      int w = img.getWidth();
+      int h = img.getHeight();
 
-   FileOutput fout(FileName);
-   PngSaver saver(fout);
+      mat.create(h, w, CV_8U);
+      int i, j;
 
-   saver.saveImage(img);
+      for (i = 0; i < w; i++)
+         for (j = 0; j < h; j++)
+            mat.at<unsigned char>(j, i) = img.getByte(i, j);
+   }
+
+   void ImageUtils::copyMatToImage (const cv::Mat &mat, Image &img)
+   {
+      int w = mat.cols;
+      int h = mat.rows;
+
+      img.init(w, h);
+      int i, j;
+
+      for (i = 0; i < w; i++)
+         for (j = 0; j < h; j++)
+            img.getByte(i, j) = mat.at<unsigned char>(j, i);
+   }
+
+   void ImageUtils::loadImageFromBuffer( const std::vector<byte> &buffer, Image &img )
+   {
+      cv::Mat mat = cv::imdecode(cv::Mat(buffer), 0);
+      if (mat.empty())
+         throw Exception("Image data is invalid");
+      copyMatToImage(mat, img);
+   }
+
+   void ImageUtils::loadImageFromFile( Image &img, const char *format, ... )
+   {
+      char str[MAX_LINE];
+      va_list args;
+
+      va_start(args, format);   
+      vsnprintf(str, sizeof(str), format, args);
+      va_end(args);
+
+      const char *FileName = str;
+      img.clear(); 
+   
+      std::string fname(FileName);
+
+      if (fname.length() < 5)
+         throw Exception("Unknown file format");
+
+      if (fopen(fname.c_str(), "r") == 0)
+         throw FileNotFoundException("%s", fname.c_str());
+
+      cv::Mat mat = cv::imread(fname, 0);
+
+      if (mat.empty())
+         throw Exception("Image file is invalid");
+
+      copyMatToImage(mat, img);
+   }
+
+   void ImageUtils::saveImageToFile( const Image &img, const char *format, ... )
+   {
+      char str[MAX_LINE];
+      va_list args;
+
+      va_start(args, format);   
+      vsnprintf(str, sizeof(str), format, args);
+      va_end(args);
+
+      std::string fname(str);
+      cv::Mat mat;
+      copyImageToMat(img, mat);
+      cv::imwrite(fname, mat);
+   }
+
+   void ImageUtils::saveImageToBuffer( const Image &img, 
+      const std::string &ext, std::vector<byte> &buffer )
+   {
+      cv::Mat mat;
+      copyImageToMat(img, mat);
+      cv::imencode(ext, mat, buffer);
+   }
 }

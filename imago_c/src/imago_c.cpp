@@ -27,7 +27,6 @@
 #include "comdef.h"
 #include "recognition_settings.h"
 #include "session_manager.h"
-#include "png_loader.h"
 #include "current_session.h"
 #include "superatom_expansion.h"
 

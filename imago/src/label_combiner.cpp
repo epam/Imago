@@ -31,7 +31,6 @@
 #include "image_utils.h"
 #include "image_draw_utils.h"
 #include "output.h"
-#include "png_saver.h"
 #include "algebra.h"
 
 using namespace imago;
@@ -203,7 +202,7 @@ void LabelCombiner::_locateLabels()
    
    VertexPosMap::type positions = get(boost::vertex_pos, seg_graph);
    SegmentsGraph::edge_iterator ei, ei_end, next;
-   tie(ei, ei_end) = boost::edges(seg_graph);
+   boost::tie(ei, ei_end) = boost::edges(seg_graph);
 
 
    boost::property_map<segments_graph::SegmentsGraph, boost::vertex_seg_ptr_t>::

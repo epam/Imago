@@ -32,12 +32,14 @@ namespace imago
       ChemicalStructureRecognizer &recognizer() {return _csr;}
       RecognitionSettings &settings() {return _rs;}
       Log &log() {return _log;}
+      Molecule &mol() {return _mol;}
 
       void *&context() {return _context;}
 
       const ChemicalStructureRecognizer &recognizer() const {return _csr;}
       const RecognitionSettings &settings() const {return _rs;}
       const Log &log() const {return _log;}
+      const Molecule &mol() const {return _mol;}
 
    private:
       ImagoSession(const ImagoSession& orig);

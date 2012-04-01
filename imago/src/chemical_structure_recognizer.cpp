@@ -17,12 +17,11 @@
 #include <memory>
 #include <deque>
 
-#include "boost/foreach.hpp"
+#include <boost/foreach.hpp>
 
 #include "binarizer.h"
 #include "chemical_structure_recognizer.h"
 #include "convolver.h"
-#include "font.h"
 #include "graph_extractor.h"
 #include "graphics_detector.h"
 #include "image.h"
@@ -44,7 +43,6 @@
 #include "current_session.h"
 #include "log_ext.h"
 #include "label_logic.h"
-#include "orientation_finder.h"
 #include "approximator.h"
 
 using namespace imago;
@@ -57,39 +55,6 @@ ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname )
    : _cr(3, fontname)
 {
 }
-
-// void ChemicalStructureRecognizer::_selectFont( const SegmentDeque &layer )
-// {
-//    boost::shared_ptr<Font> serif(new Font(Font::SERIF));
-//    boost::shared_ptr<Font> arial(new Font(Font::ARIAL));
-
-//    double dist_a = 0, dist_s = 0;
-//    double tmp;
-
-//    for (SegmentDeque::const_iterator it = layer.begin();
-//         it != layer.end(); ++it)
-//    {
-//       double w = (*it)->getWidth();
-//       double h = (*it)->getHeight();
-
-//       if (w / h > 1.15) //"Constants"
-//          continue;
-
-//       serif->findBest(*it, 0, 26, &tmp); //"Constants"
-//       dist_s += tmp;
-
-//       arial->findBest(*it, 0, 26, &tmp); //"Constants"
-//       dist_a += tmp;
-//    }
-//    if (dist_a < dist_s)
-//    {
-//       _fnt = arial;
-//    }
-//    else
-//    {
-//       _fnt = serif;
-//    }
-// }
 
 void ChemicalStructureRecognizer::_processFilter()
 {

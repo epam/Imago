@@ -1,90 +1,47 @@
-set(SRC
-  src/static_object.cpp
-  src/filter.cpp
-  src/wedge_bond_extractor.cpp
-  src/graph_extractor.cpp
-  src/exception.cpp
-  src/output.cpp
-  src/scanner.cpp
-  src/bitarray.cpp
-  src/molecule.cpp
-  src/png_loader.cpp
-  src/jpg_loader.cpp
-  src/font.cpp
-  src/label_logic.cpp
-  src/log.cpp
-  src/log_ext.cpp
-  src/image_utils.cpp
-  src/molfile_saver.cpp
-  src/segmentator.cpp
-  #src/vec2d.cpp
-  src/approximator.cpp
-  src/label_combiner.cpp
-  src/graphics_detector.cpp
-  src/session_manager.cpp
-  src/recognition_settings.cpp
-  src/png_saver.cpp
-  src/thin_filter2.cpp
-  src/binarizer.cpp
-  src/chemical_structure_recognizer.cpp
-  src/convolver.cpp
-  src/segment.cpp
-  src/image.cpp
-  src/fourier_descriptors.cpp
-  src/separator.cpp
-  src/image_draw_utils.cpp
-  src/algebra.cpp
-  src/double_bond_maker.cpp
-  src/triple_bond_maker.cpp
-  src/multiple_bond_checker.cpp
-  src/segments_graph.cpp
-  src/skeleton.cpp
-  src/rectangle.cpp
-  src/character_recognizer.cpp
-  src/prefilter.cpp
-  src/contour_extractor.cpp
-  src/orientation_finder.cpp
-  src/features_compare_method.cpp
-  src/fourier_features.cpp
-  src/shape_context.cpp
-  src/munkres.cpp
-  src/segment_tools.cpp
-  src/recognition_distance.cpp
-  src/virtual_fs.cpp
+#Embedding font file
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/imago.font")
+	message(WARNING "Font file missing")
+endif()
+if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/imago.font.inc")
+	file(REMOVE "src/imago.font.inc")
+endif()
+file(STRINGS "src/imago.font" FONT_STRINGS)
+foreach(line IN LISTS FONT_STRINGS)
+	file(APPEND "src/imago.font.inc" "\"${line}\\n\",\n")
+endforeach()
+file(APPEND "src/imago.font.inc" "0\n")
+#
 
-  src/superatom_expansion.cpp
-  
-  src/HistogramTools.cpp
-)
+file(GLOB SRC src/*.cpp)
+file(GLOB SRC_posix src/*_posix.cpp)
+file(GLOB SRC_win src/*_win.cpp)
 
 FILE(GLOB HEADERS "src/*.h")
 list(APPEND SRC ${HEADERS})
 
 if(WIN32)
-  list(APPEND SRC
-    src/thread_local_win.cpp
-    src/lock_win.cpp
-    )
+  list(REMOVE_ITEM SRC ${SRC_posix})
 else(WIN32)
-  list(APPEND SRC
-    src/thread_local_posix.cpp
-    src/lock_posix.cpp
-    )
+  list(REMOVE_ITEM SRC ${SRC_win})
 endif(WIN32)
 
-include_directories(..)
-include_directories(${INDIGO_INCLUDE_DIR})
-include_directories(${PNG_INCLUDE_DIR})
-include_directories(${JPEG_INCLUDE_DIR})
-include_directories(${OpenCV_INCLUDE_DIRS})
+if (${IMAGO_SHARED})
+  add_library(imago SHARED ${SRC})
+else (${IMAGO_SHARED})
+  add_library(imago STATIC ${SRC})
+endif (${IMAGO_SHARED})
 
-if(EMBED_FONT)
-  add_definitions("-DIMAGO_FONT_BUILT_IN")
-endif(EMBED_FONT)
+add_dependencies(imago OpenCV)
+target_link_libraries(imago ${CMAKE_THREAD_LIBS_INIT})
+target_link_libraries(imago ${INDIGO_LIBS})
+target_link_libraries(imago ${OpenCV_LIBS})
+target_link_libraries(imago ${Boost_LIBRARIES}) 
 
-add_library(imago_static STATIC ${SRC})
-target_link_libraries(imago_static ${PNG_LIBRARIES} ${JPEG_LIBRARIES} ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(imago_static ${INDIGO_LIBS})
-target_link_libraries(imago_static ${OpenCV_LIBS}) 
-target_link_libraries(imago_static ${FONTLIB_LIBS})
-target_link_libraries(imago_static font_lib)
+if(IRECO)
+set_target_properties(imago PROPERTIES
+#    XCODE_ATTRIBUTE_GCC_FAST_MATH YES
+    XCODE_ATTRIBUTE_GCC_INLINES_ARE_PRIVATE_EXTERN YES
+    XCODE_ATTRIBUTE_GCC_SYMBOLS_PRIVATE_EXTERN YES
+#    XCODE_ATTRIBUTE_GCC_THUMB_SUPPORT NO
+)
+endif()

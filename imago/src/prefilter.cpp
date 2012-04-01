@@ -1,6 +1,6 @@
 #include <opencv/cv.h>
 
-#include "boost/foreach.hpp"
+#include <boost/foreach.hpp>
 
 #include "image.h"
 #include "log.h"
@@ -9,12 +9,9 @@
 #include "exception.h"
 #include "segmentator.h"
 #include "output.h"
-#include "png_saver.h"
-#include "orientation_finder.h"
 #include "convolver.h"
 #include "image_utils.h"
 #include "binarizer.h"
-#include "jpg_loader.h"
 #include "stat_utils.h"
 #include "thin_filter2.h"
 #include "segment.h"
@@ -1253,7 +1250,7 @@ void prefilterFile(const std::vector<unsigned char> &data, Image &image, const C
    //Imago cannot load and resize!
    //Image raw;
 
-   JpgLoader().loadImage(image, &data[0], &data[0] + data.size());
+   ImageUtils::loadImageFromBuffer(data, image);
    prefilterImage(image, cr);
    //_prefilterInternal(raw, image, cr);
    //_prefilterInternal2(raw);	

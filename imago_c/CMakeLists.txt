@@ -1,11 +1,7 @@
-include_directories(
-  ..
-  ../imago/src
-  ../libpng/src
-  ../third_party/indigo
-  )
-
-#include_directories(${INDIGO_INCLUDE_LIB})
+include_directories(../imago/src)
+include_directories(${Boost_INCLUDE_DIR})
+include_directories(${INDIGO_INCLUDE_DIR})
+include_directories(${OpenCV_INCLUDE_DIRS})
 
 set(SRC
   src/imago_c.cpp
@@ -14,8 +10,11 @@ set(SRC
 FILE(GLOB HEADERS "src/*.h")
 list(APPEND SRC ${HEADERS})
 
-add_library(imago_c SHARED ${SRC})
-target_link_libraries(imago_c imago_static)
+if(${IMAGO_SHARED})
+	add_library(imago_c SHARED ${SRC})
+else()
+	add_library(imago_c STATIC ${SRC})
+endif()
 
-add_library(imago_c_static STATIC ${SRC})
-target_link_libraries(imago_c_static imago_static)
+add_dependencies(imago_c imago)
+target_link_libraries(imago_c imago)

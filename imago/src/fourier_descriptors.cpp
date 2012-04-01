@@ -21,7 +21,6 @@
 #include "fourier_descriptors.h"
 #include "image.h"
 #include "binarizer.h"
-#include "png_saver.h"
 #include "output.h"
 #include "image_utils.h"
 #include "algebra.h"
