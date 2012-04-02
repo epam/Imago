@@ -18,6 +18,7 @@
 #include "image_utils.h"
 #include "current_session.h"
 #include "log_ext.h"
+#include "character_endpoints.h"
 
 using namespace imago;
 const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&";
@@ -119,111 +120,6 @@ double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
    return sqrt(d);
 }
 
-
-struct EnpointsRecord
-{
-	char c;
-	int min, max;
-	EnpointsRecord(char _c, int _min, int _max)
-	{
-		c = _c;
-		min = _min;
-		max = _max;
-	};
-};
-
-// TODO: this should be separate header, probably configurable
-
-class EndpointsData : public std::vector<EnpointsRecord>
-{
-public:
-	EndpointsData()
-	{
-		push_back(EnpointsRecord('0', 0, 2));
-		push_back(EnpointsRecord('1', 1, 3));
-		push_back(EnpointsRecord('2', 2, 3));
-		push_back(EnpointsRecord('3', 2, 4));
-		push_back(EnpointsRecord('4', 2, 4));
-		push_back(EnpointsRecord('5', 2, 4));
-		push_back(EnpointsRecord('6', 1, 2));
-		push_back(EnpointsRecord('7', 2, 4));
-		push_back(EnpointsRecord('8', 0, 2));
-		push_back(EnpointsRecord('9', 1, 2));
-
-		push_back(EnpointsRecord('A', 2, 4));
-		push_back(EnpointsRecord('B', 0, 4));
-		push_back(EnpointsRecord('C', 2, 2));
-		push_back(EnpointsRecord('D', 0, 4));
-		push_back(EnpointsRecord('E', 3, 6));
-		push_back(EnpointsRecord('F', 3, 5));
-		push_back(EnpointsRecord('G', 2, 3));
-		push_back(EnpointsRecord('H', 4, 6));
-		push_back(EnpointsRecord('I', 2, 6));
-		push_back(EnpointsRecord('J', 2, 4));
-		push_back(EnpointsRecord('K', 4, 6));
-		push_back(EnpointsRecord('L', 2, 4));
-		push_back(EnpointsRecord('M', 2, 6));
-		push_back(EnpointsRecord('N', 2, 4));
-		push_back(EnpointsRecord('O', 0, 2));
-		push_back(EnpointsRecord('P', 1, 4));
-		push_back(EnpointsRecord('Q', 2, 4));
-		push_back(EnpointsRecord('R', 2, 4));
-		push_back(EnpointsRecord('S', 2, 2));
-		push_back(EnpointsRecord('T', 3, 4));
-		push_back(EnpointsRecord('U', 2, 3));
-		push_back(EnpointsRecord('V', 2, 3));
-		push_back(EnpointsRecord('W', 2, 4));
-		push_back(EnpointsRecord('X', 4, 4));
-		push_back(EnpointsRecord('Y', 3, 4));
-		push_back(EnpointsRecord('Z', 2, 4));
-
-		push_back(EnpointsRecord('a', 1, 2));
-		push_back(EnpointsRecord('b', 0, 2));
-		push_back(EnpointsRecord('c', 2, 2));
-		push_back(EnpointsRecord('d', 2, 4));
-		push_back(EnpointsRecord('e', 1, 2));
-		push_back(EnpointsRecord('f', 3, 4));
-		push_back(EnpointsRecord('g', 1, 2));
-		push_back(EnpointsRecord('h', 2, 4));
-		push_back(EnpointsRecord('i', 2, 2));
-		push_back(EnpointsRecord('j', 2, 2));
-		push_back(EnpointsRecord('k', 2, 4));
-		push_back(EnpointsRecord('l', 1, 2));
-		push_back(EnpointsRecord('m', 2, 6));
-		push_back(EnpointsRecord('n', 2, 4));
-		push_back(EnpointsRecord('o', 0, 2));
-		push_back(EnpointsRecord('p', 1, 3));
-		push_back(EnpointsRecord('q', 1, 2));
-		push_back(EnpointsRecord('r', 2, 2));
-		push_back(EnpointsRecord('s', 2, 2));
-		push_back(EnpointsRecord('t', 3, 4));
-		push_back(EnpointsRecord('u', 2, 3));
-		push_back(EnpointsRecord('v', 2, 3));
-		push_back(EnpointsRecord('w', 2, 4));
-		push_back(EnpointsRecord('x', 4, 4));
-		push_back(EnpointsRecord('y', 2, 4));
-		push_back(EnpointsRecord('z', 2, 5));
-	}
-};
-
-static void generateImpossibleToWrite(int endpoints_count, std::string& probably, std::string& surely)
-{
-	static EndpointsData data;
-
-	probably = "";
-	surely = "";
-	for (size_t u = 0; u < data.size(); u++)
-	{
-		if (endpoints_count == 3 && data[u].min > 3) // HACK
-			surely.push_back( data[u].c );
-		else if (endpoints_count < data[u].min - 1 || endpoints_count > data[u].max + 1)
-			surely.push_back( data[u].c );
-		else if (endpoints_count < data[u].min || endpoints_count > data[u].max )
-			probably.push_back ( data[u].c );
-	}
-}
-
-
 RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const std::string &candidates) const
 {
    logEnterFunction();
@@ -241,7 +137,8 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 	SegmentTools::logEndpoints(seg, endpoints);
 
 	std::string probably, surely;
-	generateImpossibleToWrite(endpoints.size(), probably, surely);
+	static EndpointsData endpointsHandler;
+	endpointsHandler.getImpossibleToWrite(endpoints.size(), probably, surely);
 
 	rec.adjust(1.1, probably);
 	rec.adjust(1.2, surely);

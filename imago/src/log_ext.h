@@ -87,6 +87,7 @@ namespace imago
 		void appendGraph(const std::string& name, const segments_graph::SegmentsGraph& g);   
 		void appendSkeleton(const std::string& name, const Skeleton::SkeletonGraph& g);   
 		void appendSegment(const std::string& name, const Segment& seg);
+		void appendPoints(const std::string& name, const Points2i& pts);
 		void appendSegmentWithYLine(const std::string& name, const Segment& seg, int line_y);
 
 		void enterFunction(const std::string& name);

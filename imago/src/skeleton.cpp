@@ -976,14 +976,6 @@ void Skeleton::modifyGraph()
 
    recalcAvgBondLength();
 
-   /*if (getSettings()["DebugSession"])
-   {
-      Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-      img.fillWhite();
-      ImageDrawUtils::putGraph(img, _g);
-      ImageUtils::saveImageToFile(img, "output/ggg0.png");
-    
-   }*/
    getLogExt().appendSkeleton("init", _g);
 
    _joinVertices(0.1);
@@ -1001,28 +993,11 @@ void Skeleton::modifyGraph()
       }
    }
 
-   /*if (getSettings()["DebugSession"])
-    {
-       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-       img.fillWhite();
-       ImageDrawUtils::putGraph(img, _g);
-       ImageUtils::saveImageToFile(img, "output/ggg1.png");
-    
-    }*/
-
    getLogExt().appendSkeleton("after join verticies", _g);
 
    while (_dissolveShortEdges(0.1))
       ;
 
-   /*if (getSettings()["DebugSession"])
-    {
-       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-       img.fillWhite();
-       ImageDrawUtils::putGraph(img, _g);
-       ImageUtils::saveImageToFile(img, "output/ggg2.png");
-    
-    }*/
    getLogExt().appendSkeleton("after dissolve short edges", _g);
 
    while (_dissolveIntermediateVertices())
@@ -1031,14 +1006,6 @@ void Skeleton::modifyGraph()
 
    recalcAvgBondLength();
 
-   /*if (getSettings()["DebugSession"])
-    {
-       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-       img.fillWhite();
-       ImageDrawUtils::putGraph(img, _g);
-       ImageUtils::saveImageToFile(img, "output/ggg3.png");
-    
-    }*/
     getLogExt().appendSkeleton("after dissolve intermediate vertrices", _g);
 
     //_repairBroken(); // DP: disabled
@@ -1049,13 +1016,6 @@ void Skeleton::modifyGraph()
     //while (_dissolveIntermediateVertices())
     //   ;
     
-    /*if (getSettings()["DebugSession"])
-    {
-       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-       img.fillWhite();
-       ImageDrawUtils::putGraph(img, _g);
-       ImageUtils::saveImageToFile(img, "output/ggg4.png");
-    }*/
 	getLogExt().appendSkeleton("after find multiple", _g);
 
     recalcAvgBondLength();
@@ -1064,13 +1024,6 @@ void Skeleton::modifyGraph()
     while (_dissolveShortEdges(0.2))
       ;
 
-    /*if (getSettings()["DebugSession"])
-    {
-       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-       img.fillWhite();
-       ImageDrawUtils::putGraph(img, _g);
-       ImageUtils::saveImageToFile(img, "output/ggg5.png");
-    }*/
 	getLogExt().appendSkeleton("after dissolve edges 2", _g);
 
     recalcAvgBondLength();
@@ -1104,31 +1057,10 @@ void Skeleton::modifyGraph()
        boost::remove_vertex(end, _g);
     }
 
-
-    /*if (getSettings()["DebugSession"])
-    {
-       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-       img.fillWhite();
-       ImageDrawUtils::putGraph(img, _g);
-       ImageUtils::saveImageToFile(img, "output/ggg6.png");
-    }*/
 	getLogExt().appendSkeleton("after shrinking", _g);
-
-   
-   //if (rs["DebugSession"])
-   //drawGraph(2000, 1000, "output/ggg2.png");
 
    rs.set("AvgBondLength", _avg_bond_length);
    //while (_dissolveShortEdges(0.45, true));
-
-   /*if (getSettings()["DebugSession"])
-    {
-       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-       img.fillWhite();
-       ImageDrawUtils::putGraph(img, _g);
-       ImageUtils::saveImageToFile(img, "output/ggg7.png");
-   }*/
-   //getLogExt().append("ggg7", _g);
    
    BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
    {

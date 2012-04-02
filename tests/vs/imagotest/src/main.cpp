@@ -808,7 +808,7 @@ void testApproximator(char *filename)
    ImageUtils::saveImageToFile(res, "dp.png");
 }
 
-void testRecognition(const char *filename, bool debug, bool rgbload)
+void testRecognition(const char *filename, int debugLog, int adaptiveFilter)
 {
    try
    {
@@ -817,39 +817,20 @@ void testRecognition(const char *filename, bool debug, bool rgbload)
       
       Image img;
 
-      const char *f = filename ? filename :
-         "";
-         //"IMG_0052.JPG";
-         //"../../../data/from_caduff_2/IMG_0022.JPG";
-         //"../../../data/iPad2/TS_3_iPad_2_1.JPG";
-         //"../../../ireco/first-delivery-images/photo09.jpg";
+      VirtualFS vfs;
 
-	  VirtualFS vfs;
-
-	  if (debug)
+	  if (debugLog > 0)
 	  {
 		getSettings()["DebugSession"] = true;
-		//getLogExt().SetVirtualFS(vfs);
+		if (debugLog > 1)
+			getLogExt().SetVirtualFS(vfs);
 	  }
 
-      //getSettings()["Filter"] = "blur"; //for 34!
       ChemicalStructureRecognizer &csr = getRecognizer();
 
-	  getSettings()["RGBLoad"] = rgbload;
-	  //ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\others\\OTf_molecule.JPG");
-	  /*ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\ok\\Dec_2011_01.JPG");
-	  ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\ok\\Dec_2011_03.JPG");
-	  ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\ok\\IMG_0102.JPG");	  
-	  ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\ok\\IMG_0106.JPG");	  
-	  ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\ok\\Input3_fixed.jpg");
-	  ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\ok\\possible_to_recongize.jpg");
-	  ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\others\\IMG_0019.JPG");
-	  ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\others\\IMG_0034.JPG");
-	  ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\others\\IMG_0042.JPG");	  
-	  ImageUtils::loadImageFromFile(img, "C:\\mol-compare\\test-set\\others\\photo15.jpg");*/
+	  getSettings()["AdaptiveFilter"] = adaptiveFilter;
 
-	  //getSettings()["RGBLoad"] = false;
-      ImageUtils::loadImageFromFile(img, f);
+	  ImageUtils::loadImageFromFile(img, filename);
       
       prefilterImage(img, csr.getCharacterRecognizer());
       Molecule mol;
@@ -867,11 +848,14 @@ void testRecognition(const char *filename, bool debug, bool rgbload)
 		  std::vector<char> logdata;
 		  vfs.getData(logdata);
 		  flogdump.write(&logdata.at(0), logdata.size());
+		  
+		  VirtualFS v2;
+		  v2.setData(logdata);
+		  v2.storeOnDisk("log/");
 	  }
 
-      SessionManager::getInstance().releaseSID(sid);
 
-      
+      SessionManager::getInstance().releaseSID(sid);      
    }
    catch (std::exception &e)
    {
@@ -879,10 +863,8 @@ void testRecognition(const char *filename, bool debug, bool rgbload)
    }
 }
 
-
-int main(int argc, char **argv)
-{
-   //graphTest();
+/*
+//graphTest();
    
    //testArray();
    //testVectors();
@@ -893,14 +875,9 @@ int main(int argc, char **argv)
    //testCombiner();
    //test123();
 
-   /*
-   int x = 10;
-   LOG123 << "123\n";
-   LOG123 << "x = " << x << "\n";
-   */
-//#ifdef DEBUG
-//   puts("DEBUG");
-//#endif
+	//#ifdef DEBUG
+	//   puts("DEBUG");
+	//#endif
    
    //testThreads();
 
@@ -920,9 +897,7 @@ int main(int argc, char **argv)
    //makeFont();
    //testOCR2(argv[1]);
 
-   testRecognition(argv[1], argc > 2 && strcmp(argv[2], "-log") == 0,
-	                        argc > 3 && strcmp(argv[3], "-rgb") == 0);
-   //calcDescriptors(argc, argv);
+     //calcDescriptors(argc, argv);
    //makeCVFont();
 
    //testClassifier();
@@ -931,6 +906,35 @@ int main(int argc, char **argv)
    //testCvOCR(argv[1]);
 
    //testApproximator(argv[1]);
-   
+   */
+
+int main(int argc, char **argv)
+{
+   // parse command line
+   std::vector<std::string> unparsedArgs;
+   int debugLog = 0;
+   int adaptiveFilter = 0;
+   for (int i = 1; i < argc; i++)
+   {
+	   std::string s = argv[i];
+	   if (s.empty()) continue;
+	   if (s[0] == '-')
+	   {
+		   if (strcmp(s.c_str(), "-log") == 0)
+			   debugLog = 1;
+		   else if (strcmp(s.c_str(), "-vfslog") == 0)
+			   debugLog = 2;
+		   else if (strcmp(s.c_str(), "-rgb") == 0)
+			   adaptiveFilter = 2;
+		   else if (strcmp(s.c_str(), "-gs") == 0)
+			   adaptiveFilter = 1;
+	   }
+	   else
+		   unparsedArgs.push_back(s);
+   }
+
+   if (!unparsedArgs.empty())
+	   testRecognition(unparsedArgs[0].c_str(), debugLog, adaptiveFilter);
+
    return 0;
 }

@@ -1,5 +1,6 @@
-#include "RGBInit.h"
+#include "adaptive_filter.h"
 #include "log_ext.h"
+#include "generic_histogram.h"
 #include <queue>
 
 namespace imago
@@ -46,14 +47,6 @@ namespace imago
 
 	// ---------------------------------------------------------------------------------
 
-	RGBData::RGBData(unsigned char r, unsigned char g, unsigned char b, unsigned char I)
-	{
-		L[0] = r;
-		L[1] = g;
-		L[2] = b;
-		L[3] = I;
-	}
-
 	RGBStorage::RGBStorage(int w, int h) : Basic2dStorage<RGBData>(w, h), diff_cache(w, h, BLANK)
 	{
 	}
@@ -90,6 +83,8 @@ namespace imago
 	{		
 		if (diff_cache.at(sx,sy) == BLANK)
 		{
+			restart:
+
 			int cx = sx, cy = sy;
 
 			for (int i = 0; i < iterations; i++)
@@ -107,6 +102,12 @@ namespace imago
 				cx = ncx; cy = ncy;
 			}
 
+			if (iterations > 0 && at(cx,cy).L[channel] > 160) // glare // TODO: !!!
+			{
+				iterations /= 2;
+				goto restart;				
+			}
+			
 			int d = abs(at(cx,cy).L[channel] - at(sx,sy).L[channel]);
 			diff_cache.at(sx,sy) = d;
 		}
@@ -122,10 +123,155 @@ namespace imago
 		virtual int width() const = 0;
 		virtual int height() const = 0;
 	};
+	
 
 	class WeakSegmentator : public Basic2dStorage<int>
 	{
 	public:
+		static int GetAverageIntensity(const ImageInterface &img, const Points2i& pts)
+		{
+			if (pts.empty())
+				return -1;
+
+			double result = 0.0;
+			for (size_t u = 0; u < pts.size(); u++)
+				result += img.getIntensity(pts[u].x, pts[u].y);
+			
+			return (int)(result / pts.size());
+		}
+
+
+		inline bool isContiniousConnected(int x, int y1, int y2)
+		{
+			bool ok = true;
+			for (int y = y1; y < y2; y++)
+				ok &= at(x, y) != 0;
+			return ok;
+		}
+
+		Points2i GetInside(const Points2i& pts, int lookup_range)
+		{
+			getLogExt().appendPoints("Points", pts);
+
+			/*int map_x_y1[RGB_MAX_IMAGE_DIM];
+			int map_x_y2[RGB_MAX_IMAGE_DIM];
+			for (int u = 0; u < RGB_MAX_IMAGE_DIM; u++)
+			{
+				// pre-fill
+				map_x_y1[u] = RGB_MAX_IMAGE_DIM;
+				map_x_y2[u] = 0;
+			}
+
+			// extract min/max by scanlines
+			for (size_t u = 0; u < pts.size(); u++)
+			{
+				if (pts[u].y < map_x_y1[pts[u].x])
+					map_x_y1[pts[u].x] = pts[u].y;
+				if (pts[u].y > map_x_y2[pts[u].x])
+					map_x_y2[pts[u].x] = pts[u].y;
+			}
+
+			// now check area is connected
+
+			// 1. find min/max indexes
+			int min_idx = -1, max_idx = -1;
+			for (int u = 0; u < RGB_MAX_IMAGE_DIM; u++)
+			{
+				if (map_x_y1[u] != RGB_MAX_IMAGE_DIM)
+				{
+					if (min_idx == -1)
+						min_idx = u;
+					max_idx = u;
+				}
+			}
+			if (min_idx == -1)
+				return Points2i(); // empty
+
+			getLogExt().appendText("1 pass");
+
+			// 2. now check indexes in [min_idx, max_idx] are filled continiously
+			bool ok = true;
+			for (int u = min_idx + 1; u <= max_idx; u++)
+				ok &= map_x_y1[u] <= map_x_y2[u];
+				      && abs(map_x_y1[u] - map_x_y1[u-1]) <= 2 * lookup_range // TODO! TEMP!
+					  && abs(map_x_y2[u] - map_x_y2[u-1]) <= 2 * lookup_range; 
+			if (!ok)
+				return Points2i(); // empty
+
+			getLogExt().appendText("2 pass");
+
+			// 3. check that map_x_y1[min_idx] is connected to map_x_y2[min_idx]
+			//           and map_x_y1[max_idx] is connected to map_x_y2[max_idx]
+			
+			// UPD: shift min_idx to meet criteria
+
+			while (min_idx < max_idx)
+			{
+				if (isContiniousConnected(min_idx, map_x_y1[min_idx], map_x_y2[min_idx]))
+					break;
+				else
+					min_idx++;
+			}
+
+			// UPD: shift max_idx to meet criteria
+
+			while (min_idx < max_idx)
+			{
+				if (isContiniousConnected(max_idx, map_x_y1[max_idx], map_x_y2[max_idx]))
+					break;
+				else
+					max_idx--;
+			}
+
+			if (min_idx >= max_idx)
+				return Points2i(); // empty
+
+			getLogExt().appendText("3 pass");
+
+			// yeah, area is connected			
+			for (int x = min_idx + 1; x < max_idx; x++)
+				for (int y = map_x_y1[x] + 1; y < map_x_y2[x]; y++)
+					if (at(x, y) == 0) // still blank
+						result.push_back(Vec2i(x, y));*/
+
+			Points2i result;
+
+			CustomShapedBounding b(pts);
+
+			getLogExt().appendText("init done");
+
+			b.itReset();
+			for (Vec2i p; b.itNext(p); )
+				result.push_back(p);
+
+			if (!result.empty())
+				getLogExt().appendPoints("result", result);
+
+			return result;
+		}
+
+		void fillInside(const ImageInterface &img, int lookup_range)
+		{
+			// erase glares and noise
+			std::vector<std::pair<int,int> > intensityLevels; // first - outside, second - inside
+			for (int u = start_id; u < id; u++)
+			{
+				Points2i& points = SegmentPoints[u];
+				Points2i& inside = GetInside(points, lookup_range);
+				int i_outside = GetAverageIntensity(img, points);
+				int i_inside = GetAverageIntensity(img, inside);
+				//getLogExt().append("Inside intensity", i_inside);
+				//getLogExt().append("Outside intensity", i_outside);
+				intensityLevels.push_back(std::make_pair(i_outside, i_inside));
+				// TEST! fill inside areas
+				for (size_t v = 0; v < inside.size(); v++)
+					at(inside[v].x, inside[v].y) = 1; // 'random' id
+			}
+
+			getLogExt().append("Added pixels", added_pixels);
+			getLogExt().append("Segments count", SegmentPoints.size());
+		}
+
 		int appendData(const ImageInterface &img, int lookup_range)
 		{
 			logEnterFunction();
@@ -133,13 +279,12 @@ namespace imago
 			// TODO: calc useful pixels only
 			added_pixels = 0;
 
+			start_id = id;
+
 			for (int y = 0; y < height(); y++)
 				for (int x = 0; x < width(); x++)
 					if (at(x,y) == 0 && img.isFilled(x,y))
-						fill(img, id++, x, y, lookup_range);
-
-			getLogExt().append("Added pixels", added_pixels);
-			getLogExt().append("Segments count", SegmentPoints.size());
+						fill(img, id++, x, y, lookup_range);			
 
 			return added_pixels;
 		}
@@ -216,7 +361,7 @@ namespace imago
 
 		void getBoundingBox(Rectangle& bound) const
 		{
-			bound.x = bound.y = RGB_MAX_IMAGE_DIM;
+			bound.x = bound.y = MAX_IMAGE_DIMENSIONS;
 			bound.width = bound.height = 0;
 			for (std::map<int, Points2i>::const_iterator it = SegmentPoints.begin(); it != SegmentPoints.end(); it++)
 				getRectBounds(it->second, bound, false);
@@ -254,8 +399,8 @@ namespace imago
 		{
 			Points2i& p = SegmentPoints[id];
 			
-			int map_x[RGB_MAX_IMAGE_DIM] = {0};
-			int map_y[RGB_MAX_IMAGE_DIM] = {0};
+			int map_x[MAX_IMAGE_DIMENSIONS] = {0};
+			int map_y[MAX_IMAGE_DIMENSIONS] = {0};
 			for (Points2i::iterator it = p.begin(); it != p.end(); it++)
 			{
 				map_x[it->x]++;
@@ -297,6 +442,7 @@ namespace imago
 
 		std::map<int, Points2i> SegmentPoints;
 		int id, added_pixels;
+		int start_id;
 
 	private:
 		void fill(const ImageInterface &img, int id, int sx, int sy, int lookup_range)
@@ -325,9 +471,12 @@ namespace imago
 							{
 								// TODO: !!!fixup hack:
 								// -- connectivity maker code
-								if (at(cur.x + dx/2, cur.y + dy/2) == 0)
+								/*if (at(cur.x + dx/2, cur.y + dy/2) == 0)
+								{
 									at(cur.x + dx/2, cur.y + dy/2) = id;
-								added_pixels++;
+									added_pixels++;
+								}
+								*/
 								// end hack
 								v.push(t);
 							}
@@ -381,7 +530,7 @@ namespace imago
 	{
 		logEnterFunction();
 
-		Hist<256> distHist;
+		Histogram<256> distHist;
 		for (int y = crop.y1(); y < crop.y2(); y++)
 			for (int x = crop.x1(); x < crop.x2(); x++)
 				if (ws == NULL || 0 == ws->at(x - crop.x1(), y - crop.y1()))
@@ -481,6 +630,7 @@ namespace imago
 	void RGB_based_init(Image &img, RGBStorage& rgb)
 	{	
 		logEnterFunction();	
+
 		getLogExt().appendImage("Source image", img);
 		
 		Rectangle crop(0, 0, rgb.width(), rgb.height());

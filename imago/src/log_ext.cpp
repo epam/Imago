@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include "output.h"
+#include "pixel_boundings.h"
 
 #ifdef _WIN32
 #define MKDIR _mkdir
@@ -131,6 +132,15 @@ namespace imago
 		appendImage(name, output);
 	}	  
 
+	void log_ext::appendPoints(const std::string& name, const Points2i& pts)
+	{
+		RectShapedBounding b(pts);
+		Image output(b.getBounding().width, b.getBounding().height);
+		for (size_t u = 0; u < pts.size(); u++)
+			output.getByte(pts[u].x - b.getBounding().x, pts[u].y - b.getBounding().y) = 0;
+		appendImage(name, output);
+	}
+
 	void log_ext::appendSegmentWithYLine(const std::string& name, const Segment& seg, int line_y)
 	{
 		Image output(getSettings()["imgWidth"], getSettings()["imgHeight"]);
@@ -184,7 +194,7 @@ namespace imago
 		const std::string ImagesFolder = "htmlimgs";
 
 		sprintf(path, "%s/%s", Folder.c_str(), ImagesFolder.c_str());
-		if (MKDIR(path) != 0)
+		if (!UseVirtualFS && MKDIR(path) != 0)
 		{
 			if (errno == EEXIST)
 			{

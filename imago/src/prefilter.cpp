@@ -1069,7 +1069,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 {
 	logEnterFunction();
 
-	if (getSettings()["RGBLoad"])
+	if (getSettings()["AdaptiveFilter"])
 	{
 		for (int y = 0; y < image.getHeight(); y++)
 			for (int x = 0; x < image.getWidth(); x++)

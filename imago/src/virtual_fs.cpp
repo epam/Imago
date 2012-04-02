@@ -1,4 +1,5 @@
 #include "virtual_fs.h"
+#include "output.h"
 
 namespace imago
 {
@@ -25,6 +26,46 @@ namespace imago
 		return createNewFile(filename, data);
 	}
 
+	void VirtualFS::storeOnDisk(const std::string& folder) const
+	{
+		for (size_t u = 0; u < size(); u++)
+		{
+			FileOutput dump((folder + at(u).filename).c_str());
+			dump.write(&at(u).data.at(0), at(u).data.size());
+		}
+	}
+
+	void VirtualFS::setData(std::vector<char>& input)
+	{
+		clear();
+		bool name = true;
+		for (size_t idx = 0; idx < input.size(); )
+		{
+			size_t end = idx + 1;
+			while (input[end] != '\n') end++;
+
+			if (name)
+			{
+				VirtualFSRecord r;
+				for (size_t u = idx; u < end; u++)
+					r.filename += input[u];
+				push_back(r);
+			}
+			else
+			{
+				VirtualFSRecord& r = at(size() - 1);
+				for (size_t u = idx; u < end; u += 2)
+				{
+					unsigned char c = (input[u] - 'a') * 16 + (input[u+1] - 'a');
+					r.data.push_back(c);
+				}
+			}
+
+			idx = end+1;
+			name = !name;
+		}
+	}
+
 	void VirtualFS::getData(std::vector<char>& output) const
 	{
 		output.clear();
@@ -35,7 +76,7 @@ namespace imago
 			for (size_t v = 0; v < at(u).data.size(); v++)
 			{
 				char c1 = 'a' + ((at(u).data.at(v) & 0xF0) / 16);
-				char c2 = 'a' + (at(u).data.at(v) & 0x0F);
+				char c2 = 'a' +  (at(u).data.at(v) & 0x0F);
 				output.push_back(c1);
 				output.push_back(c2);
 			}
