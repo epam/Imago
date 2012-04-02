@@ -37,8 +37,7 @@ namespace imago
       static void saveImageToFile( const Image &img, const char *FileName, ... );
 
       static void loadImageFromBuffer( const std::vector<byte> &buffer, Image &img);
-      static void ImageUtils::saveImageToBuffer( const Image &img,
-         const std::string &format, std::vector<byte> &buffer );
+      static void saveImageToBuffer( const Image &img, const std::string &format, std::vector<byte> &buffer );
       //static void saveImageToBuffer( const Image &img, const char *FileName, ... );
 
       static bool testSlashLine( Segment &img, double *angle, double eps );

@@ -23,14 +23,6 @@
 
 #import "Recognizer.h"
 
-#undef LMARK 
-#undef LPRINT 
-#undef TIME 
-
-#define LMARK imago::getLog().mark();
-#define LPRINT imago::getLog().print
-#define TIME(a, msg) do { LMARK; a; LPRINT(1, msg); } while(0);
-
 @implementation Recognizer
 
 
@@ -63,13 +55,6 @@
       
       //Save result
       std::string molfileStr;
-
-      //imago::FileOutput fo("result.mol");
-      //imago::ArrayOutput so(molfileStr);
-      //imago::StandardOutput fo;
-      //imago::MolfileSaver ma(so);
-      //TIME(ma.saveMolecule(mol), "Saving molecule");
-
       molfileStr = imago::expandSuperatoms(mol);
       
       return [NSString stringWithCString:molfileStr.c_str() encoding:NSASCIIStringEncoding];
@@ -90,10 +75,10 @@
       imago::RecognitionSettings &rs = imago::getSettings();
       rs.set("DebugSession", false);
 
-      NSString *fontPath = [[NSBundle mainBundle] pathForResource:@"ff" ofType:@"font"];
-      const char *fontfile = [fontPath cStringUsingEncoding:NSASCIIStringEncoding];
+      //NSString *fontPath = [[NSBundle mainBundle] pathForResource:@"ff" ofType:@"font"];
+      //const char *fontfile = [fontPath cStringUsingEncoding:NSASCIIStringEncoding];
       
-      csr = new imago::ChemicalStructureRecognizer(fontfile);
+      csr = new imago::ChemicalStructureRecognizer();
    }
    return self;
 }

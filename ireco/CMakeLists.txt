@@ -1,6 +1,6 @@
 project(BeerMat)
 
-set(BEERMAT_VERSION "1.1.24")
+set(BEERMAT_VERSION "1.1.24.1")
 
 cmake_policy(SET CMP0015 NEW)
 cmake_policy(SET CMP0016 NEW)
@@ -9,11 +9,11 @@ file(GLOB hdrs *.h Classes/*.h)
 file(GLOB srcs_m *.m Classes/*.m)
 file(GLOB srcs_mm *.mm Classes/*.mm)
 
-file(GLOB icons ireco*.png reaxys.png)
+file(GLOB icons ireco*.png reaxys.png Entitlements.plist)
 file(GLOB xibs *.xib iPad/*.xib ../tests/data/ff.font)
 file(GLOB_RECURSE ketcher Ketcher/*)
-file(GLOB ketcher_excl Ketcher/ketcher*.py Ketcher/ketcher.html Ketcher/*.sh)
-file(GLOB_RECURSE ketcher_excl_rec Ketcher/mol/* Ketcher/molfiles/* Ketcher/nbproject/*)
+file(GLOB ketcher_excl Ketcher/ketcher*.py Ketcher/ketcher.html Ketcher/*.sh Kecher/ios/.DS_Store)
+file(GLOB_RECURSE ketcher_excl_rec Ketcher/mol/* Ketcher/molfiles/* Ketcher/nbproject/* Ketcher/.git/* Ketcher/.idea/*)
 list(REMOVE_ITEM ketcher ${ketcher_excl})
 list(REMOVE_ITEM ketcher ${ketcher_excl_rec})
 
@@ -49,8 +49,8 @@ set_target_properties(${PROJECT_NAME} PROPERTIES
 	MACOSX_BUNDLE_BUNDLE_NAME "\${PRODUCT_NAME}"
 	MACOSX_BUNDLE_GUI_IDENTIFIER "6KBW792M89.com.ggasoftware.\${PRODUCT_NAME:rfc1034identifier}"
 	MACOSX_BUNDLE_INFO_PLIST ${CMAKE_CURRENT_SOURCE_DIR}/BeerMat-cmake-Info.plist
-#	XCODE_ATTRIBUTE_INFOPLIST_FILE ${CMAKE_CURRENT_SOURCE_DIR}/imago_iphone-Info.plist
-	CODE_SIGN_ENTITLEMENTS Entitlements.plist
+#TODO: Not working yet [variant=Release]
+	XCODE_ATTRIBUTE_CODE_SIGN_ENTITLEMENTS ${CMAKE_CURRENT_SOURCE_DIR}/Entitlements.plist
 	XCODE_ATTRIBUTE_IPHONEOS_DEPLOYMENT_TARGET 4.2
 	XCODE_ATTRIBUTE_TARGETED_DEVICE_FAMILY "1,2"
 	XCODE_ATTRIBUTE_SKIP_INSTALL NO

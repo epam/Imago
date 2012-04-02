@@ -1258,13 +1258,15 @@ void prefilterFile(const std::vector<unsigned char> &data, Image &image, const C
    //_prefilterInternal2(raw);	
 }
    
+
 void prefilterPngData(const std::vector<unsigned char> &data, Image &image, const CharacterRecognizer &cr )
 {
    LPRINT(0 , "prefilterPngData");
       
    LPRINT(0, "data size %d", data.size());
-   BufferScanner scanner(&data[0], data.size());
-   PngLoader(scanner).loadImage(image);
+   ImageUtils::loadImageFromBuffer(data, image);
+//   BufferScanner scanner(&data[0], data.size());
+//   PngLoader(scanner).loadImage(image);
    prefilterImage(image, cr);
 }
 

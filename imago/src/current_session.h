@@ -20,8 +20,8 @@
 #include "exception.h"
 
 #ifdef DO_LOG
-#define LMARK getLog().mark();
-#define LPRINT getLog().print
+#define LMARK imago::getLog().mark();
+#define LPRINT imago::getLog().print
 #define TIME(a, msg) do { LMARK; a; LPRINT(1, msg); } while(0);
 #else
 #define LMARK 
