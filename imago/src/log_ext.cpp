@@ -134,8 +134,10 @@ namespace imago
 
 	void log_ext::appendPoints(const std::string& name, const Points2i& pts)
 	{
+		if(!loggingEnabled()) return;
+
 		RectShapedBounding b(pts);
-		Image output(b.getBounding().width, b.getBounding().height);
+		Image output(b.getBounding().width+1, b.getBounding().height+1);
 		for (size_t u = 0; u < pts.size(); u++)
 			output.getByte(pts[u].x - b.getBounding().x, pts[u].y - b.getBounding().y) = 0;
 		appendImage(name, output);
@@ -143,6 +145,8 @@ namespace imago
 
 	void log_ext::appendSegmentWithYLine(const std::string& name, const Segment& seg, int line_y)
 	{
+		if(!loggingEnabled()) return;
+
 		Image output(getSettings()["imgWidth"], getSettings()["imgHeight"]);
 		output.fillWhite();
 		ImageUtils::putSegment(output, seg, false);

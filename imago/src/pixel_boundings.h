@@ -36,7 +36,7 @@ namespace imago
 		virtual bool itNext(Vec2i& point);
 		virtual void itReset();
 
-		const Rectangle& getBounding() const { return bound; }
+		inline const Rectangle& getBounding() const { return bound; }
 
 	private:
 		Rectangle bound;
@@ -56,7 +56,8 @@ namespace imago
 		typedef std::vector<std::pair</*start y*/int, /*end y*/int> > Slice;
 		typedef std::vector<std::pair</*x*/int, /*y's*/Slice> > SliceList;
 		SliceList slices;
-		size_t cur_slice, cur_range, cur_yval;
+		size_t cur_slice, cur_range;
+		int cur_yval;
 	};
 }
 

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <map>
+#include "image.h"
 #include "image_interface.h"
 #include "basic_2d_storage.h"
 #include "rectangle.h"
@@ -17,34 +18,57 @@ namespace imago
 	class WeakSegmentator : public Basic2dStorage<int>
 	{
 	public:
+		// initialize width x height
 		WeakSegmentator(const ImageInterface &img);
+
 		~WeakSegmentator();
+		
+		// addend data from image (isFilled() called)
 		int appendData(const ImageInterface &img, int lookup_range);
+		
+		// remove alone pixels, fill broken pixels
 		void performPixelOptimizations();
-		void eraseNoise(int threshold);
-		bool needCrop(Rectangle& crop);
+		
+		// erase noise areas by density threshold
+		void eraseNoise(double threshold);
 
-		static int GetAverageIntensity(const ImageInterface &img, const Points2i& pts);
+		// remove glares by its maximal are percent (area/img.area) threshold
+		void removeGlares(double threshold);
+		
+		// updates crop if required
+		bool needCrop(Rectangle& crop);		
 
-		inline bool isContiniousConnected(int x, int y1, int y2);
+		// updates the map for refineIsAllowed( )
+		void updateRefineMap(const ImageInterface &img, int max_len);
 
-		Points2i GetInside(const Points2i& pts, int lookup_range);
+		// required for appendData (after first one)
+		bool refineIsAllowed(int x, int y) const;
 
-		void fillInside(const ImageInterface &img, int lookup_range);
-	
-		void getBoundingBox(Rectangle& bound) const;
+		// required for AdaptiveFilter updateBound( )
+		bool alreadyExplored(int x, int y) const;
 
-	protected:
-		void getRectBounds(const Points2i& p, Rectangle& bounds, bool reinit = true) const;		
+	protected:		
+		// returns all segment endpoints
+		Points2i getEndpointsDecornered(const ImageInterface &img) const;
+		
+		// returns area of bounding box of segment with id
 		int getRectangularArea(int id);
+
+		// check segment with id has rectangular structure
 		bool hasRectangularStructure(int id, int window_size, double threshold, Rectangle& bound);
 
 		std::map<int, Points2i> SegmentPoints;
-		int id, added_pixels;
-		int start_id;
+		Basic2dStorage<char> refineMap;
+		int refineGeneration;
 
 	private:
-		void fill(const ImageInterface &img, int id, int sx, int sy, int lookup_range);
+		// returns filled pixels count
+		void fill(const ImageInterface &img, int id, int startx, int starty, int lookup_range);
+
+		// returns 2 probably condensation point for integer vector
 		static bool get2centers(int* data, int size, double &c1, double& c2);
+
+		// returns neighbors of p with intensity == INK
+		Points2i getNeighbors(const Image& img, const Vec2i& p, int range = 1) const;
 	};
 }

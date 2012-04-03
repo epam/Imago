@@ -41,7 +41,7 @@ namespace imago
 		int width() const { return _w; }
 		int height() const { return _h; }
 
-		bool inRange(int x, int y)
+		bool inRange(int x, int y) const
 		{
 			return x >= 0 && y >= 0 && x < _w && y < _h;
 		}

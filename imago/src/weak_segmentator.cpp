@@ -1,174 +1,218 @@
 #include "weak_segmentator.h"
 #include <queue>
+#include "color_channels.h"
 #include "log_ext.h"
 #include "pixel_boundings.h"
+#include "thin_filter2.h"
 
 namespace imago
-{
-	int WeakSegmentator::GetAverageIntensity(const ImageInterface &img, const Points2i& pts)
+{	
+	Points2i WeakSegmentator::getNeighbors(const Image& img, const Vec2i& p, int range) const
 	{
-		if (pts.empty())
-			return -1;
-
-		double result = 0.0;
-		for (size_t u = 0; u < pts.size(); u++)
-			result += img.getIntensity(pts[u].x, pts[u].y);
-			
-		return (int)(result / pts.size());
+		Points2i neighb;
+		for (int dy = -range; dy <= range; dy++)
+			for (int dx = -range; dx <= range; dx++)
+				if ((dx != 0 || dy != 0) && inRange(p.x+dx, p.y+dy))
+					if (img.getByte(p.x+dx, p.y+dy) == INK)
+						neighb.push_back(Vec2i(p.x+dx, p.y+dy));
+		return neighb;
 	}
 
-
-	bool WeakSegmentator::isContiniousConnected(int x, int y1, int y2)
+	void WeakSegmentator::updateRefineMap(const ImageInterface &img, int max_len)
 	{
-		bool ok = true;
-		for (int y = y1; y < y2; y++)
-			ok &= at(x, y) != 0;
-		return ok;
-	}
+		logEnterFunction();
 
-	Points2i WeakSegmentator::GetInside(const Points2i& pts, int lookup_range)
-	{
-		getLogExt().appendPoints("Points", pts);
+		refineGeneration++;
 
-		/*int map_x_y1[RGB_MAX_IMAGE_DIM];
-		int map_x_y2[RGB_MAX_IMAGE_DIM];
-		for (int u = 0; u < RGB_MAX_IMAGE_DIM; u++)
+		Image thin(width(), height());
+		for (int y = 0; y < height(); y++)
+			for (int x = 0; x < width(); x++)
+				thin.getByte(x, y) = (at(x,y) > 0) ? INK : BLANK;
+
+		ThinFilter2(thin).apply();
+
+		for (int y = 0; y < height(); y++)
 		{
-			// pre-fill
-			map_x_y1[u] = RGB_MAX_IMAGE_DIM;
-			map_x_y2[u] = 0;
-		}
-
-		// extract min/max by scanlines
-		for (size_t u = 0; u < pts.size(); u++)
-		{
-			if (pts[u].y < map_x_y1[pts[u].x])
-				map_x_y1[pts[u].x] = pts[u].y;
-			if (pts[u].y > map_x_y2[pts[u].x])
-				map_x_y2[pts[u].x] = pts[u].y;
-		}
-
-		// now check area is connected
-
-		// 1. find min/max indexes
-		int min_idx = -1, max_idx = -1;
-		for (int u = 0; u < RGB_MAX_IMAGE_DIM; u++)
-		{
-			if (map_x_y1[u] != RGB_MAX_IMAGE_DIM)
+			for (int x = 0; x < width(); x++)
 			{
-				if (min_idx == -1)
-					min_idx = u;
-				max_idx = u;
+				if (thin.getByte(x,y) != INK)
+					continue;
+				Vec2i current = Vec2i(x,y);
+				if (getNeighbors(thin, current).size() == 1) // endpoint
+				{					
+					Points2i p = getNeighbors(thin, current, 1 + max_len / 2); 
+					double average_dx = 0, average_dy = 0;
+					for (size_t u = 0; u < p.size(); u++)
+					{
+						average_dx += (double)(current.x - p[u].x) / p.size();
+						average_dy += (double)(current.y - p[u].y) / p.size();
+					}
+
+					if (fabs(average_dx) < 1.5 && fabs(average_dy) < 1.5)
+					{
+						// draw square
+						for (int j = -max_len/2; j <= max_len/2; j++)
+						{
+							for (int k = -max_len/2; k <= max_len/2; k++)
+							{
+								int _x = x + j;
+								int _y = y + k;
+								if (refineMap.inRange(_x, _y))
+								{
+									refineMap.at(_x, _y) = refineGeneration;
+								}
+							}
+						}
+					}
+					else
+					{
+						// draw trinagle
+						double norm = sqrt(average_dx*average_dx + average_dy*average_dy);
+						double dx = average_dx/norm, dy = average_dy/norm;
+						double subpx = 0.5;
+
+						for (int j = -max_len / subpx; j < max_len / subpx; j++)
+						{
+							int bnd = abs(j)*0.9 + 2;
+							for (int k = -bnd; k <= bnd; k++)
+							{
+								int _x = (double)x + dx * (double)(j*subpx) - dy * (double)(k*subpx);
+								int _y = (double)y + dy * (double)(j*subpx) + dx * (double)(k*subpx);
+								if (refineMap.inRange(_x, _y))
+								{
+									refineMap.at(_x, _y) = refineGeneration;									
+								}
+							}
+						}
+					}
+				}
 			}
 		}
-		if (min_idx == -1)
-			return Points2i(); // empty
 
-		getLogExt().appendText("1 pass");
-
-		// 2. now check indexes in [min_idx, max_idx] are filled continiously
-		bool ok = true;
-		for (int u = min_idx + 1; u <= max_idx; u++)
-			ok &= map_x_y1[u] <= map_x_y2[u];
-				    && abs(map_x_y1[u] - map_x_y1[u-1]) <= 2 * lookup_range // TODO! TEMP!
-					&& abs(map_x_y2[u] - map_x_y2[u-1]) <= 2 * lookup_range; 
-		if (!ok)
-			return Points2i(); // empty
-
-		getLogExt().appendText("2 pass");
-
-		// 3. check that map_x_y1[min_idx] is connected to map_x_y2[min_idx]
-		//           and map_x_y1[max_idx] is connected to map_x_y2[max_idx]
-			
-		// UPD: shift min_idx to meet criteria
-
-		while (min_idx < max_idx)
+		if (getLogExt().loggingEnabled())
 		{
-			if (isContiniousConnected(min_idx, map_x_y1[min_idx], map_x_y2[min_idx]))
-				break;
-			else
-				min_idx++;
+			for (int y = 0; y < height(); y++)
+				for (int x = 0; x < width(); x++)
+					if (refineMap.at(x, y) == refineGeneration)
+						thin.getByte(x, y) = 128; // only visual
+			getLogExt().appendImage("Image with endvectors", thin);
 		}
+	}
 
-		// UPD: shift max_idx to meet criteria
-
-		while (min_idx < max_idx)
-		{
-			if (isContiniousConnected(max_idx, map_x_y1[max_idx], map_x_y2[max_idx]))
-				break;
-			else
-				max_idx--;
-		}
-
-		if (min_idx >= max_idx)
-			return Points2i(); // empty
-
-		getLogExt().appendText("3 pass");
-
-		// yeah, area is connected			
-		for (int x = min_idx + 1; x < max_idx; x++)
-			for (int y = map_x_y1[x] + 1; y < map_x_y2[x]; y++)
-				if (at(x, y) == 0) // still blank
-					result.push_back(Vec2i(x, y));*/
+	Points2i WeakSegmentator::getEndpointsDecornered(const ImageInterface &img) const
+	{
+		logEnterFunction();
 
 		Points2i result;
 
-		CustomShapedBounding b(pts);
+		const int DECORNERED = 200;
+		const int TRACED = 230;
+		const int ENDPOINT = 1;
 
-		getLogExt().appendText("init done");
+		Image thin(width(), height());
+		for (int y = 0; y < height(); y++)
+			for (int x = 0; x < width(); x++)
+				thin.getByte(x, y) = (at(x,y) > 0) ? INK : BLANK;
 
-		b.itReset();
-		for (Vec2i p; b.itNext(p); )
-			result.push_back(p);
+		ThinFilter2(thin).apply();
 
-		if (!result.empty())
-			getLogExt().appendPoints("result", result);
+		// decorner
+		for (int y = 0; y < height(); y++)
+		{
+			for (int x = 0; x < width(); x++)
+			{
+				if (thin.getByte(x,y) != INK)
+					continue;
+				if (getNeighbors(thin, Vec2i(x,y)).size() > 2)
+					thin.getByte(x,y) = DECORNERED;
+			}
+		}
+		getLogExt().appendImage("Fast decorner", thin);
+
+		// now all objects are just curve lines with exactly 2 endpoints
+		for (int y = 0; y < height(); y++)
+		{
+			for (int x = 0; x < width(); x++)
+			{
+				if (thin.getByte(x,y) != INK)
+					continue;
+				// search enpoints, go to 2 different directions
+				// <------- . ------->				
+				thin.getByte(x,y) = TRACED;
+				Points2i startPoints = getNeighbors(thin, Vec2i(x,y));				
+				for (size_t u = 0; u < startPoints.size(); u++)
+				{
+					Vec2i current = startPoints[u];
+					bool first = true;
+					while (true)
+					{
+						thin.getByte(current.x, current.y) = TRACED;
+						Points2i n = getNeighbors(thin, current);
+						if (n.size() > 1 && !first)
+						{
+							// bad decorner, or decorner not applied
+							break;
+						}
+						if (n.empty())
+						{
+							thin.getByte(current.x, current.y) = ENDPOINT;
+							result.push_back(current);
+							break;
+						}
+						current = n[0];
+						first = false;
+					}
+				}
+				if (startPoints.size() == 1)
+				{
+					// we started from the edge
+					thin.getByte(x,y) = ENDPOINT;
+					result.push_back(Vec2i(x,y));
+				}
+			}
+		}
+
+		getLogExt().appendImage("Traced image", thin);
 
 		return result;
 	}
 
-	void WeakSegmentator::fillInside(const ImageInterface &img, int lookup_range)
+	bool WeakSegmentator::alreadyExplored(int x, int y) const
 	{
-		// erase glares and noise
-		std::vector<std::pair<int,int> > intensityLevels; // first - outside, second - inside
-		for (int u = start_id; u < id; u++)
-		{
-			Points2i& points = SegmentPoints[u];
-			Points2i& inside = GetInside(points, lookup_range);
-			int i_outside = GetAverageIntensity(img, points);
-			int i_inside = GetAverageIntensity(img, inside);
-			//getLogExt().append("Inside intensity", i_inside);
-			//getLogExt().append("Outside intensity", i_outside);
-			intensityLevels.push_back(std::make_pair(i_outside, i_inside));
-			// TEST! fill inside areas
-			for (size_t v = 0; v < inside.size(); v++)
-				at(inside[v].x, inside[v].y) = 1; // 'random' id
-		}
+		return at(x, y) > 0 || refineMap.at(x, y) > 0;
+	}
 
-		getLogExt().append("Added pixels", added_pixels);
-		getLogExt().append("Segments count", SegmentPoints.size());
+	bool WeakSegmentator::refineIsAllowed(int x, int y) const
+	{
+		return refineMap.at(x, y) == refineGeneration;
 	}
 
 	int WeakSegmentator::appendData(const ImageInterface &img, int lookup_range)
 	{
 		logEnterFunction();
 			
-		// TODO: calc useful pixels only
-		added_pixels = 0;
-
-		start_id = id;
+		int added_pixels = 0;
 
 		for (int y = 0; y < height(); y++)
 			for (int x = 0; x < width(); x++)
-				if (at(x,y) == 0 && img.isFilled(x,y))
-					fill(img, id++, x, y, lookup_range);			
+				if (at(x,y) == 0 && img.isFilled(x,y) && refineIsAllowed(x,y))
+				{
+					int id = SegmentPoints.size()+1;
+					fill(img, id, x, y, lookup_range);			
+					added_pixels += SegmentPoints[id].size();
+				}
+
+		getLogExt().append("Currently added pixels", added_pixels);
+		getLogExt().append("Total segments count", SegmentPoints.size());
 
 		return added_pixels;
 	}
 
 	WeakSegmentator::WeakSegmentator(const ImageInterface &img) 
-		: Basic2dStorage<int>(img.width(), img.height(), 0), id(1)
+		: Basic2dStorage<int>(img.width(), img.height(), 0),
+		  refineMap(img.width(), img.height()), refineGeneration(0)
 	{	
+		logEnterFunction();
 	}
 
 	WeakSegmentator::~WeakSegmentator()
@@ -200,8 +244,9 @@ namespace imago
 			}
 	}
 
-	void WeakSegmentator::eraseNoise(int threshold)
+	void WeakSegmentator::eraseNoise(double threshold)
 	{
+		// TODO:
 		logEnterFunction();
 
 		for (int y = 0; y < height(); y++)
@@ -221,13 +266,13 @@ namespace imago
 		logEnterFunction();
 
 		int area_threshold = width() * height() * AREA_THRESHOLD_FACTOR;
-		for (size_t u = 0; u < SegmentPoints.size(); u++)
+		for (size_t id = 1; id <= SegmentPoints.size(); id++)
 		{
 			Rectangle bounds;
-			if (getRectangularArea(u) > area_threshold 
-				&& hasRectangularStructure(u, RECTANGULAR_WINDOWSIZE, RECTANGULAR_THRESHOLD, bounds))
+			if (getRectangularArea(id) > area_threshold 
+				&& hasRectangularStructure(id, RECTANGULAR_WINDOWSIZE, RECTANGULAR_THRESHOLD, bounds))
 			{
-				getLogExt().append("Has rectangular structure, id", u);	
+				getLogExt().append("Has rectangular structure, id", id);	
 				bounds.adjustBorder(RECTANGULAR_WINDOWSIZE*2);
 				crop = bounds;
 				return true;
@@ -236,39 +281,10 @@ namespace imago
 		return false;
 	}
 
-	void WeakSegmentator::getBoundingBox(Rectangle& bound) const
-	{
-		bound.x = bound.y = MAX_IMAGE_DIMENSIONS;
-		bound.width = bound.height = 0;
-		for (std::map<int, Points2i>::const_iterator it = SegmentPoints.begin(); it != SegmentPoints.end(); it++)
-			getRectBounds(it->second, bound, false);
-	}
-
-	void WeakSegmentator::getRectBounds(const Points2i& p, Rectangle& bounds, bool reinit) const
-	{
-		int min_x = width(), max_x = 0, min_y = height(), max_y = 0;
-		if (!reinit)
-		{
-			min_x = bounds.x1();
-			min_y = bounds.y1();
-			max_x = bounds.x2();
-			max_y = bounds.y2();
-		}
-		for (Points2i::const_iterator it = p.begin(); it != p.end(); it++)
-		{
-			min_x = std::min(min_x, it->x);
-			min_y = std::min(min_y, it->y);
-			max_x = std::max(max_x, it->x);
-			max_y = std::max(max_y, it->y);
-		}
-		bounds = Rectangle(min_x, min_y, max_x, max_y, 0);
-	}
-		
 	int WeakSegmentator::getRectangularArea(int id)
 	{
-		Rectangle bounds;
-		getRectBounds(SegmentPoints[id], bounds);
-		return bounds.width * bounds.height;
+		RectShapedBounding b(SegmentPoints[id]);		
+		return b.getBounding().width * b.getBounding().height;
 	}		
 
 	bool WeakSegmentator::hasRectangularStructure(int id, int window_size, double threshold, Rectangle& bound)
@@ -318,57 +334,45 @@ namespace imago
 
 	void WeakSegmentator::fill(const ImageInterface &img, int id, int sx, int sy, int lookup_range)
 	{
-		typedef std::queue<Vec2i> WorkVector;
-		WorkVector v;
+		std::queue<Vec2i> v;
 		v.push(Vec2i(sx,sy));
-
 		while (!v.empty())
 		{
 			Vec2i cur = v.front();
-			v.pop();
+			v.pop(); // remove top
 
 			if (at(cur.x,cur.y) == 0)
 			{
 				at(cur.x,cur.y) = id;
 				SegmentPoints[id].push_back(cur);
-				added_pixels++;
-
 				for (int dx = -lookup_range; dx <= lookup_range; dx++)
 					for (int dy = -lookup_range; dy <= lookup_range; dy++)
 					{
 						Vec2i t(cur.x+dx,cur.y+dy);
 						if ((dx != 0 || dy != 0) && inRange(t.x, t.y) 
-							&& at(t.x, t.y) == 0 && img.isFilled(t.x, t.y))
-						{
-							// TODO: !!!fixup hack:
-							// -- connectivity maker code
-							/*if (at(cur.x + dx/2, cur.y + dy/2) == 0)
-							{
-								at(cur.x + dx/2, cur.y + dy/2) = id;
-								added_pixels++;
-							}
-							*/
-							// end hack
+							&& at(t.x, t.y) == 0 && img.isFilled(t.x, t.y)
+							&& refineIsAllowed(t.x, t.y))
+						{							
 							v.push(t);
 						}
 					}
 			}
-		}
+		} // while
 	}
 
 	bool WeakSegmentator::get2centers(int* data, int size, double &c1, double& c2) // c1 < c2
 	{
-		double average = 0.0, count = 0.0;
+		double mean = 0.0, count = 0.0;
 		for (int u = 0; u < size; u++)
 		{
-			average += u * data[u];
+			mean += u * data[u];
 			count += data[u];
 		}			
 			
 		if (count < 1)
 			return false;
 
-		average /= count;
+		mean /= count;
 		c1 = 0.0;
 		c2 = 0.0;
 		double count1 = 0.0;
@@ -376,7 +380,7 @@ namespace imago
 
 		for (int u = 0; u < size; u++)
 		{
-			if (u < average)
+			if (u < mean)
 			{
 				c1 += u * data[u];
 				count1 += data[u];

@@ -22,8 +22,7 @@ namespace imago
 	   */
 	const int    DIFF_STEP_RANGE = 2;          // one step pixels count
 	const int    DIFF_ITERATIONS = 4;          // max steps count
-	// this should be greater than line thickness / 2
-	const int    MAX_DELTA_PATH = DIFF_STEP_RANGE*DIFF_ITERATIONS;
+	const int    DIFF_FULL_PATH  = DIFF_ITERATIONS*DIFF_STEP_RANGE;
 
 	/* Affects: recognition quality(LO)
 	   Depends on: line thickness(LO,BOUND)
@@ -32,7 +31,7 @@ namespace imago
 
 	/* Affects: recognition quality(LO), recognition time(HI)
 		*/
-	const int    MAX_CROPS = 1; // 1 is sufficient in most cases
+	const int    MAX_CROPS = 1;                // 1 is sufficient in most cases
 	const int    MAX_REFINE_ITERS = 5;
 
 	// ---------------------------------------------------------------------------------
@@ -112,7 +111,7 @@ namespace imago
 		Histogram<256> distHist;
 		for (int y = crop.y1(); y < crop.y2(); y++)
 			for (int x = crop.x1(); x < crop.x2(); x++)
-				if (ws == NULL || 0 == ws->at(x - crop.x1(), y - crop.y1()))
+				if (ws == NULL || !ws->alreadyExplored(x - crop.x1(), y - crop.y1()))
 					distHist.addData(getMaximalIntensityDiff(INTENSITY_CHANNEL, x, y, DIFF_ITERATIONS));
 		int result = distHist.getValueMoreThan(INK_THRESHOLD);
 		getLogExt().append("Intensity diff bound", result);
@@ -206,11 +205,11 @@ namespace imago
 		int diff_bound;
 	};
 
-	void AdaptiveFilter::filterImage(Image& img)
+	void AdaptiveFilter::filterImage(Image& output)
 	{	
 		logEnterFunction();	
 
-		getLogExt().appendImage("Source image", img);
+		getLogExt().appendImage("Source image", output);
 		
 		Rectangle crop(0, 0, this->width(), this->height());
 		AdaptiveFilter interpolated(*this, INTERPOLATION_LEVEL);
@@ -218,26 +217,30 @@ namespace imago
 		// maximal crops allowed loop
 		for (int crop_attempt = 0; crop_attempt <= MAX_CROPS; crop_attempt++)
 		{
-			ImageAdapter img_a(*this, crop, interpolated.getIntensityBound(crop));
-			WeakSegmentator ws(img_a);
-			int added0 = ws.appendData(img_a, DIFF_ITERATIONS);
-			int pixelAddBoundary = added0 / 25;
+			ImageAdapter img(*this, crop, interpolated.getIntensityBound(crop));
+			WeakSegmentator ws(img);
+
+			int pixelAddBoundary = ws.appendData(img, DIFF_ITERATIONS) / 10;
 
 			if (crop_attempt == MAX_CROPS || !ws.needCrop(crop))
 			{
+				getLogExt().appendText("Enter refinements loop");
+
 				// refine loop
 				for (int refine_iter = 1; refine_iter <= MAX_REFINE_ITERS; refine_iter++)
 				{
+					ws.updateRefineMap(img, DIFF_FULL_PATH);
+
 					if (getLogExt().loggingEnabled())
 					{
 						Image temp;
 						normalizedOuput(temp, ws, crop);
-						getLogExt().appendImage("Working image", temp);
+						getLogExt().appendImage("Before refine", temp);
 					}
 
-					img_a.updateBound(interpolated.getIntensityBound(crop, &ws));
-					int added_n = ws.appendData(img_a, DIFF_ITERATIONS);
-					if (added_n < ERASE_NOISE_THRESHOLD || added_n < pixelAddBoundary)
+					img.updateBound(interpolated.getIntensityBound(crop, &ws));
+					int added_n = ws.appendData(img, DIFF_ITERATIONS);
+					if (added_n < ERASE_NOISE_THRESHOLD /*|| added_n < pixelAddBoundary*/)
 					{
 						getLogExt().append("Crossed useful refinements boundary on iteration", refine_iter);
 						break;
@@ -247,20 +250,20 @@ namespace imago
 				// ws.eraseNoise(ERASE_NOISE_THRESHOLD); // temporary. function is wrong
 
 				ws.performPixelOptimizations();
-				normalizedOuput(img, ws, crop);
+				normalizedOuput(output, ws, crop);
 				break;
 			}
 		}
 			
-		getLogExt().appendImage("Filtered image", img);
+		getLogExt().appendImage("Refined image", output);
 
-		for (int y = 0; y < img.getHeight(); y++)
-			for (int x = 0; x < img.getWidth(); x++)
-				img.getByte(x, y) = (img.getByte(x, y) != 255) ? 0 : 255;
+		for (int y = 0; y < output.getHeight(); y++)
+			for (int x = 0; x < output.getWidth(); x++)
+				output.getByte(x, y) = (output.getByte(x, y) != 255) ? 0 : 255;
 
-		getLogExt().appendImage("Binarized image", img);
+		getLogExt().appendImage("Binarized image", output);
 
-		double line_thickness = EstimateLineThickness(img);
+		double line_thickness = EstimateLineThickness(output);
 		getSettings()["LineThickness"] = line_thickness;
 		getLogExt().append("Line Thickness", line_thickness);
 	}

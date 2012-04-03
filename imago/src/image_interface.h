@@ -1,5 +1,7 @@
 #pragma once
 
+#include "stl_fwd.h"
+
 namespace imago
 {
 	// most generic image interface
@@ -15,6 +17,19 @@ namespace imago
 		// get the image dimensions
 		virtual int width() const = 0;
 		virtual int height() const = 0;
+
+		// get area average intensity [generic]
+		int getAverageIntensity(const Points2i& pts) const
+		{
+			double result = 0.0;
+			if (!pts.empty())
+			{
+				for (size_t u = 0; u < pts.size(); u++)
+					result += getIntensity(pts[u].x, pts[u].y);
+				result /= pts.size();
+			}			
+			return (int)(result);
+		}
 	};
 }
 
