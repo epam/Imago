@@ -700,7 +700,7 @@ void _prefilterInternal2( Image &img )
    _copyMatToImage(img, mat);*/
 }
 
-void _wiener2(cv::Mat &mat)
+void _wiener2(cv::Mat &mat, int size)
 {
 	logEnterFunction();
    //bool debug_session = getSettings()["DebugSession"];
@@ -710,14 +710,8 @@ void _wiener2(cv::Mat &mat)
 	
 	//calculate local mean
 	cv::Mat localMean;
-	double ones[] = {1, 1, 1, 1, 1, 1, 1,
-					 1, 1, 1, 1, 1, 1, 1,
-					 1, 1, 1, 1, 1, 1, 1,
-					 1, 1, 1, 1, 1, 1, 1,
-					 1, 1, 1, 1, 1, 1, 1,
-					 1, 1, 1, 1, 1, 1, 1,
-					 1, 1, 1, 1, 1, 1, 1};
-	cv::Mat kernel1(7, 7, CV_64F, ones);// = cv::Mat::ones(5, 5, CV_32F);
+	cv::Mat kernel1 = cv::Mat::ones(size, size, CV_64F);
+	
 	cv::filter2D(dmat, localMean, -1, kernel1);
 	localMean = localMean / kernel1.total();
 
@@ -977,7 +971,14 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	}
 
 	//wiener filter
-	_wiener2(matred);
+   if(!strongThresh)
+   {
+	   double blockS = getSettings()["LineThickness"];
+		blockS = ((int)blockS % 2) == 0 ? blockS +1:blockS;
+		_wiener2(matred, blockS);
+   }
+   else
+	_wiener2(matred, 5);
 	
 	cimg.clear();
 	_copyMatToImage(cimg, matred);
