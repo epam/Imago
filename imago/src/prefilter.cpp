@@ -16,7 +16,8 @@
 #include "thin_filter2.h"
 #include "segment.h"
 #include "HistogramTools.h"
-#include "scanner.h"
+#include "prefilter.h"
+#include "adaptive_filter.h"
 
 namespace imago
 {
@@ -1052,7 +1053,7 @@ bool isSplash(Segment *s, int lineSize)
 	if(s->getWidth() < lineSize && s->getHeight() < lineSize)
 		return true;
 	s->extract(0, 0, s->getWidth(), s->getHeight(), img);
-	int ls = EstimateLineThickness(img, 10);
+	int ls = EstimateLineThickness(img);
 	if(ls > 3* lineSize || ls < 1)
 		return true;
 	return false;
@@ -1069,16 +1070,9 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 {
 	logEnterFunction();
 
-	if (getSettings()["AdaptiveFilter"])
+	if (FilterImageStub::isAdaptiveFilterEnabled())
 	{
-		for (int y = 0; y < image.getHeight(); y++)
-			for (int x = 0; x < image.getWidth(); x++)
-				image.getByte(x, y) = (image.getByte(x, y) != 255) ? 0 : 255;
-
-		double line_thickness = EstimateLineThickness(image, 10);
-		getSettings()["LineThickness"] = line_thickness;
-		getLogExt().append("Line Thickness", line_thickness);
-
+		// already filtered
 		return;
 	}
 
@@ -1097,7 +1091,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    _prefilterInternal3(raw, image, cr, false, true);
 
 
-   double lineThickness = EstimateLineThickness(image, 10);
+   double lineThickness = EstimateLineThickness(image);
 
    if(lineThickness < 1)
 	   throw Exception("Image prefiltering failed");

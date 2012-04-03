@@ -10,6 +10,9 @@ namespace imago
 	typedef unsigned char GSData; // TODO...
 
 	const int    INTENSITY_CHANNEL = 0; // intensity channel
+	const int    R_CHANNEL = 1;
+	const int    G_CHANNEL = 2;
+	const int    B_CHANNEL = 3;
 
 	struct RGBData
 	{
@@ -18,9 +21,9 @@ namespace imago
 		RGBData(unsigned char R = 0, unsigned char G = 0, unsigned char B = 0, unsigned char I = 0)
 		{
 			L[INTENSITY_CHANNEL] = I;
-			if (CHANNELS_COUNT > 1) L[1] = R;
-			if (CHANNELS_COUNT > 2) L[2] = G;
-			if (CHANNELS_COUNT > 3) L[3] = B;			
+			if (CHANNELS_COUNT > R_CHANNEL) L[R_CHANNEL] = R;
+			if (CHANNELS_COUNT > G_CHANNEL) L[G_CHANNEL] = G;
+			if (CHANNELS_COUNT > B_CHANNEL) L[B_CHANNEL] = B;			
 		}
 	};
 }

@@ -37,6 +37,7 @@
 
 #include "classification.h"
 #include "log_ext.h"
+#include "adaptive_filter.h"
 
 using namespace imago;
 
@@ -654,10 +655,10 @@ void testRecognition(const char *filename, int debugLog, int adaptiveFilter)
 	  getSettings()["AdaptiveFilter"] = adaptiveFilter;
 
 	  ImageUtils::loadImageFromFile(img, filename);
-      
-      prefilterImage(img, csr.getCharacterRecognizer());
+     	  
+	  prefilterImage(img, csr.getCharacterRecognizer());
+	  
       Molecule mol;
-
       csr.image2mol(img, mol);
 
       std::string molfile = expandSuperatoms(mol);

@@ -26,5 +26,22 @@ namespace imago
 
 	private:
 		Basic2dStorage<unsigned char> diff_cache;
-	};	
+	};
+
+	class FilterImageStub
+	{
+	public:
+		FilterImageStub(Image* img, int source_width, int source_height);
+		virtual ~FilterImageStub();
+		static bool isAdaptiveFilterEnabled();
+		static bool isColorLoadingRequired();
+		void initPixel(int x, int y, unsigned char intensity);
+
+		// inensity == 0 forcing automatical recalculation using R, G, B components
+		void initPixel(int x, int y, unsigned char R, unsigned char G, unsigned char B, unsigned char intensity = 0);
+	private:
+		Image* imgptr;
+		AdaptiveFilter* filterptr;
+		int scale;
+	};
 }
