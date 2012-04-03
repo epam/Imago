@@ -738,7 +738,7 @@ int main(int argc, char **argv)
    // parse command line
    std::vector<std::string> unparsedArgs;
    int debugLog = 0;
-   int adaptiveFilter = 0;
+   int adaptiveFilter = 1;
    for (int i = 1; i < argc; i++)
    {
 	   std::string s = argv[i];
@@ -753,6 +753,8 @@ int main(int argc, char **argv)
 			   adaptiveFilter = 2;
 		   else if (strcmp(s.c_str(), "-gs") == 0)
 			   adaptiveFilter = 1;
+		   else if (strcmp(s.c_str(), "-oldfilter") == 0)
+			   adaptiveFilter = 0;
 	   }
 	   else
 		   unparsedArgs.push_back(s);
