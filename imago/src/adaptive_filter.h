@@ -4,25 +4,27 @@
 #include "color_channels.h"
 #include "basic_2d_storage.h"
 #include "pixel_boundings.h"
+#include "weak_segmentator.h"
 
 namespace imago
 {
-	class RGBStorage : public Basic2dStorage<RGBData>
+	class AdaptiveFilter : public Basic2dStorage<RGBData>
 	{
 	public:
-		RGBStorage(int w, int h);
+		AdaptiveFilter(int w, int h);
+		virtual ~AdaptiveFilter();
+		void filterImage(Image& img);	
 
-		RGBStorage(const RGBStorage& src, int interpolation = 0);
+		friend class ImageAdapter;
 
-		virtual ~RGBStorage();
-
+	protected:		
+		AdaptiveFilter(const AdaptiveFilter& src, int interpolation = 0);
 		int getMaximalIntensityDiff(int channel, int x, int y, int iterations);
+
+		int getIntensityBound(const Rectangle& crop, WeakSegmentator* ws = NULL);
+		void normalizedOuput(Image& img, const WeakSegmentator& ws, const Rectangle& crop);
 
 	private:
 		Basic2dStorage<unsigned char> diff_cache;
-	};
-
-	
-
-	 void RGB_based_init(Image &img, RGBStorage& rgb);
+	};	
 }

@@ -849,9 +849,10 @@ void testRecognition(const char *filename, int debugLog, int adaptiveFilter)
 		  vfs.getData(logdata);
 		  flogdump.write(&logdata.at(0), logdata.size());
 		  
-		  VirtualFS v2;
-		  v2.setData(logdata);
-		  v2.storeOnDisk("log/");
+		  // for testing only:
+		  // VirtualFS v2;
+		  // v2.setData(logdata);
+		  // v2.storeOnDisk("log/");
 	  }
 
 

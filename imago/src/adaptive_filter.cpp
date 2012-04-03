@@ -1,16 +1,11 @@
 #include "adaptive_filter.h"
 #include "log_ext.h"
 #include "generic_histogram.h"
+#include "weak_segmentator.h"
 #include <queue>
 
 namespace imago
 {
-	/* code organization constants. Fixed values, not method params. 
-		*/
-	const int    INK = 0;                      // preferred intensity means filled
-	const int    BLANK = 255;                  // intensity means blank	
-	const int    COLOR_CHANNEL = 3;            // intensity channel		
-
 	/* Affects: recognition quality (MED), recognition time(HI, cause of MAX_REFINE_ITERS)
 	   Depends on: real image ink coverage ratio(MED)
 	   */
@@ -32,13 +27,7 @@ namespace imago
 	/* Affects: recognition quality(LO)
 	   Depends on: line thickness(LO,BOUND)
 	   */
-	const int    ERASE_NOISE_THRESHOLD = 32;   // pixels count, less that will be erased as noise
-
-	/* Affects: recognition of rectangle-cropped images; sticky notes, etc (HI)
-	   Depends on: line thickness(HI,BOUND) */
-	const double AREA_THRESHOLD_FACTOR = 0.30; // %, minimal rectangle coverage of image
-	const int    RECTANGULAR_WINDOWSIZE = 8;   // maximal rectangle side width
-	const double RECTANGULAR_THRESHOLD = 0.95; // %, for rectange testing
+	const int    ERASE_NOISE_THRESHOLD = 32;   // pixels count, less that will be erased as noise	
 
 	/* Affects: recognition quality(LO), recognition time(HI)
 		*/
@@ -47,11 +36,11 @@ namespace imago
 
 	// ---------------------------------------------------------------------------------
 
-	RGBStorage::RGBStorage(int w, int h) : Basic2dStorage<RGBData>(w, h), diff_cache(w, h, BLANK)
+	AdaptiveFilter::AdaptiveFilter(int w, int h) : Basic2dStorage<RGBData>(w, h), diff_cache(w, h, BLANK)
 	{
 	}
 
-	RGBStorage::RGBStorage(const RGBStorage& src, int interpolation) 
+	AdaptiveFilter::AdaptiveFilter(const AdaptiveFilter& src, int interpolation) 
 		: Basic2dStorage<RGBData>(src.width(), src.height()), 
 		  diff_cache(src.width(), src.height(), BLANK)
 	{
@@ -75,11 +64,11 @@ namespace imago
 			}
 	}
 
-	RGBStorage::~RGBStorage()
+	AdaptiveFilter::~AdaptiveFilter()
 	{
 	}
 
-	int RGBStorage::getMaximalIntensityDiff(int channel, int sx, int sy, int iterations)
+	int AdaptiveFilter::getMaximalIntensityDiff(int channel, int sx, int sy, int iterations)
 	{		
 		if (diff_cache.at(sx,sy) == BLANK)
 		{
@@ -102,7 +91,7 @@ namespace imago
 				cx = ncx; cy = ncy;
 			}
 
-			if (iterations > 0 && at(cx,cy).L[channel] > 160) // glare // TODO: !!!
+			if (iterations > 0 && at(cx,cy).L[channel] > 250) // glare // TODO: !!!
 			{
 				iterations /= 2;
 				goto restart;				
@@ -115,418 +104,7 @@ namespace imago
 		return diff_cache.at(sx,sy);
 	}
 
-	class ImageInterface
-	{
-	public:
-		virtual bool isFilled(int x, int y) const = 0; // check value is passed the bounds
-		virtual unsigned char getIntensity(int x, int y) const = 0; // get raw intensity value 0..255
-		virtual int width() const = 0;
-		virtual int height() const = 0;
-	};
-	
-
-	class WeakSegmentator : public Basic2dStorage<int>
-	{
-	public:
-		static int GetAverageIntensity(const ImageInterface &img, const Points2i& pts)
-		{
-			if (pts.empty())
-				return -1;
-
-			double result = 0.0;
-			for (size_t u = 0; u < pts.size(); u++)
-				result += img.getIntensity(pts[u].x, pts[u].y);
-			
-			return (int)(result / pts.size());
-		}
-
-
-		inline bool isContiniousConnected(int x, int y1, int y2)
-		{
-			bool ok = true;
-			for (int y = y1; y < y2; y++)
-				ok &= at(x, y) != 0;
-			return ok;
-		}
-
-		Points2i GetInside(const Points2i& pts, int lookup_range)
-		{
-			getLogExt().appendPoints("Points", pts);
-
-			/*int map_x_y1[RGB_MAX_IMAGE_DIM];
-			int map_x_y2[RGB_MAX_IMAGE_DIM];
-			for (int u = 0; u < RGB_MAX_IMAGE_DIM; u++)
-			{
-				// pre-fill
-				map_x_y1[u] = RGB_MAX_IMAGE_DIM;
-				map_x_y2[u] = 0;
-			}
-
-			// extract min/max by scanlines
-			for (size_t u = 0; u < pts.size(); u++)
-			{
-				if (pts[u].y < map_x_y1[pts[u].x])
-					map_x_y1[pts[u].x] = pts[u].y;
-				if (pts[u].y > map_x_y2[pts[u].x])
-					map_x_y2[pts[u].x] = pts[u].y;
-			}
-
-			// now check area is connected
-
-			// 1. find min/max indexes
-			int min_idx = -1, max_idx = -1;
-			for (int u = 0; u < RGB_MAX_IMAGE_DIM; u++)
-			{
-				if (map_x_y1[u] != RGB_MAX_IMAGE_DIM)
-				{
-					if (min_idx == -1)
-						min_idx = u;
-					max_idx = u;
-				}
-			}
-			if (min_idx == -1)
-				return Points2i(); // empty
-
-			getLogExt().appendText("1 pass");
-
-			// 2. now check indexes in [min_idx, max_idx] are filled continiously
-			bool ok = true;
-			for (int u = min_idx + 1; u <= max_idx; u++)
-				ok &= map_x_y1[u] <= map_x_y2[u];
-				      && abs(map_x_y1[u] - map_x_y1[u-1]) <= 2 * lookup_range // TODO! TEMP!
-					  && abs(map_x_y2[u] - map_x_y2[u-1]) <= 2 * lookup_range; 
-			if (!ok)
-				return Points2i(); // empty
-
-			getLogExt().appendText("2 pass");
-
-			// 3. check that map_x_y1[min_idx] is connected to map_x_y2[min_idx]
-			//           and map_x_y1[max_idx] is connected to map_x_y2[max_idx]
-			
-			// UPD: shift min_idx to meet criteria
-
-			while (min_idx < max_idx)
-			{
-				if (isContiniousConnected(min_idx, map_x_y1[min_idx], map_x_y2[min_idx]))
-					break;
-				else
-					min_idx++;
-			}
-
-			// UPD: shift max_idx to meet criteria
-
-			while (min_idx < max_idx)
-			{
-				if (isContiniousConnected(max_idx, map_x_y1[max_idx], map_x_y2[max_idx]))
-					break;
-				else
-					max_idx--;
-			}
-
-			if (min_idx >= max_idx)
-				return Points2i(); // empty
-
-			getLogExt().appendText("3 pass");
-
-			// yeah, area is connected			
-			for (int x = min_idx + 1; x < max_idx; x++)
-				for (int y = map_x_y1[x] + 1; y < map_x_y2[x]; y++)
-					if (at(x, y) == 0) // still blank
-						result.push_back(Vec2i(x, y));*/
-
-			Points2i result;
-
-			CustomShapedBounding b(pts);
-
-			getLogExt().appendText("init done");
-
-			b.itReset();
-			for (Vec2i p; b.itNext(p); )
-				result.push_back(p);
-
-			if (!result.empty())
-				getLogExt().appendPoints("result", result);
-
-			return result;
-		}
-
-		void fillInside(const ImageInterface &img, int lookup_range)
-		{
-			// erase glares and noise
-			std::vector<std::pair<int,int> > intensityLevels; // first - outside, second - inside
-			for (int u = start_id; u < id; u++)
-			{
-				Points2i& points = SegmentPoints[u];
-				Points2i& inside = GetInside(points, lookup_range);
-				int i_outside = GetAverageIntensity(img, points);
-				int i_inside = GetAverageIntensity(img, inside);
-				//getLogExt().append("Inside intensity", i_inside);
-				//getLogExt().append("Outside intensity", i_outside);
-				intensityLevels.push_back(std::make_pair(i_outside, i_inside));
-				// TEST! fill inside areas
-				for (size_t v = 0; v < inside.size(); v++)
-					at(inside[v].x, inside[v].y) = 1; // 'random' id
-			}
-
-			getLogExt().append("Added pixels", added_pixels);
-			getLogExt().append("Segments count", SegmentPoints.size());
-		}
-
-		int appendData(const ImageInterface &img, int lookup_range)
-		{
-			logEnterFunction();
-			
-			// TODO: calc useful pixels only
-			added_pixels = 0;
-
-			start_id = id;
-
-			for (int y = 0; y < height(); y++)
-				for (int x = 0; x < width(); x++)
-					if (at(x,y) == 0 && img.isFilled(x,y))
-						fill(img, id++, x, y, lookup_range);			
-
-			return added_pixels;
-		}
-
-		WeakSegmentator(const ImageInterface &img) 
-			: Basic2dStorage<int>(img.width(), img.height(), 0), id(1)
-		{	
-		}
-
-		~WeakSegmentator()
-		{			
-		}
-
-		void performPixelOptimizations()
-		{
-			logEnterFunction();
-
-			for (int y = 0; y < height(); y++)
-				for (int x = 0; x < width(); x++)
-				{
-					int count = 0, id = 0;
-					for (int dy = -1; dy <= 1; dy++)
-						for (int dx = -1; dx <= 1; dx++)
-							if ((dx != 0 || dy != 0) && inRange(x+dx, y+dy))
-							{
-								if (at(x+dx,y+dy) != 0)
-								{
-									id = at(x+dx,y+dy);
-									count++;
-								}
-							}
-					if (at(x,y) != 0 && count == 0) // erase lonely pixel
-						at(x,y) = 0;
-					else if (at(x,y) == 0 && count >= 7) // fill inside pixels group
-						at(x,y) = id;
-				}
-		}
-
-		void eraseNoise(int threshold)
-		{
-			logEnterFunction();
-
-			for (int y = 0; y < height(); y++)
-				for (int x = 0; x < width(); x++)
-				{
-					int v = at(x, y);
-					if (v > 0 && (int)SegmentPoints[v].size() < threshold)
-					{
-						SegmentPoints[v].clear();
-						at(x,y) = 0;
-					}
-				}			
-		}
-
-		bool needCrop(Rectangle& crop)
-		{
-			logEnterFunction();
-
-			int area_threshold = width() * height() * AREA_THRESHOLD_FACTOR;
-			for (size_t u = 0; u < SegmentPoints.size(); u++)
-			{
-				Rectangle bounds;
-				if (getRectangularArea(u) > area_threshold 
-					&& hasRectangularStructure(u, RECTANGULAR_WINDOWSIZE, RECTANGULAR_THRESHOLD, bounds))
-				{
-					getLogExt().append("Has rectangular structure, id", u);	
-					bounds.adjustBorder(MAX_DELTA_PATH + RECTANGULAR_WINDOWSIZE*2); // *2, why?
-					crop = bounds;
-					return true;
-				}
-			}
-			return false;
-		}
-
-		void getBoundingBox(Rectangle& bound) const
-		{
-			bound.x = bound.y = MAX_IMAGE_DIMENSIONS;
-			bound.width = bound.height = 0;
-			for (std::map<int, Points2i>::const_iterator it = SegmentPoints.begin(); it != SegmentPoints.end(); it++)
-				getRectBounds(it->second, bound, false);
-		}
-
-	protected:
-		void getRectBounds(const Points2i& p, Rectangle& bounds, bool reinit = true) const
-		{
-			int min_x = width(), max_x = 0, min_y = height(), max_y = 0;
-			if (!reinit)
-			{
-				min_x = bounds.x1();
-				min_y = bounds.y1();
-				max_x = bounds.x2();
-				max_y = bounds.y2();
-			}
-			for (Points2i::const_iterator it = p.begin(); it != p.end(); it++)
-			{
-				min_x = std::min(min_x, it->x);
-				min_y = std::min(min_y, it->y);
-				max_x = std::max(max_x, it->x);
-				max_y = std::max(max_y, it->y);
-			}
-			bounds = Rectangle(min_x, min_y, max_x, max_y, 0);
-		}
-		
-		int getRectangularArea(int id)
-		{
-			Rectangle bounds;
-			getRectBounds(SegmentPoints[id], bounds);
-			return bounds.width * bounds.height;
-		}		
-
-		bool hasRectangularStructure(int id, int window_size, double threshold, Rectangle& bound)
-		{
-			Points2i& p = SegmentPoints[id];
-			
-			int map_x[MAX_IMAGE_DIMENSIONS] = {0};
-			int map_y[MAX_IMAGE_DIMENSIONS] = {0};
-			for (Points2i::iterator it = p.begin(); it != p.end(); it++)
-			{
-				map_x[it->x]++;
-				map_y[it->y]++;
-			}
-
-			double x1c, x2c, y1c, y2c;			
-			if (get2centers(map_x, width(), x1c, x2c) && get2centers(map_y, height(), y1c, y2c))
-			{
-				// now update maps
-				memset(map_x, 0, sizeof(map_x));
-				memset(map_y, 0, sizeof(map_y));
-				for (Points2i::iterator it = p.begin(); it != p.end(); it++)
-				{
-					if (it->y > y1c && it->y < y2c) map_x[it->x]++;
-					if (it->x > x1c && it->x < x2c) map_y[it->y]++;
-				}
-				// and centers
-				if (get2centers(map_x, width(), x1c, x2c) && get2centers(map_y, height(), y1c, y2c) &&
-					fabs(x1c - x2c) > 2*window_size && fabs(y1c - y2c) > 2*window_size)
-				{
-					int good = 0, bad = 0;
-					for (Points2i::iterator it = p.begin(); it != p.end(); it++)
-						if ((fabs(it->x - x1c) < window_size || fabs(it->x - x2c) < window_size) ||
-							(fabs(it->y - y1c) < window_size || fabs(it->y - y2c) < window_size))
-							good++;
-						else
-							bad++;
-					if ((double)good / (good+bad) > threshold)
-					{
-						bound = Rectangle(x1c, y1c, x2c, y2c, 0);
-						return true;
-					}
-				}
-			}
-
-			return false;
-		}
-
-		std::map<int, Points2i> SegmentPoints;
-		int id, added_pixels;
-		int start_id;
-
-	private:
-		void fill(const ImageInterface &img, int id, int sx, int sy, int lookup_range)
-		{
-			typedef std::queue<Vec2i> WorkVector;
-			WorkVector v;
-			v.push(Vec2i(sx,sy));
-
-			while (!v.empty())
-			{
-				Vec2i cur = v.front();
-				v.pop();
-
-				if (at(cur.x,cur.y) == 0)
-				{
-					at(cur.x,cur.y) = id;
-					SegmentPoints[id].push_back(cur);
-					added_pixels++;
-
-					for (int dx = -lookup_range; dx <= lookup_range; dx++)
-						for (int dy = -lookup_range; dy <= lookup_range; dy++)
-						{
-							Vec2i t(cur.x+dx,cur.y+dy);
-							if ((dx != 0 || dy != 0) && inRange(t.x, t.y) 
-								&& at(t.x, t.y) == 0 && img.isFilled(t.x, t.y))
-							{
-								// TODO: !!!fixup hack:
-								// -- connectivity maker code
-								/*if (at(cur.x + dx/2, cur.y + dy/2) == 0)
-								{
-									at(cur.x + dx/2, cur.y + dy/2) = id;
-									added_pixels++;
-								}
-								*/
-								// end hack
-								v.push(t);
-							}
-						}
-				}
-			}
-		}
-
-		static bool get2centers(int* data, int size, double &c1, double& c2) // c1 < c2
-		{
-			double average = 0.0, count = 0.0;
-			for (int u = 0; u < size; u++)
-			{
-				average += u * data[u];
-				count += data[u];
-			}			
-			
-			if (count < 1)
-				return false;
-
-			average /= count;
-			c1 = 0.0;
-			c2 = 0.0;
-			double count1 = 0.0;
-			double count2 = 0.0;
-
-			for (int u = 0; u < size; u++)
-			{
-				if (u < average)
-				{
-					c1 += u * data[u];
-					count1 += data[u];
-				}
-				else
-				{
-					c2 += u * data[u];
-					count2 += data[u];
-				}
-			}
-
-			if (count1 < 1 || count2 < 1)
-				return false;
-
-			c1 /= count1;
-			c2 /= count2;
-			return true;
-		}
-	};
-
-	int getIntensityBound(RGBStorage& data, const Rectangle& crop, WeakSegmentator* ws = NULL)
+	int AdaptiveFilter::getIntensityBound(const Rectangle& crop, WeakSegmentator* ws)
 	{
 		logEnterFunction();
 
@@ -534,13 +112,13 @@ namespace imago
 		for (int y = crop.y1(); y < crop.y2(); y++)
 			for (int x = crop.x1(); x < crop.x2(); x++)
 				if (ws == NULL || 0 == ws->at(x - crop.x1(), y - crop.y1()))
-					distHist.addData(data.getMaximalIntensityDiff(COLOR_CHANNEL, x, y, DIFF_ITERATIONS));
+					distHist.addData(getMaximalIntensityDiff(INTENSITY_CHANNEL, x, y, DIFF_ITERATIONS));
 		int result = distHist.getValueMoreThan(INK_THRESHOLD);
 		getLogExt().append("Intensity diff bound", result);
 		return result;
 	}
 
-	void normalizeOuput(Image& img, const WeakSegmentator& ws, const RGBStorage& rgb, const Rectangle& crop)
+	void AdaptiveFilter::normalizedOuput(Image& img, const WeakSegmentator& ws, const Rectangle& crop)
 	{
 		logEnterFunction();
 
@@ -550,7 +128,7 @@ namespace imago
 			{
 				if (ws.at(x, y) > 0)
 				{
-					unsigned char c = rgb.at(crop.x+x,crop.y+y).L[COLOR_CHANNEL];
+					unsigned char c = at(crop.x+x,crop.y+y).L[INTENSITY_CHANNEL];
 					if (c < minv) minv = c;
 					if (c > maxv) maxv = c;
 				}
@@ -572,7 +150,7 @@ namespace imago
 				{							
 					if (ws.at(x, y) > 0)
 					{
-						unsigned char c = rgb.at(crop.x + x, crop.y + y).L[COLOR_CHANNEL];
+						unsigned char c = at(crop.x + x, crop.y + y).L[INTENSITY_CHANNEL];
 						img.getByte(x, y) = factor * (c - minv);
 					}
 					else
@@ -588,17 +166,17 @@ namespace imago
 	class ImageAdapter : public ImageInterface
 	{
 	public:
-		ImageAdapter(RGBStorage& _rgb, Rectangle& _crop, int _diff_bound)
+		ImageAdapter(AdaptiveFilter& _rgb, Rectangle& _crop, int _diff_bound)
 			: rgb(_rgb), crop(_crop), diff_bound(_diff_bound) { }		
 		
 		virtual bool isFilled(int x, int y) const		
 		{
-			return rgb.getMaximalIntensityDiff(COLOR_CHANNEL, crop.x + x, crop.y + y, DIFF_ITERATIONS) >= diff_bound;
+			return rgb.getMaximalIntensityDiff(INTENSITY_CHANNEL, crop.x + x, crop.y + y, DIFF_ITERATIONS) >= diff_bound;
 		}
 
 		virtual unsigned char getIntensity(int x, int y) const
 		{
-			return rgb.at(crop.x + x, crop.y + y).L[COLOR_CHANNEL];
+			return rgb.at(crop.x + x, crop.y + y).L[INTENSITY_CHANNEL];
 		}
 
 		virtual int width() const
@@ -622,27 +200,27 @@ namespace imago
 		}
 
 	private:
-		RGBStorage& rgb;
+		AdaptiveFilter& rgb;
 		Rectangle& crop;
 		int diff_bound;
 	};
 
-	void RGB_based_init(Image &img, RGBStorage& rgb)
+	void AdaptiveFilter::filterImage(Image& img)
 	{	
 		logEnterFunction();	
 
 		getLogExt().appendImage("Source image", img);
 		
-		Rectangle crop(0, 0, rgb.width(), rgb.height());
-		RGBStorage interpolated(rgb, INTERPOLATION_LEVEL);
+		Rectangle crop(0, 0, this->width(), this->height());
+		AdaptiveFilter interpolated(*this, INTERPOLATION_LEVEL);
 		
 		// maximal crops allowed loop
 		for (int crop_attempt = 0; crop_attempt <= MAX_CROPS; crop_attempt++)
 		{
-			ImageAdapter img_a(rgb, crop, getIntensityBound(interpolated, crop));
+			ImageAdapter img_a(*this, crop, interpolated.getIntensityBound(crop));
 			WeakSegmentator ws(img_a);
 			int added0 = ws.appendData(img_a, DIFF_ITERATIONS);
-			int pixelAddBoundary = added0 / 10;
+			int pixelAddBoundary = added0 / 25;
 
 			if (crop_attempt == MAX_CROPS || !ws.needCrop(crop))
 			{
@@ -652,11 +230,11 @@ namespace imago
 					if (getLogExt().loggingEnabled())
 					{
 						Image temp;
-						normalizeOuput(temp, ws, rgb, crop);
+						normalizedOuput(temp, ws, crop);
 						getLogExt().appendImage("Working image", temp);
 					}
 
-					img_a.updateBound(getIntensityBound(interpolated, crop, &ws));
+					img_a.updateBound(interpolated.getIntensityBound(crop, &ws));
 					int added_n = ws.appendData(img_a, DIFF_ITERATIONS);
 					if (added_n < ERASE_NOISE_THRESHOLD || added_n < pixelAddBoundary)
 					{
@@ -668,7 +246,7 @@ namespace imago
 				// ws.eraseNoise(ERASE_NOISE_THRESHOLD); // temporary. function is wrong
 
 				ws.performPixelOptimizations();
-				normalizeOuput(img, ws, rgb, crop);
+				normalizedOuput(img, ws, crop);
 				break;
 			}
 		}
