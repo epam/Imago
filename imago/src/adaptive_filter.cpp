@@ -10,7 +10,7 @@ namespace imago
 	/* Affects: recognition quality (MED), recognition time(HI, cause of MAX_REFINE_ITERS)
 	   Depends on: real image ink coverage ratio(MED)
 	   */
-	const double INK_THRESHOLD = 0.9925;	       // 1-% for initial ink coverage
+	const double INK_THRESHOLD = 0.995;	       // 1-% for initial ink coverage
 	
 	/* Affects: recognition quality (LO), recognition time(LO)
 	   Depends on: jpeg artifacts / camera noise / etc(LO)
@@ -32,7 +32,7 @@ namespace imago
 	/* Affects: recognition quality(LO), recognition time(HI)
 		*/
 	const int    MAX_CROPS = 1;                // 1 is sufficient in most cases
-	const int    MAX_REFINE_ITERS = 10;
+	const int    MAX_REFINE_ITERS = 5;
 
 	// ---------------------------------------------------------------------------------
 
@@ -124,7 +124,7 @@ namespace imago
 	{
 		logEnterFunction();
 
-		int minv = 255, maxv = 0;
+		int minv = 255, maxv = 0, average = 0;
 		for (int y = 0; y < crop.height; y++)
 			for (int x = 0; x < crop.width; x++)
 			{
@@ -133,11 +133,13 @@ namespace imago
 					GrayscaleData c = at(crop.x+x,crop.y+y).intensity;
 					if (c < minv) minv = c;
 					if (c > maxv) maxv = c;
+					average += c;
 				}
 			}
 
 		getLogExt().append("Minimal intensity matches diff", minv);
 		getLogExt().append("Maximal intensity matches diff", maxv);
+		getLogExt().append("Average", average / (crop.width * crop.height));
 
 		if (minv == maxv && minv == 0)
 		{
@@ -218,6 +220,11 @@ namespace imago
 	{	
 		logEnterFunction();	
 
+		doWiener(output);
+		for (int h = 0; h < output.getHeight(); h++)
+			for (int w = 0; w < output.getWidth(); w++)
+				at(w,h).intensity = output.getByte(w,h);
+
 		Rectangle crop(0, 0, this->width(), this->height());
 		AdaptiveFilter interpolated(this->width(), this->height());
 		interpolated.interpolateImage(*this, INTERPOLATION_LEVEL);
@@ -237,8 +244,8 @@ namespace imago
 		// maximal crops allowed loop
 		for (int crop_attempt = 0; crop_attempt <= MAX_CROPS; crop_attempt++)
 		{
-			//#define SRC *this      // more precision, bad on noisy
-			#define SRC interpolated // better on noisy images, faster
+			#define SRC *this      // more precision, bad on noisy
+			//#define SRC interpolated // better on noisy images, faster
 
 			int bound = interpolated.getIntensityBound(crop);
 			ImageAdapter img(SRC, crop, bound);
@@ -309,9 +316,10 @@ namespace imago
 		//if (FILTER_DUMP_IMAGES)
 		//	getLogExt().appendImage("Refined image", output);
 
+		// TODO: real very important part, affects anything! 127 is bad threshold!
 		for (int y = 0; y < output.getHeight(); y++)
 			for (int x = 0; x < output.getWidth(); x++)
-				output.getByte(x, y) = (output.getByte(x, y) != 255) ? 0 : 255;
+				output.getByte(x, y) = (output.getByte(x, y) < 127) ? 0 : 255;
 
 		if (FILTER_DUMP_IMAGES)
 			getLogExt().appendImage("Binarized image", output);

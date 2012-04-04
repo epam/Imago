@@ -81,7 +81,7 @@ namespace imago
 
 	private:
 		// returns filled pixels count
-		void fill(const ImageInterface &img, int id, int startx, int starty, int lookup_range);
+		void fill(const ImageInterface &img, int& id, int startx, int starty, int lookup_range);
 
 		// returns 2 probably condensation point for integer vector
 		static bool get2centers(int* data, int size, double &c1, double& c2);

@@ -850,6 +850,21 @@ int greyThresh(cv::Mat mat, bool strong)
    return cnt;
 }
 
+void doWiener(Image &img)
+{
+	logEnterFunction();
+
+	cv::Mat mat;
+
+	_unsharpMask(img, 7, 4, 0);
+	_copyImageToMat(img, mat);
+   	HistogramTools ht(mat);
+	ht.ImageAdjust(mat);
+	_wiener2(mat);
+	
+	img.clear();
+	_copyMatToImage(img, mat);
+}
 
 void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecognizer &_cr, bool adaptiveThresh=false, bool strongThresh=false)
 {

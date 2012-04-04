@@ -11,7 +11,7 @@ namespace imago
 	Depends on: line thickness(HI,BOUND) */
 	static const double RECTANGULAR_AREA_THRESHOLD = 0.30; // %, minimal rectangle coverage of image
 	static const int    RECTANGULAR_WINDOWSIZE     = 12;   // maximal rectangle side width (TODO - variable)
-	static const double RECTANGULAR_PASS_THRESHOLD = 0.95; // %, for rectange testing
+	static const double RECTANGULAR_PASS_THRESHOLD = 0.95; // %, for rectangle testing
 
 	Points2i WeakSegmentator::getNeighbors(const Image& img, const Vec2i& p, int range) const
 	{
@@ -284,6 +284,7 @@ namespace imago
 		int area_pixels = width() * height() * RECTANGULAR_AREA_THRESHOLD;
 		for (size_t id = 1; id <= SegmentPoints.size(); id++)
 		{
+			getLogExt().appendPoints("Segment", SegmentPoints[id]);
 			Rectangle bounds;
 			if (getRectangularArea(id) > area_pixels && hasRectangularStructure(id, bounds))
 			{
@@ -347,7 +348,7 @@ namespace imago
 		return false;
 	}
 
-	void WeakSegmentator::fill(const ImageInterface &img, int id, int sx, int sy, int lookup_range)
+	void WeakSegmentator::fill(const ImageInterface &img, int& id, int sx, int sy, int lookup_range)
 	{
 		std::queue<Vec2i> v;
 		v.push(Vec2i(sx,sy));
@@ -360,15 +361,33 @@ namespace imago
 			{
 				at(cur.x,cur.y).id = id;
 				SegmentPoints[id].push_back(cur);
+
 				for (int dx = -lookup_range; dx <= lookup_range; dx++)
 					for (int dy = -lookup_range; dy <= lookup_range; dy++)
 					{
-						Vec2i t(cur.x+dx,cur.y+dy);
-						if ((dx != 0 || dy != 0) && inRange(t.x, t.y) 
-							&& at(t.x, t.y).id == 0 && img.isFilled(t.x, t.y)
-							&& refineIsAllowed(t.x, t.y))
-						{							
-							v.push(t);
+						Vec2i t(cur.x + dx,cur.y + dy);
+						if ((dx != 0 || dy != 0) && inRange(t.x, t.y))
+						{
+							if (at(t.x, t.y).id == 0)
+							{						
+								if (img.isFilled(t.x, t.y) && refineIsAllowed(t.x, t.y))
+									v.push(t);
+							}
+							else if (at(t.x, t.y).id != id)
+							{
+								// merge segments								
+								int merge_id = at(t.x, t.y).id;
+								// getLogExt().append("Merge id", id);
+								// getLogExt().append("With", merge_id);
+								for (size_t u = 0; u < SegmentPoints[id].size(); u++)
+								{
+									Vec2i p = SegmentPoints[id][u];
+									at(p.x, p.y).id = merge_id;
+									SegmentPoints[merge_id].push_back(p);
+								}
+								SegmentPoints.erase(SegmentPoints.find(id));
+								id = merge_id;
+							}
 						}
 					}
 			}
