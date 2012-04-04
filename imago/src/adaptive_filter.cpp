@@ -10,12 +10,12 @@ namespace imago
 	/* Affects: recognition quality (MED), recognition time(HI, cause of MAX_REFINE_ITERS)
 	   Depends on: real image ink coverage ratio(MED)
 	   */
-	const double INK_THRESHOLD = 0.995;	       // 1-% for initial ink coverage
+	const double INK_THRESHOLD = 0.9925;	       // 1-% for initial ink coverage
 	
 	/* Affects: recognition quality (LO), recognition time(LO)
 	   Depends on: jpeg artifacts / camera noise / etc(LO)
 	   */
-	const int    INTERPOLATION_LEVEL = 3;      // (2*n+1)^2 kernel for mean filter will be used
+	const int    INTERPOLATION_LEVEL = 2;      // (2*n+1)^2 kernel for mean filter will be used
 
 	/* Affects: recognition quality (MED), recognition time(LO)
 	   Depends on: line thickness(HI,BOUND)
@@ -32,29 +32,36 @@ namespace imago
 	/* Affects: recognition quality(LO), recognition time(HI)
 		*/
 	const int    MAX_CROPS = 1;                // 1 is sufficient in most cases
-	const int    MAX_REFINE_ITERS = 5;
+	const int    MAX_REFINE_ITERS = 10;
 
 	// ---------------------------------------------------------------------------------
 
-	void AdaptiveFilter::interpolateImage(const AdaptiveFilter& src, int interpolation) 
+	void AdaptiveFilter::interpolateImage(const AdaptiveFilter& src, int radius) 
 	{
 		logEnterFunction();
 
-		double int2 = (2*interpolation+1)*(2*interpolation+1);
+		double int2 = (2*radius+1)*(2*radius+1);
+
 		for (int y = 0; y < src.height(); y++)
 			for (int x = 0; x < src.width(); x++)
 			{				
+				int sx = x, sy = y;
+
+				// deal with corners
+				if (sx < radius) sx = radius;
+				if (sy < radius) sy = radius;
+				if (sx >= src.width() - radius - 1) sx = src.width() - radius - 1;
+				if (sy >= src.height() - radius - 1) sy = src.height() - radius - 1;
+
 				double temp = 0.0;
-				for (int dx = -interpolation; dx <= interpolation; dx++)
+				for (int dx = -radius; dx <= radius; dx++)
 				{
-					for (int dy = -interpolation; dy <= interpolation; dy++)
+					for (int dy = -radius; dy <= radius; dy++)
 					{
-						if (inRange(x + dx, y + dy))
-							temp += src.at(x + dx, y + dy).intensity;
-						else
-							temp += BLANK;
+						temp += src.at(sx + dx, sy + dy).intensity;
 					}
 				}
+
 				at(x,y).intensity = temp / int2;
 			}
 	}
@@ -168,17 +175,17 @@ namespace imago
 	class ImageAdapter : public ImageInterface
 	{
 	public:
-		ImageAdapter(AdaptiveFilter& _rgb, Rectangle& _crop, int _diff_bound)
-			: rgb(_rgb), crop(_crop), diff_bound(_diff_bound) { }		
+		ImageAdapter(AdaptiveFilter& _af, Rectangle& _crop, int _diff_bound)
+			: af(_af), crop(_crop), diff_bound(_diff_bound) { }		
 		
 		virtual bool isFilled(int x, int y) const		
 		{
-			return rgb.getMaximalIntensityDiff(crop.x + x, crop.y + y, DIFF_ITERATIONS) >= diff_bound;
+			return af.getMaximalIntensityDiff(crop.x + x, crop.y + y, DIFF_ITERATIONS) >= diff_bound;
 		}
 
 		virtual unsigned char getIntensity(int x, int y) const
 		{
-			return rgb.at(crop.x + x, crop.y + y).intensity;
+			return af.at(crop.x + x, crop.y + y).intensity;
 		}
 
 		virtual int width() const
@@ -202,7 +209,7 @@ namespace imago
 		}
 
 	private:
-		AdaptiveFilter& rgb;
+		AdaptiveFilter& af;
 		Rectangle& crop;
 		int diff_bound;
 	};
@@ -230,17 +237,21 @@ namespace imago
 		// maximal crops allowed loop
 		for (int crop_attempt = 0; crop_attempt <= MAX_CROPS; crop_attempt++)
 		{
-			ImageAdapter img(*this, crop, interpolated.getIntensityBound(crop));
+			//#define SRC *this      // more precision, bad on noisy
+			#define SRC interpolated // better on noisy images, faster
+
+			int bound = interpolated.getIntensityBound(crop);
+			ImageAdapter img(SRC, crop, bound);
 			WeakSegmentator ws(img.width(), img.height());
 
-			int pixelAddBoundary = ws.appendData(img, DIFF_ITERATIONS) / 10;
+			int addedPixels = ws.appendData(img, DIFF_ITERATIONS);
 
 			// update line thickness
-			{
+			/*{
 				Image temp;
 				normalizedOuput(temp, crop, &ws);
 				line_thickness = EstimateLineThickness(temp);
-			}
+			}*/
 
 			if (crop_attempt == MAX_CROPS || !ws.needCrop(crop))
 			{
@@ -259,16 +270,25 @@ namespace imago
 					}
 
 					int new_bound = interpolated.getIntensityBound(crop, &ws);
+
+					if (new_bound >= bound)
+					{						
+						//new_bound = bound - 1;						
+						getLogExt().append("Bound not changed", new_bound);
+					}
+
+					bound = new_bound;
+
 					if (new_bound <= 0)
 					{
-						getLogExt().append("New intensity bound is too low", new_bound);
+						getLogExt().append("New intensity bound is too low, quit loop", new_bound);
 						break;
 					}
 
 					img.updateBound(new_bound);					
 
 					int added_n = ws.appendData(img, DIFF_ITERATIONS);
-					if (added_n < ERASE_NOISE_THRESHOLD /*|| added_n < pixelAddBoundary*/)
+					if (added_n < ERASE_NOISE_THRESHOLD)
 					{
 						getLogExt().append("Crossed useful refinements boundary on iteration", refine_iter);
 						break;
@@ -279,15 +299,15 @@ namespace imago
 
 				ws.performPixelOptimizations();
 
-				ws.reconstructLines(line_thickness);
+				//ws.reconstructLines(line_thickness);
 
 				normalizedOuput(output, crop, &ws);
 				break;
 			}
 		}
 			
-		if (FILTER_DUMP_IMAGES)
-			getLogExt().appendImage("Refined image", output);
+		//if (FILTER_DUMP_IMAGES)
+		//	getLogExt().appendImage("Refined image", output);
 
 		for (int y = 0; y < output.getHeight(); y++)
 			for (int x = 0; x < output.getWidth(); x++)
