@@ -41,27 +41,21 @@ namespace imago
 
 		// remove alone pixels, fill broken pixels
 		void performPixelOptimizations();
-		
-		// erase noise areas by density (pixels/area) threshold
-		void eraseNoise(double threshold);
-
-		// remove glares by its maximal are percent (area/img.area) threshold
-		void removeGlares(double threshold);
-		
+				
 		// updates crop if required
 		bool needCrop(Rectangle& crop);		
 
 		// required for AdaptiveFilter updateBound( )
 		bool alreadyExplored(int x, int y) const;
 
-		// redraw all image with specified line thinkness
-		void reconstructLines(double thickness);
-
 		// returns true if point should be returned from filter
 		inline bool readyForOutput(int x, int y) const
 		{
 			return at(x,y).id > 0;
 		}
+
+		// returns neighbors of p with intensity == INK
+		static Points2i getNeighbors(const Image& img, const Vec2i& p, int range = 1);
 
 	protected:		
 		// returns all segment endpoints
@@ -84,9 +78,6 @@ namespace imago
 		void fill(const ImageInterface &img, int& id, int startx, int starty, int lookup_range);
 
 		// returns 2 probably condensation point for integer vector
-		static bool get2centers(int* data, int size, double &c1, double& c2);
-
-		// returns neighbors of p with intensity == INK
-		Points2i getNeighbors(const Image& img, const Vec2i& p, int range = 1) const;
+		static bool get2centers(int* data, int size, double &c1, double& c2);		
 	};
 }

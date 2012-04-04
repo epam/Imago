@@ -13,12 +13,13 @@ namespace imago
 	static const int    RECTANGULAR_WINDOWSIZE     = 12;   // maximal rectangle side width (TODO - variable)
 	static const double RECTANGULAR_PASS_THRESHOLD = 0.95; // %, for rectangle testing
 
-	Points2i WeakSegmentator::getNeighbors(const Image& img, const Vec2i& p, int range) const
+	Points2i WeakSegmentator::getNeighbors(const Image& img, const Vec2i& p, int range)
 	{
 		Points2i neighb;
 		for (int dy = -range; dy <= range; dy++)
 			for (int dx = -range; dx <= range; dx++)
-				if ((dx != 0 || dy != 0) && inRange(p.x+dx, p.y+dy))
+				if ((dx != 0 || dy != 0) && p.x+dx >= 0 && p.y+dy >= 0
+					&& p.x+dx < img.getWidth() && p.y+dy < img.getHeight() )
 					if (img.getByte(p.x+dx, p.y+dy) == INK)
 						neighb.push_back(Vec2i(p.x+dx, p.y+dy));
 		return neighb;
@@ -103,21 +104,6 @@ namespace imago
 						thin.getByte(x, y) = 128; // only visual
 
 			getLogExt().appendImage("Image with endvectors", thin);
-		}
-	}
-
-	void WeakSegmentator::reconstructLines(double thickness)
-	{
-		Image thin(width(), height());
-		for (int y = 0; y < height(); y++)
-			for (int x = 0; x < width(); x++)
-				thin.getByte(x, y) = readyForOutput(x,y) ? INK : BLANK;
-
-		ThinFilter2(thin).apply();
-
-		if (FILTER_DUMP_IMAGES)
-		{
-			getLogExt().appendImage("Final thinned", thin);
 		}
 	}
 
@@ -260,7 +246,7 @@ namespace imago
 			}
 	}
 
-	void WeakSegmentator::eraseNoise(double threshold)
+	/*void WeakSegmentator::eraseNoise(double threshold)
 	{
 		// TODO:
 		logEnterFunction();
@@ -275,7 +261,7 @@ namespace imago
 					at(x,y).id = 0;
 				}
 			}			
-	}
+	}*/
 
 	bool WeakSegmentator::needCrop(Rectangle& crop)
 	{

@@ -4,6 +4,7 @@
 #include "generic_histogram.h"
 #include "weak_segmentator.h"
 #include "prefilter.h"
+#include "thin_filter2.h"
 
 namespace imago
 {
@@ -70,7 +71,7 @@ namespace imago
 	{		
 		if (at(sx,sy).diffCache == BLANK)
 		{
-			restart:
+			// restart:
 
 			int cx = sx, cy = sy;
 
@@ -244,21 +245,22 @@ namespace imago
 		// maximal crops allowed loop
 		for (int crop_attempt = 0; crop_attempt <= MAX_CROPS; crop_attempt++)
 		{
-			#define SRC *this      // more precision, bad on noisy
-			//#define SRC interpolated // better on noisy images, faster
-
 			int bound = interpolated.getIntensityBound(crop);
-			ImageAdapter img(SRC, crop, bound);
+			ImageAdapter img(*this, crop, bound);
 			WeakSegmentator ws(img.width(), img.height());
 
 			int addedPixels = ws.appendData(img, DIFF_ITERATIONS);
 
 			// update line thickness
-			/*{
+			{
 				Image temp;
 				normalizedOuput(temp, crop, &ws);
+				for (int y = 0; y < temp.getHeight(); y++)
+					for (int x = 0; x < temp.getWidth(); x++)
+						temp.getByte(x, y) = (temp.getByte(x, y) < 127) ? 0 : 255; // TODO, 127
 				line_thickness = EstimateLineThickness(temp);
-			}*/
+				getLogExt().append("Initial line thickness", line_thickness);
+			}
 
 			if (crop_attempt == MAX_CROPS || !ws.needCrop(crop))
 			{
@@ -281,7 +283,7 @@ namespace imago
 					if (new_bound >= bound)
 					{						
 						//new_bound = bound - 1;						
-						getLogExt().append("Bound not changed", new_bound);
+						getLogExt().append("Warning: Bound not changed", new_bound);
 					}
 
 					bound = new_bound;
@@ -317,12 +319,61 @@ namespace imago
 		//	getLogExt().appendImage("Refined image", output);
 
 		// TODO: real very important part, affects anything! 127 is bad threshold!
+		// why 127? half than nothing, but not so adaptive as anything else
 		for (int y = 0; y < output.getHeight(); y++)
 			for (int x = 0; x < output.getWidth(); x++)
-				output.getByte(x, y) = (output.getByte(x, y) < 127) ? 0 : 255;
+				output.getByte(x, y) = (output.getByte(x, y) < 100) ? 0 : 255;
 
 		if (FILTER_DUMP_IMAGES)
 			getLogExt().appendImage("Binarized image", output);
+
+
+		// real hardcore goes here
+		{
+			ThinFilter2(output).apply();
+			
+			getLogExt().appendImage("Before final adjust", output);
+
+			Image temp(output.getWidth(), output.getHeight());
+			temp.fillWhite();
+
+			double lt_dist = 0.5;
+			int min_side = std::min(width(), height());
+
+			getLogExt().append("Min side", min_side);
+
+			if (min_side > 300) lt_dist = 1.0;
+			if (min_side > 500) lt_dist = 2.0;
+			if (min_side > 800) lt_dist = 3.0;
+			if (min_side > 1200) lt_dist = 4.0;
+
+			//while (line_thickness / 2.0 > lt_dist) lt_dist += 1.0;
+			getLogExt().append("Reconstruct line thickness", lt_dist);
+
+			for (int h = 0; h < output.getHeight(); h++)
+				for (int w = 0; w < output.getWidth(); w++)
+				{
+					if (output.getByte(w,h) == BLANK)
+						continue;
+
+					Points2i nb = WeakSegmentator::getNeighbors(output, Vec2i(w,h), 2);
+					// TODO: filter scratches
+					if (nb.size() > 2)
+					{
+						// draw the line pattern (50% overhead here)
+						for (int dx = -lt_dist; dx <= lt_dist; dx++)
+							for (int dy = -lt_dist; dy <= lt_dist; dy++)
+								if (sqrt((double)(dx*dx+dy*dy)) <= lt_dist)
+									if (w + dx >= 0 && h + dy >= 0 && w + dx < output.getWidth() && h + dy < output.getHeight())
+										temp.getByte(w + dx, h + dy) = INK;
+					}
+				}
+
+			output.copy(temp);
+
+			getLogExt().appendImage("After final adjust", output);
+		}
+
 
 		line_thickness = EstimateLineThickness(output);
 		getSettings()["LineThickness"] = line_thickness;
