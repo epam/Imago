@@ -36,41 +36,32 @@ namespace imago
 
 	// ---------------------------------------------------------------------------------
 
-	AdaptiveFilter::AdaptiveFilter(int w, int h) : Basic2dStorage<RGBData>(w, h), diff_cache(w, h, BLANK)
-	{
-	}
-
-	AdaptiveFilter::AdaptiveFilter(const AdaptiveFilter& src, int interpolation) 
-		: Basic2dStorage<RGBData>(src.width(), src.height()), 
-		  diff_cache(src.width(), src.height(), BLANK)
+	void AdaptiveFilter::interpolateImage(const AdaptiveFilter& src, int interpolation) 
 	{
 		logEnterFunction();
 
+		double int2 = (2*interpolation+1)*(2*interpolation+1);
 		for (int y = 0; y < src.height(); y++)
 			for (int x = 0; x < src.width(); x++)
 			{				
-				int count = 0;
-				double L[RGBData::CHANNELS_COUNT] = {0};
+				double temp = 0.0;
 				for (int dx = -interpolation; dx <= interpolation; dx++)
+				{
 					for (int dy = -interpolation; dy <= interpolation; dy++)
-					if (inRange(x + dx, y + dy))
 					{
-						for (int i = 0; i < RGBData::CHANNELS_COUNT; i++)
-							L[i] += src.at(x+dx,y+dy).L[i];
-						count++;
+						if (inRange(x + dx, y + dy))
+							temp += src.at(x + dx, y + dy).intensity;
+						else
+							temp += BLANK;
 					}
-				for (int i = 0; i < RGBData::CHANNELS_COUNT; i++)
-					at(x,y).L[i] = (double)L[i] / count;
+				}
+				at(x,y).intensity = temp / int2;
 			}
 	}
 
-	AdaptiveFilter::~AdaptiveFilter()
-	{
-	}
-
-	int AdaptiveFilter::getMaximalIntensityDiff(int channel, int sx, int sy, int iterations)
+	unsigned char AdaptiveFilter::getMaximalIntensityDiff(int sx, int sy, int iterations)
 	{		
-		if (diff_cache.at(sx,sy) == BLANK)
+		if (at(sx,sy).diffCache == BLANK)
 		{
 			restart:
 
@@ -82,7 +73,7 @@ namespace imago
 				for (int dx = -DIFF_STEP_RANGE; dx <= DIFF_STEP_RANGE; dx++)
 					for (int dy = -DIFF_STEP_RANGE; dy <= DIFF_STEP_RANGE; dy++)
 						if ((dx != 0 || dy != 0) && inRange(cx+dx, cy+dy))
-							if (at(cx+dx,cy+dy).L[channel] > at(ncx,ncy).L[channel])
+							if (at(cx+dx,cy+dy).intensity > at(ncx,ncy).intensity)
 							{
 								ncx = cx+dx; ncy = cy+dy;
 							}
@@ -91,20 +82,24 @@ namespace imago
 				cx = ncx; cy = ncy;
 			}
 
-			if (iterations > 0 && at(cx,cy).L[channel] > 250) // glare // TODO: !!!
+			/*if (iterations > 0 && at(cx,cy).intensity > 250) // glare // TODO: !!!
 			{
 				iterations /= 2;
 				goto restart;				
-			}
+			}*/
 			
-			int d = abs(at(cx,cy).L[channel] - at(sx,sy).L[channel]);
-			diff_cache.at(sx,sy) = d;
+			unsigned char d = abs(at(cx,cy).intensity - at(sx,sy).intensity);
+			
+			// small fixup to avoid recalculation if diff too big
+			if (d == BLANK) d--;
+
+			at(sx,sy).diffCache = d;
 		}
 
-		return diff_cache.at(sx,sy);
+		return at(sx,sy).diffCache;
 	}
 
-	int AdaptiveFilter::getIntensityBound(const Rectangle& crop, WeakSegmentator* ws)
+	unsigned char AdaptiveFilter::getIntensityBound(const Rectangle& crop, WeakSegmentator* ws)
 	{
 		logEnterFunction();
 
@@ -112,23 +107,23 @@ namespace imago
 		for (int y = crop.y1(); y < crop.y2(); y++)
 			for (int x = crop.x1(); x < crop.x2(); x++)
 				if (ws == NULL || !ws->alreadyExplored(x - crop.x1(), y - crop.y1()))
-					distHist.addData(getMaximalIntensityDiff(INTENSITY_CHANNEL, x, y, DIFF_ITERATIONS));
-		int result = distHist.getValueMoreThan(INK_THRESHOLD);
-		getLogExt().append("Intensity diff bound", result);
+					distHist.addData(getMaximalIntensityDiff(x, y, DIFF_ITERATIONS));
+		unsigned char result = distHist.getValueMoreThan(INK_THRESHOLD);		
+		getLogExt().append("Intensity diff bound", (int)result);
 		return result;
 	}
 
-	void AdaptiveFilter::normalizedOuput(Image& img, const WeakSegmentator& ws, const Rectangle& crop)
+	void AdaptiveFilter::normalizedOuput(Image& img, const Rectangle& crop, WeakSegmentator* ws)
 	{
 		logEnterFunction();
 
-		int minv = BLANK, maxv = INK;
-		for (int y = 0; y < ws.height(); y++)
-			for (int x = 0; x < ws.width(); x++)
+		int minv = 255, maxv = 0;
+		for (int y = 0; y < crop.height; y++)
+			for (int x = 0; x < crop.width; x++)
 			{
-				if (ws.at(x, y) > 0)
+				if (ws == NULL || ws->readyForOutput(x,y))
 				{
-					unsigned char c = at(crop.x+x,crop.y+y).L[INTENSITY_CHANNEL];
+					GrayscaleData c = at(crop.x+x,crop.y+y).intensity;
 					if (c < minv) minv = c;
 					if (c > maxv) maxv = c;
 				}
@@ -137,20 +132,27 @@ namespace imago
 		getLogExt().append("Minimal intensity matches diff", minv);
 		getLogExt().append("Maximal intensity matches diff", maxv);
 
+		if (minv == maxv && minv == 0)
+		{
+			// B/W images, fixup
+			maxv = BLANK;
+		}
+
 		if (minv < maxv)
 		{
 			img.clear();
-			img.init(ws.width(), ws.height());
+			img.init(crop.width, crop.height);
 
 			double factor = double(BLANK) / double(maxv - minv);
+			getLogExt().append("Normalization factor", factor);
 
 			for (int y = 0; y < img.getHeight(); y++)
 			{
 				for (int x = 0; x < img.getWidth(); x++)
 				{							
-					if (ws.at(x, y) > 0)
+					if (ws == NULL || ws->readyForOutput(x,y))
 					{
-						unsigned char c = at(crop.x + x, crop.y + y).L[INTENSITY_CHANNEL];
+						GrayscaleData c = at(crop.x + x, crop.y + y).intensity;
 						img.getByte(x, y) = factor * (c - minv);
 					}
 					else
@@ -171,12 +173,12 @@ namespace imago
 		
 		virtual bool isFilled(int x, int y) const		
 		{
-			return rgb.getMaximalIntensityDiff(INTENSITY_CHANNEL, crop.x + x, crop.y + y, DIFF_ITERATIONS) >= diff_bound;
+			return rgb.getMaximalIntensityDiff(crop.x + x, crop.y + y, DIFF_ITERATIONS) >= diff_bound;
 		}
 
 		virtual unsigned char getIntensity(int x, int y) const
 		{
-			return rgb.at(crop.x + x, crop.y + y).L[INTENSITY_CHANNEL];
+			return rgb.at(crop.x + x, crop.y + y).intensity;
 		}
 
 		virtual int width() const
@@ -209,18 +211,36 @@ namespace imago
 	{	
 		logEnterFunction();	
 
-		getLogExt().appendImage("Source image", output);
-		
 		Rectangle crop(0, 0, this->width(), this->height());
-		AdaptiveFilter interpolated(*this, INTERPOLATION_LEVEL);
+		AdaptiveFilter interpolated(this->width(), this->height());
+		interpolated.interpolateImage(*this, INTERPOLATION_LEVEL);
+
+		if (FILTER_DUMP_IMAGES && getLogExt().loggingEnabled())
+		{
+			getLogExt().appendImage("Source image (in Image)", output);
+			Image temp;
+			normalizedOuput(temp, crop);
+			getLogExt().appendImage("Source image (in AdaptiveFilter)", temp);
+			interpolated.normalizedOuput(temp, crop);
+			getLogExt().appendImage("Interpolated image", temp);
+		}		
+
+		double line_thickness = 1.0;
 		
 		// maximal crops allowed loop
 		for (int crop_attempt = 0; crop_attempt <= MAX_CROPS; crop_attempt++)
 		{
 			ImageAdapter img(*this, crop, interpolated.getIntensityBound(crop));
-			WeakSegmentator ws(img);
+			WeakSegmentator ws(img.width(), img.height());
 
 			int pixelAddBoundary = ws.appendData(img, DIFF_ITERATIONS) / 10;
+
+			// update line thickness
+			{
+				Image temp;
+				normalizedOuput(temp, crop, &ws);
+				line_thickness = EstimateLineThickness(temp);
+			}
 
 			if (crop_attempt == MAX_CROPS || !ws.needCrop(crop))
 			{
@@ -229,16 +249,24 @@ namespace imago
 				// refine loop
 				for (int refine_iter = 1; refine_iter <= MAX_REFINE_ITERS; refine_iter++)
 				{
-					ws.updateRefineMap(img, DIFF_FULL_PATH);
+					ws.updateRefineMap(DIFF_FULL_PATH);
 
-					if (getLogExt().loggingEnabled())
+					if (FILTER_DUMP_IMAGES && getLogExt().loggingEnabled())
 					{
 						Image temp;
-						normalizedOuput(temp, ws, crop);
+						normalizedOuput(temp, crop, &ws);
 						getLogExt().appendImage("Before refine", temp);
 					}
 
-					img.updateBound(interpolated.getIntensityBound(crop, &ws));
+					int new_bound = interpolated.getIntensityBound(crop, &ws);
+					if (new_bound <= 0)
+					{
+						getLogExt().append("New intensity bound is too low", new_bound);
+						break;
+					}
+
+					img.updateBound(new_bound);					
+
 					int added_n = ws.appendData(img, DIFF_ITERATIONS);
 					if (added_n < ERASE_NOISE_THRESHOLD /*|| added_n < pixelAddBoundary*/)
 					{
@@ -250,23 +278,30 @@ namespace imago
 				// ws.eraseNoise(ERASE_NOISE_THRESHOLD); // temporary. function is wrong
 
 				ws.performPixelOptimizations();
-				normalizedOuput(output, ws, crop);
+
+				ws.reconstructLines(line_thickness);
+
+				normalizedOuput(output, crop, &ws);
 				break;
 			}
 		}
 			
-		getLogExt().appendImage("Refined image", output);
+		if (FILTER_DUMP_IMAGES)
+			getLogExt().appendImage("Refined image", output);
 
 		for (int y = 0; y < output.getHeight(); y++)
 			for (int x = 0; x < output.getWidth(); x++)
 				output.getByte(x, y) = (output.getByte(x, y) != 255) ? 0 : 255;
 
-		getLogExt().appendImage("Binarized image", output);
+		if (FILTER_DUMP_IMAGES)
+			getLogExt().appendImage("Binarized image", output);
 
-		double line_thickness = EstimateLineThickness(output);
+		line_thickness = EstimateLineThickness(output);
 		getSettings()["LineThickness"] = line_thickness;
 		getLogExt().append("Line Thickness", line_thickness);
 	}
+
+	/////////////////////////////////////////////////////////////////////////////////////////////
 
 	bool FilterImageStub::isAdaptiveFilterEnabled()
 	{
@@ -317,7 +352,9 @@ namespace imago
 		{
 			imgptr->getByte(scaled_x, scaled_y) += intensity / sc2;
 			if (filterptr)
-				filterptr->at(scaled_x, scaled_y).L[INTENSITY_CHANNEL] += intensity / sc2;
+			{
+				filterptr->at(scaled_x, scaled_y).intensity += intensity / sc2;
+			}
 		}
 	}
 
@@ -326,17 +363,22 @@ namespace imago
 		int scaled_x = x / scale;
 		int scaled_y = y / scale;
 		int sc2 = scale * scale;
-		if (intensity == 0)
+		
+		if (intensity == 0) // need manual recalc
 			intensity = (unsigned char)(((int)R * 299 + (int)G * 587 + (int)B * 114)/1000);
+
 		if (scaled_x < imgptr->getWidth() && scaled_y < imgptr->getHeight())
 		{
 			imgptr->getByte(scaled_x, scaled_y) += intensity / sc2;
 			if (filterptr)
 			{
-				filterptr->at(scaled_x, scaled_y).L[INTENSITY_CHANNEL] += intensity / sc2;
-				filterptr->at(scaled_x, scaled_y).L[R_CHANNEL] = R;
-				filterptr->at(scaled_x, scaled_y).L[G_CHANNEL] = G;
-				filterptr->at(scaled_x, scaled_y).L[B_CHANNEL] = B;
+				filterptr->at(scaled_x, scaled_y).intensity += intensity / sc2;
+				if (filterptr->rgb)
+				{
+					filterptr->rgb->at(scaled_x, scaled_y).RGB.R += R / sc2;
+					filterptr->rgb->at(scaled_x, scaled_y).RGB.G += G / sc2;
+					filterptr->rgb->at(scaled_x, scaled_y).RGB.B += B / sc2;
+				}
 			}
 		}
 	}
@@ -360,6 +402,10 @@ namespace imago
 		if (isAdaptiveFilterEnabled())
 		{
 			filterptr = new AdaptiveFilter(img->getWidth(), img->getHeight());
+			if (isColorLoadingRequired())
+			{
+				filterptr->rgb = new AdaptiveFilter::RGBStorage(img->getWidth(), img->getHeight());
+			}
 		}
 	}
 }

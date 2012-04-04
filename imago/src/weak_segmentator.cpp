@@ -7,6 +7,12 @@
 
 namespace imago
 {	
+	/* Affects: recognition of rectangle-cropped images; sticky notes, etc (HI)
+	Depends on: line thickness(HI,BOUND) */
+	static const double RECTANGULAR_AREA_THRESHOLD = 0.30; // %, minimal rectangle coverage of image
+	static const int    RECTANGULAR_WINDOWSIZE     = 12;   // maximal rectangle side width (TODO - variable)
+	static const double RECTANGULAR_PASS_THRESHOLD = 0.95; // %, for rectange testing
+
 	Points2i WeakSegmentator::getNeighbors(const Image& img, const Vec2i& p, int range) const
 	{
 		Points2i neighb;
@@ -18,16 +24,16 @@ namespace imago
 		return neighb;
 	}
 
-	void WeakSegmentator::updateRefineMap(const ImageInterface &img, int max_len)
+	void WeakSegmentator::updateRefineMap(int max_len)
 	{
 		logEnterFunction();
 
-		refineGeneration++;
+		currentRefineGeneration++;
 
 		Image thin(width(), height());
 		for (int y = 0; y < height(); y++)
 			for (int x = 0; x < width(); x++)
-				thin.getByte(x, y) = (at(x,y) > 0) ? INK : BLANK;
+				thin.getByte(x, y) = readyForOutput(x,y) ? INK : BLANK;
 
 		ThinFilter2(thin).apply();
 
@@ -57,9 +63,9 @@ namespace imago
 							{
 								int _x = x + j;
 								int _y = y + k;
-								if (refineMap.inRange(_x, _y))
+								if (inRange(_x, _y))
 								{
-									refineMap.at(_x, _y) = refineGeneration;
+									at(_x, _y).refineGeneration = currentRefineGeneration;
 								}
 							}
 						}
@@ -78,9 +84,9 @@ namespace imago
 							{
 								int _x = (double)x + dx * (double)(j*subpx) - dy * (double)(k*subpx);
 								int _y = (double)y + dy * (double)(j*subpx) + dx * (double)(k*subpx);
-								if (refineMap.inRange(_x, _y))
+								if (inRange(_x, _y))
 								{
-									refineMap.at(_x, _y) = refineGeneration;									
+									at(_x, _y).refineGeneration = currentRefineGeneration;
 								}
 							}
 						}
@@ -89,17 +95,33 @@ namespace imago
 			}
 		}
 
-		if (getLogExt().loggingEnabled())
+		if (FILTER_DUMP_IMAGES && getLogExt().loggingEnabled())
 		{
 			for (int y = 0; y < height(); y++)
 				for (int x = 0; x < width(); x++)
-					if (refineMap.at(x, y) == refineGeneration)
+					if (at(x, y).refineGeneration == currentRefineGeneration)
 						thin.getByte(x, y) = 128; // only visual
+
 			getLogExt().appendImage("Image with endvectors", thin);
 		}
 	}
 
-	Points2i WeakSegmentator::getEndpointsDecornered(const ImageInterface &img) const
+	void WeakSegmentator::reconstructLines(double thickness)
+	{
+		Image thin(width(), height());
+		for (int y = 0; y < height(); y++)
+			for (int x = 0; x < width(); x++)
+				thin.getByte(x, y) = readyForOutput(x,y) ? INK : BLANK;
+
+		ThinFilter2(thin).apply();
+
+		if (FILTER_DUMP_IMAGES)
+		{
+			getLogExt().appendImage("Final thinned", thin);
+		}
+	}
+
+	Points2i WeakSegmentator::getEndpointsDecornered() const
 	{
 		logEnterFunction();
 
@@ -112,7 +134,7 @@ namespace imago
 		Image thin(width(), height());
 		for (int y = 0; y < height(); y++)
 			for (int x = 0; x < width(); x++)
-				thin.getByte(x, y) = (at(x,y) > 0) ? INK : BLANK;
+				thin.getByte(x, y) = readyForOutput(x,y) ? INK : BLANK;
 
 		ThinFilter2(thin).apply();
 
@@ -127,7 +149,9 @@ namespace imago
 					thin.getByte(x,y) = DECORNERED;
 			}
 		}
-		getLogExt().appendImage("Fast decorner", thin);
+		
+		if (FILTER_DUMP_IMAGES)
+			getLogExt().appendImage("Fast decorner", thin);
 
 		// now all objects are just curve lines with exactly 2 endpoints
 		for (int y = 0; y < height(); y++)
@@ -172,19 +196,20 @@ namespace imago
 			}
 		}
 
-		getLogExt().appendImage("Traced image", thin);
+		if (FILTER_DUMP_IMAGES)
+			getLogExt().appendImage("Traced image", thin);
 
 		return result;
 	}
 
 	bool WeakSegmentator::alreadyExplored(int x, int y) const
 	{
-		return at(x, y) > 0 || refineMap.at(x, y) > 0;
+		return at(x, y).id > 0 || at(x, y).refineGeneration > 0;
 	}
 
 	bool WeakSegmentator::refineIsAllowed(int x, int y) const
 	{
-		return refineMap.at(x, y) == refineGeneration;
+		return at(x, y).refineGeneration == currentRefineGeneration;
 	}
 
 	int WeakSegmentator::appendData(const ImageInterface &img, int lookup_range)
@@ -195,7 +220,7 @@ namespace imago
 
 		for (int y = 0; y < height(); y++)
 			for (int x = 0; x < width(); x++)
-				if (at(x,y) == 0 && img.isFilled(x,y) && refineIsAllowed(x,y))
+				if (at(x,y).id == 0 && img.isFilled(x,y) && refineIsAllowed(x,y))
 				{
 					int id = SegmentPoints.size()+1;
 					fill(img, id, x, y, lookup_range);			
@@ -208,17 +233,6 @@ namespace imago
 		return added_pixels;
 	}
 
-	WeakSegmentator::WeakSegmentator(const ImageInterface &img) 
-		: Basic2dStorage<int>(img.width(), img.height(), 0),
-		  refineMap(img.width(), img.height()), refineGeneration(0)
-	{	
-		logEnterFunction();
-	}
-
-	WeakSegmentator::~WeakSegmentator()
-	{			
-	}
-
 	void WeakSegmentator::performPixelOptimizations()
 	{
 		logEnterFunction();
@@ -228,19 +242,21 @@ namespace imago
 			{
 				int count = 0, id = 0;
 				for (int dy = -1; dy <= 1; dy++)
+				{
 					for (int dx = -1; dx <= 1; dx++)
 						if ((dx != 0 || dy != 0) && inRange(x+dx, y+dy))
 						{
-							if (at(x+dx,y+dy) != 0)
+							if (at(x+dx,y+dy).id != 0)
 							{
-								id = at(x+dx,y+dy);
+								id = at(x+dx,y+dy).id;
 								count++;
 							}
 						}
-				if (at(x,y) != 0 && count == 0) // erase lonely pixel
-					at(x,y) = 0;
-				else if (at(x,y) == 0 && count >= 7) // fill inside pixels group
-					at(x,y) = id;
+				}
+				if (at(x,y).id != 0 && count == 0) // erase lonely pixel
+					at(x,y).id = 0;
+				else if (at(x,y).id == 0 && count >= 7) // fill inside pixels group
+					at(x,y).id = id;
 			}
 	}
 
@@ -252,11 +268,11 @@ namespace imago
 		for (int y = 0; y < height(); y++)
 			for (int x = 0; x < width(); x++)
 			{
-				int v = at(x, y);
-				if (v > 0 && (int)SegmentPoints[v].size() < threshold)
+				int id = at(x, y).id;
+				if (id > 0 && (int)SegmentPoints[id].size() < threshold)
 				{
-					SegmentPoints[v].clear();
-					at(x,y) = 0;
+					SegmentPoints[id].clear();
+					at(x,y).id = 0;
 				}
 			}			
 	}
@@ -265,12 +281,11 @@ namespace imago
 	{
 		logEnterFunction();
 
-		int area_threshold = width() * height() * AREA_THRESHOLD_FACTOR;
+		int area_pixels = width() * height() * RECTANGULAR_AREA_THRESHOLD;
 		for (size_t id = 1; id <= SegmentPoints.size(); id++)
 		{
 			Rectangle bounds;
-			if (getRectangularArea(id) > area_threshold 
-				&& hasRectangularStructure(id, RECTANGULAR_WINDOWSIZE, RECTANGULAR_THRESHOLD, bounds))
+			if (getRectangularArea(id) > area_pixels && hasRectangularStructure(id, bounds))
 			{
 				getLogExt().append("Has rectangular structure, id", id);	
 				bounds.adjustBorder(RECTANGULAR_WINDOWSIZE*2);
@@ -287,7 +302,7 @@ namespace imago
 		return b.getBounding().width * b.getBounding().height;
 	}		
 
-	bool WeakSegmentator::hasRectangularStructure(int id, int window_size, double threshold, Rectangle& bound)
+	bool WeakSegmentator::hasRectangularStructure(int id, Rectangle& bound)
 	{
 		Points2i& p = SegmentPoints[id];
 			
@@ -312,16 +327,16 @@ namespace imago
 			}
 			// and centers
 			if (get2centers(map_x, width(), x1c, x2c) && get2centers(map_y, height(), y1c, y2c) &&
-				fabs(x1c - x2c) > 2*window_size && fabs(y1c - y2c) > 2*window_size)
+				fabs(x1c - x2c) > 2*RECTANGULAR_WINDOWSIZE && fabs(y1c - y2c) > 2*RECTANGULAR_WINDOWSIZE)
 			{
 				int good = 0, bad = 0;
 				for (Points2i::iterator it = p.begin(); it != p.end(); it++)
-					if ((fabs(it->x - x1c) < window_size || fabs(it->x - x2c) < window_size) ||
-						(fabs(it->y - y1c) < window_size || fabs(it->y - y2c) < window_size))
+					if ((fabs(it->x - x1c) < RECTANGULAR_WINDOWSIZE || fabs(it->x - x2c) < RECTANGULAR_WINDOWSIZE) ||
+						(fabs(it->y - y1c) < RECTANGULAR_WINDOWSIZE || fabs(it->y - y2c) < RECTANGULAR_WINDOWSIZE))
 						good++;
 					else
 						bad++;
-				if ((double)good / (good+bad) > threshold)
+				if ((double)good / (good+bad) > RECTANGULAR_PASS_THRESHOLD)
 				{
 					bound = Rectangle(x1c, y1c, x2c, y2c, 0);
 					return true;
@@ -341,16 +356,16 @@ namespace imago
 			Vec2i cur = v.front();
 			v.pop(); // remove top
 
-			if (at(cur.x,cur.y) == 0)
+			if (at(cur.x,cur.y).id == 0)
 			{
-				at(cur.x,cur.y) = id;
+				at(cur.x,cur.y).id = id;
 				SegmentPoints[id].push_back(cur);
 				for (int dx = -lookup_range; dx <= lookup_range; dx++)
 					for (int dy = -lookup_range; dy <= lookup_range; dy++)
 					{
 						Vec2i t(cur.x+dx,cur.y+dy);
 						if ((dx != 0 || dy != 0) && inRange(t.x, t.y) 
-							&& at(t.x, t.y) == 0 && img.isFilled(t.x, t.y)
+							&& at(t.x, t.y).id == 0 && img.isFilled(t.x, t.y)
 							&& refineIsAllowed(t.x, t.y))
 						{							
 							v.push(t);

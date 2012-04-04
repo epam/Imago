@@ -264,7 +264,7 @@ void Image::init( int width, int height )
    _width = width;
    _height = height;
 
-   _data = new byte[_width * _height];
+   _data = new byte[_width * _height](); // speed a little slower, but quite useful
 }
 
 /**
