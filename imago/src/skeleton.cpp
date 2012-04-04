@@ -1057,6 +1057,15 @@ void Skeleton::modifyGraph()
        boost::remove_vertex(end, _g);
     }
 
+	_connectBridgedBonds();
+
+    /*if (getSettings()["DebugSession"])
+    {
+       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+       img.fillWhite();
+       ImageDrawUtils::putGraph(img, _g);
+       ImageUtils::saveImageToFile(img, "output/ggg6.png");
+    }*/
 	getLogExt().appendSkeleton("after shrinking", _g);
 
    rs.set("AvgBondLength", _avg_bond_length);
@@ -1073,6 +1082,144 @@ void Skeleton::modifyGraph()
 #endif
    }
 
+}
+
+void Skeleton::_connectBridgedBonds()
+{
+	std::vector<float> kFactor;
+	std::vector<std::vector<Edge>> edge_groups_k;
+	//group all parallel edges by similar factors
+	BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
+	{
+		Bond f = boost::get(boost::edge_type, _g, edge);
+		Vec2d p1 = getVertexPos(getBondBegin(edge));
+		Vec2d p2 = getVertexPos(getBondEnd(edge));
+		double slope = Algebra::slope(p1, p2);
+		if(f.type == imago::BondType::SINGLE)
+		{
+			bool found_kFactor = false;
+			for(int i=0 ; i < kFactor.size() ; i++)
+			{
+				if(fabs(slope - kFactor[i]) < 0.1)
+				{
+					edge_groups_k[i].push_back(edge);
+					found_kFactor = true;
+					break;
+				}
+			}
+
+			if(!found_kFactor)
+			{
+				edge_groups_k.push_back(std::vector<Edge>());
+				edge_groups_k[edge_groups_k.size() - 1].push_back(edge);
+				kFactor.push_back(slope);
+			}
+		}
+	}
+
+	std::deque<std::pair<Edge, Edge>> edges_to_connect;
+
+	//check edges to be connected
+	for(int i=0;i<edge_groups_k.size();i++)
+	{
+		int gr_count = edge_groups_k[i].size();
+		if( gr_count == 1)
+			continue;
+		for(int k=0;k<gr_count;k++)
+		{
+			Vec2d p1 = getVertexPos(getBondBegin(edge_groups_k[i][k]));
+			Vec2d p2 = getVertexPos(getBondEnd(edge_groups_k[i][k]));
+
+			for(int l = k + 1;l<gr_count;l++)
+			{
+				Vec2d sp1 = getVertexPos(getBondBegin(edge_groups_k[i][l]));
+				Vec2d sp2 = getVertexPos(getBondEnd(edge_groups_k[i][l]));
+
+				double d1 = Algebra::distance2segment(p1, sp1, sp2);
+				double d2 = Algebra::distance2segment(p2, sp1, sp2);
+
+				double min = d1 < d2 ? d1 : d2;
+
+				double LineS = getSettings()["LineThickness"];
+				double blockS = LineS * 10.0;
+
+				Line l1 = Algebra::points2line(p1, p2);
+				Line l2 = Algebra::points2line(sp1, sp2);
+
+				if(sign(l1.A) != sign(l2.A))
+				{
+					l2.A *= -1.0;
+					l2.B *= -1.0;
+					l2.C *= -1.0;
+				}
+
+				double slope1 = fabs(l1.B) < 0.001 ? 1 : l1.A / l1.B;
+				double slope2 = fabs(l2.B) < 0.001 ? 1 : l2.A / l2.B;
+
+				if(min < blockS && min > 2*LineS && fabs(slope1 - slope2)+fabs(l1.C - l2.C) < 4*LineS)
+				{
+					edges_to_connect.push_back(std::pair<Edge, Edge>(edge_groups_k[i][l], edge_groups_k[i][k]));
+				}
+			}
+		
+		}
+	}
+
+	//connect edges
+	std::deque<std::pair<Edge, Edge>>::iterator eit;
+	for(eit = edges_to_connect.begin(); eit != edges_to_connect.end(); eit++)
+	{
+		Edge e1 = (*eit).first,
+			e2 = (*eit).second;
+		Vertex v1, v2, v3, v4;
+		Vec2d p1 = getVertexPos(getBondBegin(e1));
+		Vec2d p2 = getVertexPos(getBondEnd(e1));
+
+		Vec2d sp1 = getVertexPos(getBondBegin(e2));
+		Vec2d sp2 = getVertexPos(getBondEnd(e2));
+
+		double d1 = Algebra::distance2segment(p1, sp1, sp2);
+		double d2 = Algebra::distance2segment(p2, sp1, sp2);
+
+		if(d1 < d2)
+		{
+			v1 = getBondBegin(e1);
+			v3 = getBondEnd(e1);
+			if(Vec2d::distance(p1, sp1) < Vec2d::distance(p1, sp2))
+			{
+				v2 = getBondBegin(e2);
+				v4 = getBondEnd(e2);
+			}
+			else
+			{
+				v2 = getBondEnd(e2);
+				v4 = getBondBegin(e2);
+			}
+		}
+		else
+		{
+			v1 = getBondEnd(e1);
+			v3 = getBondBegin(e1);
+			if(Vec2d::distance(p2, sp1) < Vec2d::distance(p2, sp2))
+			{
+				v2 = getBondBegin(e2);
+				v4 = getBondEnd(e2);
+			}
+			else
+			{
+				v2 = getBondEnd(e2);
+				v4 = getBondBegin(e2);
+			}
+		}
+
+		 
+		addBond(v3, v4, SINGLE);
+		boost::clear_vertex(v1, _g); 
+		boost::remove_vertex(v1, _g);
+
+		boost::clear_vertex(v2, _g); 
+		boost::remove_vertex(v2, _g);
+	}
 }
 
 void Skeleton::deleteBadTriangles( double eps )
