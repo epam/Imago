@@ -17,7 +17,6 @@
 #include "segment.h"
 #include "HistogramTools.h"
 #include "prefilter.h"
-#include "adaptive_filter.h"
 
 namespace imago
 {
@@ -1085,10 +1084,16 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 {
 	logEnterFunction();
 
-	if (FilterImageStub::isAdaptiveFilterEnabled())
 	{
-		// already filtered
-		return;
+		bool binarized = true;
+		for (int y = 0; y < image.getHeight() && binarized; y++)
+			for (int x = 0; x < image.getWidth() && binarized; x++)
+				binarized &= image.getByte(x, y) == 0 || image.getByte(x, y) == 255;
+		if (binarized)
+		{
+			getLogExt().appendText("Image is already binarized, skip");
+			return;
+		}
 	}
 
    Image raw, cimg;

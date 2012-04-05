@@ -738,7 +738,9 @@ int main(int argc, char **argv)
    // parse command line
    std::vector<std::string> unparsedArgs;
    int debugLog = 0;
-   int adaptiveFilter = 1;
+   //int adaptiveFilter = 1;
+   int adaptiveFilter = 0;
+
    for (int i = 1; i < argc; i++)
    {
 	   std::string s = argv[i];
