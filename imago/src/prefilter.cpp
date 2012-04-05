@@ -889,21 +889,25 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	_copyImageToMat(img, mat);
 	bool reduced = false;
    cv::Mat matred((mat.rows+1)/2, (mat.cols+1)/2, CV_8U);
-   if(maxside > 300)
+   if(maxside > 100)
    {
    //Pydramid reduce
 	cv::pyrDown(mat, matred);
 	reduced = true;
    }
    else
+   {
 	   if(strongThresh)
-		cv::GaussianBlur(mat, matred, cv::Size(5, 5), 1, 1, cv::BORDER_REPLICATE);
+	   {
+		   cv::GaussianBlur(mat, matred, cv::Size(5, 5), 1, 1, cv::BORDER_REPLICATE);
+		   //mat.copyTo(matred);
+	   }
 	   else
 	   {
 		   double lt = getSettings()["LineThickness"];
 		   cv::bilateralFilter(mat, matred, 5, 20, lt);
 	   }
-
+   }
    
    if(getLogExt().loggingEnabled()) // debug_session)
    {
@@ -1202,6 +1206,9 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 
    psegs.clear();
    float koeff = 8.0;
+   // TODO: provide description and logical meaning for this 'koeff'
+   if (std::max(image.getWidth(), image.getHeight()) < 300) koeff *= 2.0;
+
    for(sit = tsegs.begin();sit != tsegs.end(); sit++)
    {
 	   Segment *s = *sit;
@@ -1211,7 +1218,12 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 	   int est = //dis > (median+2.3*mad ) || 
 		   ((lineThickness*lineThickness*4 > density) && dis > distsFromCenter[3*distsFromCenter.size()/4])? dis*dweight:dis;
 	   
-	   if(est < (median + koeff*mad))
+	   getLogExt().appendSegment("Segment", *s);
+	   getLogExt().append("est", est);
+	   double lessthan = (median + koeff*mad);
+	   getLogExt().append("shall be less than", lessthan);
+
+	   if(est < lessthan)
 		   psegs.push_back(s);
    }
 
