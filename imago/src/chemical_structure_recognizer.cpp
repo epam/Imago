@@ -242,6 +242,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 	  }
 
       mol.aromatize(ringCenters);
+	  mol._connectBridgedBonds();
 
       TIME(wbe.fixStereoCenters(mol), "Fixing stereo bonds directions");      
 

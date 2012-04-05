@@ -46,6 +46,8 @@ namespace imago
 
       void clear();
 
+	  void _connectBridgedBonds();
+
       ~Molecule();
 
    private:

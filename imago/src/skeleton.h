@@ -113,7 +113,7 @@ namespace imago
       bool _isParallel( const Edge &first, const Edge &second ) const;
 	  bool _isEqualDirection( const Edge &first, const Edge &second ) const;
       bool _isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex &b2,const Vertex &e2)  const;
-	  void _connectBridgedBonds();
+	  
       double _avg_bond_length,
              _parLinesEps,
          _addVertexEps,
