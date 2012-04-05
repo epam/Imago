@@ -44,6 +44,7 @@
 #include "log_ext.h"
 #include "label_logic.h"
 #include "approximator.h"
+#include "prefilter.h"
 
 using namespace imago;
 
@@ -112,6 +113,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       rs.set("imgHeight", _img.getHeight());
       rs.set("imgWidth", _img.getWidth());
+	  rs.set("LineThickness", (double)EstimateLineThickness(_img));
 	  
       //if (rs["DebugSession"])
       //{
