@@ -318,11 +318,10 @@ namespace imago
 		//if (FILTER_DUMP_IMAGES)
 		//	getLogExt().appendImage("Refined image", output);
 
-		// TODO: real very important part, affects anything! 127 is bad threshold!
-		// why 127? half than nothing, but not so adaptive as anything else
+		// TODO: real very important part, affects anything! 140 is bad threshold!		
 		for (int y = 0; y < output.getHeight(); y++)
 			for (int x = 0; x < output.getWidth(); x++)
-				output.getByte(x, y) = (output.getByte(x, y) < 100) ? 0 : 255;
+				output.getByte(x, y) = (output.getByte(x, y) < 140) ? 0 : 255;
 
 		if (FILTER_DUMP_IMAGES)
 			getLogExt().appendImage("Binarized image", output);

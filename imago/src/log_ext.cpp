@@ -138,6 +138,7 @@ namespace imago
 
 		RectShapedBounding b(pts);
 		Image output(b.getBounding().width+1, b.getBounding().height+1);
+		output.fillWhite();
 		for (size_t u = 0; u < pts.size(); u++)
 			output.getByte(pts[u].x - b.getBounding().x, pts[u].y - b.getBounding().y) = 0;
 		appendImage(name, output);

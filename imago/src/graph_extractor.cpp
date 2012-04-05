@@ -112,7 +112,10 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
 		  ImageDrawUtils::putGraph(tmp, (Skeleton::SkeletonGraph)graph);
 		  //ImageUtils::saveImageToFile(tmp, "output/graph_begin.png");		  
 	   }*/
-	   getLogExt().appendSkeleton("Source skeleton", (Skeleton::SkeletonGraph)graph);
+
+	   
+
+	   getLogExt().appendSkeleton("Source skeleton", (Skeleton::SkeletonGraph)graph);	   
 
 	   graph.modifyGraph();
 
@@ -125,6 +128,8 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
 		  //ImageUtils::saveImageToFile(tmp, "output/graph_mod.png");		  
 	   }*/
 	   getLogExt().appendSkeleton("Modified skeleton", (Skeleton::SkeletonGraph)graph);
+
+	 
    }
    
 }

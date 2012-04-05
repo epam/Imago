@@ -889,7 +889,7 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	_copyImageToMat(img, mat);
 	bool reduced = false;
    cv::Mat matred((mat.rows+1)/2, (mat.cols+1)/2, CV_8U);
-   if(maxside > 100)
+   if(maxside > 300)
    {
    //Pydramid reduce
 	cv::pyrDown(mat, matred);

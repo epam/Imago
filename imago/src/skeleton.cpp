@@ -1067,7 +1067,57 @@ void Skeleton::modifyGraph()
     }*/
 	getLogExt().appendSkeleton("after shrinking", _g);
 
-   rs.set("AvgBondLength", _avg_bond_length);
+
+   // ---------------------------------------------------------
+	   // analyze graph for vertex mess
+	   Image temp(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+
+	   double distTresh = (int)getSettings()["CapitalHeight"];
+	   std::vector<Skeleton::Edge> bad_edges;
+	   BGL_FORALL_EDGES(e, _g, SkeletonGraph)
+	   {
+		   const Skeleton::Vertex &beg = boost::source(e, _g);
+		   const Skeleton::Vertex &end = boost::target(e, _g);
+		   Vec2d pos_beg = boost::get(boost::vertex_pos, _g, beg);
+		   Vec2d pos_end = boost::get(boost::vertex_pos, _g, end);
+		   double d = Vec2d::distance(pos_beg, pos_end);
+		   if (d < distTresh)
+		   {
+			   BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
+			   {
+				   if (v != beg && v != end)
+				   {
+					   Vec2d pos = boost::get(boost::vertex_pos, _g, v);
+					   if (Vec2i::distance(pos,pos_beg) < distTresh &&
+						   Vec2i::distance(pos,pos_end) < distTresh)
+					   {
+						   ImageDrawUtils::putCircle(temp, pos.x, pos.y, 2, 0);
+						   ImageDrawUtils::putLineSegment(temp, pos_beg, pos_end, 0);
+						   bad_edges.push_back(e);
+						   break;
+					   }
+				   }
+			   }			   
+		   }
+	   }
+
+	    BOOST_FOREACH(Skeleton::Edge e, bad_edges)
+		{
+		   Skeleton::Vertex beg = boost::source(e, _g);
+		   Skeleton::Vertex end = boost::target(e, _g);
+		   boost::remove_edge(e, _g);
+		   if (boost::degree(beg, _g) == 0)
+			   boost::remove_vertex(beg, _g);
+		   if (boost::degree(end, _g) == 0)
+			   boost::remove_vertex(end, _g);
+		}
+
+	   getLogExt().appendImage("Suspicious edges", temp);
+
+	   // ---------------------------------------------------------
+
+
+   rs.set("AvgBondLength", _avg_bond_length);   
    //while (_dissolveShortEdges(0.45, true));
    
    BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
