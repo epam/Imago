@@ -1086,6 +1086,7 @@ void Skeleton::modifyGraph()
 
 void Skeleton::_connectBridgedBonds()
 {
+	logEnterFunction();
 	std::vector<float> kFactor;
 	std::vector<std::vector<Edge>> edge_groups_k;
 	//group all parallel edges by similar factors
@@ -1116,7 +1117,7 @@ void Skeleton::_connectBridgedBonds()
 			}
 		}
 	}
-
+	getLogExt().append("Group size of edges which could bridge:", edge_groups_k.size());
 	std::deque<std::pair<Edge, Edge>> edges_to_connect;
 
 	//check edges to be connected
@@ -1156,14 +1157,20 @@ void Skeleton::_connectBridgedBonds()
 				double slope1 = fabs(l1.B) < 0.001 ? 1 : l1.A / l1.B;
 				double slope2 = fabs(l2.B) < 0.001 ? 1 : l2.A / l2.B;
 
-				if(min < blockS && min > 2*LineS && fabs(slope1 - slope2)+fabs(l1.C - l2.C) < 4*LineS)
+				if(min < blockS && min > 2*LineS && fabs(l1.C - l2.C) < 2*LineS)
 				{
+					getLogExt().appendText("Candidate edges for bridge connections");
+					getLogExt().append("Edge 1 slope", slope1);
+					getLogExt().append("Edge 2 slope", slope2);
+					getLogExt().append("Edge 1 C", l1.C);
+					getLogExt().append("Edge 2 C", l2.C);
 					edges_to_connect.push_back(std::pair<Edge, Edge>(edge_groups_k[i][l], edge_groups_k[i][k]));
 				}
 			}
 		
 		}
 	}
+
 
 	//connect edges
 	std::deque<std::pair<Edge, Edge>>::iterator eit;
@@ -1212,7 +1219,12 @@ void Skeleton::_connectBridgedBonds()
 			}
 		}
 
-		 
+		if(boost::degree(v1, _g) > 1 ||
+			boost::degree(v2, _g) > 1)
+		{
+			continue;
+		}
+
 		addBond(v3, v4, SINGLE);
 		boost::clear_vertex(v1, _g); 
 		boost::remove_vertex(v1, _g);
