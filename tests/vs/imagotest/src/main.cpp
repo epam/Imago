@@ -11,10 +11,7 @@
 #include "vec2d.h"
 #include "algebra.h"
 #include "image.h"
-#include "png_loader.h"
-#include "png_saver.h"
 #include "fourier_descriptors.h"
-#include "font.h"
 #include "superatom.h"
 #include "label_combiner.h"
 #include "chemical_structure_recognizer.h"
@@ -34,15 +31,11 @@
 #include "session_manager.h"
 #include "current_session.h"
 #include "character_recognizer.h"
-#include "orientation_finder.h"
 #include "graphics_detector.h"
-#include "shape_context.h"
 #include "prefilter.h"
 #include "superatom_expansion.h"
 
 #include "classification.h"
-#include "fourier_features.h"
-#include "munkres.h"
 #include "log_ext.h"
 
 using namespace imago;
@@ -131,11 +124,6 @@ void testFD()
    }
 }
 */
-
-void testFont()
-{
-   Font fnt("../../../imago/data/arial.png", 6);
-}
 
 /*
 void testCombiner()
@@ -296,105 +284,6 @@ void testContour()
    {
       puts(e.what());
    }   
-}
-
-void testOCR( const char *name )
-{
-   try
-   {
-      const char *filename;
-      filename = name?name:"/home/vsmolov/flamingo_test/iphone2.jpg.out.png";
-      //filename = "../../../data/fonts/png/MarkerSD_it.png";
-      qword sid = SessionManager::getInstance().allocSID();
-      SessionManager::getInstance().setSID(sid);
-      Image img;
-      ImageUtils::loadImageFromFile(img, filename);
-      LPRINT(0, "Start");
-      // Convolver gauss(img);
-      // gauss.initGauss();
-      // gauss.apply();
-
-      // Binarizer(img, getSettings()["BinarizationLvl"]).apply();
-      Font fnt("../../../data/fonts/MarkerSD.font", 25);
-      std::deque<Segment*> segs;
-      Segmentator::segmentate(img, segs);
-
-      int i = 0; //for font files
-      for (std::deque<Segment*>::iterator it = segs.begin(),
-              end = segs.end(); it != end; ++it, ++i)
-      {
-         double d;
-         char c_s, c_b, c_d;
-//         if (i < 26)
-            c_s = fnt.findBest(*it, 0, 26, &d);
-//         else if (i < 52 + 2)
-            c_b = fnt.findBest(*it, 26, 52, &d);
-//         else
-            c_d = fnt.findBest(*it, 52, 62, &d);
-         printf("i = %d  ", i);
-         printf("(%d, %d)   %c %c %c  %.5lf  innerCcount = %d  h = %d\n",
-                (*it)->getX(), (*it)->getY(), c_s, c_b, c_d, d,
-                (*it)->getFeatures().inner_contours_count, (*it)->getHeight());
-      }
-   }
-   catch (Exception &e)
-   {
-      puts(e.what());
-   }
-}
-
-void makeFont( )
-{
-  try
-  {
-     const int fonts_count = 5;
-     char font_names[fonts_count][1024] = {//"../../../data/fonts/png/arial2.png",
-                                           "../../../data/fonts/png/serif.png",
-                                           //"../../../data/fonts/png/MarkerSD_it.png",
-                                           //"../../../data/fonts/png/Writing_Stuff.png",
-                                           "../../../data/fonts/png/MarkerSD.png",
-                                           "../../../data/fonts/png/desyrel.png",
-                                           "../../../data/fonts/png/budhand3.png",
-                                           "../../../data/fonts/png/annifont.png"};
-     int count = 25;
-     std::vector<Font *> fonts(fonts_count);
-     for (int i = 0; i < fonts_count; i++)
-        fonts[i]= new Font(font_names[i], count);
-     
-     FileOutput fout("../../../data/fonts/TEST5.font");
-     fout.printf("%d %d %d\n", count, fonts_count, 62);
-
-/*     for (int i = 0; i < fonts_count; i++)
-        printf("%d\n", fonts[i]->_symbols.size());
-
-
-     for (int i = 0; i < 62; i++)
-     {
-        Font::FontItem *fi = &fonts[0]->_symbols[i];
-        fout.printf("%c\n", fi->sym);
-        for (int k = 0; k < fonts_count; k++)
-        {
-           fi = &fonts[k]->_symbols[i];
-           fout.printf("%d\n", fi->features.inner_contours_count);
-           for (int i = 0; i < (int)fi->features.descriptors.size(); i++)
-              fout.printf("%.15lf ", fi->features.descriptors[i]);
-           fout.writeCR();
-           for (int i = 0; i < fi->features.inner_contours_count; i++)
-           {
-              for (int j = 0; j < (int)fi->features.inner_descriptors[i].size();
-                   j++)
-              {
-                 fout.printf("%.15lf ", fi->features.inner_descriptors[i][j]);
-              }
-              fout.writeCR();
-           }
-        }
-     } */
-  }
-  catch(Exception &e)
-  {
-     puts(e.what());
-  } 
 }
 
 void testOCR2( const char *name )
@@ -627,72 +516,6 @@ void createTrainSet(std::vector<std::string> fonts, IOCRClassification::TrainSet
          ts.push_back(std::make_pair(img, sym));
       }
    }
-}
-
-void testClassifier()
-{
-   IOCRClassification *classificator = new FourierFeaturesCompareMethod(25, 3);
-   std::vector<std::string> fonts;
-   IOCRClassification::TrainSet ts;
-   fonts.push_back("../../../data/fonts/png/serif.png");
-   //"../../../data/fonts/png/MarkerSD_it.png",
-   //"../../../data/fonts/png/Writing_Stuff.png",
-   fonts.push_back("../../../data/fonts/png/MarkerSD.png");
-   fonts.push_back("../../../data/fonts/png/desyrel.png");
-   fonts.push_back("../../../data/fonts/png/budhand.png");
-   fonts.push_back("../../../data/fonts/png/annifont.png");
-   createTrainSet(fonts, ts);
-
-   //classificator->train(ts);
-   //FileOutput fout("fdc.dump");
-   //classificator->save(fout);
-   FileScanner fs("fdc.dump");
-   classificator->load(fs);
-
-   bool b; char c; double err;
-   Image img;
-
-   ImageUtils::loadImageFromFile(img, "letter_n.png");
-
-   b = classificator->getBest(img, c, &err);
-
-   printf("%d %c %lf\n", (int)b, c, err);
-
-   for (int i = 0; i < (int)ts.size(); i++)
-      delete ts[i].first;
-}
-
-void testShapeContext( const char *filename )
-{
-   qword sid = SessionManager::getInstance().allocSID();
-   SessionManager::getInstance().setSID(sid);
-
-   srand(time(0));
-
-   boost::shared_ptr<IFeatures> f1(new ShapeContextFeatures(60, 5, 12));
-   boost::shared_ptr<IFeatures> f2(new ShapeContextFeatures(60, 5, 12));
-   Image img1, img2;
-   ImageUtils::loadImageFromFile(img1, "n1.png");
-   ImageUtils::loadImageFromFile(img2, "n3.png");
-   //ImageUtils::loadImageFromFile(img1, "../../../../flamingo_test/As.png");
-   //ImageUtils::loadImageFromFile(img2, "../../../../flamingo_test/A2s.png");
-
-   TIME(f1->extract(img1), "Extract1");
-   TIME(f2->extract(img2), "Extract2");
-
-   double d;
-   TIME(d = f1->compare(f2.get()), "Compare 1 to 2");
-   printf("Distance = %lf\n", d);
-   TIME(d = f2->compare(f1.get()), "Compare 2 to 1");
-   printf("Distance = %lf\n", d);
-//   munkres::Matrix<double> matr(3, 3);
-//   matr(0, 0) = 1.59; matr(0, 1) = 2; matr(0, 2) = 1.7;
-//   matr(1, 0) = 3; matr(1, 1) = 3; matr(1, 2) = 1;
-//   matr(2, 0) = 3; matr(2, 1) = 3; matr(2, 2) = 2;
-//   munkres::Munkres mk;
-//   mk.solve(matr);
-
-   SessionManager::getInstance().releaseSID(sid);
 }
 
 void calcDescriptors(int argc, char **argv)
