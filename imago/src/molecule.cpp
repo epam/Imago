@@ -387,26 +387,19 @@ void Molecule::_connectBridgedBonds()
 				double LineS = getSettings()["LineThickness"];
 				double blockS = LineS * 10.0;
 
-				Line l1 = Algebra::points2line(p1, p2);
-				Line l2 = Algebra::points2line(sp1, sp2);
+            // Check that edges are one by one: --- ---
+            // And not like:
+            //     -----
+            //  -----
+            if (!Algebra::rangesSeparable(p1.x, p2.x, sp1.x, sp2.x))
+               continue;
+            if (!Algebra::rangesSeparable(p1.y, p2.y, sp1.y, sp2.y))
+               continue;
 
-				if(sign(l1.A) != sign(l2.A))
-				{
-					l2.A *= -1.0;
-					l2.B *= -1.0;
-					l2.C *= -1.0;
-				}
-
-				double slope1 = fabs(l1.B) < 0.001 ? 1 : l1.A / l1.B;
-				double slope2 = fabs(l2.B) < 0.001 ? 1 : l2.A / l2.B;
-
-				if(min < blockS && min > 2*LineS && fabs(l1.C - l2.C) < 2.1*LineS)
+				if(min < blockS && min > 2*LineS)
 				{
 					getLogExt().appendText("Candidate edges for bridge connections");
-					getLogExt().append("Edge 1 slope", slope1);
-					getLogExt().append("Edge 2 slope", slope2);
-					getLogExt().append("Edge 1 C", l1.C);
-					getLogExt().append("Edge 2 C", l2.C);
+					getLogExt().append("Distance", min);
 					edges_to_connect.push_back(std::pair<Edge, Edge>(edge_groups_k[i][l], edge_groups_k[i][k]));
 				}
 			}

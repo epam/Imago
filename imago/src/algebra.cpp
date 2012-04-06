@@ -222,3 +222,17 @@ bool Algebra::segmentsParallel( const Vec2d &b1, const Vec2d &e1,
    }
    return true;
 }
+
+bool Algebra::rangesSeparable (double a1, double a2, double b1, double b2)
+{
+   double a_min = std::min(a1, a2);
+   double a_max = std::max(a1, a2);
+
+   double b_min = std::min(b1, b2);
+   double b_max = std::max(b1, b2);
+
+   if (a_min < b_min)
+      return a_max < b_min;
+
+   return a_min > b_max;
+}

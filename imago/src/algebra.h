@@ -65,6 +65,9 @@ namespace imago
       static bool segmentsParallel( const Vec2d &b1, const Vec2d &e1,
                                     const Vec2d &b2, const Vec2d &e2,
                                     double eps, double *dist = 0 );
+
+      static bool rangesSeparable (double range1_bound1, double range1_bound2, 
+         double range2_bound1, double range2_bound2);
    };
 }
 #endif /* _math_h */
