@@ -400,7 +400,7 @@ void Molecule::_connectBridgedBonds()
 				double slope1 = fabs(l1.B) < 0.001 ? 1 : l1.A / l1.B;
 				double slope2 = fabs(l2.B) < 0.001 ? 1 : l2.A / l2.B;
 
-				if(min < blockS && min > 2*LineS && fabs(l1.C - l2.C) < 2*LineS)
+				if(min < blockS && min > 2*LineS && fabs(l1.C - l2.C) < 2.1*LineS)
 				{
 					getLogExt().appendText("Candidate edges for bridge connections");
 					getLogExt().append("Edge 1 slope", slope1);
