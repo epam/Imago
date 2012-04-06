@@ -41,7 +41,7 @@ namespace imago
 		push_back(EndpointsRecord('Q', 2, 4));
 		push_back(EndpointsRecord('R', 2, 4));
 		push_back(EndpointsRecord('S', 2, 2));
-		push_back(EndpointsRecord('T', 3, 4));
+		push_back(EndpointsRecord('T', 2, 4));
 		push_back(EndpointsRecord('U', 2, 3));
 		push_back(EndpointsRecord('V', 2, 3));
 		push_back(EndpointsRecord('W', 2, 4));

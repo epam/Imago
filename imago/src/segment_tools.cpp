@@ -80,6 +80,7 @@ namespace imago
 			endseg.copy(seg);
 			for (Points2i::const_iterator it = pts.begin(); it != pts.end(); it++)
 				ImageDrawUtils::putCircle(endseg, it->x, it->y, circle_radius, 64); 
+         getLogExt().append("Number of endpoints", pts.size()); 
 			getLogExt().appendSegment("Segment with endpoints", endseg);
 		}
 	}
