@@ -331,7 +331,7 @@ void Molecule::_connectBridgedBonds()
 {
 	logEnterFunction();
 	std::vector<float> kFactor;
-	std::vector<std::vector<Edge>> edge_groups_k;
+	std::vector<std::vector<Edge> > edge_groups_k;
 	//group all parallel edges by similar factors
 	BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
 	{
@@ -339,7 +339,7 @@ void Molecule::_connectBridgedBonds()
 		Vec2d p1 = getVertexPos(getBondBegin(edge));
 		Vec2d p2 = getVertexPos(getBondEnd(edge));
 		double slope = Algebra::slope(p1, p2);
-		if(f.type == imago::BondType::SINGLE)
+		if(f.type == imago::SINGLE)
 		{
 			bool found_kFactor = false;
 			for(int i=0 ; i < kFactor.size() ; i++)
@@ -361,7 +361,7 @@ void Molecule::_connectBridgedBonds()
 		}
 	}
 	getLogExt().append("Group size of edges which could bridge:", edge_groups_k.size());
-	std::deque<std::pair<Edge, Edge>> edges_to_connect;
+	std::deque<std::pair<Edge, Edge> > edges_to_connect;
 
 	//check edges to be connected
 	for(int i=0;i<edge_groups_k.size();i++)
@@ -409,7 +409,7 @@ void Molecule::_connectBridgedBonds()
 
 
 	//connect edges
-	std::deque<std::pair<Edge, Edge>>::iterator eit;
+	std::deque<std::pair<Edge, Edge> >::iterator eit;
 	for(eit = edges_to_connect.begin(); eit != edges_to_connect.end(); eit++)
 	{
 		Edge e1 = (*eit).first,
