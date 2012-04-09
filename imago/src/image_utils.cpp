@@ -305,8 +305,10 @@ namespace imago
       if (fname.length() < 5)
          throw Exception("Unknown file format");
 
-      if (fopen(fname.c_str(), "r") == 0)
+      FILE *f = fopen(fname.c_str(), "r");
+      if (f == 0)
          throw FileNotFoundException("%s", fname.c_str());
+      fclose(f);
 
       cv::Mat mat = cv::imread(fname, 0);
 
