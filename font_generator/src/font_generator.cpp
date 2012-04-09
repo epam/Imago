@@ -21,6 +21,8 @@
 
 #include "segment.h"
 #include "image_utils.h"
+#include "contour_extractor.h"
+#include "stl_fwd.h"
 
 using std::string;
 using std::cout;
@@ -39,18 +41,29 @@ imago::SymbolFeatures calc_features(const fs::path &p, int count)
    return img.getFeatures();
 }
 
+imago::Points2i calc_contours(const fs::path &p) 
+{
+   imago::Segment img;
+   imago::ImageUtils::loadImageFromFile(img, "%s", p.string().c_str());
+
+   imago::Points2i contour;
+   imago::ContourExtractor().getApproxContour(img, contour);
+   return contour;
+}
+
 int main(int argc, char **argv)
 {
    string data;
    int count; 
-   string output;
+   string output, contours_output;
    po::options_description opts("Allowed options");
 
    opts.add_options()
       ("help", "Prints help message")
       ("data-path,D", po::value<string>(&data), "Path to the directory with symbols images")
       ("count", po::value<int>(&count)->default_value(25), "Count of descriptor pairs")
-      ("output-name,O", po::value<string>(&output), "Output file name");
+      ("output-name,O", po::value<string>(&output), "Output file name")
+      ("output-contours-name,C", po::value<string>(&contours_output), "Contours output file name");
 
    po::variables_map vm;
    po::store(po::parse_command_line(argc, argv, opts), vm);
@@ -87,6 +100,9 @@ int main(int argc, char **argv)
    chars += "$%^&";
 
    ofstream out(output);
+   std::auto_ptr<ofstream> contours_out;
+   if (vm.count("output-contours-name"))
+      contours_out.reset(new ofstream(contours_output));
    //std::ostream &out = cout;
 
    out << count << " " << chars.length() << "\n";
@@ -111,6 +127,9 @@ int main(int argc, char **argv)
       cout << c << "\n";
       out << c << " " << files.size() << "\n";
 
+      if (contours_out.get())
+         *contours_out << c << " " << files.size() << "\n";
+
       BOOST_FOREACH(fs::path p, files)
       {
          imago::SymbolFeatures sf = calc_features(p, count);
@@ -122,6 +141,17 @@ int main(int argc, char **argv)
          {
             std::copy(sf.inner_descriptors[i].begin(), sf.inner_descriptors[i].end(), ostream_iterator<double>(out, " "));
             out << "\n";
+         }
+
+         if (contours_out.get())
+         {
+            imago::Points2i contour = calc_contours(p);
+            *contours_out << contour.size() << "\n";
+            BOOST_FOREACH(imago::Vec2i point, contour)
+            {
+               *contours_out << point.x << " " << point.y << " ";
+            }
+            *contours_out << "\n";
          }
       }
    }
