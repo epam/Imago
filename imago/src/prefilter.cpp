@@ -1146,7 +1146,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 	   int sw = s->getWidth();
 	   int sh = s->getHeight();
 
-	   if(sx == 0 || sy == 0 || (sx + sw) == w || (sy + sh) == h || isSplash(s, lineThickness))
+	   if(sx == 0 || sy == 0 || (sx + sw) >= w || (sy + sh) >= h || isSplash(s, lineThickness))
 	   {
 		   imago::ImageUtils::cutSegment(cimg, *s, true, imMean);
 		   continue;
