@@ -964,6 +964,185 @@ void Skeleton::_joinVertices(double eps)
    }
 }
 
+bool Skeleton::_isSegmentIntersectedByEdge(Vec2d &b, Vec2d &e, std::deque<Edge> edges)
+{
+	std::deque<Edge>::iterator it;
+	for(it=edges.begin();it != edges.end();it++)
+	{
+		Edge edge = *it;
+		Vec2d p1 = getVertexPos(getBondBegin(edge));
+		Vec2d p2 = getVertexPos(getBondEnd(edge));
+		Vec2d intersection = Algebra::linesIntersection(b, e, p1, p2);
+		
+		double maxX = b.x > e.x ? b.x : e.x;
+		double minX = b.x < e.x ? b.x : e.x;
+		double maxY = b.y > e.y ? b.y : e.y;
+		double minY = b.y < e.y ? b.y : e.y;
+
+		if(intersection.x < maxX + 1 & intersection.x > minX-1 &&
+			intersection.y < maxY + 1 & intersection.y > minY -1)
+			return true;
+	}
+	return false;
+}
+
+void Skeleton::_connectBridgedBonds()
+{
+	logEnterFunction();
+	std::vector<float> kFactor;
+	std::vector<std::vector<Edge> > edge_groups_k;
+	//group all parallel edges by similar factors
+	BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
+	{
+		Bond f = boost::get(boost::edge_type, _g, edge);
+		Vec2d p1 = getVertexPos(getBondBegin(edge));
+		Vec2d p2 = getVertexPos(getBondEnd(edge));
+		double slope = Algebra::slope(p1, p2);
+		if(f.type == imago::SINGLE)
+		{
+			bool found_kFactor = false;
+			for(int i=0 ; i < kFactor.size() ; i++)
+			{
+				if(fabs(slope - kFactor[i]) < 0.1 ||
+					fabs(fabs(slope - kFactor[i]) - PI)<0.2)
+				{
+					edge_groups_k[i].push_back(edge);
+					found_kFactor = true;
+					break;
+				}
+			}
+
+			if(!found_kFactor)
+			{
+				edge_groups_k.push_back(std::vector<Edge>());
+				edge_groups_k[edge_groups_k.size() - 1].push_back(edge);
+				kFactor.push_back(slope);
+			}
+		}
+	}
+	getLogExt().append("Group size of edges which could bridge:", edge_groups_k.size());
+	std::deque<std::pair<Edge, Edge> > edges_to_connect;
+
+	//check edges to be connected
+	for(int i=0;i<edge_groups_k.size();i++)
+	{
+		int gr_count = edge_groups_k[i].size();
+		if( gr_count == 1)
+			continue;
+		std::deque<Edge> otherE;
+		for(int k=0;k<edge_groups_k.size();k++)
+		{
+			if(k != i)
+				otherE.insert(otherE.end(), edge_groups_k[k].begin(), edge_groups_k[k].end());
+		}
+		for(int k=0;k<gr_count;k++)
+		{
+			Vec2d p1 = getVertexPos(getBondBegin(edge_groups_k[i][k]));
+			Vec2d p2 = getVertexPos(getBondEnd(edge_groups_k[i][k]));
+
+			for(int l = k + 1;l<gr_count;l++)
+			{
+				Vec2d sp1 = getVertexPos(getBondBegin(edge_groups_k[i][l]));
+				Vec2d sp2 = getVertexPos(getBondEnd(edge_groups_k[i][l]));
+
+				double d1 = Algebra::distance2segment(p1, sp1, sp2);
+				double d2 = Algebra::distance2segment(p2, sp1, sp2);
+
+				double min = d1 < d2 ? d1 : d2;
+
+				double LineS = getSettings()["LineThickness"];
+				double blockS = LineS * 10.0;
+
+				Vec2d nearP1, nearP2;
+				if(d1 < d2)
+					nearP1 = p1;
+				else
+					nearP1 = p2;
+
+				double dd1 = Vec2d::distance<double>(nearP1, sp1);
+				double dd2 = Vec2d::distance<double>(nearP1, sp2);
+				
+				if(dd1 < dd2)
+					nearP2 = sp1;
+				else
+					nearP2 = sp2;
+
+				if(min < blockS && min > 2*LineS && 
+					Algebra::SegmentsOnSameLine(p1, p2, sp1, sp2) &&
+					_isSegmentIntersectedByEdge(nearP1, nearP2, otherE))
+				{
+					getLogExt().appendText("Candidate edges for bridge connections");
+					getLogExt().append("Distance", min);
+					edges_to_connect.push_back(std::pair<Edge, Edge>(edge_groups_k[i][l], edge_groups_k[i][k]));
+				}
+			}
+		
+		}
+	}
+
+
+	//connect edges
+	std::deque<std::pair<Edge, Edge> >::iterator eit;
+	for(eit = edges_to_connect.begin(); eit != edges_to_connect.end(); eit++)
+	{
+		Edge e1 = (*eit).first,
+			e2 = (*eit).second;
+		Vertex v1, v2, v3, v4;
+		Vec2d p1 = getVertexPos(getBondBegin(e1));
+		Vec2d p2 = getVertexPos(getBondEnd(e1));
+
+		Vec2d sp1 = getVertexPos(getBondBegin(e2));
+		Vec2d sp2 = getVertexPos(getBondEnd(e2));
+
+		double d1 = Algebra::distance2segment(p1, sp1, sp2);
+		double d2 = Algebra::distance2segment(p2, sp1, sp2);
+
+		if(d1 < d2)
+		{
+			v1 = getBondBegin(e1);
+			v3 = getBondEnd(e1);
+			if(Vec2d::distance(p1, sp1) < Vec2d::distance(p1, sp2))
+			{
+				v2 = getBondBegin(e2);
+				v4 = getBondEnd(e2);
+			}
+			else
+			{
+				v2 = getBondEnd(e2);
+				v4 = getBondBegin(e2);
+			}
+		}
+		else
+		{
+			v1 = getBondEnd(e1);
+			v3 = getBondBegin(e1);
+			if(Vec2d::distance(p2, sp1) < Vec2d::distance(p2, sp2))
+			{
+				v2 = getBondBegin(e2);
+				v4 = getBondEnd(e2);
+			}
+			else
+			{
+				v2 = getBondEnd(e2);
+				v4 = getBondBegin(e2);
+			}
+		}
+
+		if(boost::degree(v1, _g) > 1 ||
+			boost::degree(v2, _g) > 1 )
+		{
+			continue;
+		}
+
+		addBond(v3, v4, SINGLE);
+		boost::clear_vertex(v1, _g); 
+		boost::remove_vertex(v1, _g);
+
+		boost::clear_vertex(v2, _g); 
+		boost::remove_vertex(v2, _g);
+	}
+}
+
 void Skeleton::modifyGraph()
 {
 	logEnterFunction();
@@ -1017,6 +1196,10 @@ void Skeleton::modifyGraph()
     //   ;
     
 	getLogExt().appendSkeleton("after find multiple", _g);
+
+	_connectBridgedBonds();
+
+	getLogExt().appendSkeleton("after connecting bridge bonds", _g);
 
     recalcAvgBondLength();
    

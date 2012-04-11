@@ -68,6 +68,8 @@ namespace imago
 
       static bool rangesSeparable (double range1_bound1, double range1_bound2, 
          double range2_bound1, double range2_bound2);
+	  static bool SegmentsOnSameLine(Vec2d &b1, Vec2d &e1, 
+								Vec2d &b2, Vec2d &e2);
    };
 }
 #endif /* _math_h */

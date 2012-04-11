@@ -236,3 +236,18 @@ bool Algebra::rangesSeparable (double a1, double a2, double b1, double b2)
 
    return a_min > b_max;
 }
+
+bool Algebra::SegmentsOnSameLine(Vec2d &b1, Vec2d &e1, 
+								Vec2d &b2, Vec2d &e2)
+{
+	double eps = 0.2;
+
+	Vec2d bdif, edif;
+	bdif.diff(b1, b2);
+	edif.diff(e1, e2);
+
+	if(Algebra::segmentsParallel(b1, e1, b2, e2, eps) &&
+		Algebra::segmentsParallel(bdif, edif, b2, e2, eps))
+		return true;
+	return false;
+}
