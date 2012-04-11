@@ -1080,9 +1080,10 @@ void Skeleton::_connectBridgedBonds()
 		}
 	}
 
-
 	//connect edges
 	std::deque<std::pair<Edge, Edge> >::iterator eit;
+	std::vector<Vertex> verticies_to_remove;
+
 	for(eit = edges_to_connect.begin(); eit != edges_to_connect.end(); eit++)
 	{
 		Edge e1 = (*eit).first,
@@ -1128,6 +1129,13 @@ void Skeleton::_connectBridgedBonds()
 			}
 		}
 
+		// ugly check for already removed verticies
+		if (std::find(verticies_to_remove.begin(), verticies_to_remove.end(), v1) != verticies_to_remove.end() ||
+			std::find(verticies_to_remove.begin(), verticies_to_remove.end(), v2) != verticies_to_remove.end() ||
+			std::find(verticies_to_remove.begin(), verticies_to_remove.end(), v3) != verticies_to_remove.end() ||
+			std::find(verticies_to_remove.begin(), verticies_to_remove.end(), v4) != verticies_to_remove.end())
+			continue;
+
 		if(boost::degree(v1, _g) > 1 ||
 			boost::degree(v2, _g) > 1 )
 		{
@@ -1135,11 +1143,15 @@ void Skeleton::_connectBridgedBonds()
 		}
 
 		addBond(v3, v4, SINGLE);
-		boost::clear_vertex(v1, _g); 
-		boost::remove_vertex(v1, _g);
+		
+		verticies_to_remove.push_back(v1);
+		verticies_to_remove.push_back(v2);
+	}
 
-		boost::clear_vertex(v2, _g); 
-		boost::remove_vertex(v2, _g);
+	for (size_t u = 0; u < verticies_to_remove.size(); u++)
+	{
+		boost::clear_vertex(verticies_to_remove[u], _g); 
+		boost::remove_vertex(verticies_to_remove[u], _g);
 	}
 }
 
