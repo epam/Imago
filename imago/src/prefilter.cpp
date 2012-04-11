@@ -853,7 +853,7 @@ void doWiener(Image &img)
 	_copyImageToMat(img, mat);
    	HistogramTools ht(mat);
 	ht.ImageAdjust(mat);
-	_wiener2(mat);
+	_wiener2(mat, 5);
 	
 	img.clear();
 	_copyMatToImage(img, mat);
