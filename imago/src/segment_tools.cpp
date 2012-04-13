@@ -138,7 +138,7 @@ namespace imago
 				wavemap[idx] = cur_d;
 
 				#define lookup(dx,dy) v.push(std::make_pair(Vec2i(cur_v.x + (dx), cur_v.y + (dy)), cur_d+1));
-				lookup(1,0); lookup(-1,0); lookup(0,1); lookup(0,-1);
+				lookup(1,0); lookup(-1,0); lookup(0,1);  lookup(0,-1);
 				lookup(1,1); lookup(-1,1); lookup(1,-1); lookup(-1,-1);				
 				#undef lookup
 			}
@@ -168,8 +168,8 @@ namespace imago
 			result.push_back(finish);
 
 			Points2i ways;
-			#define lookup(dx,dy) ways.push_back(Vec2i(finish.x + dx, finish.y + dy));
-			lookup(1,0); lookup(-1,0); lookup(0,1); lookup(0,-1);
+			#define lookup(dx,dy) ways.push_back(Vec2i(finish.x + (dx), finish.y + (dy)));
+			lookup(1,0); lookup(-1,0); lookup(0,1);  lookup(0,-1);
 			lookup(1,1); lookup(-1,1); lookup(1,-1); lookup(-1,-1);				
 			#undef lookup
 

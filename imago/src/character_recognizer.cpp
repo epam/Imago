@@ -18,6 +18,7 @@
 #include "image_utils.h"
 #include "current_session.h"
 #include "log_ext.h"
+#include "recognition_tree.h"
 #include "character_endpoints.h"
 
 using namespace imago;
@@ -132,7 +133,9 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 
 	getLogExt().appendMap("Distance map for source", rec);
 
-	Points2i endpoints = SegmentTools::getEndpoints(seg);
+	Points2i endpoints; // = SegmentTools::getEndpoints(seg);
+	RasterObject obj(seg);
+	obj.getPoints(AutoconnectionImageTreat((double)getSettings()["LineThickness"]), endpoints, RasterObject::pqEnds);
 
 	SegmentTools::logEndpoints(seg, endpoints);
 
