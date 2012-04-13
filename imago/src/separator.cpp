@@ -283,10 +283,12 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		ri++;
 		RectPoints[ri].push_back(p1);
 		RectPoints[ri].push_back(p2);
+
 		bool added = false;
 		visited[currInd] = true;
 
-		pq.SetRectangle(symbRects[ri]);
+		//pq.SetRectangle(symbRects[ri]);
+		pq.UpdateComparer(RectPoints[ri]);
 		int j = 0;
 		//for(int j=0; j < classes.size(); j++)
 		do{
@@ -332,7 +334,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 					RectPoints[ri].push_back(sp2);
 					LineCount[ri]++;
 					visited[currInd2] = true;
-					pq.SetRectangle(symbRects[ri]);
+					pq.UpdateComparer(RectPoints[ri]);
 					pq.pop();
 
 					added = true;
@@ -360,7 +362,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 		for(int i=0;i< symbRects.size(); i++)
 		{
-			if(LineCount[i] < 2)
+			if(LineCount[i] < 2)// && !(symbRects[i].height < cap_height +line_thick && symbRects[i].height > (cap_height - 1.2 * line_thick)))
 				continue;
 			if(LineCount[i] == 2 )
 			{
@@ -383,11 +385,11 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 			if(LineCount[i] == 3)
 			{
 				if(Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
-					RectPoints[i][2], RectPoints[i][3], 0.1) || 
+					RectPoints[i][2], RectPoints[i][3], 0.13) || 
 					Algebra::segmentsParallel(RectPoints[i][4], RectPoints[i][5],
-					RectPoints[i][2], RectPoints[i][3], 0.1) || 
+					RectPoints[i][2], RectPoints[i][3], 0.13) || 
 					Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
-					RectPoints[i][4], RectPoints[i][5], 0.1))
+					RectPoints[i][4], RectPoints[i][5], 0.13))
 					continue;
 			}
 
@@ -530,7 +532,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 						  if (ImageUtils::testSlashLine(*s, 0, 3.0)) //TODO: To rs immediately. Original is 1.3 
 							 mark = SEP_BOND;
 						  else 
-							 mark = SEP_SUSPICIOUS;
+							 mark = SEP_SYMBOL;
 				 }
 				 else
 					mark = SEP_BOND;
@@ -651,7 +653,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 
 			  Segment *thinseg = new Segment();
 			  thinseg->copy(*s);
-			  //memcpy(thinseg->getData(), temp.getData(), temp.getWidth()*temp.getHeight() *sizeof(byte));
+			  memcpy(thinseg->getData(), temp.getData(), temp.getWidth()*temp.getHeight() *sizeof(byte));
 
 			 if (s->getHeight() >= cap_height - sym_height_err && 
 				 s->getHeight() <= cap_height + sym_height_err &&
