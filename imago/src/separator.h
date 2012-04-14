@@ -58,7 +58,7 @@ namespace imago
       bool _isSuspiciousSymbol( Segment *segment, SegmentDeque &layer_symbols, 
          int cap_height );
       static bool _segmentsComparator( Segment *a, Segment *b );
-
+	  bool _bIsTextContext(SegmentDeque &layer_symbols, Rectangle rec);
       Separator( const Separator &S );
 	  int HuClassifier(double hu[7]);
 

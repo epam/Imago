@@ -121,6 +121,55 @@ int Separator::HuClassifier(double hu[7])
 	return SEP_SUSPICIOUS;
 }
 
+bool Separator::_bIsTextContext(SegmentDeque &layer_symbols, imago::Rectangle rec)
+{
+	Segment* firstNear = NULL,
+		*secNear = NULL;
+	double dist1 = imago::MAX_LINE,
+		dist2 = imago::MAX_LINE;
+	RecognitionSettings &rs = getSettings();
+	int sym_height_err = rs["SymHeightErr"], cap_height = rs["CapitalHeight"];;
+    double susp_seg_density = rs["SuspSegDensity"],
+            adequate_ratio_max = rs["MaxSymRatio"],
+            adequate_ratio_min = rs["MinSymRatio"],
+			line_thickness = rs["LineThickness"];
+
+	//find first pair of symbols closer to rec
+	BOOST_FOREACH(Segment *s, layer_symbols)
+	{
+		imago::Rectangle srec = s->getRectangle();
+		Vec2i sc = s->getCenter();
+		Vec2i cntr(rec.x + rec.width/2, rec.y+rec.height/2);
+
+		double dist = Vec2i::distance(sc, cntr);
+
+		if(dist < dist1)
+		{
+			dist1= dist;
+			firstNear = s;
+		}
+
+		if(dist > dist1 && dist< dist2)
+		{
+			dist2 = dist;
+			secNear = s;
+		}
+	}
+
+	if(firstNear == NULL && secNear == NULL)
+		return false;
+
+	bool xfirstSeparable = Algebra::rangesSeparable(rec.x, rec.x+rec.width, firstNear->getX(), firstNear->getX() + firstNear->getWidth());
+	bool yfirstSeparable = Algebra::rangesSeparable(rec.y, rec.y+rec.height, firstNear->getY(), firstNear->getX() + firstNear->getHeight());
+
+	if((xfirstSeparable || yfirstSeparable) && 
+		rec.height < cap_height + 3*line_thickness && 
+		rec.height > cap_height*0.5 &&
+		dist1 < 1.5*cap_height)
+		return true;
+	return false;
+}
+
 void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
 {
 	logEnterFunction();
@@ -362,7 +411,9 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 		for(int i=0;i< symbRects.size(); i++)
 		{
-			if(LineCount[i] < 2)// && !(symbRects[i].height < cap_height +line_thick && symbRects[i].height > (cap_height - 1.2 * line_thick)))
+			bool isTextContext = _bIsTextContext(layer_symbols, symbRects[i]);
+
+			if(LineCount[i] < 2 && !isTextContext)// && !(symbRects[i].height < cap_height +line_thick && symbRects[i].height > (cap_height - 1.2 * line_thick)))
 				continue;
 			if(LineCount[i] == 2 )
 			{
@@ -377,7 +428,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 				Line l1 = Algebra::points2line(p1, p2);
 				Line l2 = Algebra::points2line(RectPoints[i][2], RectPoints[i][3]);
 				Vec2d pintersect = Algebra::linesIntersection(l1, l2);
-				if(pintersect.y > (symbRects[i].height / 2) )
+				if(absolute(pintersect.y - symbRects[i].y) < (symbRects[i].height / 2) )
 					continue;
 
 			}
@@ -472,6 +523,8 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 				mark = HuClassifier(hu);
 				getLogExt().append("mark", mark);
 
+
+
 				double surf_coeff = 3.0;
 				 if(//mark == SEP_SYMBOL && 
 					//(!(extracted.getHeight() >= cap_height - sym_height_err && extracted.getHeight() <= cap_height + sym_height_err && extracted.getHeight() <= cap_height * 2 && extracted.getWidth() <= 1.8 * cap_height)
@@ -482,6 +535,8 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 					getLogExt().appendText("mark -> SEP_SUSPICIOUS");
 				 }
 
+				 mark = (mark == SEP_SUSPICIOUS)  && isTextContext ? SEP_SYMBOL : mark;
+				 
 				 /*if (mark == SEP_SUSPICIOUS)
 				 {
 					 if (isPossibleCharacter(*s))
@@ -532,13 +587,14 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 						  if (ImageUtils::testSlashLine(*s, 0, 3.0)) //TODO: To rs immediately. Original is 1.3 
 							 mark = SEP_BOND;
 						  else 
-							 mark = SEP_SYMBOL;
+							 mark = SEP_SUSPICIOUS;
 				 }
 				 else
 					mark = SEP_BOND;
 				} 
 				 
 				
+
 				 if(mark == SEP_SYMBOL)
 				 {
 					 
@@ -641,7 +697,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 		mark = HuClassifier(hu);
 
 		if(mark == SEP_SYMBOL && 
-			(!(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= 1.8 * cap_height)
+			(!(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= cap_height)
 			|| s->getHeight() < 0.25 *cap_height)
 			)
 			mark = SEP_SUSPICIOUS;
@@ -653,7 +709,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 
 			  Segment *thinseg = new Segment();
 			  thinseg->copy(*s);
-			  memcpy(thinseg->getData(), temp.getData(), temp.getWidth()*temp.getHeight() *sizeof(byte));
+			  //memcpy(thinseg->getData(), temp.getData(), temp.getWidth()*temp.getHeight() *sizeof(byte));
 
 			 if (s->getHeight() >= cap_height - sym_height_err && 
 				 s->getHeight() <= cap_height + sym_height_err &&
@@ -700,10 +756,10 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
             layer_symbols.push_back(s);
             break;
          case SEP_SPECIAL:
-            if (_analyzeSpecialSegment(s, layer_graphics, layer_symbols))
+            //if (_analyzeSpecialSegment(s, layer_graphics, layer_symbols))
                layer_graphics.push_back(s);
-            else
-               layer_symbols.push_back(s);
+            //else
+            //   layer_symbols.push_back(s);
 
             /*if ((s)->getDensity() < susp_seg_density)
                layer_graphics.push_back(s);
@@ -711,7 +767,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
                layer_symbols.push_back(s);*/
             break;
          case SEP_SUSPICIOUS:
-            layer_suspicious.push_back(s);
+            layer_graphics.push_back(s);//layer_suspicious.push_back(s);
          }
 
 		 
