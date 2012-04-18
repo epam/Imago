@@ -180,8 +180,6 @@ namespace imago
 		logEnterFunction();
 		
 		bitmask.copy(raw);
-		if (isAlreadyBinarized(bitmask))
-			return;
 
 		PrefilterParams p;
 		p.logSteps = false;
@@ -191,38 +189,45 @@ namespace imago
 		getLogExt().appendImage("raw", raw);		
 		getLogExt().appendImage("binarized", bitmask);
 
-		double inkPercentage = 0.0;
-		// update ink percentage
-		for (int x = 0; x < bitmask.getWidth(); x++)
-			for (int y = 0; y < bitmask.getHeight(); y++)
-				if (bitmask.getByte(x, y) == 0)
-					inkPercentage += 1.0;
-		inkPercentage /= bitmask.getWidth() * bitmask.getHeight() * 2;
-		inkPercentage *= 1.1;
+		try
+		{
+			double inkPercentage = 0.0;
+			// update ink percentage
+			for (int x = 0; x < bitmask.getWidth(); x++)
+				for (int y = 0; y < bitmask.getHeight(); y++)
+					if (bitmask.getByte(x, y) == 0)
+						inkPercentage += 1.0;
+			inkPercentage /= bitmask.getWidth() * bitmask.getHeight() * 2;
+			inkPercentage *= 1.2;
 		
-		// update line thickness
-		lineThickness = estimateLineThickness(bitmask);
+			// update line thickness
+			lineThickness = estimateLineThickness(bitmask);
 
-		if (lineThickness <= 1.0) lineThickness = 1.0;
-		if (lineThickness >= 10.0) lineThickness = 10.0;
-		if (inkPercentage > 0.15) inkPercentage = 0.15;
-		if (inkPercentage < 0.001) inkPercentage = 0.001;
+			if (lineThickness <= 1.0) lineThickness = 1.0;
+			if (lineThickness >= 10.0) lineThickness = 10.0;
+			if (inkPercentage > 0.15) inkPercentage = 0.15;
+			if (inkPercentage < 0.001) inkPercentage = 0.001;
 
-		getLogExt().append("Line thickness", lineThickness);
-		getLogExt().append("Ink percentage", inkPercentage);
+			getLogExt().append("Line thickness", lineThickness);
+			getLogExt().append("Ink percentage", inkPercentage);
 
-		Image bitmask2;
-		bitmask2.copy(raw);
-		AdaptiveFilter af(bitmask2.getWidth(), bitmask2.getHeight());
-		af.filterImage(bitmask2, false, inkPercentage, lineThickness);
-		getLogExt().appendImage("filtered", bitmask2);
+			Image bitmask2;
+			bitmask2.copy(raw);
+			AdaptiveFilter af(bitmask2.getWidth(), bitmask2.getHeight());
+			af.filterImage(bitmask2, false, inkPercentage, lineThickness);
+			getLogExt().appendImage("filtered", bitmask2);
 
-		for (int x = 0; x < bitmask.getWidth(); x++)
-			for (int y = 0; y < bitmask.getHeight(); y++)
-				if (bitmask2.getByte(x, y) == 0)
-					bitmask.getByte(x, y) = 0;
+			for (int x = 0; x < bitmask.getWidth() && x < bitmask2.getWidth(); x++)
+				for (int y = 0; y < bitmask.getHeight() && y < bitmask2.getHeight(); y++)
+					if (bitmask2.getByte(x, y) == 0)
+						bitmask.getByte(x, y) = 0;
 
-		getLogExt().appendImage("merged", bitmask);
+			getLogExt().appendImage("merged", bitmask);
+		}
+		catch (Exception &e)
+		{
+			getLogExt().appendText(e.what());
+		}
 		
 		/*int factor = lineThickness / 2.0;
 		if (factor >= 1)

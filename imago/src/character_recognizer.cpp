@@ -139,10 +139,13 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 
 	std::string probably, surely;
 	static EndpointsData endpointsHandler;
-	endpointsHandler.getImpossibleToWrite(endpoints.size(), probably, surely);
 
-	rec.adjust(1.1, probably);
-	rec.adjust(1.2, surely);
+	if (endpoints.size() < 8)
+	{
+		endpointsHandler.getImpossibleToWrite(endpoints.size(), probably, surely);
+		rec.adjust(1.1, probably);
+		rec.adjust(1.2, surely);
+	}
 	
 	// easy-to-write adjust
 	switch(endpoints.size())

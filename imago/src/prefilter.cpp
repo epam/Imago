@@ -1134,11 +1134,6 @@ bool isAlreadyBinarized(Image &image)
 
 void prefilterImage( Image &image, const CharacterRecognizer &cr )
 {
-	resampleImage(image);
-
-	if (isAlreadyBinarized(image))
-		return;
-
 	logEnterFunction();
 
    Image raw, cimg;
@@ -1280,7 +1275,9 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    cimg.copy(raw);
 
    Image cs(cimg.getWidth(), cimg.getHeight());
-   prefilterKernel(cimg, cs); 
+   PrefilterParams p2;
+   //p2.reduceImage = false;
+   prefilterKernel(cimg, cs, p2);
 
    //if(getSettings()["DebugSession"])
 	//		ImageUtils::saveImageToFile(cs, "output/pref3_final.png");

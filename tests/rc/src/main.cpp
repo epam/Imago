@@ -47,17 +47,27 @@ void performRecognition(const std::string& imageName, int logLevel = 0, int filt
 
 		imago::Molecule mol;
 
-		if (0)
+		resampleImage(img);
+
+		if (isAlreadyBinarized(img))
 		{
-			imago::RecognitionTree tree(img);     		
-			tree.segmentate();
-			csr.image2mol(tree.getBitmask(), mol);
+			csr.image2mol(img, mol);
 		}
 		else
 		{
-			imago::prefilterImage(img, csr.getCharacterRecognizer());
-			csr.image2mol(img, mol);
-		}		
+			if (1)
+			{
+			
+				imago::RecognitionTree tree(img);
+				tree.segmentate();
+				csr.image2mol(tree.getBitmask(), mol);
+			}
+			else
+			{
+				imago::prefilterImage(img, csr.getCharacterRecognizer());
+				csr.image2mol(img, mol);
+			}
+		}
 
 		std::string molfile = imago::expandSuperatoms(mol);
 
