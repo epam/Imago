@@ -1268,6 +1268,9 @@ void Skeleton::modifyGraph()
 	   Image temp(getSettings()["imgWidth"], getSettings()["imgHeight"]);
 
 	   double distTresh = (int)getSettings()["CapitalHeight"];
+	   if (distTresh > _avg_bond_length/2.0)
+		   distTresh = _avg_bond_length/2.0;
+
 	   std::vector<Skeleton::Edge> bad_edges;
 	   BGL_FORALL_EDGES(e, _g, SkeletonGraph)
 	   {

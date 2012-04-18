@@ -181,6 +181,7 @@ namespace imago
 		
 		PrefilterParams p;
 		p.logSteps = false;
+		p.strongThresh = true;
 		prefilterKernel(raw, bitmask, p);
 
 		getLogExt().appendImage("raw", raw);		
@@ -194,9 +195,14 @@ namespace imago
 					inkPercentage += 1.0;
 		inkPercentage /= bitmask.getWidth() * bitmask.getHeight() * 2;
 		inkPercentage *= 1.1;
-
+		
 		// update line thickness
 		lineThickness = estimateLineThickness(bitmask);
+
+		if (lineThickness <= 1.0) lineThickness = 1.0;
+		if (lineThickness >= 10.0) lineThickness = 10.0;
+		if (inkPercentage > 0.15) inkPercentage = 0.15;
+		if (inkPercentage < 0.001) inkPercentage = 0.001;
 
 		getLogExt().append("Line thickness", lineThickness);
 		getLogExt().append("Ink percentage", inkPercentage);
