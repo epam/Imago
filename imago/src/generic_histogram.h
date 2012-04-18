@@ -26,7 +26,7 @@ namespace imago
 		int getValueMoreThan(double percents)
 		{
 			int sum = data[0], value = 0;
-			int lim = count*percents;
+			double lim = count*percents;
 			if (lim > count)
 				lim = count;
 			while ((value+1) < bins && sum < lim)

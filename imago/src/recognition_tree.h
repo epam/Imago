@@ -38,6 +38,9 @@ namespace imago
 		int _range;
 	};
 
+	class RasterObject;
+	typedef std::vector<RasterObject> SubSegments;
+
 	class RasterObject
 	{
 	public:
@@ -66,6 +69,9 @@ namespace imago
 
 		void getPoints(const ImageTreatmentAdapter& a, Points2i& result, PointsQuertyType q = pqAll) const;
 
+		const SubSegments& getSubSegments() const { return _subSegments; }
+		SubSegments& getSubSegments() { return _subSegments; }
+
 		double getAverageLineThickness(const ImageTreatmentAdapter& a) const;
 	
 		// utils:
@@ -77,6 +83,8 @@ namespace imago
 		
 		CropList _crops; // adjustable crops array
 		Crop _bounding;
+
+		SubSegments _subSegments;
 
 		void updateBounding();
 
@@ -110,23 +118,33 @@ namespace imago
 	class RecognitionTree
 	{
 	public:
-		RecognitionTree(const Image& img) : _img(img), _root(img)
+		RecognitionTree(const Image& image) : raw(image), root(image), lineThickness(1.0)
 		{
 		}
 
-		const RasterObject& getRoot() const
+		void segmentate();
+
+		const Image& getImage() const
 		{
-			return _root;
+			return raw;
 		}
 
-		RasterObject& getRoot()
-		{
-			return _root;
+		const Image& getBitmask() const 
+		{		
+			return bitmask;
 		}
 
-	private:
-		RasterObject _root;
-		const Image& _img;
+		Image& getBitmask() 
+		{
+			return bitmask;
+		}
+
+	private:		
+		const Image& raw;
+		
+		Image bitmask;
+		double lineThickness;
+		RasterObject root;
 	};
 
 }

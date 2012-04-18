@@ -133,9 +133,7 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 
 	getLogExt().appendMap("Distance map for source", rec);
 
-	Points2i endpoints; // = SegmentTools::getEndpoints(seg);
-	RasterObject obj(seg);
-	obj.getPoints(AutoconnectionImageTreat((double)getSettings()["LineThickness"]), endpoints, RasterObject::pqEnds);
+	Points2i endpoints = SegmentTools::getEndpoints(seg);
 
 	SegmentTools::logEndpoints(seg, endpoints);
 

@@ -8,38 +8,24 @@
 
 namespace imago
 {
-	/* Affects: recognition quality (MED), recognition time(HI, cause of MAX_REFINE_ITERS)
-	   Depends on: real image ink coverage ratio(MED)
-	   */
-	const double INK_THRESHOLD = 0.995;	       // 1-% for initial ink coverage
-	
 	/* Affects: recognition quality (LO), recognition time(LO)
 	   Depends on: jpeg artifacts / camera noise / etc(LO)
 	   */
 	const int    INTERPOLATION_LEVEL = 2;      // (2*n+1)^2 kernel for mean filter will be used
 
-	/* Affects: recognition quality (MED), recognition time(LO)
-	   Depends on: line thickness(HI,BOUND)
-	   */
-	const int    DIFF_STEP_RANGE = 2;          // one step pixels count
-	const int    DIFF_ITERATIONS = 4;          // max steps count
-	const int    DIFF_FULL_PATH  = DIFF_ITERATIONS*DIFF_STEP_RANGE;
-
-	/* Affects: recognition quality(LO)
-	   Depends on: line thickness(LO,BOUND)
-	   */
-	const int    ERASE_NOISE_THRESHOLD = 32;   // pixels count, less that will be erased as noise	
-
 	/* Affects: recognition quality(LO), recognition time(HI)
 		*/
 	const int    MAX_CROPS = 1;                // 1 is sufficient in most cases
-	const int    MAX_REFINE_ITERS = 5;
+	const int    MAX_REFINE_ITERS = 3;
 
 	// ---------------------------------------------------------------------------------
 
 	void AdaptiveFilter::interpolateImage(const AdaptiveFilter& src, int radius) 
 	{
 		logEnterFunction();
+
+		this->diffIterations = src.diffIterations;
+		this->diffStepRange = src.diffStepRange;
 
 		double int2 = (2*radius+1)*(2*radius+1);
 
@@ -63,11 +49,11 @@ namespace imago
 					}
 				}
 
-				at(x,y).intensity = temp / int2;
+				at(x,y).intensity = (GrayscaleData)(temp / int2);
 			}
 	}
 
-	unsigned char AdaptiveFilter::getMaximalIntensityDiff(int sx, int sy, int iterations)
+	unsigned char AdaptiveFilter::getMaximalIntensityDiff(int sx, int sy)
 	{		
 		if (at(sx,sy).diffCache == BLANK)
 		{
@@ -75,11 +61,11 @@ namespace imago
 
 			int cx = sx, cy = sy;
 
-			for (int i = 0; i < iterations; i++)
+			for (int i = 0; i < diffIterations; i++)
 			{			
 				int ncx = cx, ncy = cy;
-				for (int dx = -DIFF_STEP_RANGE; dx <= DIFF_STEP_RANGE; dx++)
-					for (int dy = -DIFF_STEP_RANGE; dy <= DIFF_STEP_RANGE; dy++)
+				for (int dx = -diffStepRange; dx <= diffStepRange; dx++)
+					for (int dy = -diffStepRange; dy <= diffStepRange; dy++)
 						if ((dx != 0 || dy != 0) && inRange(cx+dx, cy+dy))
 							if (at(cx+dx,cy+dy).intensity > at(ncx,ncy).intensity)
 							{
@@ -107,7 +93,7 @@ namespace imago
 		return at(sx,sy).diffCache;
 	}
 
-	unsigned char AdaptiveFilter::getIntensityBound(const Rectangle& crop, WeakSegmentator* ws)
+	unsigned char AdaptiveFilter::getIntensityBound(double inkTresh, const Rectangle& crop, WeakSegmentator* ws)
 	{
 		logEnterFunction();
 
@@ -115,8 +101,9 @@ namespace imago
 		for (int y = crop.y1(); y < crop.y2(); y++)
 			for (int x = crop.x1(); x < crop.x2(); x++)
 				if (ws == NULL || !ws->alreadyExplored(x - crop.x1(), y - crop.y1()))
-					distHist.addData(getMaximalIntensityDiff(x, y, DIFF_ITERATIONS));
-		unsigned char result = distHist.getValueMoreThan(INK_THRESHOLD);		
+					distHist.addData(getMaximalIntensityDiff(x, y));
+		getLogExt().appendText("Accessed all pixels data");
+		unsigned char result = distHist.getValueMoreThan(inkTresh);		
 		getLogExt().append("Intensity diff bound", (int)result);
 		return result;
 	}
@@ -125,7 +112,8 @@ namespace imago
 	{
 		logEnterFunction();
 
-		int minv = 255, maxv = 0, average = 0;
+		int minv = 255, maxv = 0;
+		double average = 0.0;
 		for (int y = 0; y < crop.height; y++)
 			for (int x = 0; x < crop.width; x++)
 			{
@@ -140,7 +128,7 @@ namespace imago
 
 		getLogExt().append("Minimal intensity matches diff", minv);
 		getLogExt().append("Maximal intensity matches diff", maxv);
-		getLogExt().append("Average", average / (crop.width * crop.height));
+		getLogExt().append("Ink percentage", average / (img.getWidth() * img.getHeight()));
 
 		if (minv == maxv && minv == 0)
 		{
@@ -163,7 +151,7 @@ namespace imago
 					if (ws == NULL || ws->readyForOutput(x,y))
 					{
 						GrayscaleData c = at(crop.x + x, crop.y + y).intensity;
-						img.getByte(x, y) = factor * (c - minv);
+						img.getByte(x, y) = (byte)(factor * (c - minv));
 					}
 					else
 					{
@@ -183,7 +171,7 @@ namespace imago
 		
 		virtual bool isFilled(int x, int y) const		
 		{
-			return af.getMaximalIntensityDiff(crop.x + x, crop.y + y, DIFF_ITERATIONS) >= diff_bound;
+			return af.getMaximalIntensityDiff(crop.x + x, crop.y + y) >= diff_bound;
 		}
 
 		virtual unsigned char getIntensity(int x, int y) const
@@ -217,11 +205,40 @@ namespace imago
 		int diff_bound;
 	};
 
-	void AdaptiveFilter::filterImage(Image& output)
+	void AdaptiveFilter::filterImage(Image& output, bool allowCrop, 
+		                             double probablyInkPercentage, 
+									 int lineThickness)
 	{	
 		logEnterFunction();	
 
-		doWiener(output);
+		diffStepRange = 1; // one step pixels count
+		diffIterations = lineThickness; // max steps count
+
+		while (diffIterations > 4)
+		{
+			diffStepRange++;
+			diffIterations = lineThickness / diffStepRange;
+		}
+
+		int diffFullPath  = diffStepRange * diffIterations;
+		int winSize = 2 * lineThickness;
+
+		double inkTresh = 1.0 - probablyInkPercentage;
+		double refineTresh = inkTresh; // fixed, cause it's meaning is relative
+
+		getLogExt().append("diffIterations", diffIterations);
+		getLogExt().append("diffStepRange", diffStepRange);
+		getLogExt().append("winSize", winSize);
+		getLogExt().append("inkTresh", inkTresh);
+		getLogExt().append("refineTresh", refineTresh);
+
+		PrefilterParams p;
+		p.logSteps = false;
+		p.binarizeImage = false;
+		p.strongThresh = true;
+
+		prefilterKernel(output, output, p);		
+
 		for (int h = 0; h < output.getHeight(); h++)
 			for (int w = 0; w < output.getWidth(); w++)
 				at(w,h).intensity = output.getByte(w,h);
@@ -230,60 +247,30 @@ namespace imago
 		AdaptiveFilter interpolated(this->width(), this->height());
 		interpolated.interpolateImage(*this, INTERPOLATION_LEVEL);
 
-		if (FILTER_DUMP_IMAGES && getLogExt().loggingEnabled())
-		{
-			getLogExt().appendImage("Source image (in Image)", output);
-			Image temp;
-			normalizedOuput(temp, crop);
-			getLogExt().appendImage("Source image (in AdaptiveFilter)", temp);
-			interpolated.normalizedOuput(temp, crop);
-			getLogExt().appendImage("Interpolated image", temp);
-		}		
-
-		double line_thickness = 1.0;
-		
 		// maximal crops allowed loop
 		for (int crop_attempt = 0; crop_attempt <= MAX_CROPS; crop_attempt++)
 		{
-			int bound = interpolated.getIntensityBound(crop);
+			int bound = interpolated.getIntensityBound(inkTresh, crop);
 			ImageAdapter img(*this, crop, bound);
 			WeakSegmentator ws(img.width(), img.height());
 
-			int addedPixels = ws.appendData(img, DIFF_ITERATIONS);
+			int addedPixels = ws.appendData(img, diffIterations);
 
-			// update line thickness
-			{
-				Image temp;
-				normalizedOuput(temp, crop, &ws);
-				for (int y = 0; y < temp.getHeight(); y++)
-					for (int x = 0; x < temp.getWidth(); x++)
-						temp.getByte(x, y) = (temp.getByte(x, y) < 127) ? 0 : 255; // TODO, 127
-				line_thickness = EstimateLineThickness(temp);
-				getLogExt().append("Initial line thickness", line_thickness);
-			}
-
-			if (crop_attempt == MAX_CROPS || !ws.needCrop(crop))
+			if (!allowCrop || crop_attempt == MAX_CROPS || !ws.needCrop(crop, winSize))
 			{
 				getLogExt().appendText("Enter refinements loop");
 
 				// refine loop
 				for (int refine_iter = 1; refine_iter <= MAX_REFINE_ITERS; refine_iter++)
 				{
-					ws.updateRefineMap(DIFF_FULL_PATH);
+					ws.updateRefineMap(diffFullPath);
 
-					if (FILTER_DUMP_IMAGES && getLogExt().loggingEnabled())
-					{
-						Image temp;
-						normalizedOuput(temp, crop, &ws);
-						getLogExt().appendImage("Before refine", temp);
-					}
-
-					int new_bound = interpolated.getIntensityBound(crop, &ws);
+					int new_bound = interpolated.getIntensityBound(refineTresh, crop, &ws);
 
 					if (new_bound >= bound)
 					{						
-						//new_bound = bound - 1;						
 						getLogExt().append("Warning: Bound not changed", new_bound);
+						break;
 					}
 
 					bound = new_bound;
@@ -296,87 +283,24 @@ namespace imago
 
 					img.updateBound(new_bound);					
 
-					int added_n = ws.appendData(img, DIFF_ITERATIONS);
-					if (added_n < ERASE_NOISE_THRESHOLD)
+					int added_n = ws.appendData(img, diffIterations);
+					if (added_n < lineThickness)
 					{
 						getLogExt().append("Crossed useful refinements boundary on iteration", refine_iter);
 						break;
 					}
 				}
 
-				// ws.eraseNoise(ERASE_NOISE_THRESHOLD); // temporary. function is wrong
-
 				ws.performPixelOptimizations();
-
-				//ws.reconstructLines(line_thickness);
 
 				normalizedOuput(output, crop, &ws);
 				break;
 			}
 		}
-			
-		//if (FILTER_DUMP_IMAGES)
-		//	getLogExt().appendImage("Refined image", output);
 
-		// TODO: real very important part, affects anything! 140 is bad threshold!		
 		for (int y = 0; y < output.getHeight(); y++)
 			for (int x = 0; x < output.getWidth(); x++)
-				output.getByte(x, y) = (output.getByte(x, y) < 140) ? 0 : 255;
-
-		if (FILTER_DUMP_IMAGES)
-			getLogExt().appendImage("Binarized image", output);
-
-
-		// real hardcore goes here
-		{
-			ThinFilter2(output).apply();
-			
-			getLogExt().appendImage("Before final adjust", output);
-
-			Image temp(output.getWidth(), output.getHeight());
-			temp.fillWhite();
-
-			double lt_dist = 0.5;
-			int min_side = std::min(width(), height());
-
-			getLogExt().append("Min side", min_side);
-
-			if (min_side > 300) lt_dist = 1.0;
-			if (min_side > 500) lt_dist = 2.0;
-			if (min_side > 800) lt_dist = 3.0;
-			if (min_side > 1200) lt_dist = 4.0;
-
-			//while (line_thickness / 2.0 > lt_dist) lt_dist += 1.0;
-			getLogExt().append("Reconstruct line thickness", lt_dist);
-
-			for (int h = 0; h < output.getHeight(); h++)
-				for (int w = 0; w < output.getWidth(); w++)
-				{
-					if (output.getByte(w,h) == BLANK)
-						continue;
-
-					Points2i nb = WeakSegmentator::getNeighbors(output, Vec2i(w,h), 2);
-					// TODO: filter scratches
-					if (nb.size() > 2)
-					{
-						// draw the line pattern (50% overhead here)
-						for (int dx = -lt_dist; dx <= lt_dist; dx++)
-							for (int dy = -lt_dist; dy <= lt_dist; dy++)
-								if (sqrt((double)(dx*dx+dy*dy)) <= lt_dist)
-									if (w + dx >= 0 && h + dy >= 0 && w + dx < output.getWidth() && h + dy < output.getHeight())
-										temp.getByte(w + dx, h + dy) = INK;
-					}
-				}
-
-			output.copy(temp);
-
-			getLogExt().appendImage("After final adjust", output);
-		}
-
-
-		line_thickness = EstimateLineThickness(output);
-		getSettings()["LineThickness"] = line_thickness;
-		getLogExt().append("Line Thickness", line_thickness);
+				output.getByte(x, y) = (output.getByte(x, y) < 255) ? 0 : 255;
 	}
 
 	/////////////////////////////////////////////////////////////////////////////////////////////
@@ -415,7 +339,9 @@ namespace imago
 	{
 		if (filterptr)
 		{
+			// try to filter with default params
 			filterptr->filterImage(*imgptr);
+
 			delete filterptr;
 			filterptr = NULL;
 		}

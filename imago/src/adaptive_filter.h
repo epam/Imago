@@ -34,7 +34,10 @@ namespace imago
 			if (rgb) delete rgb;
 		}
 
-		void filterImage(Image& img); // the really main method
+		 // the really main method
+		void filterImage(Image& img, bool allowCrop = true,
+			             double probablyInkPercentage = 0.005,
+						 int lineThickness = 6);
 
 		
 		// TODO: provide getters/setters
@@ -43,14 +46,15 @@ namespace imago
 
 	protected:		
 		void interpolateImage(const AdaptiveFilter& src, int interpolation = 0);
-		unsigned char getMaximalIntensityDiff(int x, int y, int iterations);
+		unsigned char getMaximalIntensityDiff(int x, int y);
 
-		unsigned char getIntensityBound(const Rectangle& crop, WeakSegmentator* ws = NULL);
+		unsigned char getIntensityBound(double inkTresh, const Rectangle& crop, WeakSegmentator* ws = NULL);
 		void normalizedOuput(Image& img, const Rectangle& crop, WeakSegmentator* ws = NULL);
 
 	private:
 		typedef Basic2dStorage<RGBData> RGBStorage;
 		RGBStorage *rgb;
+		int diffIterations, diffStepRange;
 	};
 
 	class FilterImageStub

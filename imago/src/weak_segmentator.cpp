@@ -7,10 +7,7 @@
 
 namespace imago
 {	
-	/* Affects: recognition of rectangle-cropped images; sticky notes, etc (HI)
-	Depends on: line thickness(HI,BOUND) */
 	static const double RECTANGULAR_AREA_THRESHOLD = 0.30; // %, minimal rectangle coverage of image
-	static const int    RECTANGULAR_WINDOWSIZE     = 12;   // maximal rectangle side width (TODO - variable)
 	static const double RECTANGULAR_PASS_THRESHOLD = 0.95; // %, for rectangle testing
 
 	Points2i WeakSegmentator::getNeighbors(const Image& img, const Vec2i& p, int range)
@@ -78,13 +75,13 @@ namespace imago
 						double dx = average_dx/norm, dy = average_dy/norm;
 						double subpx = 0.5;
 
-						for (int j = -max_len / subpx; j < max_len / subpx; j++)
+						for (int j = (int)(-max_len / subpx); j < (int)(max_len / subpx); j++)
 						{
-							int bnd = abs(j)*0.9 + 2;
+							int bnd = (int)(abs(j)*0.9 + 2);
 							for (int k = -bnd; k <= bnd; k++)
 							{
-								int _x = (double)x + dx * (double)(j*subpx) - dy * (double)(k*subpx);
-								int _y = (double)y + dy * (double)(j*subpx) + dx * (double)(k*subpx);
+								int _x = (int)((double)x + dx * (double)(j*subpx) - dy * (double)(k*subpx));
+								int _y = (int)((double)y + dy * (double)(j*subpx) + dx * (double)(k*subpx));
 								if (inRange(_x, _y))
 								{
 									at(_x, _y).refineGeneration = currentRefineGeneration;
@@ -96,7 +93,7 @@ namespace imago
 			}
 		}
 
-		if (FILTER_DUMP_IMAGES && getLogExt().loggingEnabled())
+		if (getLogExt().loggingEnabled())
 		{
 			for (int y = 0; y < height(); y++)
 				for (int x = 0; x < width(); x++)
@@ -136,8 +133,7 @@ namespace imago
 			}
 		}
 		
-		if (FILTER_DUMP_IMAGES)
-			getLogExt().appendImage("Fast decorner", thin);
+		getLogExt().appendImage("Fast decorner", thin);
 
 		// now all objects are just curve lines with exactly 2 endpoints
 		for (int y = 0; y < height(); y++)
@@ -182,8 +178,7 @@ namespace imago
 			}
 		}
 
-		if (FILTER_DUMP_IMAGES)
-			getLogExt().appendImage("Traced image", thin);
+		getLogExt().appendImage("Traced image", thin);
 
 		return result;
 	}
@@ -263,19 +258,19 @@ namespace imago
 			}			
 	}*/
 
-	bool WeakSegmentator::needCrop(Rectangle& crop)
+	bool WeakSegmentator::needCrop(Rectangle& crop, int winSize)
 	{
 		logEnterFunction();
 
-		int area_pixels = width() * height() * RECTANGULAR_AREA_THRESHOLD;
+		int area_pixels = (int)(width() * height() * RECTANGULAR_AREA_THRESHOLD);
 		for (size_t id = 1; id <= SegmentPoints.size(); id++)
 		{
 			getLogExt().appendPoints("Segment", SegmentPoints[id]);
 			Rectangle bounds;
-			if (getRectangularArea(id) > area_pixels && hasRectangularStructure(id, bounds))
+			if (getRectangularArea(id) > area_pixels && hasRectangularStructure(id, bounds, winSize))
 			{
 				getLogExt().append("Has rectangular structure, id", id);	
-				bounds.adjustBorder(RECTANGULAR_WINDOWSIZE*2);
+				bounds.adjustBorder(winSize*2);
 				crop = bounds;
 				return true;
 			}
@@ -289,7 +284,7 @@ namespace imago
 		return b.getBounding().width * b.getBounding().height;
 	}		
 
-	bool WeakSegmentator::hasRectangularStructure(int id, Rectangle& bound)
+	bool WeakSegmentator::hasRectangularStructure(int id, Rectangle& bound, int winSize)
 	{
 		Points2i& p = SegmentPoints[id];
 			
@@ -314,18 +309,18 @@ namespace imago
 			}
 			// and centers
 			if (get2centers(map_x, width(), x1c, x2c) && get2centers(map_y, height(), y1c, y2c) &&
-				fabs(x1c - x2c) > 2*RECTANGULAR_WINDOWSIZE && fabs(y1c - y2c) > 2*RECTANGULAR_WINDOWSIZE)
+				fabs(x1c - x2c) > 2*winSize && fabs(y1c - y2c) > 2*winSize)
 			{
 				int good = 0, bad = 0;
 				for (Points2i::iterator it = p.begin(); it != p.end(); it++)
-					if ((fabs(it->x - x1c) < RECTANGULAR_WINDOWSIZE || fabs(it->x - x2c) < RECTANGULAR_WINDOWSIZE) ||
-						(fabs(it->y - y1c) < RECTANGULAR_WINDOWSIZE || fabs(it->y - y2c) < RECTANGULAR_WINDOWSIZE))
+					if ((fabs(it->x - x1c) < winSize || fabs(it->x - x2c) < winSize) ||
+						(fabs(it->y - y1c) < winSize || fabs(it->y - y2c) < winSize))
 						good++;
 					else
 						bad++;
 				if ((double)good / (good+bad) > RECTANGULAR_PASS_THRESHOLD)
 				{
-					bound = Rectangle(x1c, y1c, x2c, y2c, 0);
+					bound = Rectangle((int)x1c, (int)y1c, (int)x2c, (int)y2c, 0);
 					return true;
 				}
 			}

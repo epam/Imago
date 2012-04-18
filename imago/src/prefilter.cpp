@@ -118,7 +118,8 @@ static void _unsharpMask (Image &img, int radius, float amount, int threshold)
    Image blur;
    blur.copy(img);
    
-   TIME(_blur(blur, radius), "Blur");
+   _blur(blur, radius);
+   //TIME(_blur(blur, radius), "Blur");
    //TIME(_blur2(blur, radius), "Blur");
    
    int i, j;
@@ -538,7 +539,7 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
 
 }
 
-int EstimateLineThickness(Image &bwimg, int grid)
+int estimateLineThickness(Image &bwimg, int grid)
 {
 	int w = bwimg.getWidth();
 	int h = bwimg.getHeight();
@@ -720,7 +721,7 @@ void _wiener2(cv::Mat &mat, int size)
    _copyMatToImage(im2, mat);
    //if (debug_session)
    //   ImageUtils::saveImageToFile(im2, "output/pref3_wienerLocalMean.png");
-   getLogExt().appendImage("Wiener local mean", im2);
+   //getLogExt().appendImage("Wiener local mean", im2);
 	//cv::blur(dmat, localMean, cv::Size(3, 3));
 
 	//calculate local variance
@@ -741,7 +742,7 @@ void _wiener2(cv::Mat &mat, int size)
    _copyMatToImage(im2, mat);
    //if (debug_session)
     //  ImageUtils::saveImageToFile(im2, "output/pref3_wienerLocalVar.png");
-   getLogExt().appendImage("Wiener local var", im2);
+   //getLogExt().appendImage("Wiener local var", im2);
 	//calculate noise
 	cv::Scalar vnoise = cv::mean(localVar);
 	double noise = 2 * vnoise[0];
@@ -843,71 +844,62 @@ int greyThresh(cv::Mat mat, bool strong)
    return cnt;
 }
 
-void doWiener(Image &img)
-{
-	logEnterFunction();
-
-	cv::Mat mat;
-
-	_unsharpMask(img, 7, 4, 0);
-	_copyImageToMat(img, mat);
-   	HistogramTools ht(mat);
-	ht.ImageAdjust(mat);
-	_wiener2(mat, 5);
-	
-	img.clear();
-	_copyMatToImage(img, mat);
-}
-
-void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecognizer &_cr, bool adaptiveThresh=false, bool strongThresh=false)
+void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 {
 	logEnterFunction();
 
 	int w = raw.getWidth();
 	int h = raw.getHeight();
    
-	LPRINT(0, "loaded image %d x %d", w, h);
+	//LPRINT(0, "loaded image %d x %d", w, h);
 
 	cv::Mat mat, rmat;
 	Image img, cimg;
-	//bool debug_session = getSettings()["DebugSession"];
-
    
 	int maxside = (w < h) ? h : w;
 	int n = maxside / 800;
 
 	img.copy(raw);
-	getLogExt().appendImage("Source image", img);
+	
+	if (p.logSteps)
+		getLogExt().appendImage("Source image", img);
 	
 	//convert to gray scale
 	_copyImageToMat(img, mat);
 	bool reduced = false;
    cv::Mat matred((mat.rows+1)/2, (mat.cols+1)/2, CV_8U);
-   if(maxside > 300)
+   if (p.reduceImage)
    {
-   //Pydramid reduce
-	cv::pyrDown(mat, matred);
-	reduced = true;
-   }
-   else
-   {
-	   if(strongThresh)
+	   if(maxside > 300)
 	   {
-		   cv::GaussianBlur(mat, matred, cv::Size(5, 5), 1, 1, cv::BORDER_REPLICATE);
-		   //mat.copyTo(matred);
+			//Pydramid reduce
+			cv::pyrDown(mat, matred);
+			reduced = true;
 	   }
 	   else
 	   {
-		   double lt = getSettings()["LineThickness"];
-		   cv::bilateralFilter(mat, matred, 5, 20, lt);
+		   if(p.strongThresh)
+		   {
+			   cv::GaussianBlur(mat, matred, cv::Size(5, 5), 1, 1, cv::BORDER_REPLICATE);
+		   }
+		   else
+		   {
+			   double lt = getSettings()["LineThickness"];
+			   cv::bilateralFilter(mat, matred, 5, 20, lt);
+		   }
 	   }
+   }
+   else
+   {
+	   mat.copyTo(matred);
    }
    
    if(getLogExt().loggingEnabled()) // debug_session)
    {
 	   _copyMatToImage(cimg, matred);
 	   //ImageUtils::saveImageToFile(cimg, "output/pref3_pyrDown.png");
-	   getLogExt().appendImage("Pyr down", cimg);
+	   if (p.logSteps)
+		getLogExt().appendImage("Pyr down", cimg);
    }
 
    //make edges stronger
@@ -926,7 +918,8 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	   cimg.clear();
 	   _copyMatToImage(cimg, matred);
 	   //ImageUtils::saveImageToFile(cimg, "output/pref3_strongerEdges.png");
-	   getLogExt().appendImage("Stronger edges", cimg);
+	   if (p.logSteps)
+		getLogExt().appendImage("Stronger edges", cimg);
    }
 
    //build structuring element
@@ -955,7 +948,8 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	   cimg.clear();
 	   _copyMatToImage(cimg, matred);
 	   //ImageUtils::saveImageToFile(cimg, "output/pref3_tophat.png");
-	   getLogExt().appendImage("Tophat", cimg);
+	   if (p.logSteps)
+		getLogExt().appendImage("Tophat", cimg);
    }
 
    //Compute histogram limits to adjust the image
@@ -967,11 +961,12 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 		cimg.clear();
 		_copyMatToImage(cimg, matred);
 		//ImageUtils::saveImageToFile(cimg, "output/pref3_imadjust.png");
-		getLogExt().appendImage("Imadjust", cimg);
+		if (p.logSteps)
+			getLogExt().appendImage("Imadjust", cimg);
 	}
 
 	//wiener filter
-   if(!strongThresh)
+   if(!p.strongThresh)
    {
 	   double blockS = getSettings()["LineThickness"];
 		blockS = ((int)blockS % 2) == 0 ? blockS +1:blockS;
@@ -984,11 +979,8 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	_copyMatToImage(cimg, matred);
 
 
-	//if (debug_session)
-	//{
-	//	ImageUtils::saveImageToFile(cimg, "output/pref3_wiener.png");
-	//}
-	getLogExt().appendImage("Wiener", cimg);
+	if (p.logSteps)
+		getLogExt().appendImage("Wiener", cimg);
 
 	
 	//sharp edges
@@ -1009,21 +1001,24 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 	int thresh = greyThresh(mat, true);
 	int wthresh = greyThresh(mat, false);
 
-	if(strongThresh)
+	if(p.strongThresh)
 		wthresh = 0.2*thresh+0.8*wthresh;
 
-	//Perform binary thresholding using Otsu procedure
-	//thresh = thresh - 16 > 0 ? thresh - 16 : 0; 
-	if(adaptiveThresh )//|| !strongThresh
+	if (p.binarizeImage)
 	{
-		//HistogramTools ht2(mat);
-		//ht2.ImageAdjust(mat, true);
-		double blockS = getSettings()["LineThickness"];
-		blockS = ((int)blockS % 2) == 0 ? blockS +1:blockS;
-		cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, (int)blockS*7, 7);
+		//Perform binary thresholding using Otsu procedure
+		//thresh = thresh - 16 > 0 ? thresh - 16 : 0; 
+		if(p.adaptiveThresh)
+		{
+			//HistogramTools ht2(mat);
+			//ht2.ImageAdjust(mat, true);
+			double blockS = getSettings()["LineThickness"];
+			blockS = ((int)blockS % 2) == 0 ? blockS +1:blockS;
+			cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, (int)blockS*7, 7);
+		}
+		else
+			cv::threshold(mat, mat, wthresh, 255, cv::THRESH_BINARY);//cv::THRESH_OTSU|
 	}
-	else
-	cv::threshold(mat, mat, wthresh, 255, cv::THRESH_BINARY);//cv::THRESH_OTSU|
 
 	cv::Mat strel;
 	if(reduced)
@@ -1038,32 +1033,15 @@ void _prefilterInternal3( const Image &raw, Image &image, const CharacterRecogni
 		strel = cv::Mat(3, 3, CV_8U, dstruct);//cv::getStructuringElement(cv::MORPH_CROSS, cv::Size(3, 3));
 	}
 
-	   //mat = 255 - mat;
-	   //perform open transformation
-	   //cv::morphologyEx(mat, mat, cv::MORPH_OPEN, strel, cv::Point(-1, -1), 1, cv::BORDER_REPLICATE);
-	   //mat = 255 - mat;
-	
-
 	cimg.clear();
 	_copyMatToImage(cimg, mat);
 
-	//if (debug_session)
-	//{	
-	//	ImageUtils::saveImageToFile(cimg, "output/pref3_after_pref.png");
-	//}
-	getLogExt().appendImage("After pref", cimg);
+	if (p.logSteps)
+		getLogExt().appendImage("After pref", cimg);
 
 	image.copy(cimg);
 
-	/*ThinFilter2 filt(image);
-	filt.apply();
-
-	if (debug_session)
-	{
-		ImageUtils::saveImageToFile(image, "output/pref3_after_prefthinning.png");
-	}
-*/
-	LPRINT(0, "Filtering done");
+	//LPRINT(0, "Filtering done");
 }
 
 bool isSplash(Segment *s, int lineSize)
@@ -1072,7 +1050,7 @@ bool isSplash(Segment *s, int lineSize)
 	if(s->getWidth() < lineSize && s->getHeight() < lineSize)
 		return true;
 	s->extract(0, 0, s->getWidth(), s->getHeight(), img);
-	int ls = EstimateLineThickness(img);
+	int ls = estimateLineThickness(img);
 	if(ls > 3* lineSize || ls < 1)
 		return true;
 	return false;
@@ -1110,13 +1088,12 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    int imMean = raw.mean();
 
    image.clear();
-   //_prefilterInternal2(image);
 
-   //_prefilterInternal(raw, image, cr);
-   _prefilterInternal3(raw, image, cr, false, true);
+   PrefilterParams p;
+   p.strongThresh = true;
+   prefilterKernel(raw, image, p);
 
-
-   double lineThickness = EstimateLineThickness(image);
+   double lineThickness = estimateLineThickness(image);
 
    if(lineThickness < 1)
 	   throw Exception("Image prefiltering failed");
@@ -1241,7 +1218,8 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    cimg.copy(raw);
 
    Image cs(cimg.getWidth(), cimg.getHeight());
-	_prefilterInternal3(cimg, cs, cr); 
+   prefilterKernel(cimg, cs); 
+
    //if(getSettings()["DebugSession"])
 	//		ImageUtils::saveImageToFile(cs, "output/pref3_final.png");
 	getLogExt().appendImage("After _prefilterInternal3", cs);

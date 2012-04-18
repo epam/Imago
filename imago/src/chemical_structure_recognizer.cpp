@@ -113,7 +113,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
       rs.set("imgHeight", _img.getHeight());
       rs.set("imgWidth", _img.getWidth());
-	  rs.set("LineThickness", (double)EstimateLineThickness(_img));
+	  rs.set("LineThickness", (double)estimateLineThickness(_img));
 	  
       //if (rs["DebugSession"])
       //{

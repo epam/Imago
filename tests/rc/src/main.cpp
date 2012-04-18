@@ -10,56 +10,62 @@
 #include "output.h"
 #include "recognition_tree.h"
 
+void dumpVFS(imago::VirtualFS& vfs)
+{
+	if (!vfs.empty())
+	{
+		imago::FileOutput flogdump("log_vfs.txt");
+		std::vector<char> logdata;
+		vfs.getData(logdata);
+		flogdump.write(&logdata.at(0), logdata.size());
+	}
+}
+
 void performRecognition(const std::string& imageName, int logLevel = 0, int filterType = 0)
 {
-   try
-   {
-      qword sid = imago::SessionManager::getInstance().allocSID();
-      imago::SessionManager::getInstance().setSID(sid);
+	imago::VirtualFS vfs;
+
+	try
+	{
+		qword sid = imago::SessionManager::getInstance().allocSID();
+		imago::SessionManager::getInstance().setSID(sid);
       
-      imago::Image img;
+		imago::Image img;	  
 
-	  imago::VirtualFS vfs;
+		if (logLevel > 0)
+		{
+			imago::getSettings()["DebugSession"] = true;
+			if (logLevel > 1)
+				imago::getLogExt().SetVirtualFS(vfs);
+		}
 
-	  if (logLevel > 0)
-	  {
-        imago::getSettings()["DebugSession"] = true;
-		if (logLevel > 1)
-			imago::getLogExt().SetVirtualFS(vfs);
-	  }
+		imago::getSettings()["AdaptiveFilter"] = filterType;
 
-	  imago::getSettings()["AdaptiveFilter"] = filterType;
+		imago::ChemicalStructureRecognizer &csr = imago::getRecognizer();
 
-      imago::ChemicalStructureRecognizer &csr = imago::getRecognizer();
+		imago::ImageUtils::loadImageFromFile(img, imageName.c_str());
 
-	  imago::ImageUtils::loadImageFromFile(img, imageName.c_str());
-
-	  //imago::RecognitionTree tree(img);
+		imago::RecognitionTree tree(img);
       
-      imago::prefilterImage(img, csr.getCharacterRecognizer());
+		//imago::prefilterImage(tree);
+		tree.segmentate();
 
-      imago::Molecule mol;
-      csr.image2mol(img, mol);
+		imago::Molecule mol;
+		csr.image2mol(tree.getBitmask(), mol);
 
-      std::string molfile = imago::expandSuperatoms(mol);
+		std::string molfile = imago::expandSuperatoms(mol);
 
-      imago::FileOutput fout("molecule.mol");
-      fout.writeString(molfile);
+		imago::FileOutput fout("molecule.mol");
+		fout.writeString(molfile);		
 
-	  if (!vfs.empty())
-	  {
-		  imago::FileOutput flogdump("log_vfs.txt");
-		  std::vector<char> logdata;
-		  vfs.getData(logdata);
-		  flogdump.write(&logdata.at(0), logdata.size());
-	  }
+		imago::SessionManager::getInstance().releaseSID(sid);      
+	}
+	catch (std::exception &e)
+	{
+		puts(e.what());
+	}
 
-      imago::SessionManager::getInstance().releaseSID(sid);      
-   }
-   catch (std::exception &e)
-   {
-      puts(e.what());
-   }
+	dumpVFS(vfs);
 }
 
 

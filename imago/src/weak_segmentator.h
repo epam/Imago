@@ -9,9 +9,6 @@
 
 namespace imago
 {
-	// DEBUG ONLY CONSTANT: add images to log or not (reduces process time)
-	const bool FILTER_DUMP_IMAGES = true;
-
 	#pragma pack (push, 1)
 	struct SegmentPackedRecord
 	{
@@ -43,7 +40,7 @@ namespace imago
 		void performPixelOptimizations();
 				
 		// updates crop if required
-		bool needCrop(Rectangle& crop);		
+		bool needCrop(Rectangle& crop, int winSize);		
 
 		// required for AdaptiveFilter updateBound( )
 		bool alreadyExplored(int x, int y) const;
@@ -68,7 +65,7 @@ namespace imago
 		int getRectangularArea(int id);
 
 		// check segment with id has rectangular structure
-		bool hasRectangularStructure(int id, Rectangle& bound);
+		bool hasRectangularStructure(int id, Rectangle& bound, int winSize);
 
 		std::map<int, Points2i> SegmentPoints;
 		int currentRefineGeneration;
