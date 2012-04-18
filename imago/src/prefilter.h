@@ -23,6 +23,9 @@ namespace imago
 
    void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p = PrefilterParams());
 
+   bool isAlreadyBinarized(Image &image);
+   bool resampleImage(Image &image, int MAX_RESOLUTION = 1280);
+
    void prefilterFile(const char *filename, Image &image, const CharacterRecognizer &cr);
    void prefilterPngData(const std::vector<unsigned char> &data, Image &image, const CharacterRecognizer &cr );
    void prefilterImage( Image &image, const CharacterRecognizer &cr );

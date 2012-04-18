@@ -179,6 +179,10 @@ namespace imago
 	{
 		logEnterFunction();
 		
+		bitmask.copy(raw);
+		if (isAlreadyBinarized(bitmask))
+			return;
+
 		PrefilterParams p;
 		p.logSteps = false;
 		p.strongThresh = true;

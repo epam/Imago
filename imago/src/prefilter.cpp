@@ -1063,21 +1063,83 @@ bool SegCompare (Segment *i, Segment *j)
 	return (area1 < area2); 
 }
 
-void prefilterImage( Image &image, const CharacterRecognizer &cr )
+bool resampleImage(Image &image, int MAX_RESOLUTION)
+{
+	logEnterFunction();
+	int w = image.getWidth();
+	int h = image.getHeight();
+	int m = std::max(w, h);
+	int scale = 1;
+	while (m / scale > MAX_RESOLUTION) scale++;
+	if (scale == 1)
+	{
+		getLogExt().appendText("resample is not required");
+		return false;
+	}
+	else
+	{
+		getLogExt().append("Required resample by", scale);
+		Image temp(w / scale, h / scale);
+		for (int y = 0; y < temp.getHeight(); y++)
+			for (int x = 0; x < temp.getWidth(); x++)			
+			{
+				int c = 0;
+				for (int dy = 0; dy < scale; dy++)
+					for (int dx = 0; dx < scale; dx++)
+						c += image.getByte(x*scale+dx, y*scale+dy);
+				temp.getByte(x, y) = c / scale / scale;
+			}
+		image.copy(temp);
+		return true;
+	}
+}
+
+bool isAlreadyBinarized(Image &image)
 {
 	logEnterFunction();
 
-	{
-		bool binarized = true;
-		for (int y = 0; y < image.getHeight() && binarized; y++)
-			for (int x = 0; x < image.getWidth() && binarized; x++)
-				binarized &= image.getByte(x, y) == 0 || image.getByte(x, y) == 255;
-		if (binarized)
+	int white_count = 0, black_count = 0, others_count = 0;
+	for (int y = 0; y < image.getHeight(); y++)
+		for (int x = 0; x < image.getWidth(); x++)
+			if (image.getByte(x, y) == 0)
+				black_count++;
+			else if (image.getByte(x, y) == 255)
+				white_count++;
+			else 
+				others_count++;
+
+	getLogExt().append("white_count", white_count);
+	getLogExt().append("black_count", black_count);
+	getLogExt().append("others_count", others_count);
+
+	if (black_count + white_count > others_count)
+	{	
+		getLogExt().appendText("image is binarized");
+		if (others_count > 0)
 		{
-			getLogExt().appendText("Image is already binarized, skip");
-			return;
+			getLogExt().appendText("Fixup other colors");
+			for (int y = 0; y < image.getHeight(); y++)
+				for (int x = 0; x < image.getWidth(); x++)
+					if (image.getByte(x, y) != 255)
+						image.getByte(x, y) = 0;
 		}
+		return true;
 	}
+	else
+	{
+		getLogExt().appendText("image requires processing");
+		return false;
+	}
+}
+
+void prefilterImage( Image &image, const CharacterRecognizer &cr )
+{
+	resampleImage(image);
+
+	if (isAlreadyBinarized(image))
+		return;
+
+	logEnterFunction();
 
    Image raw, cimg;
    
