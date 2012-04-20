@@ -50,7 +50,7 @@ namespace imago
 			return ((double)(below) / (double)(below + above));
 	}
 
-	Points2i SegmentTools::getInRange(const Segment& seg, Vec2i pos, int range)
+	Points2i SegmentTools::getInRange(const Image& seg, Vec2i pos, int range)
 	{
 		Points2i result;
 		int w = seg.getWidth();
@@ -347,11 +347,9 @@ namespace imago
 		return result;
 	}
 
-	/// returns true if changes made
-	bool SegmentTools::makeSegmentConnected(Segment& seg, const Points2i& to_connect, double d1, double d2)
+	bool SegmentTools::fixBrokenPixels(Image &seg)
 	{
 		bool changed = false;
-
 		// try to fill broken pixels inside
 		for (int x = 0; x < seg.getWidth(); x++)
 			for (int y = 0; y < seg.getHeight(); y++)
@@ -374,6 +372,13 @@ namespace imago
 				}
 			}
 
+		return changed;
+	}
+
+	/// returns true if changes made
+	bool SegmentTools::makeSegmentConnected(Segment& seg, const Points2i& to_connect, double d1, double d2)
+	{
+		bool changed = fixBrokenPixels(seg);	
 
 		// looks like hardcore complexity code, but practically to_connect.size() is below 5
 		for (Points2i::const_iterator it1 = to_connect.begin(); it1 != to_connect.end(); it1++)

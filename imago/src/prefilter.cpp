@@ -17,6 +17,7 @@
 #include "segment.h"
 #include "HistogramTools.h"
 #include "prefilter.h"
+#include "segment_tools.h"
 
 namespace imago
 {
@@ -172,6 +173,182 @@ inline static void _copyImageToMat ( const Image &img, cv::Mat &mat)
       for (j = 0; j < h; j++)
          mat.at<unsigned char>(j, i) = img.getByte(i, j);
 }
+
+enum LogicOperation
+{
+	logicNot,
+	logicAnd,
+	logicOr
+};
+
+inline static cv::Mat _logicOp (const cv::Mat &mat1, const cv::Mat &mat2, LogicOperation type)
+{
+   cv::Mat result;
+   result.create(mat1.rows, mat1.cols, CV_8U);
+   for (int j = 0; j < mat1.rows && j < mat2.rows; j++)
+   {
+	   for (int i = 0; i < mat1.cols && i < mat2.cols; i++)
+	   {
+		   if (type == logicNot)
+			   result.at<unsigned char>(j, i) = (mat1.at<unsigned char>(j, i) == 0) ? 255 : 0;
+		   else if (type == logicAnd)
+			   result.at<unsigned char>(j, i) = ((mat1.at<unsigned char>(j, i) == 0) || (mat2.at<unsigned char>(j, i) == 0)) ? 0 : 255;
+		   else if (type == logicOr)
+			   result.at<unsigned char>(j, i) = ((mat1.at<unsigned char>(j, i) == 255) || (mat2.at<unsigned char>(j, i) == 255)) ? 255 : 0;
+	   }
+   }
+	return result;
+}
+
+struct FilterSetup
+{
+	bool blur;
+	bool addCanny;
+	bool filterContoursBySize;
+	int minContourLength;
+	int minContourArea;
+	double minFormFactor;
+	double cannyThreshold;
+	int adaptiveThresholdBlockSize;
+	double adaptiveThresholdParameter;
+	
+
+	FilterSetup()
+	{
+		blur = true;
+		addCanny = false;
+		filterContoursBySize = true;
+		minContourLength = 15;
+		minContourArea = 10;
+		minFormFactor = 0.9;
+		cannyThreshold = 50.0;
+		adaptiveThresholdBlockSize = 4;
+		adaptiveThresholdParameter = 1.2;
+	}
+}; 
+
+typedef std::vector<cv::Point> Contour;
+typedef std::vector<Contour> Contours;
+
+Contours _getBadContours(const FilterSetup& setup, const Contours& contours, const cv::Mat& cannyFrame, int frameWidth, int frameHeight)
+{
+	int maxArea = frameWidth * frameHeight / 5;
+	int border = 1 + std::min(frameWidth, frameHeight) / 100;
+	Contours result;
+
+	for (Contours::const_iterator c = contours.begin(); c != contours.end(); c++)
+	{
+		if (setup.filterContoursBySize)
+		{
+			int total = c->size();
+			int area = cv::contourArea(*c);
+			if (total < setup.minContourLength ||
+				area < setup.minContourArea ||
+				area > maxArea ||
+				area / total <= setup.minFormFactor)
+			{
+				result.push_back(*c);
+				continue;
+			}
+		}
+		if (true /*setup.noiseFilter*/)
+		{
+			//cv::Point p1 = c->at(0);
+			//cv::Point p2 = c->at(c->size() / 2);
+			bool zero = true;
+			for (int i = 0; zero && i < c->size(); i++)
+			if (cannyFrame.at<unsigned char>(c->at(i)) != 0)
+				zero = false;
+
+			if (zero)
+			{
+				result.push_back(*c);
+				continue;
+			}
+		}
+		if (true)
+		{
+			bool corner = false;
+			for (int i = 0; i < c->size(); i++)
+			if (c->at(i).x < border || c->at(i).y < border ||
+				c->at(i).x >= frameWidth - border || 
+				c->at(i).y >= frameHeight - border)
+				corner = true;
+
+			if (corner)
+			{
+				result.push_back(*c);
+				continue;
+			}
+		}
+	}
+
+	return result;
+}
+
+void prefilterCV(Image& raw, const FilterSetup& setup)
+{
+	logEnterFunction();
+
+	cv::Mat grayFrame, smoothedGrayFrame, cannyFrame;
+	_copyImageToMat(raw, grayFrame);
+	_copyImageToMat(raw, smoothedGrayFrame);
+	_copyImageToMat(raw, cannyFrame);
+
+	cv::Mat reduced((grayFrame.rows+1)/2, (grayFrame.cols+1)/2, CV_8U);
+	cv::pyrDown(grayFrame, reduced);
+	cv::pyrUp(reduced, smoothedGrayFrame);
+
+	cv::Canny(smoothedGrayFrame, cannyFrame, setup.cannyThreshold, setup.cannyThreshold);
+
+	if (setup.blur)
+		grayFrame = smoothedGrayFrame;
+
+	const int CV_THRESH_BINARY = 0;
+
+	cv::adaptiveThreshold(grayFrame, grayFrame, 255, cv::ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 
+		                  setup.adaptiveThresholdBlockSize + setup.adaptiveThresholdBlockSize % 2 + 1, 
+						  setup.adaptiveThresholdParameter);
+
+	grayFrame = _logicOp(grayFrame, grayFrame, logicNot);
+
+	if (setup.addCanny)
+		grayFrame = _logicOp(grayFrame, cannyFrame, logicOr);
+
+	cv::Point anchor = cv::Point(-1,-1);
+	cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), anchor);
+	cv::dilate(cannyFrame, cannyFrame, kernel, anchor, 3);
+
+	Contours contours;
+	std::vector<cv::Vec4i> hierarchy;
+	cv::findContours(grayFrame, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
+
+	Contours bad = _getBadContours(setup, contours, cannyFrame, grayFrame.rows, grayFrame.cols);
+
+	cv::Mat good = cv::Mat::zeros(grayFrame.rows, grayFrame.cols, CV_8U);
+	for (int idx = 0; idx < contours.size(); idx++)
+	{
+		if (std::find(bad.begin(), bad.end(), contours[idx]) == bad.end())
+			cv::drawContours(good, contours, idx, 255, 8, 8, hierarchy);		
+	}
+
+	good = _logicOp(good, grayFrame, logicAnd);
+
+	good = _logicOp(good, good, logicNot);
+	
+	raw.clear();
+	_copyMatToImage(raw, good);
+
+	SegmentTools::fixBrokenPixels(raw);
+}
+
+void prefilterCV(Image& raw)
+{
+	FilterSetup setup;
+	//setup.filterContoursBySize = false;
+	prefilterCV(raw, setup);
+}
+
 
 inline static void _blur (Image &img, int radius)
 {
@@ -843,6 +1020,7 @@ int greyThresh(cv::Mat mat, bool strong)
    cnt = cnt / bins.size();
    return cnt;
 }
+
 
 void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 {

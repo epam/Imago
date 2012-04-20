@@ -29,6 +29,8 @@ namespace imago
    void prefilterFile(const char *filename, Image &image, const CharacterRecognizer &cr);
    void prefilterPngData(const std::vector<unsigned char> &data, Image &image, const CharacterRecognizer &cr );
    void prefilterImage( Image &image, const CharacterRecognizer &cr );
+   
+   void prefilterCV(Image& raw);
 
    bool isCircle (Image &seg);
    int estimateLineThickness(Image &bwimg, int grid = 10);
