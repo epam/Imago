@@ -84,6 +84,7 @@ namespace imago
 		
 		void appendText(const std::string& text);
 		void appendImage(const std::string& caption, const Image& img);   
+		void appendMat(const std::string& caption, const cv::Mat& mat);
 		void appendGraph(const std::string& name, const segments_graph::SegmentsGraph& g);   
 		void appendSkeleton(const std::string& name, const Skeleton::SkeletonGraph& g);   
 		void appendSegment(const std::string& name, const Segment& seg);

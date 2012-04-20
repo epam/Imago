@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <errno.h>
 #include "output.h"
+#include "prefilter.h"
 #include "pixel_boundings.h"
 
 #ifdef _WIN32
@@ -106,6 +107,15 @@ namespace imago
 		output.fillWhite();
 		ImageDrawUtils::putGraph(output, g);
 		appendImage(name, output);
+	}
+
+	void log_ext::appendMat(const std::string& caption, const cv::Mat& mat)
+	{
+		if(!loggingEnabled()) return;
+      
+		Image output;
+		_copyMatToImage(output, mat);
+		appendImage(caption, output);
 	}
    
 	void log_ext::appendSkeleton(const std::string& name, const Skeleton::SkeletonGraph& g)

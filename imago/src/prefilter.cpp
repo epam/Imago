@@ -148,7 +148,7 @@ static void _unsharpMask (Image &img, int radius, float amount, int threshold)
 }
 
 
-inline static void _copyMatToImage (Image &img, const cv::Mat &mat)
+void _copyMatToImage (Image &img, const cv::Mat &mat)
 {
    int w = mat.cols;
    int h = mat.rows;
@@ -161,7 +161,7 @@ inline static void _copyMatToImage (Image &img, const cv::Mat &mat)
          img.getByte(i, j) = mat.at<unsigned char>(j, i);
 }
 
-inline static void _copyImageToMat ( const Image &img, cv::Mat &mat)
+void _copyImageToMat ( const Image &img, cv::Mat &mat)
 {
    int w = img.getWidth();
    int h = img.getHeight();
@@ -181,7 +181,7 @@ enum LogicOperation
 	logicOr
 };
 
-inline static cv::Mat _logicOp (const cv::Mat &mat1, const cv::Mat &mat2, LogicOperation type)
+cv::Mat _logicOp (const cv::Mat &mat1, const cv::Mat &mat2, LogicOperation type)
 {
    cv::Mat result;
    result.create(mat1.rows, mat1.cols, CV_8U);
@@ -221,7 +221,7 @@ struct FilterSetup
 		minContourLength = 15;
 		minContourArea = 10;
 		minFormFactor = 0.9;
-		cannyThreshold = 50.0;
+		cannyThreshold = 54.0;
 		adaptiveThresholdBlockSize = 4;
 		adaptiveThresholdParameter = 1.2;
 	}
@@ -255,27 +255,33 @@ Contours _getBadContours(const FilterSetup& setup, const Contours& contours, con
 		{
 			//cv::Point p1 = c->at(0);
 			//cv::Point p2 = c->at(c->size() / 2);
-			bool zero = true;
-			for (int i = 0; zero && i < c->size(); i++)
+			int good = 0;
+			int bad = 0;
+			for (int i = 0; i < c->size(); i++)
 			if (cannyFrame.at<unsigned char>(c->at(i)) != 0)
-				zero = false;
+				good++;
+			else
+				bad++;
 
-			if (zero)
+			if (bad > good)
 			{
 				result.push_back(*c);
 				continue;
 			}
 		}
-		if (true)
+		if (true) // location check
 		{
-			bool corner = false;
+			int good = 0;
+			int bad = 0;
 			for (int i = 0; i < c->size(); i++)
 			if (c->at(i).x < border || c->at(i).y < border ||
 				c->at(i).x >= frameWidth - border || 
 				c->at(i).y >= frameHeight - border)
-				corner = true;
+				bad++;
+			else
+				good++;
 
-			if (corner)
+			if (6*bad > good)
 			{
 				result.push_back(*c);
 				continue;
@@ -299,6 +305,12 @@ void prefilterCV(Image& raw, const FilterSetup& setup)
 	cv::pyrDown(grayFrame, reduced);
 	cv::pyrUp(reduced, smoothedGrayFrame);
 
+	/*int average = 0;
+	for (int r = 0; r < reduced.rows; r++)
+		for (int c = 0; c < reduced.cols; c++)
+			average += reduced.at<unsigned char>(r,c);
+	average /= reduced.rows * reduced.cols;*/
+
 	cv::Canny(smoothedGrayFrame, cannyFrame, setup.cannyThreshold, setup.cannyThreshold);
 
 	if (setup.blur)
@@ -309,21 +321,27 @@ void prefilterCV(Image& raw, const FilterSetup& setup)
 	cv::adaptiveThreshold(grayFrame, grayFrame, 255, cv::ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 
 		                  setup.adaptiveThresholdBlockSize + setup.adaptiveThresholdBlockSize % 2 + 1, 
 						  setup.adaptiveThresholdParameter);
+	
+	getLogExt().appendMat("grayFrame", grayFrame);
 
 	grayFrame = _logicOp(grayFrame, grayFrame, logicNot);
 
 	if (setup.addCanny)
 		grayFrame = _logicOp(grayFrame, cannyFrame, logicOr);
 
+	getLogExt().appendMat("cannyFrame", cannyFrame);
+
 	cv::Point anchor = cv::Point(-1,-1);
 	cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), anchor);
-	cv::dilate(cannyFrame, cannyFrame, kernel, anchor, 3);
+	cv::dilate(cannyFrame, cannyFrame, kernel, anchor, 1);
+
+	getLogExt().appendMat("dilated cannyFrame", cannyFrame);
 
 	Contours contours;
 	std::vector<cv::Vec4i> hierarchy;
 	cv::findContours(grayFrame, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
 
-	Contours bad = _getBadContours(setup, contours, cannyFrame, grayFrame.rows, grayFrame.cols);
+	Contours bad = _getBadContours(setup, contours, cannyFrame, grayFrame.cols, grayFrame.rows);
 
 	cv::Mat good = cv::Mat::zeros(grayFrame.rows, grayFrame.cols, CV_8U);
 	for (int idx = 0; idx < contours.size(); idx++)
@@ -332,6 +350,8 @@ void prefilterCV(Image& raw, const FilterSetup& setup)
 			cv::drawContours(good, contours, idx, 255, 8, 8, hierarchy);		
 	}
 
+	getLogExt().appendMat("good", good);
+	
 	good = _logicOp(good, grayFrame, logicAnd);
 
 	good = _logicOp(good, good, logicNot);

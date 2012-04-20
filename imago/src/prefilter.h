@@ -32,6 +32,8 @@ namespace imago
    
    void prefilterCV(Image& raw);
 
+   void _copyMatToImage (Image &img, const cv::Mat &mat);
+
    bool isCircle (Image &seg);
    int estimateLineThickness(Image &bwimg, int grid = 10);
 }
