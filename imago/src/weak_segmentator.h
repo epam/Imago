@@ -54,6 +54,9 @@ namespace imago
 		// returns neighbors of p with intensity == INK
 		static Points2i getNeighbors(const Image& img, const Vec2i& p, int range = 1);
 
+		typedef std::map<int, Points2i> SegMap;
+		SegMap SegmentPoints;
+
 	protected:		
 		// returns all segment endpoints
 		Points2i getEndpointsDecornered() const;
@@ -66,8 +69,7 @@ namespace imago
 
 		// check segment with id has rectangular structure
 		bool hasRectangularStructure(int id, Rectangle& bound, int winSize);
-
-		std::map<int, Points2i> SegmentPoints;
+		
 		int currentRefineGeneration;
 
 	private:

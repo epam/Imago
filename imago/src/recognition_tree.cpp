@@ -186,7 +186,7 @@ namespace imago
 		//p.strongThresh = true;
 		
 		bitmask.copy(raw);
-		prefilterCV(bitmask, false);
+		prefilterCV(bitmask);
 		//prefilterKernel(raw, bitmask, p);
 
 		getLogExt().appendImage("raw", raw);		

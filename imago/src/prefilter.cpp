@@ -18,6 +18,7 @@
 #include "HistogramTools.h"
 #include "prefilter.h"
 #include "segment_tools.h"
+#include "weak_segmentator.h"
 
 namespace imago
 {
@@ -200,178 +201,97 @@ cv::Mat _logicOp (const cv::Mat &mat1, const cv::Mat &mat2, LogicOperation type)
 	return result;
 }
 
-struct FilterSetup
+class ImgAdapter :  public ImageInterface
 {
-	bool blur;
-	bool addCanny;
-	bool filterContoursBySize;
-	int minContourLength;
-	int minContourArea;
-	double minFormFactor;
-	double cannyThreshold;
-	int adaptiveThresholdBlockSize;
-	double adaptiveThresholdParameter;
-	bool extractOnlyMask;
+public:
+	ImgAdapter(const Image& _raw, const Image& _bin) : raw(_raw), bin(_bin)
+	{
+	}
+
+	virtual bool isFilled(int x, int y) const
+	{
+		return bin.getByte(x,y) == 0;
+	}		
 	
-
-	FilterSetup()
+	virtual unsigned char getIntensity(int x, int y) const
 	{
-		blur = true;
-		addCanny = false;
-		filterContoursBySize = true;
-		minContourLength = 15;
-		minContourArea = 10;
-		minFormFactor = 0.9;
-		cannyThreshold = 54.0;
-		adaptiveThresholdBlockSize = 4;
-		adaptiveThresholdParameter = 1.2;
-		extractOnlyMask = false;
-	}
-}; 
-
-typedef std::vector<cv::Point> Contour;
-typedef std::vector<Contour> Contours;
-
-Contours _getBadContours(const FilterSetup& setup, const Contours& contours, const cv::Mat& cannyFrame, int frameWidth, int frameHeight)
-{
-	int maxArea = frameWidth * frameHeight / 5;
-	int border = 1 + std::min(frameWidth, frameHeight) / 100;
-	Contours result;
-
-	for (Contours::const_iterator c = contours.begin(); c != contours.end(); c++)
-	{
-		if (setup.filterContoursBySize)
-		{
-			int total = c->size();
-			int area = cv::contourArea(*c);
-			if (total < setup.minContourLength ||
-				area < setup.minContourArea ||
-				area > maxArea ||
-				area / total <= setup.minFormFactor)
-			{
-				result.push_back(*c);
-				continue;
-			}
-		}
-		if (true /*setup.noiseFilter*/)
-		{
-			//cv::Point p1 = c->at(0);
-			//cv::Point p2 = c->at(c->size() / 2);
-			int good = 0;
-			int bad = 0;
-			for (int i = 0; i < c->size(); i++)
-			if (cannyFrame.at<unsigned char>(c->at(i)) != 0)
-				good++;
-			else
-				bad++;
-
-			if (bad > good)
-			{
-				result.push_back(*c);
-				continue;
-			}
-		}
-		if (true) // location check
-		{
-			int good = 0;
-			int bad = 0;
-			for (int i = 0; i < c->size(); i++)
-			if (c->at(i).x < border || c->at(i).y < border ||
-				c->at(i).x >= frameWidth - border || 
-				c->at(i).y >= frameHeight - border)
-				bad++;
-			else
-				good++;
-
-			if (6*bad > good)
-			{
-				result.push_back(*c);
-				continue;
-			}
-		}
+		return raw.getByte(x,y);
 	}
 
-	return result;
-}
+	virtual int width() const 
+	{
+		return std::min(raw.getWidth(), bin.getWidth());
+	}
+	
+	virtual int height() const
+	{
+		return std::min(raw.getHeight(), bin.getHeight());
+	}
+private:
+	const Image& raw;
+	const Image& bin;
+};
 
-void prefilterCV(Image& raw, const FilterSetup& setup)
+void prefilterCV(Image& raw)
 {
 	logEnterFunction();
 
-	cv::Mat grayFrame, smoothedGrayFrame, cannyFrame;
+	cv::Mat grayFrame, smoothedGrayFrame;
 	_copyImageToMat(raw, grayFrame);
 	_copyImageToMat(raw, smoothedGrayFrame);
-	_copyImageToMat(raw, cannyFrame);
 
 	cv::Mat reduced((grayFrame.rows+1)/2, (grayFrame.cols+1)/2, CV_8U);
 	cv::pyrDown(grayFrame, reduced);
 	cv::pyrUp(reduced, smoothedGrayFrame);
 
-	/*int average = 0;
-	for (int r = 0; r < reduced.rows; r++)
-		for (int c = 0; c < reduced.cols; c++)
-			average += reduced.at<unsigned char>(r,c);
-	average /= reduced.rows * reduced.cols;*/
-
-	cv::Canny(smoothedGrayFrame, cannyFrame, setup.cannyThreshold, setup.cannyThreshold);
-
-	if (setup.blur)
-		grayFrame = smoothedGrayFrame;
-
-	const int CV_THRESH_BINARY = 0;
-
-	cv::adaptiveThreshold(grayFrame, grayFrame, 255, cv::ADAPTIVE_THRESH_MEAN_C, CV_THRESH_BINARY, 
-		                  setup.adaptiveThresholdBlockSize + setup.adaptiveThresholdBlockSize % 2 + 1, 
-						  setup.adaptiveThresholdParameter);
+	#define binarize(what, output, adaptiveThresholdBlockSize, adaptiveThresholdParameter) \
+		cv::adaptiveThreshold((what), (output), 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, 0 /*CV_THRESH_BINARY*/, (adaptiveThresholdBlockSize) + (adaptiveThresholdBlockSize) % 2 + 1, (adaptiveThresholdParameter));
 	
-	getLogExt().appendMat("grayFrame", grayFrame);
-
-	grayFrame = _logicOp(grayFrame, grayFrame, logicNot);
-
-	if (setup.addCanny)
-		grayFrame = _logicOp(grayFrame, cannyFrame, logicOr);
-
-	getLogExt().appendMat("cannyFrame", cannyFrame);
-
-	cv::Point anchor = cv::Point(-1,-1);
-	cv::Mat kernel = cv::getStructuringElement(cv::MORPH_RECT, cv::Size(3, 3), anchor);
-	cv::dilate(cannyFrame, cannyFrame, kernel, anchor, 1);
-
-	getLogExt().appendMat("dilated cannyFrame", cannyFrame);
+	cv::Mat strong, weak;
+	binarize(smoothedGrayFrame, strong, 4, 1.3);
+	binarize(smoothedGrayFrame,  weak,  8, 1.2);
 	
-	Contours contours;
-	std::vector<cv::Vec4i> hierarchy;
-	cv::findContours(grayFrame, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
+	getLogExt().appendMat("strong", strong);
+	getLogExt().appendMat("weak",   weak);
 
-	Contours bad = _getBadContours(setup, contours, cannyFrame, grayFrame.cols, grayFrame.rows);
+	Image bin;
+	_copyMatToImage(bin, weak);
 
-	cv::Mat good = cv::Mat::zeros(grayFrame.rows, grayFrame.cols, CV_8U);
-	for (int idx = 0; idx < contours.size(); idx++)
+	WeakSegmentator ws(raw.getWidth(), raw.getHeight());
+	ws.appendData(ImgAdapter(raw,bin), 1);
+
+	Image output(raw.getWidth(), raw.getHeight());
+	output.fillWhite();
+
+	int borderX = raw.getWidth()  / 40 + 1;
+	int borderY = raw.getHeight() / 40 + 1;
+
+	for (WeakSegmentator::SegMap::const_iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 	{
-		if (std::find(bad.begin(), bad.end(), contours[idx]) == bad.end())
-			cv::drawContours(good, contours, idx, 255, 8, 8, hierarchy);		
+		const Points2i& p = it->second;
+		
+		int good = 0, bad = 0;
+		for (int u = 0; u < p.size(); u++)
+		{
+			if (p[u].x > borderX && p[u].y > borderY
+				&& p[u].x < raw.getWidth() - borderX && p[u].y < raw.getHeight() - borderY
+				&& strong.at<unsigned char>(p[u].y, p[u].x) == 0)
+				good++;
+			else
+				bad++;
+		}
+
+		if (5*good > bad && good > 10)
+		{
+			printf("%u / %u\n", good, bad);
+			for (int u = 0; u < p.size(); u++)
+				output.getByte(p[u].x, p[u].y) = 0;
+		}
 	}
 
-	getLogExt().appendMat("good", good);
+	getLogExt().appendImage("output", output);
 
-	if (!setup.extractOnlyMask)
-	{	
-		good = _logicOp(good, grayFrame, logicAnd);
-	}
-
-	good = _logicOp(good, good, logicNot);
-	
-	raw.clear();
-	_copyMatToImage(raw, good);
-
-	SegmentTools::fixBrokenPixels(raw);
-}
-
-void prefilterCV(Image& raw, bool only_mask)
-{
-	FilterSetup setup;
-	setup.extractOnlyMask = only_mask;
-	prefilterCV(raw, setup);
+	raw.copy(output);
 }
 
 

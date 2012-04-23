@@ -10,6 +10,13 @@
 #include "output.h"
 #include "recognition_tree.h"
 
+enum FilterType
+{
+	ftStd = 0,
+	ftAdaptive = 1,
+	ftCV = 2
+};
+
 void dumpVFS(imago::VirtualFS& vfs)
 {
 	if (!vfs.empty())
@@ -21,7 +28,7 @@ void dumpVFS(imago::VirtualFS& vfs)
 	}
 }
 
-void performRecognition(const std::string& imageName, int logLevel = 0, int filterType = 0)
+void performRecognition(const std::string& imageName, int logLevel = 0, FilterType filterType = ftStd)
 {
 	imago::VirtualFS vfs;
 
@@ -51,15 +58,15 @@ void performRecognition(const std::string& imageName, int logLevel = 0, int filt
 
 		if (!isAlreadyBinarized(img))
 		{
-			if (filterType == 1) // -adaptive
+			if (filterType == ftAdaptive)
 			{
 				imago::RecognitionTree rt(img);
 				rt.segmentate();
 				img.copy(rt.getBitmask());
 			}
-			else if (filterType == 2) // -cv
+			else if (filterType == ftCV)
 			{
-				prefilterCV(img, false);
+				prefilterCV(img);
 			}
 			else // -std
 			{
@@ -89,7 +96,8 @@ int main(int argc, char **argv)
 {
 	std::string image = "";
 	int logLevel = 0;
-	int filterType = 0;
+	
+	FilterType filterType = ftCV; // !!
 
 	for (int c = 1; c < argc; c++)
 	{
@@ -99,11 +107,11 @@ int main(int argc, char **argv)
 		else if (param == "-logvfs")
 			logLevel = 2;
 		else if (param == "-adaptive")
-			filterType = 1;
+			filterType = ftAdaptive;
 		else if (param == "-cv")
-			filterType = 2;
+			filterType = ftCV;
 		else if (param == "-std")
-			filterType = 0;
+			filterType = ftStd;
 		else 
 			image = param;
 	}
