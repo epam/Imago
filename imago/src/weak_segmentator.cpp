@@ -264,8 +264,7 @@ namespace imago
 
 		int area_pixels = (int)(width() * height() * RECTANGULAR_AREA_THRESHOLD);
 		for (size_t id = 1; id <= SegmentPoints.size(); id++)
-		{
-			getLogExt().appendPoints("Segment", SegmentPoints[id]);
+		{			
 			Rectangle bounds;
 			if (getRectangularArea(id) > area_pixels && hasRectangularStructure(id, bounds, winSize))
 			{

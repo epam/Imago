@@ -66,7 +66,10 @@ void performRecognition(const std::string& imageName, int logLevel = 0, FilterTy
 			}
 			else if (filterType == ftCV)
 			{
-				prefilterCV(img);
+				if (!prefilterCV(img))
+				{
+					prefilterImage(img, csr.getCharacterRecognizer());
+				}
 			}
 			else // -std
 			{

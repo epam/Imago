@@ -30,7 +30,8 @@ namespace imago
    void prefilterPngData(const std::vector<unsigned char> &data, Image &image, const CharacterRecognizer &cr );
    void prefilterImage( Image &image, const CharacterRecognizer &cr );
    
-   void prefilterCV(Image& raw);
+   // returns false if image cann't be correctly filtered
+   bool prefilterCV(Image& raw);
 
    void _copyMatToImage (Image &img, const cv::Mat &mat);
 

@@ -175,31 +175,6 @@ void _copyImageToMat ( const Image &img, cv::Mat &mat)
          mat.at<unsigned char>(j, i) = img.getByte(i, j);
 }
 
-enum LogicOperation
-{
-	logicNot,
-	logicAnd,
-	logicOr
-};
-
-cv::Mat _logicOp (const cv::Mat &mat1, const cv::Mat &mat2, LogicOperation type)
-{
-   cv::Mat result;
-   result.create(mat1.rows, mat1.cols, CV_8U);
-   for (int j = 0; j < mat1.rows && j < mat2.rows; j++)
-   {
-	   for (int i = 0; i < mat1.cols && i < mat2.cols; i++)
-	   {
-		   if (type == logicNot)
-			   result.at<unsigned char>(j, i) = (mat1.at<unsigned char>(j, i) == 0) ? 255 : 0;
-		   else if (type == logicAnd)
-			   result.at<unsigned char>(j, i) = ((mat1.at<unsigned char>(j, i) == 0) || (mat2.at<unsigned char>(j, i) == 0)) ? 0 : 255;
-		   else if (type == logicOr)
-			   result.at<unsigned char>(j, i) = ((mat1.at<unsigned char>(j, i) == 255) || (mat2.at<unsigned char>(j, i) == 255)) ? 255 : 0;
-	   }
-   }
-	return result;
-}
 
 class ImgAdapter :  public ImageInterface
 {
@@ -232,24 +207,24 @@ private:
 	const Image& bin;
 };
 
-void prefilterCV(Image& raw)
+bool prefilterCV(Image& raw)
 {
 	logEnterFunction();
 
-	cv::Mat grayFrame, smoothedGrayFrame;
+	cv::Mat grayFrame;
 	_copyImageToMat(raw, grayFrame);
-	_copyImageToMat(raw, smoothedGrayFrame);
 
-	cv::Mat reduced((grayFrame.rows+1)/2, (grayFrame.cols+1)/2, CV_8U);
-	cv::pyrDown(grayFrame, reduced);
-	cv::pyrUp(reduced, smoothedGrayFrame);
+	cv::Mat smoothed2x(grayFrame.rows, grayFrame.cols, CV_8U);
+	cv::Mat reduced2x((grayFrame.rows+1)/2, (grayFrame.cols+1)/2, CV_8U);
+	cv::pyrDown(grayFrame, reduced2x);
+	cv::pyrUp(reduced2x, smoothed2x);
 
 	#define binarize(what, output, adaptiveThresholdBlockSize, adaptiveThresholdParameter) \
 		cv::adaptiveThreshold((what), (output), 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, 0 /*CV_THRESH_BINARY*/, (adaptiveThresholdBlockSize) + (adaptiveThresholdBlockSize) % 2 + 1, (adaptiveThresholdParameter));
 	
 	cv::Mat strong, weak;
-	binarize(smoothedGrayFrame, strong, 4, 1.3);
-	binarize(smoothedGrayFrame,  weak,  8, 1.2);
+	binarize(smoothed2x, strong, 4, 1.3);
+	binarize(smoothed2x,  weak,  8, 1.2);
 	
 	getLogExt().appendMat("strong", strong);
 	getLogExt().appendMat("weak",   weak);
@@ -260,11 +235,14 @@ void prefilterCV(Image& raw)
 	WeakSegmentator ws(raw.getWidth(), raw.getHeight());
 	ws.appendData(ImgAdapter(raw,bin), 1);
 
-	Image output(raw.getWidth(), raw.getHeight());
-	output.fillWhite();
-
 	int borderX = raw.getWidth()  / 40 + 1;
 	int borderY = raw.getHeight() / 40 + 1;
+
+	Rectangle crop = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
+	bool need_crop = ws.needCrop(crop, 12);
+
+	Image output(crop.width, crop.height);
+	output.fillWhite();
 
 	for (WeakSegmentator::SegMap::const_iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 	{
@@ -281,17 +259,54 @@ void prefilterCV(Image& raw)
 				bad++;
 		}
 
-		if (5*good > bad && good > 10)
+		if (6*good > bad && good > 10)
 		{
-			printf("%u / %u\n", good, bad);
+			printf("Segment %u: %u / %u\n", it->first, good, bad);
 			for (int u = 0; u < p.size(); u++)
-				output.getByte(p[u].x, p[u].y) = 0;
+			{
+				int x = p[u].x - crop.x;
+				int y = p[u].y - crop.y;
+				if (x >= 0 & y >= 0 && x < output.getWidth() && y < output.getHeight())
+				{
+					output.getByte(x, y) = 0;
+				}
+			}
 		}
 	}
 
 	getLogExt().appendImage("output", output);
 
-	raw.copy(output);
+	bool result = true;
+
+	{
+		int filled = 0, blank = 0;
+		for (int x = 0; x < output.getWidth(); x++)
+			for (int y = 0; y < output.getHeight(); y++)
+			{
+				if (output.getByte(x,y) == 0)
+					filled++;
+				else
+					blank++;
+			}
+
+		// in percents
+		double ratio = 100.0 * (double)filled / ((double)blank + 0.001);		
+
+		getLogExt().append("B/W ratio", ratio);
+
+		if (ratio < 0.1 || ratio > 7.5)
+		{
+			getLogExt().appendText("B/W ratio fails, pass image to other filters");
+		 	result = false;
+		}
+	}
+
+	if (result)
+	{
+		raw.copy(output);
+	}
+
+	return result;
 }
 
 
