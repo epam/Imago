@@ -51,7 +51,20 @@ void performRecognition(const std::string& imageName, int logLevel = 0, int filt
 
 		if (!isAlreadyBinarized(img))
 		{
-			prefilterCV(img);			
+			if (filterType == 1) // -adaptive
+			{
+				imago::RecognitionTree rt(img);
+				rt.segmentate();
+				img.copy(rt.getBitmask());
+			}
+			else if (filterType == 2) // -cv
+			{
+				prefilterCV(img, false);
+			}
+			else // -std
+			{
+				prefilterImage(img, csr.getCharacterRecognizer());
+			}
 		}
 		
 		csr.image2mol(img, mol);
@@ -87,7 +100,7 @@ int main(int argc, char **argv)
 			logLevel = 2;
 		else if (param == "-adaptive")
 			filterType = 1;
-		else if (param == "-color")
+		else if (param == "-cv")
 			filterType = 2;
 		else if (param == "-std")
 			filterType = 0;

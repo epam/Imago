@@ -181,10 +181,13 @@ namespace imago
 		
 		bitmask.copy(raw);
 
-		PrefilterParams p;
-		p.logSteps = false;
-		p.strongThresh = true;
-		prefilterKernel(raw, bitmask, p);
+		//PrefilterParams p;
+		//p.logSteps = false;
+		//p.strongThresh = true;
+		
+		bitmask.copy(raw);
+		prefilterCV(bitmask, false);
+		//prefilterKernel(raw, bitmask, p);
 
 		getLogExt().appendImage("raw", raw);		
 		getLogExt().appendImage("binarized", bitmask);
@@ -217,12 +220,14 @@ namespace imago
 			af.filterImage(bitmask2, false, inkPercentage, lineThickness);
 			getLogExt().appendImage("filtered", bitmask2);
 
-			for (int x = 0; x < bitmask.getWidth() && x < bitmask2.getWidth(); x++)
+			bitmask.copy(bitmask2);
+
+			/*for (int x = 0; x < bitmask.getWidth() && x < bitmask2.getWidth(); x++)
 				for (int y = 0; y < bitmask.getHeight() && y < bitmask2.getHeight(); y++)
 					if (bitmask2.getByte(x, y) == 0)
 						bitmask.getByte(x, y) = 0;
 
-			getLogExt().appendImage("merged", bitmask);
+			getLogExt().appendImage("merged", bitmask);*/
 		}
 		catch (Exception &e)
 		{

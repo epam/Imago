@@ -211,6 +211,7 @@ struct FilterSetup
 	double cannyThreshold;
 	int adaptiveThresholdBlockSize;
 	double adaptiveThresholdParameter;
+	bool extractOnlyMask;
 	
 
 	FilterSetup()
@@ -224,6 +225,7 @@ struct FilterSetup
 		cannyThreshold = 54.0;
 		adaptiveThresholdBlockSize = 4;
 		adaptiveThresholdParameter = 1.2;
+		extractOnlyMask = false;
 	}
 }; 
 
@@ -336,7 +338,7 @@ void prefilterCV(Image& raw, const FilterSetup& setup)
 	cv::dilate(cannyFrame, cannyFrame, kernel, anchor, 1);
 
 	getLogExt().appendMat("dilated cannyFrame", cannyFrame);
-
+	
 	Contours contours;
 	std::vector<cv::Vec4i> hierarchy;
 	cv::findContours(grayFrame, contours, hierarchy, cv::RETR_CCOMP, cv::CHAIN_APPROX_NONE);
@@ -351,8 +353,11 @@ void prefilterCV(Image& raw, const FilterSetup& setup)
 	}
 
 	getLogExt().appendMat("good", good);
-	
-	good = _logicOp(good, grayFrame, logicAnd);
+
+	if (!setup.extractOnlyMask)
+	{	
+		good = _logicOp(good, grayFrame, logicAnd);
+	}
 
 	good = _logicOp(good, good, logicNot);
 	
@@ -362,10 +367,10 @@ void prefilterCV(Image& raw, const FilterSetup& setup)
 	SegmentTools::fixBrokenPixels(raw);
 }
 
-void prefilterCV(Image& raw)
+void prefilterCV(Image& raw, bool only_mask)
 {
 	FilterSetup setup;
-	//setup.filterContoursBySize = false;
+	setup.extractOnlyMask = only_mask;
 	prefilterCV(raw, setup);
 }
 

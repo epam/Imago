@@ -16,7 +16,7 @@ namespace imago
 	/* Affects: recognition quality(LO), recognition time(HI)
 		*/
 	const int    MAX_CROPS = 1;                // 1 is sufficient in most cases
-	const int    MAX_REFINE_ITERS = 3;
+	const int    MAX_REFINE_ITERS = 0;//3;
 
 	// ---------------------------------------------------------------------------------
 
@@ -237,10 +237,10 @@ namespace imago
 		p.binarizeImage = false;
 		p.strongThresh = true;
 
-		prefilterKernel(output, output, p);		
+		//prefilterKernel(output, output, p);
 
-		for (int h = 0; h < output.getHeight(); h++)
-			for (int w = 0; w < output.getWidth(); w++)
+		for (int h = 0; h < output.getHeight() && h < height(); h++)
+			for (int w = 0; w < output.getWidth() && w < width(); w++)
 				at(w,h).intensity = output.getByte(w,h);
 
 		Rectangle crop(0, 0, this->width(), this->height());
