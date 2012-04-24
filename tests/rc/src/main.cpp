@@ -129,6 +129,7 @@ int performRecognition(const std::string& imageName, int logLevel = 0, FilterTyp
 					{
 						throw std::exception("Recognition fails.");
 					}
+				}
 			} 
 			else if (result.warnings > WARNINGS_TRESHOLD)
 			{
