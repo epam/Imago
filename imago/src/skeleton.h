@@ -84,9 +84,13 @@ namespace imago
       SkeletonGraph &getGraph() { return _g; }
       ~Skeleton();
 
+	  int getWarningsCount() const { return _warnings; }
+	  int getDissolvingsCount() const { return _dissolvings; }
+
    protected:
 
       SkeletonGraph _g;
+	  int _warnings, _dissolvings;
       
    private:
       friend class DoubleBondMaker;

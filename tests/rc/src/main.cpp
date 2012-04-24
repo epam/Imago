@@ -28,9 +28,14 @@ void dumpVFS(imago::VirtualFS& vfs)
 	}
 }
 
-void performRecognition(const std::string& imageName, int logLevel = 0, FilterType filterType = ftStd)
+int performRecognition(const std::string& imageName, int logLevel = 0, FilterType filterType = ftStd)
 {
+	const int WARNINGS_TRESHOLD = 2;
+
+	int result = 0;
 	imago::VirtualFS vfs;
+
+	printf("Recognition of image \"%s\"\n", imageName.c_str());
 
 	try
 	{
@@ -51,6 +56,8 @@ void performRecognition(const std::string& imageName, int logLevel = 0, FilterTy
 		imago::ChemicalStructureRecognizer &csr = imago::getRecognizer();
 
 		imago::ImageUtils::loadImageFromFile(img, imageName.c_str());
+		imago::Image img_backup;
+		img_backup.copy(img);
 
 		imago::Molecule mol;
 
@@ -64,20 +71,38 @@ void performRecognition(const std::string& imageName, int logLevel = 0, FilterTy
 				rt.segmentate();
 				img.copy(rt.getBitmask());
 			}
-			else if (filterType == ftCV)
+			
+			if (filterType == ftCV)
 			{
 				if (!prefilterCV(img))
 				{
-					prefilterImage(img, csr.getCharacterRecognizer());
+					filterType = ftStd;					
 				}
 			}
-			else // -std
+			
+			if (filterType == ftStd)
 			{
 				prefilterImage(img, csr.getCharacterRecognizer());
 			}
 		}
 		
 		csr.image2mol(img, mol);
+		
+		printf("Warnings: %u, dissolvings: %u\n", mol.getWarningsCount(), mol.getDissolvingsCount());
+		
+		if (filterType != ftStd && mol.getWarningsCount() > WARNINGS_TRESHOLD)
+		{
+			// try to use std filter
+			prefilterImage(img_backup, csr.getCharacterRecognizer());
+			imago::Molecule mol2;
+			csr.image2mol(img_backup, mol2);
+			if (mol2.getWarningsCount()  < mol.getWarningsCount() ||
+				mol2.getWarningsCount() == mol.getWarningsCount() && mol2.getDissolvingsCount() < mol.getDissolvingsCount())
+			{
+				printf("Standard filter gives better result (%u->%u, %u->%u)\n", mol.getWarningsCount(), mol2.getWarningsCount(), mol.getDissolvingsCount(), mol2.getDissolvingsCount());
+				mol = mol2;
+			}
+		}
 
 		std::string molfile = imago::expandSuperatoms(mol);
 
@@ -88,10 +113,12 @@ void performRecognition(const std::string& imageName, int logLevel = 0, FilterTy
 	}
 	catch (std::exception &e)
 	{
+		result = 2; // error mark
 		puts(e.what());
 	}
 
 	dumpVFS(vfs);
+	return result;
 }
 
 
@@ -119,8 +146,8 @@ int main(int argc, char **argv)
 			image = param;
 	}
 	
-	if (!image.empty())
-		performRecognition(image, logLevel, filterType);
+	if (image.empty())
+		return 0;
 	
-	return 0;
+	return performRecognition(image, logLevel, filterType);	
 }

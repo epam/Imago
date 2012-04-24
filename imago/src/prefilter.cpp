@@ -18,6 +18,7 @@
 #include "HistogramTools.h"
 #include "prefilter.h"
 #include "segment_tools.h"
+#include "pixel_boundings.h"
 #include "weak_segmentator.h"
 
 namespace imago
@@ -261,12 +262,12 @@ bool prefilterCV(Image& raw)
 
 		if (6*good > bad && good > 10)
 		{
-			printf("Segment %u: %u / %u\n", it->first, good, bad);
+			//printf("Segment %u: %u / %u\n", it->first, good, bad);
 			for (int u = 0; u < p.size(); u++)
 			{
 				int x = p[u].x - crop.x;
 				int y = p[u].y - crop.y;
-				if (x >= 0 & y >= 0 && x < output.getWidth() && y < output.getHeight())
+				if (x >= 0 && y >= 0 && x < output.getWidth() && y < output.getHeight())
 				{
 					output.getByte(x, y) = 0;
 				}
@@ -1201,14 +1202,14 @@ bool SegCompare (Segment *i, Segment *j)
 	return (area1 < area2); 
 }
 
-bool resampleImage(Image &image, int MAX_RESOLUTION)
+bool resampleImage(Image &image)
 {
 	logEnterFunction();
 	int w = image.getWidth();
 	int h = image.getHeight();
 	int m = std::max(w, h);
 	int scale = 1;
-	while (m / scale > MAX_RESOLUTION) scale++;
+	while (m / scale > MAX_IMAGE_DIMENSIONS) scale++;
 	if (scale == 1)
 	{
 		getLogExt().appendText("resample is not required");
@@ -1250,7 +1251,7 @@ bool isAlreadyBinarized(Image &image)
 	getLogExt().append("black_count", black_count);
 	getLogExt().append("others_count", others_count);
 
-	if (black_count + white_count > others_count)
+	if (10 * others_count < black_count + white_count)
 	{	
 		getLogExt().appendText("image is binarized");
 		if (others_count > 0)

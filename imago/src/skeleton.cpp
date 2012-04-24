@@ -106,6 +106,7 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
    if (p.second)
    {
       //Graph already has edge
+	   _warnings++;
       if (getSettings()["DebugSession"])
          LPRINT(0, "WARNING: Already has edge (%x, %x)", v1, v2);
       return p.first;
@@ -402,6 +403,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 				  edge_len < max_edge_end * (coeff) &&
 				  edge_len < _avg_bond_length * coeff)
 			  {
+				  _dissolvings++;
 				  LPRINT(0, "dissolving edge len: %.2lf, max_edge_beg: %.2lf, max_edge_end: %.2lf",
 					  edge_len, max_edge_beg, max_edge_end);
 				  // dissolve the edge
@@ -424,6 +426,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 				  edge_len < max_edge_end * (coeff)) &&
 				  edge_len < _avg_bond_length * coeff)
 				  {
+					_dissolvings++;
 					  LPRINT(0, "dissolving edge len: %.2lf, max_edge_beg: %.2lf, max_edge_end: %.2lf",
 						  edge_len, max_edge_beg, max_edge_end);
 					  // dissolve the edge
@@ -510,6 +513,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
  			  if (edge_len < max_edge_beg * coeff ||
 				  edge_len < max_edge_end * coeff)
 			  {
+				  _dissolvings++;
 				 LPRINT(0, "dissolving edge len: %.2lf, max_edge_beg: %.2lf, max_edge_end: %.2lf",
 						edge_len, max_edge_beg, max_edge_end);
 				 // dissolve the edge
@@ -621,6 +625,7 @@ bool Skeleton::_dissolveIntermediateVertices ()
    
    if (min_err < 0.17) //0.28 //0.22
    {
+	   _dissolvings++;
       LPRINT(0, "dissolving vertex, err = %.2lf", min_err);
       std::deque<Vertex> neighbors;
       boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
@@ -1444,5 +1449,7 @@ Skeleton::~Skeleton()
 void Skeleton::clear()
 {
    _g.clear();
+   _warnings = 0;
+   _dissolvings = 0;
 }
 
