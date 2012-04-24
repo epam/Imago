@@ -14,7 +14,8 @@ enum FilterType
 {
 	ftStd = 0,
 	ftAdaptive = 1,
-	ftCV = 2
+	ftCV = 2,
+	ftPass = 3
 };
 
 void dumpVFS(imago::VirtualFS& vfs)
@@ -26,6 +27,60 @@ void dumpVFS(imago::VirtualFS& vfs)
 		vfs.getData(logdata);
 		flogdump.write(&logdata.at(0), logdata.size());
 	}
+}
+
+struct RecognitionResult
+{
+	std::string molecule;
+	int warnings;
+	bool exceptions;
+};
+
+RecognitionResult recognize(const imago::Image& src, FilterType filterType)
+{
+	RecognitionResult result;
+	result.molecule = "";
+	result.exceptions = false;
+	result.warnings = 0;
+	try
+	{
+		imago::ChemicalStructureRecognizer &csr = imago::getRecognizer();
+		imago::Molecule mol;
+		imago::Image img;
+		img.copy(src);
+
+		if (filterType == ftAdaptive)
+		{
+			imago::RecognitionTree rt(img);
+			rt.segmentate();
+			img.copy(rt.getBitmask());
+		}
+			
+		if (filterType == ftCV)
+		{
+			if (!prefilterCV(img))
+			{
+				throw std::exception("ftCV filter fails");
+			}
+		}
+			
+		if (filterType == ftStd)
+		{
+			prefilterImage(img, csr.getCharacterRecognizer());
+		}
+
+		csr.image2mol(img, mol);
+		result.molecule = imago::expandSuperatoms(mol);
+		result.warnings = mol.getWarningsCount() + mol.getDissolvingsCount() / 10;
+
+		printf("Filter [%u], warnings: %u\n", filterType, result.warnings);
+	}
+	catch (std::exception &e)
+	{
+		result.exceptions = true;
+		printf("Filter [%u], exception \"%s\"\n", filterType, e.what());
+	}
+	return result;
 }
 
 int performRecognition(const std::string& imageName, int logLevel = 0, FilterType filterType = ftStd)
@@ -42,7 +97,7 @@ int performRecognition(const std::string& imageName, int logLevel = 0, FilterTyp
 		qword sid = imago::SessionManager::getInstance().allocSID();
 		imago::SessionManager::getInstance().setSID(sid);
       
-		imago::Image img;	  
+		imago::Image src_img;	  
 
 		if (logLevel > 0)
 		{
@@ -51,63 +106,40 @@ int performRecognition(const std::string& imageName, int logLevel = 0, FilterTyp
 				imago::getLogExt().SetVirtualFS(vfs);
 		}
 
-		imago::getSettings()["AdaptiveFilter"] = filterType;
+		imago::ImageUtils::loadImageFromFile(src_img, imageName.c_str());
 
-		imago::ChemicalStructureRecognizer &csr = imago::getRecognizer();
+		resampleImage(src_img);
 
-		imago::ImageUtils::loadImageFromFile(img, imageName.c_str());
-		imago::Image img_backup;
-		img_backup.copy(img);
+		RecognitionResult result;
 
-		imago::Molecule mol;
-
-		resampleImage(img);
-
-		if (!isAlreadyBinarized(img))
+		if (isAlreadyBinarized(src_img))
 		{
-			if (filterType == ftAdaptive)
+			 result = recognize(src_img, ftPass);
+		}
+		else
+		{
+			result = recognize(src_img, ftCV);
+			if (result.exceptions)
 			{
-				imago::RecognitionTree rt(img);
-				rt.segmentate();
-				img.copy(rt.getBitmask());
-			}
-			
-			if (filterType == ftCV)
-			{
-				if (!prefilterCV(img))
+				result = recognize(src_img, ftStd);
+				if (result.exceptions)
 				{
-					filterType = ftStd;					
-				}
-			}
-			
-			if (filterType == ftStd)
+					result = recognize(src_img, ftAdaptive);
+					if (result.exceptions)
+					{
+						throw std::exception("Recognition fails.");
+					}
+			} 
+			else if (result.warnings > WARNINGS_TRESHOLD)
 			{
-				prefilterImage(img, csr.getCharacterRecognizer());
+				RecognitionResult r2 = recognize(src_img, ftStd);
+				if (!r2.exceptions && r2.warnings < result.warnings)
+					result = r2;
 			}
 		}
 		
-		csr.image2mol(img, mol);
-		
-		printf("Warnings: %u, dissolvings: %u\n", mol.getWarningsCount(), mol.getDissolvingsCount());
-		
-		if (filterType != ftStd && mol.getWarningsCount() > WARNINGS_TRESHOLD)
-		{
-			// try to use std filter
-			prefilterImage(img_backup, csr.getCharacterRecognizer());
-			imago::Molecule mol2;
-			csr.image2mol(img_backup, mol2);
-			if (mol2.getWarningsCount()  < mol.getWarningsCount() ||
-				mol2.getWarningsCount() == mol.getWarningsCount() && mol2.getDissolvingsCount() < mol.getDissolvingsCount())
-			{
-				printf("Standard filter gives better result (%u->%u, %u->%u)\n", mol.getWarningsCount(), mol2.getWarningsCount(), mol.getDissolvingsCount(), mol2.getDissolvingsCount());
-				mol = mol2;
-			}
-		}
-
-		std::string molfile = imago::expandSuperatoms(mol);
-
 		imago::FileOutput fout("molecule.mol");
-		fout.writeString(molfile);		
+		fout.writeString(result.molecule);		
 
 		imago::SessionManager::getInstance().releaseSID(sid);      
 	}
