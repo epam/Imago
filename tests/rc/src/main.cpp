@@ -82,7 +82,7 @@ RecognitionResult recognize(const imago::Image& src, FilterType filterType)
 	return result;
 }
 
-int performRecognition(const std::string& imageName, int logLevel = 0, FilterType filterType = ftStd)
+int performRecognition(const std::string& imageName, int logLevel = 0)
 {
 	const int WARNINGS_TRESHOLD = 2;
 
@@ -113,10 +113,14 @@ int performRecognition(const std::string& imageName, int logLevel = 0, FilterTyp
 
 		if (isBinarized(src_img))
 		{
-			 result = recognize(src_img, ftPass);
+			imago::getSettings().set("IsHandwritten", false);
+
+			result = recognize(src_img, ftPass);
 		}
 		else
 		{
+			imago::getSettings().set("IsHandwritten", true);
+
 			result = recognize(src_img, ftCV);
 			if (result.exceptions)
 			{
@@ -159,7 +163,7 @@ int main(int argc, char **argv)
 	std::string image = "";
 	int logLevel = 0;
 	
-	FilterType filterType = ftCV; // !!
+	FilterType filterType = ftCV; // really just ignore that
 
 	for (int c = 1; c < argc; c++)
 	{
@@ -181,5 +185,5 @@ int main(int argc, char **argv)
 	if (image.empty())
 		return 0;
 	
-	return performRecognition(image, logLevel, filterType);	
+	return performRecognition(image, logLevel);	
 }

@@ -307,9 +307,17 @@ void GraphicsDetector::detect( const Image &img, Points2d &lsegments ) const
    
    ThinFilter2 tf2(tmp);
    TIME(tf2.apply(), "Thinning");
-      
-   //_decorner(tmp);   
-   WeakSegmentator::decorner(tmp, 255);
+     
+   if ((bool)getSettings()["IsHandwritten"] == true)
+   {
+	   // less accurate, but more stable
+	   _decorner(tmp);   
+   }
+   else
+   {
+	   // more precise, but depends on pixels artefacts
+	   WeakSegmentator::decorner(tmp, 255);
+   }
 
    Segmentator::segmentate(tmp, segs);
 

@@ -43,7 +43,7 @@ void RecognitionSettings::initConfig( int number )
       "SameLineEps",
       "DebugSession",
 	  "LineThickness",
-      "AdaptiveFilter" };
+      "IsHandwritten" };
 
    const int names_size = (int)(sizeof(names) / sizeof(names[0]));
 
