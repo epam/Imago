@@ -82,6 +82,9 @@ RecognitionResult recognize(const imago::Image& src, FilterType filterType)
 	return result;
 }
 
+// TODO: provide general function; recognize : Image -> molecule_string
+//       and call it from bindings (for Ipad and etc)
+
 int performRecognition(const std::string& imageName, int logLevel = 0)
 {
 	const int WARNINGS_TRESHOLD = 2;
