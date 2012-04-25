@@ -1,10 +1,11 @@
 #include "adaptive_filter.h"
 #include <queue>
 #include "log_ext.h"
+#include "thin_filter2.h"
 #include "generic_histogram.h"
 #include "weak_segmentator.h"
 #include "prefilter.h"
-#include "thin_filter2.h"
+#include "prefilter_cv.h"
 
 namespace imago
 {
@@ -82,7 +83,7 @@ namespace imago
 				goto restart;				
 			}*/
 			
-			unsigned char d = abs(at(cx,cy).intensity - at(sx,sy).intensity);
+			unsigned char d = absolute(at(cx,cy).intensity - at(sx,sy).intensity);
 			
 			// small fixup to avoid recalculation if diff too big
 			if (d == BLANK) d--;
@@ -327,8 +328,6 @@ namespace imago
 					}
 				}
 
-				ws.performPixelOptimizations();
-
 				normalizedOuput(output, crop, &ws);
 				break;
 			}
@@ -337,115 +336,7 @@ namespace imago
 		for (int y = 0; y < output.getHeight(); y++)
 			for (int x = 0; x < output.getWidth(); x++)
 				output.getByte(x, y) = (output.getByte(x, y) < 255) ? 0 : 255;
-	}
 
-	/////////////////////////////////////////////////////////////////////////////////////////////
-
-	bool FilterImageStub::isAdaptiveFilterEnabled()
-	{
-		int filter = getSettings()["AdaptiveFilter"];
-		bool result = filter > 0;
-		if (result)
-		{
-			getLogExt().appendText("Adaptive filter is enabled");
-		}
-		else
-		{
-			getLogExt().appendText("Adaptive filter is disabled");
-		}
-		return result;
-	}
-	
-	bool FilterImageStub::isColorLoadingRequired()
-	{
-		int filter = getSettings()["AdaptiveFilter"];
-		bool result = filter == 2;
-		if (result)
-		{
-			getLogExt().appendText("Color loading is specified");
-		}
-		else
-		{
-			getLogExt().appendText("Grayscale loading is specified");
-		}
-		return result;
-	}
-
-	FilterImageStub::~FilterImageStub()
-	{
-		if (filterptr)
-		{
-			// try to filter with default params
-			filterptr->filterImage(*imgptr);
-
-			delete filterptr;
-			filterptr = NULL;
-		}
-	}
-
-	void FilterImageStub::initPixel(int x, int y, unsigned char intensity)
-	{
-		int scaled_x = x / scale;
-		int scaled_y = y / scale;
-		int sc2 = scale * scale;
-		if (scaled_x < imgptr->getWidth() && scaled_y < imgptr->getHeight())
-		{
-			imgptr->getByte(scaled_x, scaled_y) += intensity / sc2;
-			if (filterptr)
-			{
-				filterptr->at(scaled_x, scaled_y).intensity += intensity / sc2;
-			}
-		}
-	}
-
-	void FilterImageStub::initPixel(int x, int y, unsigned char R, unsigned char G, unsigned char B, unsigned char intensity)
-	{
-		int scaled_x = x / scale;
-		int scaled_y = y / scale;
-		int sc2 = scale * scale;
-		
-		if (intensity == 0) // need manual recalc
-			intensity = (unsigned char)(((int)R * 299 + (int)G * 587 + (int)B * 114)/1000);
-
-		if (scaled_x < imgptr->getWidth() && scaled_y < imgptr->getHeight())
-		{
-			imgptr->getByte(scaled_x, scaled_y) += intensity / sc2;
-			if (filterptr)
-			{
-				filterptr->at(scaled_x, scaled_y).intensity += intensity / sc2;
-				if (filterptr->rgb)
-				{
-					filterptr->rgb->at(scaled_x, scaled_y).RGB.R += R / sc2;
-					filterptr->rgb->at(scaled_x, scaled_y).RGB.G += G / sc2;
-					filterptr->rgb->at(scaled_x, scaled_y).RGB.B += B / sc2;
-				}
-			}
-		}
-	}
-
-	FilterImageStub::FilterImageStub(Image* img, int source_width, int source_height) 
-		: filterptr(NULL), scale(1)
-	{
-		logEnterFunction();
-
-		imgptr = img;
-
-		while (source_width / scale > MAX_IMAGE_DIMENSIONS) scale++;
-		while (source_height / scale > MAX_IMAGE_DIMENSIONS) scale++;
-		getLogExt().append("Selected scale", scale);
-
-		img->clear();
-		img->init(source_width / scale, source_height / scale);     	
-		getLogExt().append("Image [scaled] width", img->getWidth());
-		getLogExt().append("Image [scaled] height", img->getHeight());
-
-		if (isAdaptiveFilterEnabled())
-		{
-			filterptr = new AdaptiveFilter(img->getWidth(), img->getHeight());
-			if (isColorLoadingRequired())
-			{
-				filterptr->rgb = new AdaptiveFilter::RGBStorage(img->getWidth(), img->getHeight());
-			}
-		}
+		SegmentTools::fixBrokenPixels(output);
 	}
 }

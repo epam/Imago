@@ -39,7 +39,8 @@ namespace imago
 		MEMORYSTATUSEX statex;
 		statex.dwLength = sizeof (statex);
 		GlobalMemoryStatusEx (&statex);
-		int mem_used = memory - statex.ullAvailVirtual / 1024;
+		size_t mem_current = static_cast<size_t>(statex.ullAvailVirtual / 1024);
+		int mem_used = static_cast<int>(memory - mem_current);
 		int time_used = GetTickCount() - time;
 		sprintf(buf, " (memory: %iKb, time: %ims)", mem_used, time_used);
 		result = buf;
@@ -114,7 +115,7 @@ namespace imago
 		if(!loggingEnabled()) return;
       
 		Image output;
-		_copyMatToImage(output, mat);
+		ImageUtils::copyMatToImage(mat, output);
 		appendImage(caption, output);
 	}
    

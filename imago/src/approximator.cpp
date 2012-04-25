@@ -149,8 +149,8 @@ void SimpleApproximator::_calc_line( const Points2d &input, int begin, int end, 
 void CvApproximator::apply( double eps, const Points2d &input, Points2d &output ) const
 {
    std::vector<cv::Point> vcurve;
-   for (int i = 0; i < (int)input.size(); i++)
-      vcurve.push_back(cv::Point(input[i].x, input[i].y));
+   for (size_t i = 0; i < input.size(); i++)
+      vcurve.push_back(cv::Point(round(input[i].x), round(input[i].y)));
 
    bool closed = (vcurve[0] == vcurve[vcurve.size() - 1]);
    cv::Mat curve(vcurve);
@@ -158,7 +158,7 @@ void CvApproximator::apply( double eps, const Points2d &input, Points2d &output 
    cv::approxPolyDP(curve, approxCurve, eps, closed);
 
    output.clear();
-   for (int i = 0; i < (int)approxCurve.size(); i++)
+   for (size_t i = 0; i < approxCurve.size(); i++)
       output.push_back(Vec2d(approxCurve[i].x, approxCurve[i].y));
    if (closed)
       output.push_back(Vec2d(output[0]));
@@ -180,7 +180,7 @@ void DPApproximator::_apply_int( double eps, const Points2d &input, Points2d &ou
       stack.pop_back();
 
       const Vec2d &lp = input[l], &rp = input[r];
-      int max_ind = -1, max_dist = eps;
+      int max_ind = -1, max_dist = (int)eps;
       for (i = l + 1; i < r; ++i)
       {
          //Suppose, all points lay between left and right points.

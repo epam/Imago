@@ -65,7 +65,7 @@ int Binarizer::_getThreshold()
 
    std::stable_sort(histogram.begin(), histogram.end(), _comparePair);
 
-   return histogram[histogram.size() * 0.5].first;
+   return histogram[histogram.size() / 2].first;
 }
 
 Binarizer::~Binarizer()

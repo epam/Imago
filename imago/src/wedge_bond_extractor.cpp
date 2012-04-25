@@ -104,7 +104,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
    if (segs_info.empty())
       return 0;
 
-   for (int i = 0; i != (int)segs_info.size(); i++)
+   for (size_t i = 0; i < segs_info.size(); i++)
    {
       segs_info[i].seginfo_index = i;
    }
@@ -112,8 +112,8 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
 //   int f = 0;
 
    //TODO: maybe better a LOT
-   for (int i = 0; i != (int)segs_info.size(); i++)
-      for (int j = i + 1; j != (int)segs_info.size(); j++)
+   for (size_t i = 0; i < segs_info.size(); i++)
+      for (size_t j = i + 1; j < segs_info.size(); j++)
       {
          if (segs_info[i].used && segs_info[j].used && fabs(segs_info[i].angle - segs_info[j].angle) < 0.1)
          {
@@ -126,7 +126,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
             cur_points.push_back(segs_info[i]);
             cur_points.push_back(segs_info[j]);
             
-            for (int k = 0; k != (int)segs_info.size(); k++)
+            for (size_t k = 0; k < segs_info.size(); k++)
             {
                Vec2d p3;
 
@@ -152,10 +152,10 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
                      }
                   }
 
-                  int ch1 = (p1.x - p3.x) * (p2.y - p1.y), 
-                      ch2 = (p1.x - p2.x) * (p3.y - p1.y);
+                  double ch1 = (p1.x - p3.x) * (p2.y - p1.y);
+                  double ch2 = (p1.x - p2.x) * (p3.y - p1.y);
 
-                  if (absolute(ch1 - ch2) <= 45)
+                  if (absolute(ch1 - ch2) <= 45.0)
                      cur_points.push_back(segs_info[k]);
                }
             }
@@ -163,15 +163,15 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
             std::sort(cur_points.begin(), cur_points.end(), _pointsCompare);
 
             //Minimum segments count in single-down bond is 3, right?
-            if ((int)cur_points.size() >= 3)
+            if (cur_points.size() >= 3)
             {
                std::vector<IntPair> same_dist_pairs;
                DoubleVector distances(cur_points.size() - 1);
 
-               for (int k = 0; k != (int)cur_points.size() - 1; k++)
+               for (size_t k = 0; k < cur_points.size() - 1; k++)
                   distances[k] = Vec2d::distance(cur_points[k + 1].center, cur_points[k].center);
 
-               for (int k = 0; k != (int)distances.size();)
+               for (size_t k = 0; k < distances.size();)
                {
                   int l = k + 1;
                   IntPair p;
@@ -191,7 +191,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
                   k += l - k;
                }
 
-               for (int k = 0; k != (int)same_dist_pairs.size(); k++)
+               for (size_t k = 0; k < same_dist_pairs.size(); k++)
                {
                   IntPair p = same_dist_pairs[k];
 
@@ -280,7 +280,7 @@ int WedgeBondExtractor::_radiusFinder( const Vec2d &v )
    while (!cc.done)
    {
       r++;
-      ImageDrawUtils::putCircle(v.x, v.y, r, 0, &cc, _radiusFinderPlotCallback);
+      ImageDrawUtils::putCircle(round(v.x), round(v.y), r, 0, &cc, _radiusFinderPlotCallback);
    }
 
    return r + 1;
@@ -536,10 +536,10 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
    Vec2d b(bb), e(ee);
    b.interpolate(ee, bb, 0.07);
    e.interpolate(bb, ee, 0.07);
-   b.x = (int) b.x;
-   b.y = (int) b.y;
-   e.x = (int) e.x;
-   e.y = (int) e.y;
+   b.x = round(b.x);
+   b.y = round(b.y);
+   e.x = round(e.x);
+   e.y = round(e.y);
 
    int w = _img.getWidth();
    int h = _img.getHeight();
@@ -586,9 +586,9 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
 
       double dp = Vec2d::distance(cur, e);
       dp = sqrt(dp * dp + 1) + 0.21;
-      for (int i = cur.x - 1; i <= cur.x + 1; i++)
+      for (int i = round(cur.x) - 1; i <= round(cur.x) + 1; i++)
       {
-         for (int j = cur.y - 1; j <= cur.y + 1; j++)
+         for (int j = round(cur.y) - 1; j <= round(cur.y) + 1; j++)
          {
             if (i == cur.x && j == cur.y)
                continue;
@@ -668,9 +668,9 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
 
    double S2 = visited.size() / 1.6;
 
-   for (int i = 0; i < (int)visited.size(); i++)
+   for (size_t i = 0; i < visited.size(); i++)
    {
-      _bfs_state[visited[i].y * w + visited[i].x] = 0;
+      _bfs_state[round(visited[i].y) * w + round(visited[i].x)] = 0;
    }
 
    double square_ratio = S2 / S1;

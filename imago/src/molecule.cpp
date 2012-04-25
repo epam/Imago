@@ -61,10 +61,10 @@ Skeleton::SkeletonGraph & Molecule::getSkeleton()
    return _g;
 }
 
-bool testNear(Vec2d &point, Rectangle &rec, int margin)
+bool testNear(Vec2d &point, Rectangle &rec, double margin)
 {
-	int top = rec.y - margin;//std::max<int>(0, rec.y - margin);
-	int left = rec.x - margin;//std::max<int>(0, rec.x - margin);
+	double top = rec.y - margin;  //std::max<int>(0, rec.y - margin);
+	double left = rec.x - margin; //std::max<int>(0, rec.x - margin);
 
 	return point.x < (rec.x + rec.width + margin) &&
 		point.x > left && 

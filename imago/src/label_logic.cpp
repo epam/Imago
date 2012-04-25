@@ -129,7 +129,7 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
 	  }
 
       else if(_cur_atom->label_first >= 'A' && _cur_atom->label_first <= 'Z') //just for sure 
-         for (int i = 0; i < (int)strlen(comb[_cur_atom->label_first - 'A']); i++)
+         for (size_t i = 0; i < strlen(comb[_cur_atom->label_first - 'A']); i++)
             letters.push_back(comb[_cur_atom->label_first - 'A'][i]);
    }
 
@@ -499,7 +499,7 @@ void LabelLogic::process( Segment *seg, int line_y )
    else
    {
       int bottom = seg->getY() + seg->getHeight();
-      int med = bottom - 0.5 * seg->getHeight();
+      int med = bottom - seg->getHeight() / 2;
 	  getLogExt().append("med", med);
       //small letter
       if (bottom >= (line_y - sameLineEps * _cap_height) &&
@@ -650,11 +650,11 @@ void LabelLogic::recognizeLabel( Label& label )
    getLogExt().append("symbols count", label.symbols.size());
    getLogExt().append("label.multi_begin", label.multi_begin);
 
-   for (int i = 0; i < (int)label.symbols.size(); i++)
+   for (size_t i = 0; i < label.symbols.size(); i++)
    {
       int y = label.multi_line_y;
 
-	  if (label.multi_begin < 0 || i < label.multi_begin)
+	  if (label.multi_begin < 0 || (int)i < label.multi_begin)
          y = label.line_y;
 
 	  getLogExt().append("i", i);

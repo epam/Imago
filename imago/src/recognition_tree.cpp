@@ -7,5 +7,7 @@
 
 namespace imago
 {
-	//
+	RecognitionTree::RecognitionTree(const Image& image) : raw(image)
+	{
+	}
 }

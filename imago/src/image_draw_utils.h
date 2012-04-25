@@ -45,7 +45,7 @@ namespace imago
            BGL_FORALL_VERTICES_T(v, g, EuclideanGraph)
            {
               Vec2d pos = positions[v];
-              ImageDrawUtils::putCircle(img, (int)pos.x, (int)pos.y, 4, 100);
+              ImageDrawUtils::putCircle(img, round(pos.x), round(pos.y), 4, 100);
            }
            BGL_FORALL_EDGES_T(e, g, EuclideanGraph)
            {

@@ -167,7 +167,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       }
    }
    
-   int maxLength, minLength;
+   double maxLength, minLength;
    if (bf.length > bs.length)
    {
       maxLength = bf.length;
@@ -183,25 +183,25 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
 //   printf("DC1: %d %d\n", maxLength, minLength);
 //#endif   
    
-   if (maxLength > 160)
+   if (maxLength > 160.0)
       _multiBondErr = 0.08; //0.18; //handwriting
-   else if (maxLength > 125)
+   else if (maxLength > 125.0)
    {
-      if (minLength > 90)
+      if (minLength > 90.0)
          _multiBondErr = 0.157;
       else
          _multiBondErr = 0.203;
    }
-   else if (maxLength > 110)
+   else if (maxLength > 110.0)
       _multiBondErr = 0.185;
-   else if (maxLength > 108)
+   else if (maxLength > 108.0)
    {
-      if (minLength > 75)
+      if (minLength > 75.0)
          _multiBondErr = 0.165;
       else
          _multiBondErr = 0.20;
    }
-   else if (maxLength > 85)
+   else if (maxLength > 85.0)
       _multiBondErr = 0.38;
    else
       _multiBondErr = 0.5; //0.65 //TODO: handwriting, original: 0.4

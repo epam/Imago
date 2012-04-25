@@ -76,7 +76,7 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
 
    if (!lsegments.empty())
    {
-	   for (int i = 0; i < (int)lsegments.size() / 2; i++)
+	   for (size_t i = 0; i < lsegments.size() / 2; i++)
 	   {
 		  Vec2d &p1 = lsegments[2 * i];
 		  Vec2d &p2 = lsegments[2 * i + 1];
@@ -91,7 +91,7 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
 
 	   graph.setInitialAvgBondLength(avg_size);
 
-	   for (int i = 0; i < (int)lsegments.size() / 2; i++)
+	   for (size_t i = 0; i < lsegments.size() / 2; i++)
 	   {
 		  Vec2d &p1 = lsegments[2 * i];
 		  Vec2d &p2 = lsegments[2 * i + 1];

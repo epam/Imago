@@ -6,9 +6,10 @@
 #include "recognition_settings.h"
 #include "log_ext.h"
 #include "prefilter.h"
+#include "prefilter_cv.h"
+#include "adaptive_filter.h"
 #include "superatom_expansion.h"
 #include "output.h"
-#include "adaptive_filter.h"
 
 enum FilterType
 {
@@ -110,7 +111,7 @@ int performRecognition(const std::string& imageName, int logLevel = 0, FilterTyp
 
 		RecognitionResult result;
 
-		if (isAlreadyBinarized(src_img))
+		if (isBinarized(src_img))
 		{
 			 result = recognize(src_img, ftPass);
 		}

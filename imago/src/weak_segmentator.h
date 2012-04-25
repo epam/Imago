@@ -35,9 +35,6 @@ namespace imago
 		
 		// updates the map for refineIsAllowed( )
 		void updateRefineMap(int max_len);
-
-		// remove alone pixels, fill broken pixels
-		void performPixelOptimizations();
 				
 		// updates crop if required
 		bool needCrop(Rectangle& crop, int winSize);		

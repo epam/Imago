@@ -12,35 +12,36 @@ namespace imago
 	class RecognitionRecord
 	{
 		public:
-		double getProbability() const { return _probability; }
+			double getProbability() const { return _probability; }
 
 		private:
-		double _probability;
+			double _probability;
 	};
 
 	class CircleRecognitionRecord : public RecognitionRecord
 	{
 		public:
+			// ..
 	};
 
 	class SegmentRecognitionRecord : public RecognitionRecord
 	{
 		public:
+			// ..
 	};
 
 	class CharacterRecognitionRecord : public RecognitionRecord
 	{
 		public:
+			// ..
 	};
 
 	class RecognitionTree
 	{
 		public:
-		RecognitionTree(const Image& image) : raw(image)
-		{
-		}
+			RecognitionTree(const Image& image);
 
 		private:		
-		const Image& raw;
+			const Image& raw;
 	};
 }

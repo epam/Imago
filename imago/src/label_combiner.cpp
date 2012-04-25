@@ -291,13 +291,13 @@ void LabelCombiner::_locateLabels()
    std::vector<int> _components(boost::num_vertices(seg_graph));
    int cc = boost::connected_components(seg_graph, &_components[0]);
    std::vector<std::vector<int> > components(cc);
-   for (int i = 0; i < (int)_components.size(); i++)
+   for (size_t i = 0; i < _components.size(); i++)
       components[_components[i]].push_back(i);
 
    boost::property_map<segments_graph::SegmentsGraph, boost::vertex_seg_ptr_t>::
                    type seg_ptrs = boost::get(boost::vertex_seg_ptr, seg_graph);
    _labels.resize(cc);
-   for (int i = 0; i < (int)components.size(); i++)
+   for (size_t i = 0; i < components.size(); i++)
    {      
 	   getLogExt().append("Component", i);
 	   getLogExt().appendVector("Subcomponents", components[i]);
@@ -331,8 +331,7 @@ void LabelCombiner::_fillLabelInfo( Label &l )
       
       if (first_cap >= 0)
       {
-         int mid = (int)(symbols[i]->getY() +
-                         0.5 * symbols[i]->getHeight());
+         int mid = round(symbols[i]->getY() + 0.5 * symbols[i]->getHeight());
 
          if (mid - first_line_y > _space)
          {
@@ -385,14 +384,6 @@ void LabelCombiner::_fillLabelInfo( Label &l )
 
       l.line_y = first_line_y;
    }
-
-   /*for (int j = 0, end = sep; j < (int)l.symbols.size(); j = sep, end = l.symbols.size())
-   {
-      for (int i = j; i < end; i++)
-      {
-
-      }
-   }*/
 }
 
 bool LabelCombiner::_segmentsComparator( const Segment* const &a,

@@ -50,7 +50,7 @@ void FourierDescriptors::calculate( const Points2i &contour, int count,
    Vec2i p1, p2, p3;
    Vec2i v1, v2;
 
-   for (int i = 1; i < (int)contour.size(); i++)
+   for (size_t i = 1; i < contour.size(); i++)
    {
       length += Vec2d::distance(contour[i - 1], contour[i]);
    }
@@ -60,10 +60,10 @@ void FourierDescriptors::calculate( const Points2i &contour, int count,
       double lk, phi;
       double a = 0, b = 0;
 
-      for (int k = 1; k < (int)contour.size(); k++)
+      for (size_t k = 1; k < contour.size(); k++)
       {
          lk = 0;
-         for (int j = 1; j <= k; j++)
+         for (size_t j = 1; j <= k; j++)
          {
             lk += Vec2d::distance(contour[j - 1], contour[j]);
          }
@@ -71,7 +71,7 @@ void FourierDescriptors::calculate( const Points2i &contour, int count,
          p1 = contour[k - 1];
          p2 = contour[k];
 
-         if (k == (int)contour.size() - 1)
+         if (k == contour.size() - 1)
             p3 = contour[0];
          else
             p3 = contour[k + 1];

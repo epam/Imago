@@ -30,8 +30,8 @@ namespace imago
    class ImageUtils
    {
    public:
-      inline static void copyImageToMat( const Image &img, cv::Mat &mat );
-      inline static void copyMatToImage( const cv::Mat &mat, Image &img );
+      static void copyImageToMat( const Image &img, cv::Mat &mat );
+      static void copyMatToImage( const cv::Mat &mat, Image &img );
 
       static void loadImageFromFile( Image &img, const char *FileName, ... );
       static void saveImageToFile( const Image &img, const char *FileName, ... );

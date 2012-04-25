@@ -310,7 +310,7 @@ int Image::mean() const
    double den = 1.0 / (_width * _height);
    for (int i = 0; i < _width * _height; i++)
       total += _data[i] * den;
-   return (int)total;
+   return round(total);
 }
 
 void Image::rotate90( bool cw )

@@ -22,20 +22,9 @@ namespace imago
    };
 
    void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p = PrefilterParams());
-
-   bool isAlreadyBinarized(Image &image);
-   bool resampleImage(Image &image);
-
-   void prefilterFile(const char *filename, Image &image, const CharacterRecognizer &cr);
-   void prefilterPngData(const std::vector<unsigned char> &data, Image &image, const CharacterRecognizer &cr );
    void prefilterImage( Image &image, const CharacterRecognizer &cr );
-   
-   // returns false if image cann't be correctly filtered
-   bool prefilterCV(Image& raw);
 
-   void _copyMatToImage (Image &img, const cv::Mat &mat);
-
-   bool isCircle (Image &seg);
+   bool   isCircle(Image &seg);
    double estimateLineThickness(Image &bwimg, int grid = 10);
 }
 #endif /* _prefilter_h_ */

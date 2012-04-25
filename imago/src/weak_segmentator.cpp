@@ -77,11 +77,11 @@ namespace imago
 
 						for (int j = (int)(-max_len / subpx); j < (int)(max_len / subpx); j++)
 						{
-							int bnd = (int)(abs(j)*0.9 + 2);
+							int bnd = round(absolute(j)*0.9 + 2);
 							for (int k = -bnd; k <= bnd; k++)
 							{
-								int _x = (int)((double)x + dx * (double)(j*subpx) - dy * (double)(k*subpx));
-								int _y = (int)((double)y + dy * (double)(j*subpx) + dx * (double)(k*subpx));
+								int _x = round((double)x + dx * (double)(j*subpx) - dy * (double)(k*subpx));
+								int _y = round((double)y + dy * (double)(j*subpx) + dx * (double)(k*subpx));
 								if (inRange(_x, _y))
 								{
 									at(_x, _y).refineGeneration = currentRefineGeneration;
@@ -214,55 +214,11 @@ namespace imago
 		return added_pixels;
 	}
 
-	void WeakSegmentator::performPixelOptimizations()
-	{
-		logEnterFunction();
-
-		for (int y = 0; y < height(); y++)
-			for (int x = 0; x < width(); x++)
-			{
-				int count = 0, id = 0;
-				for (int dy = -1; dy <= 1; dy++)
-				{
-					for (int dx = -1; dx <= 1; dx++)
-						if ((dx != 0 || dy != 0) && inRange(x+dx, y+dy))
-						{
-							if (at(x+dx,y+dy).id != 0)
-							{
-								id = at(x+dx,y+dy).id;
-								count++;
-							}
-						}
-				}
-				if (at(x,y).id != 0 && count == 0) // erase lonely pixel
-					at(x,y).id = 0;
-				else if (at(x,y).id == 0 && count >= 7) // fill inside pixels group
-					at(x,y).id = id;
-			}
-	}
-
-	/*void WeakSegmentator::eraseNoise(double threshold)
-	{
-		// TODO:
-		logEnterFunction();
-
-		for (int y = 0; y < height(); y++)
-			for (int x = 0; x < width(); x++)
-			{
-				int id = at(x, y).id;
-				if (id > 0 && (int)SegmentPoints[id].size() < threshold)
-				{
-					SegmentPoints[id].clear();
-					at(x,y).id = 0;
-				}
-			}			
-	}*/
-
 	bool WeakSegmentator::needCrop(Rectangle& crop, int winSize)
 	{
 		logEnterFunction();
 
-		int area_pixels = (int)(width() * height() * RECTANGULAR_AREA_THRESHOLD);
+		int area_pixels = round(width() * height() * RECTANGULAR_AREA_THRESHOLD);
 		for (size_t id = 1; id <= SegmentPoints.size(); id++)
 		{			
 			Rectangle bounds;

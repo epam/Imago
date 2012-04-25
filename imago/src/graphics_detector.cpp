@@ -192,11 +192,11 @@ void GraphicsDetector::_extractPolygon( const Segment &seg, Points2d &poly ) con
 		Segment temp;
 		temp.copy(seg, false);		
 		for (size_t u = 0; u < poly.size(); u++)
-			ImageDrawUtils::putCircle(temp, (int)poly[u].x, (int)poly[u].y, 5, 0);
+			ImageDrawUtils::putCircle(temp, round(poly[u].x), round(poly[u].y), 5, 0);
 		getLogExt().appendImage("Segment with polypoints", temp);
 	}
 
-   for (i = 0; i < (int)poly.size(); i++)
+   for (size_t i = 0; i < poly.size(); i++)
    {
       Vec2d v(seg.getX(), seg.getY());
       poly[i].add(v);
@@ -273,14 +273,15 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
             BOOST_FOREACH(Segment *s, segments)
             {
                double d = Vec2d::distance(center, s->getCenter());
-               printf("R: %lf  %lf\n", d, r);
+			   getLogExt().append("R", r);
+			   getLogExt().append("D", d);
                if (d < r)
                {
                   valid = false;
                   break;
                }
             }
-            printf("R: %d", (int)valid);
+			getLogExt().append("valid", (int)valid);
 
             if (!valid)
             {
@@ -317,7 +318,7 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
 
          double diff = 0;
 
-         for (int i = 0; i < (int)tmp_descriptors.size(); i++)
+         for (int i = 0; i < tmp_descriptors.size(); i++)
          {
             double a = tmp_descriptors[i],
                    b = circle_descriptors[i], weight;
@@ -386,10 +387,10 @@ void GraphicsDetector::detect( const Image &img, Points2d &lsegments ) const
       poly.clear();
       _extractPolygon(*s, poly);
 
-	  for (int i = 0; i < (int)poly.size() - 1; i++)
+	  for (size_t i = 1; i < poly.size(); i++)
       {
+         lsegments.push_back(poly[i - 1]);
          lsegments.push_back(poly[i]);
-         lsegments.push_back(poly[i + 1]);
       }
       delete s;
    }

@@ -125,8 +125,7 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
 
    Edge e = p.first;
 
-   int dx = end.x - begin.x,
-       dy = end.y - begin.y;
+   int dx = round(end.x - begin.x), dy = round(end.y - begin.y);
    double k = 0;
 
    if (dx == 0)
@@ -298,8 +297,7 @@ bool Skeleton::_isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex
    Vec2d begin2 = boost::get(boost::vertex_pos, _g, b2),
          end2 = boost::get(boost::vertex_pos, _g, e2);
    
-   int dx1 = end1.x - begin1.x,
-       dy1 = end1.y - begin1.y;
+   int dx1 = round(end1.x - begin1.x), dy1 = round(end1.y - begin1.y);
    double k1 = 0;
 
    if (dx1 == 0)
@@ -310,8 +308,7 @@ bool Skeleton::_isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex
       k1 = angle1;
    }
 
-   int dx2 = end2.x - begin2.x,
-   dy2 = end2.y - begin2.y;
+   int dx2 = round(end2.x - begin2.x), dy2 = round(end2.y - begin2.y);
    double k2 = 0;
 
    if (dx2 == 0)
@@ -358,7 +355,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
          neighbors_b.assign(b_b, e_b);
 
 		 if(neighbors_b.size() > 1)
-			 for (int i = 0; i < (int)neighbors_b.size(); i++)
+			 for (size_t i = 0; i < neighbors_b.size(); i++)
 			 {
 				 if(neighbors_b[i] != end)
 				 {
@@ -382,7 +379,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
          boost::tie(b_e, e_e) = boost::adjacent_vertices(end, _g);
          neighbors_e.assign(b_e, e_e);
 		 if(neighbors_e.size() > 1)
-			 for (int i = 0; i < (int)neighbors_e.size(); i++)
+			 for (size_t i = 0; i < neighbors_e.size(); i++)
 			 {
 				 if(neighbors_e[i] != beg)
 				 {
@@ -450,7 +447,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 				  {
 					  bool ret = false;
 					   if(neighbors_e.size() > 1 && !state_conected_e)
-						   for (int i = 0; i < (int)neighbors_e.size(); i++)
+						   for (size_t i = 0; i < neighbors_e.size(); i++)
 						   {
 							   if(neighbors_e[i] != beg)
 							   {
@@ -473,7 +470,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 
 					  bool ret = false;
 					   if(neighbors_b.size() > 1 && !state_conected_b)
-						   for (int i = 0; i < (int)neighbors_b.size(); i++)
+						   for (size_t i = 0; i < neighbors_b.size(); i++)
 						   {
 							   if(neighbors_b[i] != end)
 							   {
@@ -734,7 +731,7 @@ void Skeleton::_findMultiple()
 
       toProcess.erase(toProcess.begin(), toProcess.begin() + end);
       //Copy-paste
-      for (int i = 0; i < (int)tripleBonds.size(); ++i)
+      for (size_t i = 0; i < tripleBonds.size(); ++i)
       {
          TripleBondMaker::Result ret = _makeTriple(tripleBonds[i]);
 
@@ -811,7 +808,7 @@ void Skeleton::_reconnectBonds( Vertex from, Vertex to )
    boost::tie(b, e) = boost::adjacent_vertices(from, _g);
    neighbours.assign(b, e);
 
-   for (int i = 0; i < (int)neighbours.size(); i++)
+   for (size_t i = 0; i < neighbours.size(); i++)
    {
       Vertex v = neighbours[i];
       Edge e = boost::edge(from, v, _g).first;
@@ -833,7 +830,7 @@ bool Skeleton::_checkMidBonds( Vertex from, Vertex to )
    neighbours.assign(b, e);
    bool ret = false;
 
-   for (int i = 0; i < (int)neighbours.size(); i++)
+   for (size_t i = 0; i < neighbours.size(); i++)
    {
       Vertex v = neighbours[i];
       Edge e = boost::edge(from, v, _g).first;
@@ -853,7 +850,7 @@ void Skeleton::_reconnectBondsRWT( Vertex from, Vertex to, BondType new_t)
    boost::tie(b, e) = boost::adjacent_vertices(from, _g);
    neighbours.assign(b, e);
 
-   for (int i = 0; i < (int)neighbours.size(); i++)
+   for (size_t i = 0; i < neighbours.size(); i++)
    {
       Vertex v = neighbours[i];
       Edge e = boost::edge(from, v, _g).first;
@@ -880,7 +877,7 @@ double Skeleton::_avgEdgeLendth (const Vertex &v, int &nnei)
 
    double avg = 0;
 
-   for (int i = 0; i < (int)neighbors.size(); i++)
+   for (size_t i = 0; i < neighbors.size(); i++)
    {
       Edge e = boost::edge(v, neighbors[i], _g).first;
       avg += boost::get(boost::edge_type, _g, e).length;
@@ -908,9 +905,9 @@ void Skeleton::_joinVertices(double eps)
       int v_nnei;
       double v_avg_edge_len = _avgEdgeLendth(v, v_nnei);
 
-      for (int i = 0; i < (int)nearVertices.size(); i++)
+      for (size_t i = 0; i < nearVertices.size(); i++)
       {
-         for (int j = 0; j < (int)nearVertices[i].size(); j++)
+         for (size_t j = 0; j < nearVertices[i].size(); j++)
          {
             const Vertex &nei = nearVertices[i][j];
             int nei_nnei;
@@ -936,7 +933,7 @@ void Skeleton::_joinVertices(double eps)
          int first = join_ind[0];
          nearVertices[first].push_back(v);
 
-         for (int i = (int)join_ind.size() - 1; i >= 1; i--)
+         for (size_t i = join_ind.size() - 1; i >= 1; i--)
          {
             int ii = join_ind[i];
             nearVertices[first].insert(nearVertices[first].end(),
@@ -948,20 +945,20 @@ void Skeleton::_joinVertices(double eps)
       join_ind.clear();
    }
 
-   for (int i = 0; i < (int)nearVertices.size(); i++)
+   for (size_t i = 0; i < nearVertices.size(); i++)
    {
-      int s = (int)nearVertices[i].size();
-      if (s == 1)
+      size_t size = nearVertices[i].size();
+      if (size == 1)
          continue;
       
       Vec2d newPos;
-      for (int j = 0; j < s; j++)
+      for (size_t j = 0; j < size; j++)
          newPos.add(pos[nearVertices[i][j]]);
-      newPos.scale(1.0 / s);
+      newPos.scale(1.0 / size);
 
       Vertex newVertex = addVertex(newPos);
 
-      for (int j = 0; j < s; j++)
+      for (size_t j = 0; j < size; j++)
       {
          _reconnectBonds(nearVertices[i][j], newVertex);
          boost::remove_vertex(nearVertices[i][j], _g);
@@ -994,7 +991,7 @@ bool Skeleton::_isSegmentIntersectedByEdge(Vec2d &b, Vec2d &e, std::deque<Edge> 
 void Skeleton::_connectBridgedBonds()
 {
 	logEnterFunction();
-	std::vector<float> kFactor;
+	std::vector<double> kFactor;
 	std::vector<std::vector<Edge> > edge_groups_k;
 	//group all parallel edges by similar factors
 	BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
@@ -1294,8 +1291,11 @@ void Skeleton::modifyGraph()
 					   if (Vec2i::distance(pos,pos_beg) < distTresh &&
 						   Vec2i::distance(pos,pos_end) < distTresh)
 					   {
-						   ImageDrawUtils::putCircle(temp, pos.x, pos.y, 2, 0);
-						   ImageDrawUtils::putLineSegment(temp, pos_beg, pos_end, 0);
+						   if (getLogExt().loggingEnabled())
+						   {
+							   ImageDrawUtils::putCircle(temp, round(pos.x), round(pos.y), 2, 0);							   
+							   ImageDrawUtils::putLineSegment(temp, pos_beg, pos_end, 0);
+						   }
 						   bad_edges.push_back(e);
 						   break;
 					   }

@@ -202,7 +202,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 	std::vector<double> lengths;
 	// find the minimum and max of the line segments
-	for (int i = 0; i < (int)lsegments.size() / 2; i++)
+	for (size_t i = 0; i < lsegments.size() / 2; i++)
 	{
       Vec2d &p1 = lsegments[2 * i];
       Vec2d &p2 = lsegments[2 * i + 1];
@@ -228,7 +228,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 	// Clustering line segments in 2 groups
 	double c1 = min, c2 = max, c1_o = min, c2_o = max;
 	IntVector classes;
-	for(int i=0;i<(int)lsegments.size() / 2;i++)
+	for (size_t i = 0; i < lsegments.size() / 2; i++)
 		classes.push_back(0);
 	int count1 = 0, count2=0;
 
@@ -237,7 +237,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		c1_o = c1;
 		c2_o = c2;
 
-		for (int i = 0; i < (int)lsegments.size() / 2; i++)
+		for (size_t i = 0; i < lsegments.size() / 2; i++)
 		{
 		  Vec2d &p1 = lsegments[2 * i];
 		  Vec2d &p2 = lsegments[2 * i + 1];
@@ -323,8 +323,11 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		Vec2d &p1 = lsegments[2 * currInd];
 		Vec2d &p2 = lsegments[2 * currInd + 1];
 
-		Rectangle rec(p1.x < p2.x ? p1.x : p2.x,
-			p1.y < p2.y? p1.y:p2.y, fabs(p1.x - p2.x)+1, fabs(p1.y - p2.y)+1);
+		double d_x = p1.x < p2.x ? p1.x : p2.x;
+		double d_y = p1.y < p2.y? p1.y:p2.y;
+		double d_w = absolute(p1.x - p2.x)+1;
+		double d_h = absolute(p1.y - p2.y)+1;
+		Rectangle rec(round(d_x), round(d_y), round(d_w), round(d_h));
 
 		symbRects.push_back(rec);
 		RectPoints.push_back(polygon());
@@ -366,19 +369,19 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 				//update rectangle
 				if(dist1 < line_thick || dist2 < line_thick)
 				{
-					int left = symbRects[ri].x < sp1.x ? symbRects[ri].x : sp1.x; 
-						left = left < sp2.x ? left : sp2.x;
+					double left = symbRects[ri].x < sp1.x ? symbRects[ri].x : sp1.x; 
+					left = left < sp2.x ? left : sp2.x;
 				
-					int right = (symbRects[ri].x + symbRects[ri].width) > sp1.x ? (symbRects[ri].x  + symbRects[ri].width): sp1.x; 
-						right = right > sp2.x ? right : sp2.x;
+					double right = (symbRects[ri].x + symbRects[ri].width) > sp1.x ? (symbRects[ri].x  + symbRects[ri].width): sp1.x; 
+					right = right > sp2.x ? right : sp2.x;
 
-					int top = symbRects[ri].y < sp1.y ?  symbRects[ri].y : sp1.y; 
-						top = top < sp2.y ? symbRects[ri].y : sp2.y;
+					double top = symbRects[ri].y < sp1.y ?  symbRects[ri].y : sp1.y; 
+					top = top < sp2.y ? symbRects[ri].y : sp2.y;
 
-					int bottom = (symbRects[ri].y + symbRects[ri].height) > sp1.y ? (symbRects[ri].y + symbRects[ri].height):sp1.y;
+					double bottom = (symbRects[ri].y + symbRects[ri].height) > sp1.y ? (symbRects[ri].y + symbRects[ri].height):sp1.y;
 					bottom = bottom > sp2.y ? bottom : sp2.y;
 
-					symbRects[ri] = Rectangle(left, top, right - left, bottom - top);
+					symbRects[ri] = Rectangle((int)left, (int)top, (int)(right - left), (int)(bottom - top));
 					RectPoints[ri].push_back(sp1);
 					RectPoints[ri].push_back(sp2);
 					LineCount[ri]++;
@@ -444,12 +447,12 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 					continue;
 			}
 
-			int left = (symbRects[i].x - line_thick )< 0 ? 0 : symbRects[i].x - line_thick ;
-			int top =  (symbRects[i].y - line_thick )< 0 ? 0 : symbRects[i].y - line_thick ;
-			int right = (symbRects[i].x + symbRects[i].width + line_thick)  > timg.getWidth()? timg.getWidth() :
-																				symbRects[i].x + symbRects[i].width + line_thick;
-			int bottom = (symbRects[i].y + symbRects[i].height + line_thick) > timg.getHeight() ? timg.getHeight():
-				(symbRects[i].y + symbRects[i].height  + line_thick);
+			int left = (int)(  (symbRects[i].x - line_thick < 0) ? 0 : (symbRects[i].x - line_thick));
+			int top =  (int)(  (symbRects[i].y - line_thick < 0) ? 0 : (symbRects[i].y - line_thick));
+			int right = (int)( (symbRects[i].x + symbRects[i].width + line_thick > timg.getWidth()) ? timg.getWidth() :
+				               (symbRects[i].x + symbRects[i].width + line_thick) );
+			int bottom = (int)((symbRects[i].y + symbRects[i].height + line_thick > timg.getHeight()) ? timg.getHeight() :
+				               (symbRects[i].y + symbRects[i].height  + line_thick) );
 
 			Image extracted(right - left+1, bottom - top+1),
 				_2BClassified(right - left+1, bottom - top+1);
@@ -469,8 +472,8 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 				for(size_t n=0;n<RectPoints[i].size();n++)
 				{
 					Vec2d pt = RectPoints[i][n];
-					int dx = pt.x - left;
-					int dy = pt.y - top;
+					int dx = round(pt.x - left);
+					int dy = round(pt.y - top);
 					
 					if((*it)->getX() < dx && ((*it)->getWidth() + (*it)->getX()) > dx && 
 						(*it)->getY() < dy && ((*it)->getHeight() + (*it)->getY()) > dy)
@@ -814,11 +817,11 @@ bool Separator::_isSuspiciousSymbol( Segment *cur_seg, SegmentDeque &layer_symbo
       int sym_y1 = s->getY(), sym_y2 = s->getY() + s->getHeight(),
          seg_y1 = cur_seg->getY(), seg_y2 = cur_seg->getY() + cur_seg->getHeight();
 
-      if (abs(sym_y2 - seg_y1) <= cap_height / 2 || abs(sym_y1 - seg_y2) <= cap_height / 2)
+      if (absolute(sym_y2 - seg_y1) <= cap_height / 2 || absolute(sym_y1 - seg_y2) <= cap_height / 2)
       {
          int sym_x = s->getX(), seg_x = cur_seg->getX();
 
-         if (abs(sym_x - seg_x) < s->getWidth())
+         if (absolute(sym_x - seg_x) < s->getWidth())
             return false;
       }
    }
@@ -853,10 +856,10 @@ int Separator::_estimateCapHeight()
    int seg_ver_eps = rs["SegmentVerEps"];
    getLogExt().append("Seg_ver_eps", seg_ver_eps);
 
-   for (int i = 0; i != (int)heights.size();)
+   for (size_t i = 0; i < heights.size(); )
    {
-      int j = i + 1;
-      for (; j != (int)heights.size(); j++)
+      size_t j = i + 1;
+      for (; j < heights.size(); j++)
       {
          if (absolute(heights[j - 1] - heights[j]) > seg_ver_eps) 
             break;
@@ -876,7 +879,7 @@ int Separator::_estimateCapHeight()
 
    seq_lengths.resize(seq_pairs.size());
 
-   for (int i = 0; i != (int)seq_pairs.size(); i++)
+   for (size_t i = 0; i < seq_pairs.size(); i++)
    {      
       seq_lengths[i] = seq_pairs[i].second - seq_pairs[i].first;
    }
@@ -915,7 +918,7 @@ int Separator::_estimateCapHeight()
    int count = 0;
    symbols_seq = -1;
 
-   for (int i = 0; i != (int)symbols_found.size(); i++)
+   for (size_t i = 0; i < symbols_found.size(); i++)
       if (symbols_graphics[symbols_found[i]].first > count)
       {
          symbols_seq = i;
@@ -935,15 +938,15 @@ int Separator::_estimateCapHeight()
 
    double cur_density = densities[symbols_seq];
 
-   for (int i = 0; i != (int)symbols_found.size(); i++)
+   for (size_t i = 0; i < symbols_found.size(); i++)
    {
       if (absolute(count - symbols_graphics[symbols_found[i]].first) < 2)
       {  
          if (densities[i] > cur_density)
          {
             symbols_seq = i;
-            cap_height = StatUtils::interMean(heights.begin() + seq_pairs[symbols_found[symbols_seq]].first, 
-                                              heights.begin() + seq_pairs[symbols_found[symbols_seq]].second); 
+            cap_height = (int)(StatUtils::interMean(heights.begin() + seq_pairs[symbols_found[symbols_seq]].first, 
+                                              heights.begin() + seq_pairs[symbols_found[symbols_seq]].second)); 
             cur_density = densities[i];
          }
       }

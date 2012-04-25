@@ -18,6 +18,7 @@
 #include "image_utils.h"
 #include "current_session.h"
 #include "log_ext.h"
+#include "prefilter.h"
 #include "recognition_tree.h"
 #include "character_endpoints.h"
 
@@ -71,16 +72,16 @@ CharacterRecognizer::~CharacterRecognizer()
 double CharacterRecognizer::_compareDescriptors( const std::vector<double> &d1,
                                                  const std::vector<double> &d2 )
 {
-   int s = (int)std::min(d1.size(), d2.size());
+   size_t size = std::min(d1.size(), d2.size());
    double d = 0;
    double r;
    double weight = 1;
 
-   for (int i = 0; i < s; i++)
+   for (size_t i = 0; i < size; i++)
    {
       r = d1[i] - d2[i];
 
-      if (i < s / 2)
+      if (i < size / 2)
       {
          if (i % 2)
             weight = 2.5;
@@ -94,7 +95,7 @@ double CharacterRecognizer::_compareDescriptors( const std::vector<double> &d1,
          else
             weight = 0.3;
       }
-      d += fabs(weight * r); // * r;
+      d += absolute(weight * r);
    }
 
    return d;
@@ -204,7 +205,7 @@ char CharacterRecognizer::recognize( const Segment &seg,
    {
       int ind = _mapping[c];
       const SymbolClass &cls = _classes[ind];
-      for (int i = 0; i < (int)cls.shapes.size(); i++)
+      for (size_t i = 0; i < cls.shapes.size(); i++)
       {
          d = _compareFeatures(features, cls.shapes[i]);
 

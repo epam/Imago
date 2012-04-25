@@ -70,7 +70,13 @@ namespace imago
    const double PI_2 = 1.57079632679489661923;
    const double PI_4 = 0.78539816339744830962;
 
-   template <typename T> T absolute( const T &a )
+   template <typename T> int round(const T& a)
+   {
+	   if (a >= 0) return (int)(a + 0.5);
+	   else        return (int)(a - 0.5);
+   }
+
+   template <typename T> T absolute(const T& a)
    {
       return a > 0 ? a : -a;
    }
