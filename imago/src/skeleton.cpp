@@ -969,12 +969,22 @@ void Skeleton::_joinVertices(double eps)
 bool Skeleton::_isSegmentIntersectedByEdge(Vec2d &b, Vec2d &e, std::deque<Edge> edges)
 {
 	std::deque<Edge>::iterator it;
+
 	for(it=edges.begin();it != edges.end();it++)
 	{
 		Edge edge = *it;
 		Vec2d p1 = getVertexPos(getBondBegin(edge));
 		Vec2d p2 = getVertexPos(getBondEnd(edge));
 		Vec2d intersection = Algebra::linesIntersection(b, e, p1, p2);
+
+		//check if intersection point is in segment p1, p2
+		//TODO
+		Vec2d diff1, diff2;
+		diff1.diff(p1, intersection);
+		diff2.diff(p2, intersection);
+		double dotVal = Vec2d::dot(diff1, diff2);
+		if( dotVal > 0)
+			continue;
 		
 		double maxX = b.x > e.x ? b.x : e.x;
 		double minX = b.x < e.x ? b.x : e.x;
