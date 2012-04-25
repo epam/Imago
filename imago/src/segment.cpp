@@ -22,6 +22,7 @@
 #include "fourier_descriptors.h"
 #include "segmentator.h"
 #include "output.h"
+#include "log_ext.h"
 #include "exception.h"
 
 using namespace imago;
@@ -191,6 +192,7 @@ void Segment::initFeatures( int descriptorsCount ) const
    }
    catch (NoContourException &e)
    {
+	   getLogExt().appendText(e.what());
       _features.recognizable = false;
    }
    _features.init = true;

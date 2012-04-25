@@ -250,7 +250,7 @@ bool prefilterCV(Image& raw)
 		const Points2i& p = it->second;
 		
 		int good = 0, bad = 0;
-		for (int u = 0; u < p.size(); u++)
+		for (size_t u = 0; u < p.size(); u++)
 		{
 			if (p[u].x > borderX && p[u].y > borderY
 				&& p[u].x < raw.getWidth() - borderX && p[u].y < raw.getHeight() - borderY
@@ -263,7 +263,7 @@ bool prefilterCV(Image& raw)
 		if (6*good > bad && good > 10)
 		{
 			//printf("Segment %u: %u / %u\n", it->first, good, bad);
-			for (int u = 0; u < p.size(); u++)
+			for (size_t u = 0; u < p.size(); u++)
 			{
 				int x = p[u].x - crop.x;
 				int y = p[u].y - crop.y;
@@ -677,7 +677,7 @@ static void _prefilterInternal( const Image &raw, Image &image, const CharacterR
 
 }
 
-int estimateLineThickness(Image &bwimg, int grid)
+double estimateLineThickness(Image &bwimg, int grid)
 {
 	int w = bwimg.getWidth();
 	int h = bwimg.getHeight();
@@ -1141,7 +1141,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 	int wthresh = greyThresh(mat, false);
 
 	if(p.strongThresh)
-		wthresh = 0.2*thresh+0.8*wthresh;
+		wthresh = (int)(0.2*thresh+0.8*wthresh);
 
 	if (p.binarizeImage)
 	{
@@ -1537,7 +1537,7 @@ bool isCircle (Image &seg)
             float sine = (centery - j) / radius;
             float ang = (float)atan2(sine, cosine);
             if (ang < 0)
-               ang += 2 * PI;
+               ang += 2.0f * PI_f;
             points[k].ang = ang;
             k++;
          }
@@ -1545,7 +1545,7 @@ bool isCircle (Image &seg)
 
    qsort(points, npoints, sizeof(_AngRadius), _cmp_ang);
    
-   points[npoints].ang = points[0].ang + 2 * PI;
+   points[npoints].ang = points[0].ang + 2.0f * PI_f;
    points[npoints].radius = points[0].radius;
 
    for (i = 0; i < npoints; i++)

@@ -114,7 +114,7 @@ std::string expandSuperatoms( const Molecule &molecule )
    
       string symbol = indigoSymbol(item);
       bool found = false;
-      for (int i = 0; i < abbrs.size() && !found; i++)
+      for (size_t i = 0; i < abbrs.size() && !found; i++)
       {
          Abbreviation &cur = abbrs[i];
          BOOST_FOREACH(string label, cur.labels)

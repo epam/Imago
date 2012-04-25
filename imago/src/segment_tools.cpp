@@ -386,8 +386,8 @@ namespace imago
 			{
 				if (Vec2i::distance(*it1, *it2) < d1)
 				{
-					Points2i p1 = getInRange(seg, *it1, d1);
-					Points2i p2 = getInRange(seg, *it2, d1);
+					Points2i p1 = getInRange(seg, *it1, (int)d1);
+					Points2i p2 = getInRange(seg, *it2, (int)d1);
 					for (Points2i::const_iterator pit1 = p1.begin(); pit1 != p1.end(); pit1++)
 						for (Points2i::const_iterator pit2 = p2.begin(); pit2 != p2.end(); pit2++)
 							if (Vec2i::distance(*pit1, *pit2) < d2)

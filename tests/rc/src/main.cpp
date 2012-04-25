@@ -8,7 +8,7 @@
 #include "prefilter.h"
 #include "superatom_expansion.h"
 #include "output.h"
-#include "recognition_tree.h"
+#include "adaptive_filter.h"
 
 enum FilterType
 {
@@ -51,9 +51,7 @@ RecognitionResult recognize(const imago::Image& src, FilterType filterType)
 
 		if (filterType == ftAdaptive)
 		{
-			imago::RecognitionTree rt(img);
-			rt.segmentate();
-			img.copy(rt.getBitmask());
+			imago::AdaptiveFilter::process(img);
 		}
 			
 		if (filterType == ftCV)

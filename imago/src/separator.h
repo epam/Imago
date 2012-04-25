@@ -144,7 +144,7 @@ namespace imago
 			  double retVal = imago::MAX_LINE;
 			  std::deque<std::pair<Vec2d, Vec2d>>::iterator it;
 
-			  for(int i = 0; i < _polyline.size(); i+=2)
+			  for(size_t i = 0; i < _polyline.size(); i+=2)
 			  {
 				  Vec2d p1 = _polyline[i];
 				  Vec2d p2 = _polyline[i+1];
@@ -200,7 +200,7 @@ namespace imago
 				  this->comp.SetRectangle(_rec);
 				  this->comp.setSortByPolyLine(false);
 				  
-				  for(int i = 0;i<segs.size();i++)
+				  for(size_t i = 0;i<segs.size();i++)
 				  {
 					  this->push(segs[i]);
 				  }
@@ -222,7 +222,7 @@ namespace imago
 				  this->comp.SetPolyline(polyline);
 				  this->comp.setSortByPolyLine(true);
 				  
-				  for(int i = 0;i<segs.size();i++)
+				  for(size_t i = 0;i<segs.size();i++)
 				  {
 					  this->push(segs[i]);
 				  }

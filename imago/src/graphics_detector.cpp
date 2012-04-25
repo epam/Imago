@@ -192,7 +192,7 @@ void GraphicsDetector::_extractPolygon( const Segment &seg, Points2d &poly ) con
 		Segment temp;
 		temp.copy(seg, false);		
 		for (size_t u = 0; u < poly.size(); u++)
-			ImageDrawUtils::putCircle(temp, poly[u].x, poly[u].y, 5, 0);
+			ImageDrawUtils::putCircle(temp, (int)poly[u].x, (int)poly[u].y, 5, 0);
 		getLogExt().appendImage("Segment with polypoints", temp);
 	}
 

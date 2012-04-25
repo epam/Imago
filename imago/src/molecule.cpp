@@ -77,10 +77,13 @@ bool testNear(Vec2d &point, Rectangle &rec, int margin)
 bool testCollision(Vec2d &beg, Vec2d &end, Rectangle &rec)
 {
 	Vec2d perp(-(end.y - beg.y), end.x - beg.x);
-	try{
-		perp = perp.getNormalized();
-	}catch(DivizionByZeroException &e)
+	try
 	{
+		perp = perp.getNormalized();
+	}
+	catch(DivizionByZeroException &e)
+	{
+		getLogExt().appendText(e.what());
 		return false;
 	}
 	//perp.diff(perp, end);
@@ -124,7 +127,7 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
    std::set<Skeleton::Vertex> only_nearest;
    labels.assign(_labels.begin(), _labels.end());
    
-   for (int i = 0; i < labels.size(); ++i)
+   for (size_t i = 0; i < labels.size(); ++i)
    {
       Label &l = labels[i];
 #ifdef DEBUG

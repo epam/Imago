@@ -24,6 +24,8 @@ namespace imago
 	class AdaptiveFilter : public Basic2dStorage<FilterPackedRecord>
 	{
 	public:
+		static void process(Image& img);
+
 		AdaptiveFilter(int width, int height) : Basic2dStorage<FilterPackedRecord>(width, height)
 		{
 			rgb = NULL;

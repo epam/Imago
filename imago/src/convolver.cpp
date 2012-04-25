@@ -121,7 +121,7 @@ void Convolver::apply()
          else if (value > 255)
             value = 255;
 
-         _img.getByte(x, y) = value;
+         _img.getByte(x, y) = (byte)value;
       }
    }
 }

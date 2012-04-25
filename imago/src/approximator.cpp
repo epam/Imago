@@ -32,7 +32,6 @@ void SimpleApproximator::apply( double eps, const Points2d &input,Points2d &outp
    IntVector sample;
    std::vector<_Line> lines;
    std::vector<double> lengths;
-   double ratio, mult;
    output.clear();
 
    _prepare(input, sample);
@@ -188,7 +187,7 @@ void DPApproximator::_apply_int( double eps, const Points2d &input, Points2d &ou
          double d = Algebra::distance2segment(input[i], lp, rp);
          if (d > max_dist)
          {
-            max_dist = d;
+            max_dist = (int)d;
             max_ind = i;
          }
       }

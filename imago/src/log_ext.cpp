@@ -27,7 +27,7 @@ namespace imago
 		MEMORYSTATUSEX statex;
 		statex.dwLength = sizeof (statex);
 		GlobalMemoryStatusEx (&statex);
-		memory = statex.ullAvailVirtual / 1024;
+		memory = static_cast<size_t>(statex.ullAvailVirtual / 1024);
 		#endif
 	}
 

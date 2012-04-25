@@ -18,18 +18,11 @@ namespace imago
 		virtual int width() const = 0;
 		virtual int height() const = 0;
 
-		// get area average intensity [generic]
-		int getAverageIntensity(const Points2i& pts) const
-		{
-			double result = 0.0;
-			if (!pts.empty())
-			{
-				for (size_t u = 0; u < pts.size(); u++)
-					result += getIntensity(pts[u].x, pts[u].y);
-				result /= pts.size();
-			}			
-			return (int)(result);
-		}
+		// some generic methods
+		double getAverageIntensity(const Points2i& pts) const;
+		double getAverageIntensity() const;
+		double getAverageFillrate(const Points2i& pts) const;
+		double getAverageFillrate() const;
 	};
 }
 

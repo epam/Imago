@@ -15,8 +15,8 @@ namespace imago
 
 	/* Affects: recognition quality(LO), recognition time(HI)
 		*/
-	const int    MAX_CROPS = 1;                // 1 is sufficient in most cases
-	const int    MAX_REFINE_ITERS = 0;//3;
+	const int    MAX_CROPS = 1;                
+	const int    MAX_REFINE_ITERS = 2;
 
 	// ---------------------------------------------------------------------------------
 
@@ -204,6 +204,42 @@ namespace imago
 		Rectangle& crop;
 		int diff_bound;
 	};
+
+	void AdaptiveFilter::process(Image& raw)
+	{
+		logEnterFunction();
+
+		Image bitmask;
+		bitmask.copy(raw);
+		prefilterCV(bitmask);
+
+		getLogExt().appendImage("raw", raw);		
+		getLogExt().appendImage("binarized", bitmask);
+
+		double inkPercentage = 0.0;
+		// update ink percentage
+		for (int x = 0; x < bitmask.getWidth(); x++)
+			for (int y = 0; y < bitmask.getHeight(); y++)
+				if (bitmask.getByte(x, y) == 0)
+					inkPercentage += 1.0;
+		inkPercentage /= bitmask.getWidth() * bitmask.getHeight() * 2;
+		inkPercentage *= 1.2;
+		
+		// update line thickness
+		double lineThickness = estimateLineThickness(bitmask);
+
+		if (lineThickness <= 1.0) lineThickness = 1.0;
+		if (lineThickness >= 10.0) lineThickness = 10.0;
+		if (inkPercentage > 0.15) inkPercentage = 0.15;
+		if (inkPercentage < 0.001) inkPercentage = 0.001;
+
+		getLogExt().append("Line thickness", lineThickness);
+		getLogExt().append("Ink percentage", inkPercentage);
+		
+		AdaptiveFilter af(raw.getWidth(), raw.getHeight());
+		af.filterImage(raw, true, inkPercentage, (int)lineThickness);
+		getLogExt().appendImage("filtered", raw);
+	}
 
 	void AdaptiveFilter::filterImage(Image& output, bool allowCrop, 
 		                             double probablyInkPercentage, 

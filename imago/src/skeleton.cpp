@@ -984,8 +984,8 @@ bool Skeleton::_isSegmentIntersectedByEdge(Vec2d &b, Vec2d &e, std::deque<Edge> 
 		double maxY = b.y > e.y ? b.y : e.y;
 		double minY = b.y < e.y ? b.y : e.y;
 
-		if(intersection.x < maxX + 1 & intersection.x > minX-1 &&
-			intersection.y < maxY + 1 & intersection.y > minY -1)
+		if(intersection.x < maxX + 1 && intersection.x > minX-1 &&
+			intersection.y < maxY + 1 && intersection.y > minY -1)
 			return true;
 	}
 	return false;
@@ -1006,7 +1006,7 @@ void Skeleton::_connectBridgedBonds()
 		if(f.type == imago::SINGLE)
 		{
 			bool found_kFactor = false;
-			for(int i=0 ; i < kFactor.size() ; i++)
+			for(size_t i=0 ; i < kFactor.size() ; i++)
 			{
 				if(fabs(slope - kFactor[i]) < 0.1 ||
 					fabs(fabs(slope - kFactor[i]) - PI)<0.2)
@@ -1029,13 +1029,13 @@ void Skeleton::_connectBridgedBonds()
 	std::deque<std::pair<Edge, Edge> > edges_to_connect;
 
 	//check edges to be connected
-	for(int i=0;i<edge_groups_k.size();i++)
+	for(size_t i=0;i<edge_groups_k.size();i++)
 	{
 		int gr_count = edge_groups_k[i].size();
 		if( gr_count == 1)
 			continue;
 		std::deque<Edge> otherE;
-		for(int k=0;k<edge_groups_k.size();k++)
+		for(size_t k=0;k<edge_groups_k.size();k++)
 		{
 			if(k != i)
 				otherE.insert(otherE.end(), edge_groups_k[k].begin(), edge_groups_k[k].end());

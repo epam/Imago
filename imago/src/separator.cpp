@@ -213,7 +213,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 	double min = timg.getHeight() * timg.getWidth();  //*(std::min(lengths.begin(), lengths.end()));
 	double max = 0;
-	for(int i=0;i<lengths.size();i++)
+	for(size_t i=0;i<lengths.size();i++)
 	{
 		if(lengths[i] < min)
 			min = lengths[i];
@@ -255,7 +255,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		
 		double sum1=0, sum2 = 0;
 		
-		for(int i=0;i<classes.size();i++)
+		for(size_t i=0;i<classes.size();i++)
 			if(classes[i] == 0)
 			{
 				count1++;
@@ -278,7 +278,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 	std::vector<Rectangle> symbRects;
 	IntVector LineCount;
 	std::vector<bool> visited;
-	for(int i=0;i<classes.size(); i++)
+	for(size_t i=0;i<classes.size(); i++)
 		visited.push_back(false);
 	int ri = -1;
 	RecognitionSettings &rs = getSettings();
@@ -286,7 +286,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 	PriorityQueue pq;
 	IntDeque symInds;
-	for(int i = 0;i<classes.size();i++)
+	for(size_t i = 0;i<classes.size();i++)
 		if(classes[i] == 0)
 		{
 			symInds.push_back(i);
@@ -298,7 +298,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 			si._lineSegment.second = p2;
 			pq.push(si);
 		}
-	for(int i=0;i<symInds.size(); i++)
+	for(size_t i=0;i<symInds.size(); i++)
 		visited.push_back(false);
 
 	typedef std::deque<Vec2d> polygon;
@@ -393,7 +393,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		}while(added);
 		
 		ncount = 0;
-		for(int nc=0;nc<visited.size();nc++)
+		for(size_t nc=0;nc<visited.size();nc++)
 			ncount += visited[nc];
 
 	}while(ncount !=  symInds.size());
@@ -409,7 +409,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 			adequate_ratio_max = rs["MaxSymRatio"],
 			adequate_ratio_min = rs["MinSymRatio"];
 
-		for(int i=0;i< symbRects.size(); i++)
+		for(size_t i=0;i< symbRects.size(); i++)
 		{
 			bool isTextContext = _bIsTextContext(layer_symbols, symbRects[i]);
 
@@ -466,7 +466,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 			for(SegmentDeque::iterator it = segs.begin(); it!=segs.end(); it++)
 			{
 
-				for(int n=0;n<RectPoints[i].size();n++)
+				for(size_t n=0;n<RectPoints[i].size();n++)
 				{
 					Vec2d pt = RectPoints[i][n];
 					int dx = pt.x - left;

@@ -16,8 +16,8 @@ HistogramTools::HistogramTools(cv::Mat &img, float saturation)
 void HistogramTools::ImageAdjust(cv::Mat &result, bool Sigmoid)
 {
 	unsigned char lmap[256];
-	byte lIn = _lowLim * 255;
-	byte hIn = _hiLim * 255;
+	byte lIn = (byte)(_lowLim * 255);
+	byte hIn = (byte)(_hiLim * 255);
 
 	for(int i = 0;i<256;i++)
 		lmap[i] = i > hIn ? hIn : (i < lIn ? lIn:i);
@@ -25,18 +25,18 @@ void HistogramTools::ImageAdjust(cv::Mat &result, bool Sigmoid)
 	for(int i=0;i<256;i++)
 	{
 		
-		lmap[i] = ( lmap[i] - lIn)/( _hiLim - _lowLim);
+		lmap[i] = (byte)(( lmap[i] - lIn)/( _hiLim - _lowLim));
 		if(Sigmoid)
 		{
-			float val = i/255.0;
+			float val = i/255.0f;
 			if(val<_lowLim)
 				lmap[i] = 0;
 			else
 				if(val<(_hiLim - _lowLim)/2)
-					lmap[i] = 2*((val - _lowLim)/(_hiLim - _lowLim))*((val - _lowLim)/(_hiLim - _lowLim))*255;
+					lmap[i] = (byte)(2.0f*((val - _lowLim)/(_hiLim - _lowLim))*((val - _lowLim)/(_hiLim - _lowLim))*255.0f);
 				else 
 					if(val<_hiLim)
-						lmap[i] = (1- 2*((val - _hiLim)/(_hiLim - _lowLim))*((val - _hiLim)/(_hiLim - _lowLim)))*255;
+						lmap[i] =(byte)((1.0f- 2.0f*((val - _hiLim)/(_hiLim - _lowLim))*((val - _hiLim)/(_hiLim - _lowLim)))*255.0f);
 					else
 						lmap[i] = 255;
 		}
@@ -61,7 +61,7 @@ void HistogramTools::GetStretchLimits(float &lowLim, float &hiLim)
    cv::Mat hist, matred = _image;
 
    float low_sat = _percent_saturation;
-   float hi_sat = 1.0 - low_sat;
+   float hi_sat = 1.0f - low_sat;
    
    if(hi_sat < low_sat)
 	   throw Exception("Saturation level not correct");
@@ -82,14 +82,14 @@ void HistogramTools::GetStretchLimits(float &lowLim, float &hiLim)
    for(int i=0;i<256;i++)
 	   if(cumsum[i] > min)
 	   {
-		   _lowLim = i;
+		   _lowLim = (float)i;
 		   break;
 	   }
 
 	for(int i=0;i<256;i++)
 		if(cumsum[i] >= max)
 		{
-			_hiLim = i;
+			_hiLim = (float)i;
 			break;
 		}
 
