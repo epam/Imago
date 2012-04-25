@@ -26,15 +26,9 @@ namespace imago
 	public:
 		static void process(Image& img);
 
-		AdaptiveFilter(int width, int height) : Basic2dStorage<FilterPackedRecord>(width, height)
-		{
-			rgb = NULL;
-		}
+		AdaptiveFilter(int width, int height) : Basic2dStorage<FilterPackedRecord>(width, height) { }
 
-		virtual ~AdaptiveFilter()
-		{
-			if (rgb) delete rgb;
-		}
+		virtual ~AdaptiveFilter() { }
 
 		 // the really main method
 		void filterImage(Image& img, bool allowCrop = true,
@@ -54,8 +48,6 @@ namespace imago
 		void normalizedOuput(Image& img, const Rectangle& crop, WeakSegmentator* ws = NULL);
 
 	private:
-		typedef Basic2dStorage<RGBData> RGBStorage;
-		RGBStorage *rgb;
 		int diffIterations, diffStepRange;
 	};
 }

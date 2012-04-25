@@ -35,6 +35,7 @@
 #include "log_ext.h"
 #include "output.h"
 #include "prefilter.h"
+#include "weak_segmentator.h"
 
 using namespace imago;
 
@@ -232,26 +233,6 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
 {
 	logEnterFunction();
 
- /*  int circle_count;
-   Segment circle;
-   std::vector<double> circle_descriptors;
-   
-   circle.init(100, 100);
-   circle.fillWhite();
-
-   ImageDrawUtils::putCircle(circle, 50, 50, 40, 0);
-   circle.crop();
-   
-   FourierDescriptors::calculate(&circle, 10, circle_descriptors);
-   circle_count = _countBorderBlackPoints(circle);
-
-   Image img;
-
-   img.init(1000, 1000);
-   img.fillWhite();
-
-   std::vector<double> tmp_descriptors;*/
-
    for (SegmentDeque::iterator it = segments.begin(); it != segments.end();)
    {      
       if (absolute((*it)->getRatio() - 1.0) < 0.4)
@@ -261,8 +242,6 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
          tmp.copy(**it);
          ThinFilter2(tmp).apply();
 
-         //if (getSettings()["DebugSession"])
-           // ImageUtils::saveImageToFile(tmp, "output/tmp_ring.png");
 		 getLogExt().appendSegment("Ring?", tmp);
          
          if (isCircle(tmp))
@@ -295,56 +274,6 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
             continue;
          }
       }
-         /*
-         Segment tmp;
-
-         tmp.copy(**it);
-         Convolver gauss(tmp);
-         gauss.initGauss();
-         gauss.apply();
-         Binarizer b(tmp, (int)getSettings()["BinarizationLvl"]);
-         b.apply();
-         ThinFilter2(tmp).apply();
-         tmp.crop();         
-         
-         try 
-         {
-            FourierDescriptors::calculate(&tmp, 5, tmp_descriptors);
-         }
-         catch (Exception &e)
-         {
-            continue; //If it is impossible to get contour - no ring detected
-         }
-
-         double diff = 0;
-
-         for (int i = 0; i < tmp_descriptors.size(); i++)
-         {
-            double a = tmp_descriptors[i],
-                   b = circle_descriptors[i], weight;
-
-            if ((i % 2))
-               weight = 0.5;  
-            else
-               weight = 1.5;
-            diff += weight * (a - b) * (a - b);
-         }
-
-         diff = sqrt(diff);
-
-         if (diff > 0.08 && diff < 0.41)
-         {
-            int cur_count = _countBorderBlackPoints(**it);
-
-            if (absolute(cur_count - circle_count) < 40)
-            {
-               ring_centers.push_back(tmp.getCenter());
-               delete *it;
-               it = segments.erase(it);
-               continue;
-            }
-         }*/
-      //}
       ++it;
    }
 
@@ -378,7 +307,9 @@ void GraphicsDetector::detect( const Image &img, Points2d &lsegments ) const
    
    ThinFilter2 tf2(tmp);
    TIME(tf2.apply(), "Thinning");
-   _decorner(tmp);
+      
+   //_decorner(tmp);   
+   WeakSegmentator::decorner(tmp, 255);
 
    Segmentator::segmentate(tmp, segs);
 

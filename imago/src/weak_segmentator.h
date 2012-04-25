@@ -2,6 +2,7 @@
 
 #include <map>
 #include "image.h"
+#include "color_channels.h"
 #include "image_interface.h"
 #include "basic_2d_storage.h"
 #include "rectangle.h"
@@ -50,9 +51,15 @@ namespace imago
 
 		// returns neighbors of p with intensity == INK
 		static Points2i getNeighbors(const Image& img, const Vec2i& p, int range = 1);
+		
+		// decorner image by setting corner pixels to 'set_to'
+		static void decorner(Image &img, GrayscaleData set_to);
+
+		// returns endpoints
+		static Points2i decorneredEndpoints(Image &img);
 
 		typedef std::map<int, Points2i> SegMap;
-		SegMap SegmentPoints;
+		SegMap SegmentPoints;		
 
 	protected:		
 		// returns all segment endpoints

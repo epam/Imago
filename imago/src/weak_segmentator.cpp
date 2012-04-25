@@ -1,8 +1,8 @@
 #include "weak_segmentator.h"
 #include <queue>
-#include "color_channels.h"
 #include "log_ext.h"
 #include "pixel_boundings.h"
+#include "color_channels.h"
 #include "thin_filter2.h"
 
 namespace imago
@@ -104,7 +104,25 @@ namespace imago
 		}
 	}
 
-	Points2i WeakSegmentator::getEndpointsDecornered() const
+	void WeakSegmentator::decorner(Image &img, GrayscaleData set_to)
+	{
+		logEnterFunction();
+
+		for (int y = 0; y < img.getHeight(); y++)
+		{
+			for (int x = 0; x < img.getWidth(); x++)
+			{
+				if (img.getByte(x,y) != INK)
+					continue;
+				if (getNeighbors(img, Vec2i(x,y)).size() > 2)
+					img.getByte(x,y) = set_to;
+			}
+		}
+
+		getLogExt().appendImage("Decorner", img);
+	}
+
+	Points2i WeakSegmentator::decorneredEndpoints(Image &thin)
 	{
 		logEnterFunction();
 
@@ -112,33 +130,15 @@ namespace imago
 
 		const int DECORNERED = 200;
 		const int TRACED = 230;
-		const int ENDPOINT = 1;
-
-		Image thin(width(), height());
-		for (int y = 0; y < height(); y++)
-			for (int x = 0; x < width(); x++)
-				thin.getByte(x, y) = readyForOutput(x,y) ? INK : BLANK;
-
-		ThinFilter2(thin).apply();
+		const int ENDPOINT = 1;		
 
 		// decorner
-		for (int y = 0; y < height(); y++)
-		{
-			for (int x = 0; x < width(); x++)
-			{
-				if (thin.getByte(x,y) != INK)
-					continue;
-				if (getNeighbors(thin, Vec2i(x,y)).size() > 2)
-					thin.getByte(x,y) = DECORNERED;
-			}
-		}
-		
-		getLogExt().appendImage("Fast decorner", thin);
+		decorner(thin, DECORNERED);		
 
 		// now all objects are just curve lines with exactly 2 endpoints
-		for (int y = 0; y < height(); y++)
+		for (int y = 0; y < thin.getHeight(); y++)
 		{
-			for (int x = 0; x < width(); x++)
+			for (int x = 0; x < thin.getWidth(); x++)
 			{
 				if (thin.getByte(x,y) != INK)
 					continue;
@@ -178,9 +178,23 @@ namespace imago
 			}
 		}
 
-		getLogExt().appendImage("Traced image", thin);
+		getLogExt().appendImage("Traced image", thin);		
 
 		return result;
+	}
+
+	Points2i WeakSegmentator::getEndpointsDecornered() const
+	{
+		logEnterFunction();
+
+		Image thin(width(), height());
+		for (int y = 0; y < height(); y++)
+			for (int x = 0; x < width(); x++)
+				thin.getByte(x, y) = readyForOutput(x,y) ? INK : BLANK;
+		
+		ThinFilter2(thin).apply();
+
+		return decorneredEndpoints(thin);
 	}
 
 	bool WeakSegmentator::alreadyExplored(int x, int y) const
