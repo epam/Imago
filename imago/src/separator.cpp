@@ -325,8 +325,8 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 		double d_x = p1.x < p2.x ? p1.x : p2.x;
 		double d_y = p1.y < p2.y? p1.y:p2.y;
-		double d_w = absolute(p1.x - p2.x)+1;
-		double d_h = absolute(p1.y - p2.y)+1;
+		double d_w = absolute(p1.x - p2.x) + 1;
+		double d_h = absolute(p1.y - p2.y) + 1;
 		Rectangle rec(round(d_x), round(d_y), round(d_w), round(d_h));
 
 		symbRects.push_back(rec);
@@ -381,7 +381,13 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 					double bottom = (symbRects[ri].y + symbRects[ri].height) > sp1.y ? (symbRects[ri].y + symbRects[ri].height):sp1.y;
 					bottom = bottom > sp2.y ? bottom : sp2.y;
 
-					symbRects[ri] = Rectangle((int)left, (int)top, (int)(right - left), (int)(bottom - top));
+					int r_l = round(left);
+					int r_t = round(top);
+					int r_w = round(right) - r_l + 1;
+					int r_h = round(bottom) - r_t + 1;
+
+					symbRects[ri] = Rectangle(r_l, r_t, r_w, r_h);
+
 					RectPoints[ri].push_back(sp1);
 					RectPoints[ri].push_back(sp2);
 					LineCount[ri]++;
@@ -447,11 +453,11 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 					continue;
 			}
 
-			int left = (int)(  (symbRects[i].x - line_thick < 0) ? 0 : (symbRects[i].x - line_thick));
-			int top =  (int)(  (symbRects[i].y - line_thick < 0) ? 0 : (symbRects[i].y - line_thick));
-			int right = (int)( (symbRects[i].x + symbRects[i].width + line_thick > timg.getWidth()) ? timg.getWidth() :
+			int left = round(  (symbRects[i].x - line_thick < 0) ? 0 : (symbRects[i].x - line_thick));
+			int top =  round(  (symbRects[i].y - line_thick < 0) ? 0 : (symbRects[i].y - line_thick));
+			int right = round( (symbRects[i].x + symbRects[i].width + line_thick > timg.getWidth()) ? timg.getWidth() :
 				               (symbRects[i].x + symbRects[i].width + line_thick) );
-			int bottom = (int)((symbRects[i].y + symbRects[i].height + line_thick > timg.getHeight()) ? timg.getHeight() :
+			int bottom = round((symbRects[i].y + symbRects[i].height + line_thick > timg.getHeight()) ? timg.getHeight() :
 				               (symbRects[i].y + symbRects[i].height  + line_thick) );
 
 			Image extracted(right - left+1, bottom - top+1),

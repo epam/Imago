@@ -192,18 +192,14 @@ char CharacterRecognizer::recognize( const Segment &seg,
 
 
  RecognitionDistance CharacterRecognizer::recognize( const SymbolFeatures &features,
-                                                        const std::string &candidates, bool wide_range) const
+                                                        const std::string &candidates, bool full_range) const
 {
    if (!_loaded)
       throw OCRException("Font is not loaded");
    double d;
 
-   int classes_count = _k;
-   if (wide_range)
-	   classes_count = _count;
-
    std::vector<boost::tuple<char, int, double> > nearest;
-   nearest.reserve(classes_count);
+   //nearest.reserve(classes_count);
 
    BOOST_FOREACH( char c, candidates )
    {
@@ -213,13 +209,16 @@ char CharacterRecognizer::recognize( const Segment &seg,
       {
          d = _compareFeatures(features, cls.shapes[i]);
 
-         if ((int)nearest.size() < classes_count)
+		 if (d > 1000.0) // avoid to add some trash
+			 continue;
+
+         if (full_range || (int)nearest.size() < _k)
             nearest.push_back(boost::make_tuple(c, i, d));
          else
          {
             double far = boost::get<2>(nearest[0]), f;
             int far_ind = 0;
-            for (int j = 1; j < classes_count; j++)
+            for (int j = 1; j < _k; j++)
             {
                if ((f = boost::get<2>(nearest[j])) > far)
                {
@@ -270,7 +269,7 @@ char CharacterRecognizer::recognize( const Segment &seg,
       //if (boost::get<0>(t.second) == max)
       //  if (boost::get<1>(t.second) < d)
       //      d = boost::get<1>(t.second), res = t.first;
-	   if (boost::get<0>(t.second) == max || wide_range)
+	   if (full_range || boost::get<0>(t.second) == max)
 		   result[t.first] = boost::get<1>(t.second);
    }
 
