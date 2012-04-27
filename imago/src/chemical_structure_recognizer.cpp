@@ -45,6 +45,9 @@
 #include "label_logic.h"
 #include "approximator.h"
 #include "prefilter.h"
+#include "prefilter_cv.h"
+#include "pixel_boundings.h"
+#include "weak_segmentator.h"
 
 using namespace imago;
 
@@ -121,7 +124,8 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 
       rs.set("imgHeight", _img.getHeight());
       rs.set("imgWidth", _img.getWidth());
-	  rs.set("LineThickness", (double)estimateLineThickness(_img));
+	  double lth = estimateLineThickness(_img);
+	  rs.set("LineThickness", lth);
 	  
       //if (rs["DebugSession"])
       //{
@@ -129,7 +133,28 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
       //}
 	  getLogExt().appendImage("Cropped image", _img);
 
-      TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
+      /*
+	  TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
+	  */
+
+	  ////////////-----------------------
+	  WeakSegmentator ws(_img.getWidth(),_img.getHeight());
+	  //ws.ConnectMode = true;
+	  ws.appendData(ImgAdapter(_img, _img), 2);//1+round(lth/2));
+	  for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
+	  {
+		  const Points2i& pts = it->second;
+		  RectShapedBounding b(pts);
+		  Segment *s = new Segment();
+		  s->init(b.getBounding().width+1, b.getBounding().height+1);
+		  s->fillWhite();
+		  s->getX() = b.getBounding().x;
+		  s->getY() = b.getBounding().y;
+		  for (size_t u = 0; u < pts.size(); u++)
+			s->getByte(pts[u].x - b.getBounding().x, pts[u].y - b.getBounding().y) = 0;
+		  segments.push_back(s);
+	  }
+	  ///////////------------------------
 
       if (segments.size() == 0)
       {

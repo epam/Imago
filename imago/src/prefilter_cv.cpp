@@ -2,7 +2,6 @@
 #include <opencv/cv.h>
 #include "image.h"
 #include "image_utils.h"
-#include "image_interface.h"
 #include "pixel_boundings.h"
 #include "segment_tools.h"
 #include "weak_segmentator.h"
@@ -81,39 +80,7 @@ namespace imago
 			getLogExt().appendText("image requires processing");
 			return false;
 		}
-	}
-
-	// required for prefilterCV implementation
-	class ImgAdapter :  public ImageInterface
-	{
-	public:
-		ImgAdapter(const Image& _raw, const Image& _bin) : raw(_raw), bin(_bin)
-		{
-		}
-
-		virtual bool isFilled(int x, int y) const
-		{
-			return bin.getByte(x,y) == 0;
-		}		
-	
-		virtual unsigned char getIntensity(int x, int y) const
-		{
-			return raw.getByte(x,y);
-		}
-
-		virtual int width() const 
-		{
-			return std::min(raw.getWidth(), bin.getWidth());
-		}
-	
-		virtual int height() const
-		{
-			return std::min(raw.getHeight(), bin.getHeight());
-		}
-	private:
-		const Image& raw;
-		const Image& bin;
-	};
+	}	
 
 	void prefilterCV(Image& raw)
 	{

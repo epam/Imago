@@ -29,6 +29,7 @@ namespace imago
 		WeakSegmentator(int width, int height) : Basic2dStorage<SegmentPackedRecord>(width, height)
 		{
 			currentRefineGeneration = 0;
+			ConnectMode = false;
 		}
 
 		// addend data from image (img.isFilled() called)
@@ -60,6 +61,8 @@ namespace imago
 
 		typedef std::map<int, Points2i> SegMap;
 		SegMap SegmentPoints;		
+
+		bool ConnectMode;
 
 	protected:		
 		// returns all segment endpoints

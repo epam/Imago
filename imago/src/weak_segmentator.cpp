@@ -319,9 +319,15 @@ namespace imago
 						if ((dx != 0 || dy != 0) && inRange(t.x, t.y))
 						{
 							if (at(t.x, t.y).id == 0)
-							{						
+							{					
 								if (img.isFilled(t.x, t.y) && refineIsAllowed(t.x, t.y))
+								{
+									if (ConnectMode && (abs(dx) > 1 || abs(dy) > 1) )
+									{
+										v.push(Vec2i(cur.x + dx/2,cur.y + dy/2));
+									}
 									v.push(t);
+								}
 							}
 							else if (at(t.x, t.y).id != id)
 							{
