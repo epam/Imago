@@ -50,10 +50,10 @@ bool imago::isPossibleCharacter(const Segment& seg, bool loose_cmp)
 	char ch = rd.getBest(&best_dist);
 	if (std::find(CharacterRecognizer::like_bonds.begin(), CharacterRecognizer::like_bonds.end(), ch) != CharacterRecognizer::like_bonds.end())
 		return false;
-	if (best_dist < 3.6 && rd.getQuality() > 0.01) 
+	if (best_dist < 2.8 && rd.getQuality() > 0.1) 
 		return true;
-	if (loose_cmp && (best_dist < 4.5 && rd.getQuality() > 0.1 
-		           || best_dist < 5.2 && rd.getQuality() > 0.5))
+	if (loose_cmp && (best_dist < 3.4 && rd.getQuality() > 0.1 
+		           || best_dist < 3.6 && rd.getQuality() > 0.5))
 		return true;
 	return false;
 }

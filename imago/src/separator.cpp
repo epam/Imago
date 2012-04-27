@@ -760,8 +760,8 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 				if (mark != SEP_SYMBOL && 
 					s->getHeight() > 0.3 * cap_height && 
 					s->getHeight() < 2.0 * cap_height &&
-					s->getWidth() / s->getHeight() > 0.2 && 
-					s->getWidth() / s->getHeight() < 2.9 )
+					s->getWidth() / s->getHeight() > 0.3 && 
+					s->getWidth() / s->getHeight() < 1.5 )
 				{
 					int segs = _getApproximationSegmentsCount(s) - 1;
 					getLogExt().append("Approx segs", segs);
@@ -863,7 +863,7 @@ int Separator::_estimateCapHeight()
    IntPair p;
    RecognitionSettings &rs = gSession.get()->settings();
 
-   IntVector goodHeights;
+   /*IntVector goodHeights;
 
    BOOST_FOREACH( Segment *s, _segs )
    {
@@ -882,7 +882,7 @@ int Separator::_estimateCapHeight()
 	   int result = avg / goodHeights.size();
 	   getLogExt().append("Return (v2)", result);
 	   return result;
-   }
+   }*/
 
    BOOST_FOREACH( Segment *s, _segs )
    {
