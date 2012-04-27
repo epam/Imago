@@ -140,7 +140,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 	  ////////////-----------------------
 	  WeakSegmentator ws(_img.getWidth(),_img.getHeight());
 	  //ws.ConnectMode = true;
-	  ws.appendData(ImgAdapter(_img, _img), 2);//1+round(lth/2));
+	  ws.appendData(ImgAdapter(_img, _img), 1);//1+round(lth/2));
 	  for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 	  {
 		  const Points2i& pts = it->second;
