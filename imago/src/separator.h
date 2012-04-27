@@ -52,7 +52,13 @@ namespace imago
      
       int _estimateCapHeight();
       bool _testDoubleBondV( Segment &segment );
-      bool _analyzeSpecialSegment( Segment *cur_seg, SegmentDeque &layer_graphics, SegmentDeque &layer_symbols );
+	  int _getApproximationSegmentsCount ( Segment *cur_seg );
+      
+	  bool _analyzeSpecialSegment( Segment *cur_seg, SegmentDeque &layer_graphics, SegmentDeque &layer_symbols )
+	  {
+		  return _getApproximationSegmentsCount(cur_seg) <= 4 /* why?! */;
+	  }
+
       bool _checkSequence( IntPair &checking, IntPair &symbols_graphics, 
          double &density );
       bool _isSuspiciousSymbol( Segment *segment, SegmentDeque &layer_symbols, 

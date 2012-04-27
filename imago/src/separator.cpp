@@ -601,8 +601,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 				 else
 					mark = SEP_BOND;
 				} 
-				 
-				
+				 				
 
 				 if(mark == SEP_SYMBOL)
 				 {
@@ -694,7 +693,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
          //if (rs["DebugSession"])
          //   ImageUtils::saveImageToFile(*s, "output/tmp.png");
 
-		 getLogExt().appendSegment("temp", *s);
+		 getLogExt().appendSegment("Segment", *s);
 
 		 //thin segment
 		 Image temp;
@@ -703,7 +702,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 		  double hu[7];
 		_getHuMomentsC(temp, hu);
 
-		mark = HuClassifier(hu);
+		mark = HuClassifier(hu);		
 
 		if(mark == SEP_SYMBOL && 
 			(!(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= cap_height)
@@ -711,6 +710,8 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 			)
 			mark = SEP_SUSPICIOUS;
 		
+		getLogExt().append("mark", mark);
+
 		 if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
 		 {
 			 ThinFilter2 tfilt(temp);
@@ -755,7 +756,23 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 			 delete thinseg;
 		 }
 
-		 
+
+				if (mark != SEP_SYMBOL && 
+					s->getHeight() > 0.3 * cap_height && 
+					s->getHeight() < 2.0 * cap_height &&
+					s->getWidth() / s->getHeight() > 0.2 && 
+					s->getWidth() / s->getHeight() < 2.9 )
+				{
+					int segs = _getApproximationSegmentsCount(s) - 1;
+					getLogExt().append("Approx segs", segs);
+					if (segs > 4 && isPossibleCharacter(*s) ||
+						segs > 8 && isPossibleCharacter(*s, true))
+					{
+						getLogExt().appendText("Segment moved to layer_symbols");
+						mark = SEP_SYMBOL;
+					}			
+				}				
+
          switch (mark)
          {
          case SEP_BOND:
@@ -798,7 +815,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 
 }
 
-bool Separator::_analyzeSpecialSegment( Segment *seg, SegmentDeque &layer_graphics, SegmentDeque &layer_symbols )
+int Separator::_getApproximationSegmentsCount( Segment *seg /*, SegmentDeque &layer_graphics, SegmentDeque &layer_symbols*/ )
 {
    Image tmp;
    CvApproximator cvApprox;
@@ -810,10 +827,11 @@ bool Separator::_analyzeSpecialSegment( Segment *seg, SegmentDeque &layer_graphi
 
    gd.detect(tmp, lsegments);
 
-   if (lsegments.size() == 4)// && lsegments.size() <= 10)
+   /*if (lsegments.size() == 4)// && lsegments.size() <= 10)
       return true;
    else
-      return false;
+      return false;*/
+   return lsegments.size();
 }
 
 bool Separator::_isSuspiciousSymbol( Segment *cur_seg, SegmentDeque &layer_symbols, int cap_height )
@@ -844,6 +862,27 @@ int Separator::_estimateCapHeight()
    IntVector heights, seq_lengths;
    IntPair p;
    RecognitionSettings &rs = gSession.get()->settings();
+
+   IntVector goodHeights;
+
+   BOOST_FOREACH( Segment *s, _segs )
+   {
+	   double dist = getDistanceCapital(*s);
+	   if (_getApproximationSegmentsCount(s) > 4 && dist < 3.5)
+	   {
+		   goodHeights.push_back(s->getHeight());
+	   }
+   }
+
+   if (goodHeights.size() > 2)
+   {
+	   double avg = 0.0;
+	   for (size_t u = 0; u < goodHeights.size(); u++)
+		   avg += goodHeights[u];
+	   int result = avg / goodHeights.size();
+	   getLogExt().append("Return (v2)", result);
+	   return result;
+   }
 
    BOOST_FOREACH( Segment *s, _segs )
    {

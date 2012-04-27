@@ -27,17 +27,33 @@ const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&";
 const std::string CharacterRecognizer::lower = "abcdefghijklmnopqrstuvwxyz";
 const std::string CharacterRecognizer::digits = "0123456789";
 const std::string CharacterRecognizer::all = CharacterRecognizer::upper + CharacterRecognizer::lower + CharacterRecognizer::digits;
+const std::string CharacterRecognizer::like_bonds = "l1iI";
+
+double imago::getDistanceCapital(const Segment& seg)
+{
+	CharacterRecognizer temp(3);
+	RecognitionDistance rd = temp.recognize_all(seg, CharacterRecognizer::all, false);
+	double best_dist;
+	char ch = rd.getBest(&best_dist);
+	if (std::find(CharacterRecognizer::upper.begin(), CharacterRecognizer::upper.end(), ch) != CharacterRecognizer::upper.end())
+	{
+		return best_dist;
+	}
+	return DBL_MAX;
+}
 
 bool imago::isPossibleCharacter(const Segment& seg, bool loose_cmp)
 {
 	CharacterRecognizer temp(3);
-	RecognitionDistance rd = temp.recognize_all(seg, CharacterRecognizer::all);
+	RecognitionDistance rd = temp.recognize_all(seg, CharacterRecognizer::all, false);
 	double best_dist;
-	rd.getBest(&best_dist);
-	if (best_dist < 4.5 && rd.getQuality() > 0.01) 
+	char ch = rd.getBest(&best_dist);
+	if (std::find(CharacterRecognizer::like_bonds.begin(), CharacterRecognizer::like_bonds.end(), ch) != CharacterRecognizer::like_bonds.end())
+		return false;
+	if (best_dist < 3.6 && rd.getQuality() > 0.01) 
 		return true;
-	if (loose_cmp && (best_dist < 5.0 && rd.getQuality() > 0.1 
-		           || best_dist < 5.5 && rd.getQuality() > 0.5))
+	if (loose_cmp && (best_dist < 4.5 && rd.getQuality() > 0.1 
+		           || best_dist < 5.2 && rd.getQuality() > 0.5))
 		return true;
 	return false;
 }

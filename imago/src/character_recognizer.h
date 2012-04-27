@@ -18,6 +18,7 @@ namespace imago
    class Segment;
 
    bool isPossibleCharacter(const Segment& seg, bool loose_cmp = false);
+   double getDistanceCapital(const Segment& seg);
 	
    class CharacterRecognizer: CharacterRecognizerData
    {
@@ -39,6 +40,7 @@ namespace imago
       ~CharacterRecognizer();
 
       static const std::string upper, lower, digits, all;
+	  static const std::string like_bonds;
 
       static double _compareFeatures( const SymbolFeatures &f1,
                                       const SymbolFeatures &f2 );
