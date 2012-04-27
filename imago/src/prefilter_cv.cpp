@@ -47,6 +47,8 @@ namespace imago
 	{
 		logEnterFunction();
 
+		const int MAX_NON_BW_PIXELS_PROPORTION = 10;
+
 		int white_count = 0, black_count = 0, others_count = 0;
 		for (int y = 0; y < image.getHeight(); y++)
 			for (int x = 0; x < image.getWidth(); x++)
@@ -61,7 +63,7 @@ namespace imago
 		getLogExt().append("black_count", black_count);
 		getLogExt().append("others_count", others_count);
 
-		if (10 * others_count < black_count + white_count)
+		if (MAX_NON_BW_PIXELS_PROPORTION * others_count < black_count + white_count)
 		{	
 			getLogExt().appendText("image is binarized");
 			if (others_count > 0)
@@ -113,9 +115,14 @@ namespace imago
 		const Image& bin;
 	};
 
-	bool prefilterCV(Image& raw)
+	void prefilterCV(Image& raw)
 	{
 		logEnterFunction();
+
+		const int MIN_GOOD_PIXELS_COUNT = 10; // minimal pixels count for good segment
+		const int MAX_BAD_TO_GOOD_RATIO = 6;  // used for classification of good/bad segments
+		const int BORDER_PROPORTIONS = 40;    // border is 1/nth part of corresponding image dimension
+		const int MAX_RECTANGLE_WIDTH = 12;   // pixels count for rectangular crop
 
 		cv::Mat grayFrame;
 		ImageUtils::copyImageToMat(raw, grayFrame);
@@ -125,12 +132,14 @@ namespace imago
 		cv::pyrDown(grayFrame, reduced2x);
 		cv::pyrUp(reduced2x, smoothed2x);
 
-		#define binarize(what, output, adaptiveThresholdBlockSize, adaptiveThresholdParameter) \
+		#define binarize_impl(what, output, adaptiveThresholdBlockSize, adaptiveThresholdParameter) \
 			cv::adaptiveThreshold((what), (output), 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, 0 /*CV_THRESH_BINARY*/, (adaptiveThresholdBlockSize) + (adaptiveThresholdBlockSize) % 2 + 1, (adaptiveThresholdParameter));
 	
 		cv::Mat strong, weak;
-		binarize(smoothed2x, strong, 4, 1.3);
-		binarize(smoothed2x,  weak,  8, 1.2);
+		binarize_impl(smoothed2x, strong, 4, 1.3);
+		binarize_impl(smoothed2x,  weak,  8, 1.2);
+
+		#undef binarize_impl
 	
 		getLogExt().appendMat("strong", strong);
 		getLogExt().appendMat("weak",   weak);
@@ -141,11 +150,11 @@ namespace imago
 		WeakSegmentator ws(raw.getWidth(), raw.getHeight());
 		ws.appendData(ImgAdapter(raw,bin), 1);
 
-		int borderX = raw.getWidth()  / 40 + 1;
-		int borderY = raw.getHeight() / 40 + 1;
+		int borderX = raw.getWidth()  / BORDER_PROPORTIONS + 1;
+		int borderY = raw.getHeight() / BORDER_PROPORTIONS + 1;
 
 		Rectangle crop = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
-		bool need_crop = ws.needCrop(crop, 12);
+		bool need_crop = ws.needCrop(crop, MAX_RECTANGLE_WIDTH);
 
 		Image output(crop.width, crop.height);
 		output.fillWhite();
@@ -165,9 +174,13 @@ namespace imago
 					bad++;
 			}
 
-			if (6*good > bad && good > 10)
+			if (MAX_BAD_TO_GOOD_RATIO * good > bad && good > MIN_GOOD_PIXELS_COUNT)
 			{
-				//printf("Segment %u: %u / %u\n", it->first, good, bad);
+				getLogExt().append("Segment id", it->first);
+				getLogExt().append("Good points", good);
+				getLogExt().append("Bad points", bad);
+				getLogExt().appendText("");
+
 				for (size_t u = 0; u < p.size(); u++)
 				{
 					int x = p[u].x - crop.x;
@@ -182,37 +195,7 @@ namespace imago
 
 		getLogExt().appendImage("output", output);
 
-		bool result = true;
-
-		{
-			int filled = 0, blank = 0;
-			for (int x = 0; x < output.getWidth(); x++)
-				for (int y = 0; y < output.getHeight(); y++)
-				{
-					if (output.getByte(x,y) == 0)
-						filled++;
-					else
-						blank++;
-				}
-
-			// in percents
-			double ratio = 100.0 * (double)filled / ((double)blank + 0.001);		
-
-			getLogExt().append("B/W ratio", ratio);
-
-			if (ratio < 0.1 || ratio > 7.5)
-			{
-				getLogExt().appendText("B/W ratio fails, pass image to other filters");
-		 		result = false;
-			}
-		}
-
-		if (result)
-		{
-			raw.copy(output);
-		}
-
-		return result;
+		raw.copy(output);
 	}
 
 }

@@ -11,6 +11,13 @@
 #include "superatom_expansion.h"
 #include "output.h"
 
+#ifdef _WIN32
+#include "dirent.h"
+#else
+#include <dirent.h>
+#endif
+
+
 enum FilterType
 {
 	ftStd = 0,
@@ -37,7 +44,7 @@ struct RecognitionResult
 	bool exceptions;
 };
 
-RecognitionResult recognize(const imago::Image& src, FilterType filterType)
+RecognitionResult recognizeImage(const imago::Image& src, FilterType filterType)
 {
 	RecognitionResult result;
 	result.molecule = "";
@@ -57,10 +64,7 @@ RecognitionResult recognize(const imago::Image& src, FilterType filterType)
 			
 		if (filterType == ftCV)
 		{
-			if (!prefilterCV(img))
-			{
-				throw std::exception("ftCV filter fails");
-			}
+			prefilterCV(img);
 		}
 			
 		if (filterType == ftStd)
@@ -85,11 +89,24 @@ RecognitionResult recognize(const imago::Image& src, FilterType filterType)
 // TODO: provide general function; recognize : Image -> molecule_string
 //       and call it from bindings (for Ipad and etc)
 
-int performRecognition(const std::string& imageName, int logLevel = 0)
+struct FileActionParams
+{
+	int logLevel;
+	FilterType defaultFilter;
+	bool extractCharactersOnly;
+	FileActionParams()
+	{
+		logLevel = 0;
+		defaultFilter = ftCV;
+		extractCharactersOnly = false;
+	}
+};
+
+int performFileAction(const std::string& imageName, const FileActionParams& params)
 {
 	const int WARNINGS_TRESHOLD = 2;
 
-	int result = 0;
+	int result = 0; // ok mark
 	imago::VirtualFS vfs;
 
 	printf("Recognition of image \"%s\"\n", imageName.c_str());
@@ -101,10 +118,10 @@ int performRecognition(const std::string& imageName, int logLevel = 0)
       
 		imago::Image src_img;	  
 
-		if (logLevel > 0)
+		if (params.logLevel > 0)
 		{
 			imago::getSettings()["DebugSession"] = true;
-			if (logLevel > 1)
+			if (params.logLevel > 1)
 				imago::getLogExt().SetVirtualFS(vfs);
 		}
 
@@ -112,41 +129,53 @@ int performRecognition(const std::string& imageName, int logLevel = 0)
 
 		resampleImage(src_img);
 
-		RecognitionResult result;
-
-		if (isBinarized(src_img))
+		if (params.extractCharactersOnly)
 		{
-			imago::getSettings().set("IsHandwritten", false);
-
-			result = recognize(src_img, ftPass);
+			if (!isBinarized(src_img))
+			{
+				prefilterCV(src_img);
+			}
+			imago::ChemicalStructureRecognizer &csr = imago::getRecognizer();
+			csr.extractCharacters(src_img);
 		}
 		else
 		{
-			imago::getSettings().set("IsHandwritten", true);
+			RecognitionResult result;
 
-			result = recognize(src_img, ftCV);
-			if (result.exceptions)
+			if (isBinarized(src_img))
 			{
-				result = recognize(src_img, ftStd);
+				imago::getSettings().set("IsHandwritten", false);
+
+				result = recognizeImage(src_img, ftPass);
+			}
+			else
+			{
+				imago::getSettings().set("IsHandwritten", true);
+
+				result = recognizeImage(src_img, ftCV);
 				if (result.exceptions)
 				{
-					result = recognize(src_img, ftAdaptive);
+					result = recognizeImage(src_img, ftStd);
 					if (result.exceptions)
 					{
-						throw std::exception("Recognition fails.");
+						result = recognizeImage(src_img, ftAdaptive);
+						if (result.exceptions)
+						{
+							throw std::exception("Recognition fails.");
+						}
 					}
+				} 
+				else if (result.warnings > WARNINGS_TRESHOLD)
+				{
+					RecognitionResult r2 = recognizeImage(src_img, ftStd);
+					if (!r2.exceptions && r2.warnings < result.warnings)
+						result = r2;
 				}
-			} 
-			else if (result.warnings > WARNINGS_TRESHOLD)
-			{
-				RecognitionResult r2 = recognize(src_img, ftStd);
-				if (!r2.exceptions && r2.warnings < result.warnings)
-					result = r2;
 			}
-		}
 		
-		imago::FileOutput fout("molecule.mol");
-		fout.writeString(result.molecule);		
+			imago::FileOutput fout("molecule.mol");
+			fout.writeString(result.molecule);
+		}
 
 		imago::SessionManager::getInstance().releaseSID(sid);      
 	}
@@ -161,32 +190,88 @@ int performRecognition(const std::string& imageName, int logLevel = 0)
 }
 
 
+int getdir(const std::string& dir, std::vector<std::string> &files)
+{
+    DIR *dp;
+    struct dirent *dirp;
+    if((dp  = opendir(dir.c_str())) == NULL) 
+	{
+        return errno;
+    }
+
+    while ((dirp = readdir(dp)) != NULL) 
+	{
+        files.push_back(std::string(dirp->d_name));
+    }
+    closedir(dp);
+    return 0;
+}
+
 int main(int argc, char **argv)
 {
 	std::string image = "";
-	int logLevel = 0;
-	
-	FilterType filterType = ftCV; // really just ignore that
+	std::string dir = "";
+
+	FileActionParams fp;
+
+	bool next_arg_dir = false;
 
 	for (int c = 1; c < argc; c++)
 	{
 		std::string param = argv[c];
+		
 		if (param == "-l" || param == "-log")
-			logLevel = 1;
+			fp.logLevel = 1;
 		else if (param == "-logvfs")
-			logLevel = 2;
+			fp.logLevel = 2;
+
 		else if (param == "-adaptive")
-			filterType = ftAdaptive;
+			fp.defaultFilter = ftAdaptive;
 		else if (param == "-cv")
-			filterType = ftCV;
+			fp.defaultFilter = ftCV;
 		else if (param == "-std")
-			filterType = ftStd;
+			fp.defaultFilter = ftStd;
+
+		else if (param == "-dir")
+			next_arg_dir = true;
+		else if (param == "-characters")
+			fp.extractCharactersOnly = true;
+
 		else 
-			image = param;
+		{
+			if (next_arg_dir)
+			{
+				dir = param;
+				next_arg_dir = false;
+			}
+			else
+			{
+				image = param;
+			}
+		}
 	}
 	
-	if (image.empty())
-		return 0;
+	if (!dir.empty())
+	{
+		std::vector<std::string> files;
+		if (getdir(dir, files) != 0)
+		{
+			printf("Error: can't get the content of directory \"%s\"\n", dir.c_str());
+			return 2;
+		}
+		for (size_t u = 0; u < files.size(); u++)
+		{
+			if (!files[u].empty() && !(files[u][0] == '.'))
+			{
+				std::string fullpath = dir + "/" + files[u];
+				performFileAction(fullpath, fp);	
+			}
+		}
+	}
+	else if (!image.empty())
+	{
+		return performFileAction(image, fp);	
+	}
 	
-	return performRecognition(image, logLevel);	
+	return 0;
 }

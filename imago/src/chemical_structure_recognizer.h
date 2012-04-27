@@ -34,8 +34,9 @@ namespace imago
       //ChemicalStructureRecognizer( const CharacterRecognizer &cr );
 
       void setImage( Image &img );
-      void recognize( Molecule &mol ); 
+      void recognize( Molecule &mol, bool only_extract_characters = false ); 
       void image2mol( Image &img, Molecule &mol );
+	  void extractCharacters (Image& img);
       const CharacterRecognizer &getCharacterRecognizer() { return  _cr; };
 
       ~ChemicalStructureRecognizer();

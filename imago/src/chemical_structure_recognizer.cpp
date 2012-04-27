@@ -88,7 +88,15 @@ void ChemicalStructureRecognizer::_processFilter()
    Binarizer(_origImage, rs["BinarizationLvl"]).apply();
 }
 
-void ChemicalStructureRecognizer::recognize( Molecule &mol ) 
+void ChemicalStructureRecognizer::extractCharacters( Image &img )
+{
+	logEnterFunction();
+	setImage(img);
+	Molecule temp;
+	recognize(temp, true);
+}
+
+void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_characters ) 
 {
 	logEnterFunction();
 
@@ -167,6 +175,32 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
          //ImageUtils::saveImageToFile(graphics, "output/graphics.png");
 		 getLogExt().appendImage("Graphics", graphics);
       }
+
+	  if (only_extract_characters)
+	  {
+		  BOOST_FOREACH( Segment *s, layer_symbols )
+		  {
+			  RecognitionDistance rd = getCharacterRecognizer().recognize_all(*s, CharacterRecognizer::all, false);
+			  double dist = 0.0;
+			  char res = rd.getBest(&dist);
+			  if (dist > 3.0 || rd.getQuality() < 0.1)
+			  {
+				  char filename[1024] = {0};
+				  static int _character_ident = 0;
+				  sprintf(filename, "./characters/bad/probably_%c_%u.png", res, _character_ident++);
+				  ImageUtils::saveImageToFile(*s, filename);
+			  }
+			  else
+			  {
+				  char filename[1024] = {0};
+				  static int _character_ident = 0;
+				  sprintf(filename, "./characters/good/probably_%c_%u.png", res, _character_ident++);
+				  ImageUtils::saveImageToFile(*s, filename);
+			  }
+		  }
+		  return;
+	  }
+
 
       LMARK;
       if (!layer_symbols.empty())
@@ -267,8 +301,9 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol )
 
 void ChemicalStructureRecognizer::image2mol( Image &img, Molecule &mol )
 {
-   setImage(img);
-   recognize(mol);
+	logEnterFunction();
+	setImage(img);
+	recognize(mol);
 }
 
 void ChemicalStructureRecognizer::setImage( Image &img )

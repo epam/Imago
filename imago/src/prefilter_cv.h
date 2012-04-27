@@ -11,6 +11,6 @@ namespace imago
 	// returns true if image was modified
 	bool resampleImage(Image &image);   
   
-	// returns false if image cann't be correctly filtered
-	bool prefilterCV(Image& raw);
+	// filters image using cv adaptive filtering and cross-correlation
+	void prefilterCV(Image& raw);
 }

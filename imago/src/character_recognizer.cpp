@@ -122,7 +122,7 @@ double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
    return sqrt(d);
 }
 
-RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const std::string &candidates) const
+RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const std::string &candidates, bool can_adjust) const
 {
    logEnterFunction();
 
@@ -134,45 +134,49 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 
 	getLogExt().appendMap("Distance map for source", rec);
 
-	Points2i endpoints = SegmentTools::getEndpoints(seg);
-
-	SegmentTools::logEndpoints(seg, endpoints);
-
-	std::string probably, surely;
-	static EndpointsData endpointsHandler;
-
-	if (endpoints.size() < 8)
+	if (can_adjust)
 	{
-		endpointsHandler.getImpossibleToWrite(endpoints.size(), probably, surely);
-		rec.adjust(1.1, probably);
-		rec.adjust(1.2, surely);
-	}
+		Points2i endpoints = SegmentTools::getEndpoints(seg);
+
+		SegmentTools::logEndpoints(seg, endpoints);
+
+		std::string probably, surely;
+		static EndpointsData endpointsHandler;
+
+		if (endpoints.size() < 8)
+		{
+			endpointsHandler.getImpossibleToWrite(endpoints.size(), probably, surely);
+			rec.adjust(1.1, probably);
+			rec.adjust(1.2, surely);
+		}
 	
-	// easy-to-write adjust
-	switch(endpoints.size())
-	{
-	case 0:
-		rec.adjust(0.9, "0oO");
-		break;
-	case 1:
-		rec.adjust(0.96, "Ppe");
-		break;
-	case 2:
-		rec.adjust(0.96, "ILNSsZz");
-		break;
-	case 3:
-		rec.adjust(0.9, "3");
-		rec.adjust(0.96, "F");
-		break;
-	case 4:
-		rec.adjust(0.96, "fHK");
-		break;
-	case 6:
-		rec.adjust(0.94, "^");
-		break;
-	};
+		// easy-to-write adjust
+		switch(endpoints.size())
+		{
+		case 0:
+			rec.adjust(0.9, "0oO");
+			break;
+		case 1:
+			rec.adjust(0.96, "Ppe");
+			break;
+		case 2:
+			rec.adjust(0.96, "ILNSsZz");
+			break;
+		case 3:
+			rec.adjust(0.9, "3");
+			rec.adjust(0.96, "F");
+			break;
+		case 4:
+			rec.adjust(0.96, "fHK");
+			break;
+		case 6:
+			rec.adjust(0.94, "^");
+			break;
+		};
 
-   getLogExt().appendMap("Adjusted (result) distance map", rec);
+	   getLogExt().appendMap("Adjusted (result) distance map", rec);
+	}
+
    getLogExt().append("Result candidates", rec.getBest());
    getLogExt().append("Recognition quality", rec.getQuality());
 
