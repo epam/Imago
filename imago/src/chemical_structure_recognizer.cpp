@@ -183,20 +183,24 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 			  RecognitionDistance rd = getCharacterRecognizer().recognize_all(*s, CharacterRecognizer::all, false);
 			  double dist = 0.0;
 			  char res = rd.getBest(&dist);
-			  if (dist > 3.0 || rd.getQuality() < 0.1)
+			  double qual = rd.getQuality();
+
+			  char filename[1024] = {0};
+
+			  if (dist > 3.5)
 			  {
-				  char filename[1024] = {0};
-				  static int _character_ident = 0;
-				  sprintf(filename, "./characters/bad/probably_%c_%u.png", res, _character_ident++);
-				  ImageUtils::saveImageToFile(*s, filename);
+				  sprintf(filename, "./characters/bad/%c_d%f_q%f.png", res, dist, qual);
+			  }
+			  else if (qual < 0.05)
+			  {
+				  sprintf(filename, "./characters/similar/%c_d%f_q%f.png", res, dist, qual);
 			  }
 			  else
 			  {
-				  char filename[1024] = {0};
-				  static int _character_ident = 0;
-				  sprintf(filename, "./characters/good/probably_%c_%u.png", res, _character_ident++);
-				  ImageUtils::saveImageToFile(*s, filename);
+				  sprintf(filename, "./characters/good/%c_d%f_q%f.png", res, dist, qual);
 			  }
+
+			  ImageUtils::saveImageToFile(*s, filename);
 		  }
 		  return;
 	  }
