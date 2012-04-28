@@ -10,6 +10,7 @@
 #include "adaptive_filter.h"
 #include "superatom_expansion.h"
 #include "output.h"
+#include "constants.h"
 
 #ifdef _WIN32
 #include "dirent.h"
@@ -74,7 +75,7 @@ RecognitionResult recognizeImage(const imago::Image& src, FilterType filterType)
 
 		csr.image2mol(img, mol);
 		result.molecule = imago::expandSuperatoms(mol);
-		result.warnings = mol.getWarningsCount() + mol.getDissolvingsCount() / 10;
+		result.warnings = mol.getWarningsCount() + mol.getDissolvingsCount() / imago::consts::Main::DissolvingsFactor;
 
 		printf("Filter [%u], warnings: %u\n", filterType, result.warnings);
 	}
@@ -104,8 +105,6 @@ struct FileActionParams
 
 int performFileAction(const std::string& imageName, const FileActionParams& params)
 {
-	const int WARNINGS_TRESHOLD = 2;
-
 	int result = 0; // ok mark
 	imago::VirtualFS vfs;
 
@@ -165,7 +164,7 @@ int performFileAction(const std::string& imageName, const FileActionParams& para
 						}
 					}
 				} 
-				else if (result.warnings > WARNINGS_TRESHOLD)
+				else if (result.warnings > imago::consts::Main::WarningsRecalcTreshold)
 				{
 					RecognitionResult r2 = recognizeImage(src_img, ftStd);
 					if (!r2.exceptions && r2.warnings < result.warnings)
