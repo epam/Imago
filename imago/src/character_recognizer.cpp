@@ -21,6 +21,7 @@
 #include "prefilter.h"
 #include "recognition_tree.h"
 #include "character_endpoints.h"
+#include "constants.h"
 
 using namespace imago;
 const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&";
@@ -31,7 +32,7 @@ const std::string CharacterRecognizer::like_bonds = "l1iI";
 
 double imago::getDistanceCapital(const Segment& seg)
 {
-	CharacterRecognizer temp(3);
+	CharacterRecognizer temp(consts::CharactersRecognition::DefaultFourierClassesUse);
 	RecognitionDistance rd = temp.recognize_all(seg, CharacterRecognizer::all, false);
 	double best_dist;
 	char ch = rd.getBest(&best_dist);
@@ -44,16 +45,17 @@ double imago::getDistanceCapital(const Segment& seg)
 
 bool imago::isPossibleCharacter(const Segment& seg, bool loose_cmp)
 {
-	CharacterRecognizer temp(3);
+	CharacterRecognizer temp(consts::CharactersRecognition::DefaultFourierClassesUse);
 	RecognitionDistance rd = temp.recognize_all(seg, CharacterRecognizer::all, false);
 	double best_dist;
 	char ch = rd.getBest(&best_dist);
 	if (std::find(CharacterRecognizer::like_bonds.begin(), CharacterRecognizer::like_bonds.end(), ch) != CharacterRecognizer::like_bonds.end())
 		return false;
-	if (best_dist < 2.8 && rd.getQuality() > 0.1) 
+	if (best_dist < consts::CharactersRecognition::PossibleCharacterDistanceStrong && 
+		rd.getQuality() > consts::CharactersRecognition::PossibleCharacterMinimalQuality) 
 		return true;
-	if (loose_cmp && (best_dist < 3.4 && rd.getQuality() > 0.1 
-		           || best_dist < 3.6 && rd.getQuality() > 0.5))
+	if (loose_cmp && (best_dist < consts::CharactersRecognition::PossibleCharacterDistanceWeak 
+		          && rd.getQuality() > consts::CharactersRecognition::PossibleCharacterMinimalQuality))
 		return true;
 	return false;
 }
@@ -100,16 +102,16 @@ double CharacterRecognizer::_compareDescriptors( const std::vector<double> &d1,
       if (i < size / 2)
       {
          if (i % 2)
-            weight = 2.5;
+			 weight = consts::CharactersRecognition::DescriptorsOddFactorStrong;
          else
-            weight = 3.5;
+			 weight = consts::CharactersRecognition::DescriptorsEvenFactorStrong;
       }
       else
       {
          if (i % 2)
-            weight = 0.9;
+			 weight = consts::CharactersRecognition::DescriptorsOddFactorWeak;
          else
-            weight = 0.3;
+			 weight = consts::CharactersRecognition::DescriptorsEvenFactorWeak;
       }
       d += absolute(weight * r);
    }
@@ -159,34 +161,34 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 		std::string probably, surely;
 		static EndpointsData endpointsHandler;
 
-		if (endpoints.size() < 8)
+		if (endpoints.size() <= consts::CharactersRecognition::MaximalEndpointsUse)
 		{
 			endpointsHandler.getImpossibleToWrite(endpoints.size(), probably, surely);
-			rec.adjust(1.1, probably);
-			rec.adjust(1.2, surely);
+			rec.adjust(consts::CharactersRecognition::WriteProbablyImpossibleFactor, probably);
+			rec.adjust(consts::CharactersRecognition::WriteSurelyImpossibleFactor, surely);
 		}
 	
 		// easy-to-write adjust
 		switch(endpoints.size())
 		{
 		case 0:
-			rec.adjust(0.9, "0oO");
+			rec.adjust(consts::CharactersRecognition::WriteVeryEasyFactor, "0oO");
 			break;
 		case 1:
-			rec.adjust(0.96, "Ppe");
+			rec.adjust(consts::CharactersRecognition::WriteEasyFactor, "Ppe");
 			break;
 		case 2:
-			rec.adjust(0.96, "ILNSsZz");
+			rec.adjust(consts::CharactersRecognition::WriteEasyFactor, "ILNSsZz");
 			break;
 		case 3:
-			rec.adjust(0.9, "3");
-			rec.adjust(0.96, "F");
+			rec.adjust(consts::CharactersRecognition::WriteVeryEasyFactor, "3");
+			rec.adjust(consts::CharactersRecognition::WriteEasyFactor, "F");
 			break;
 		case 4:
-			rec.adjust(0.96, "fHK");
+			rec.adjust(consts::CharactersRecognition::WriteEasyFactor, "fHK");
 			break;
 		case 6:
-			rec.adjust(0.94, "^");
+			rec.adjust(consts::CharactersRecognition::WriteEasyFactor, "^");
 			break;
 		};
 
@@ -470,19 +472,6 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    printf(" n %.2lf\n", err_n[min_n]);
 #endif
 
-   /*if (err_h[min_h] < err_n[min_n])
-   {
-      if (err_h[min_h] < 3.2)
-         return 'H';
-   }
-   else
-   {
-      if (err_n[min_n] < 3.45) //1.8
-      {
-         return 'N';
-      }
-   }*/
-
    static const std::string candidates =
       "ABCDFGHIKMNPRST"
       "aehiklnr" //u
@@ -500,19 +489,19 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    bool tricky = (c == 'r');
    bool hard = (c == 'R' || c == 'S');
 
-   if (c == 'F' && err < 3.4)
+   if (c == 'F' && err < consts::CharactersRecognition::HW_F)
       return c;
 
-   if (line && err < 1.9) //0.5
+   if (line && err < consts::CharactersRecognition::HW_Line)
       return c;
 
-   if (tricky && err < 2.8) //1.0
+   if (tricky && err < consts::CharactersRecognition::HW_Tricky)
       return c;
 
-   if (!line && !tricky && err < 3.3) //1.8
+   if (!line && !tricky && err < consts::CharactersRecognition::HW_Other)
       return c;
 
-   if (hard && err < 4.5) //2.5
+   if (hard && err < consts::CharactersRecognition::HW_Hard)
       return c;
 
 #ifdef DEBUG

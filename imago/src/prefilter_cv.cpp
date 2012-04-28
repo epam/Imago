@@ -6,6 +6,7 @@
 #include "segment_tools.h"
 #include "weak_segmentator.h"
 #include "log_ext.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -18,7 +19,7 @@ namespace imago
 		int h = image.getHeight();
 		int m = std::max(w, h);
 		int scale = 1;
-		while (m / scale > MAX_IMAGE_DIMENSIONS) scale++;
+		while (m / scale > consts::MaxImageDimensions) scale++;
 		if (scale == 1)
 		{
 			getLogExt().appendText("resample is not required");
@@ -44,9 +45,7 @@ namespace imago
 
 	bool isBinarized(Image &image)
 	{
-		logEnterFunction();
-
-		const int MAX_NON_BW_PIXELS_PROPORTION = 10;
+		logEnterFunction();		
 
 		int white_count = 0, black_count = 0, others_count = 0;
 		for (int y = 0; y < image.getHeight(); y++)
@@ -62,7 +61,7 @@ namespace imago
 		getLogExt().append("black_count", black_count);
 		getLogExt().append("others_count", others_count);
 
-		if (MAX_NON_BW_PIXELS_PROPORTION * others_count < black_count + white_count)
+		if (consts::GeneralFiltering::MaxNonBWPixelsProportion * others_count < black_count + white_count)
 		{	
 			getLogExt().appendText("image is binarized");
 			if (others_count > 0)
@@ -86,11 +85,6 @@ namespace imago
 	{
 		logEnterFunction();
 
-		const int MIN_GOOD_PIXELS_COUNT = 10; // minimal pixels count for good segment
-		const int MAX_BAD_TO_GOOD_RATIO = 6;  // used for classification of good/bad segments
-		const int BORDER_PROPORTIONS = 40;    // border is 1/nth part of corresponding image dimension
-		const int MAX_RECTANGLE_WIDTH = 12;   // pixels count for rectangular crop
-
 		cv::Mat grayFrame;
 		ImageUtils::copyImageToMat(raw, grayFrame);
 
@@ -103,8 +97,8 @@ namespace imago
 			cv::adaptiveThreshold((what), (output), 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, 0 /*CV_THRESH_BINARY*/, (adaptiveThresholdBlockSize) + (adaptiveThresholdBlockSize) % 2 + 1, (adaptiveThresholdParameter));
 	
 		cv::Mat strong, weak;
-		binarize_impl(smoothed2x, strong, 4, 1.3);
-		binarize_impl(smoothed2x,  weak,  8, 1.2);
+		binarize_impl(smoothed2x, strong, consts::PrefilterCV::StrongBinarizeSize, consts::PrefilterCV::StrongBinarizeTresh);
+		binarize_impl(smoothed2x,  weak,  consts::PrefilterCV::WeakBinarizeSize, consts::PrefilterCV::WeakBinarizeTresh);
 
 		#undef binarize_impl
 	
@@ -117,11 +111,11 @@ namespace imago
 		WeakSegmentator ws(raw.getWidth(), raw.getHeight());
 		ws.appendData(ImgAdapter(raw,bin), 1);
 
-		int borderX = raw.getWidth()  / BORDER_PROPORTIONS + 1;
-		int borderY = raw.getHeight() / BORDER_PROPORTIONS + 1;
+		int borderX = raw.getWidth()  / consts::PrefilterCV::BorderPartProportion + 1;
+		int borderY = raw.getHeight() / consts::PrefilterCV::BorderPartProportion + 1;
 
 		Rectangle crop = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
-		bool need_crop = ws.needCrop(crop, MAX_RECTANGLE_WIDTH);
+		bool need_crop = ws.needCrop(crop, consts::PrefilterCV::MaxRectangleCropLineWidth);
 
 		Image output(crop.width, crop.height);
 		output.fillWhite();
@@ -141,7 +135,7 @@ namespace imago
 					bad++;
 			}
 
-			if (MAX_BAD_TO_GOOD_RATIO * good > bad && good > MIN_GOOD_PIXELS_COUNT)
+			if (consts::PrefilterCV::MaxBadToGoodRatio * good > bad && good > consts::PrefilterCV::MinGoodPixelsCount)
 			{
 				getLogExt().append("Segment id", it->first);
 				getLogExt().append("Good points", good);

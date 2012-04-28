@@ -1,4 +1,5 @@
 #include "character_endpoints.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -83,9 +84,10 @@ namespace imago
 		surely = "";
 		for (size_t u = 0; u < size(); u++)
 		{
-			if (endpoints_count == 3 && at(u).min > 3) // HACK
+			if (consts::CharactersRecognition::HackFor3Use && endpoints_count == 3 && at(u).min > 3)
 				surely.push_back( at(u).c );
-			else if (endpoints_count < at(u).min - 1 || endpoints_count > at(u).max + 1)
+			else if (endpoints_count < at(u).min - consts::CharactersRecognition::ImpossibleToWriteDelta || 
+				     endpoints_count > at(u).max + consts::CharactersRecognition::ImpossibleToWriteDelta)
 				surely.push_back( at(u).c );
 			else if (endpoints_count < at(u).min || endpoints_count > at(u).max )
 				probably.push_back ( at(u).c );

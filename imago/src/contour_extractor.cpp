@@ -8,6 +8,7 @@
 #include "vec2d.h"
 #include "exception.h"
 #include "algebra.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -202,7 +203,7 @@ namespace imago
 
    void ContourExtractor::_approximize( Points2i &contour )
    {
-      double epsilons[2] = { 1.047, 0.8 }; //"Constants" ?
+	   double epsilons[2] = { consts::ContourExtractor::ApproxEps1, consts::ContourExtractor::ApproxEps2 };
       for (int l = 0; l < 2; l++)
       {
          int i = 1;

@@ -30,6 +30,7 @@
 #include "skeleton.h"
 #include "vec2d.h"
 #include "wedge_bond_extractor.h"
+#include "constants.h"
 
 using namespace imago;
 
@@ -47,13 +48,13 @@ bool WedgeBondExtractor::_pointsCompare( const SegCenter &c, const SegCenter &d 
       res = true;
    if (a.x < b.x) 
       res = false;
-   if (fabs(a.x - b.x) <= 3)
+   if (fabs(a.x - b.x) <= consts::WedgeBondExtractor::PointsCompareDist)
    {
       if (a.y > b.y)
          res = true;
       if (a.y < b.y)
          res = false;
-      if (fabs(a.y - b.y) <= 3)
+      if (fabs(a.y - b.y) <= consts::WedgeBondExtractor::PointsCompareDist)
          res = false;
    }
 
@@ -86,7 +87,7 @@ void WedgeBondExtractor::_fitSingleDownBorders( Vec2d &p1, Vec2d &p2, Vec2d &v1,
 int WedgeBondExtractor::singleDownFetch( Skeleton &g )
 {
    int sdb_count = 0;
-   double eps = 3.3, angle;   
+   double eps = consts::WedgeBondExtractor::SingleDownEps, angle;   
 
    std::vector<SingleDownBond> sd_bonds;
    std::vector<SegCenter> segs_info;
@@ -134,18 +135,18 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
                {
                   p3 = segs_info[k].center;
 
-                  if (absolute(p1.x - p2.x) <= 2)
+				  if (absolute(p1.x - p2.x) <= consts::WedgeBondExtractor::SingleDownCompareDist)
                   {
-                     if (absolute(p1.x - p3.x) <= 2 || absolute(p3.x - p2.x) <= 2)
+                     if (absolute(p1.x - p3.x) <= consts::WedgeBondExtractor::SingleDownCompareDist || absolute(p3.x - p2.x) <= consts::WedgeBondExtractor::SingleDownCompareDist)
                      {
                         cur_points.push_back(segs_info[k]);
                         continue;
                      }
                   }
 
-                  if (absolute(p1.y - p2.y) <= 2)
+                  if (absolute(p1.y - p2.y) <= consts::WedgeBondExtractor::SingleDownCompareDist)
                   {
-                     if (absolute(p1.y - p3.y) <= 2 || absolute(p3.y - p2.y) <= 2)
+                     if (absolute(p1.y - p3.y) <= consts::WedgeBondExtractor::SingleDownCompareDist || absolute(p3.y - p2.y) <= consts::WedgeBondExtractor::SingleDownCompareDist)
                      {
                         cur_points.push_back(segs_info[k]);
                         continue;
@@ -155,7 +156,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
                   double ch1 = (p1.x - p3.x) * (p2.y - p1.y);
                   double ch2 = (p1.x - p2.x) * (p3.y - p1.y);
 
-                  if (absolute(ch1 - ch2) <= 45.0)
+				  if (absolute(ch1 - ch2) <= consts::WedgeBondExtractor::SingleDownAngleMax)
                      cur_points.push_back(segs_info[k]);
                }
             }
@@ -179,7 +180,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
                   for (; l != (int)distances.size(); l++)
                   {
                      //TODO: Check this with care and tender
-                     if (fabs(distances[l - 1] - distances[l]) > 10)
+					  if (fabs(distances[l - 1] - distances[l]) > consts::WedgeBondExtractor::SingleDownDistancesMax)
                         break;
                   }
 
@@ -206,7 +207,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
 
                      ave_dist /= p.second - p.first;
 
-                     if (ave_dist > 40)
+					 if (ave_dist > consts::WedgeBondExtractor::SingleDownLengthMax)
                         continue;
 
                      //TODO: check this again
@@ -500,7 +501,6 @@ void WedgeBondExtractor::singleUpFetch( Skeleton &g )
 bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
 {
    Bond bond = g.getBondInfo(e1);
-   double thick_ratio_eps = 1.6;
 
    if (bond.type != SINGLE)
       return false;
@@ -511,10 +511,10 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
       //g.reverseEdge(e1);
 
    r = _thicknesses[g.getBondEnd(e1)];
-   //if (r / _mean_thickness < thick_ratio_eps)
+   //if (r / _mean_thickness < consts::WedgeBondExtractor::SingleUpRatioEps)
    //   return false;
 
-   if (_thicknesses[g.getBondBegin(e1)] / _mean_thickness > thick_ratio_eps)
+   if (_thicknesses[g.getBondBegin(e1)] / _mean_thickness > consts::WedgeBondExtractor::SingleUpRatioEps)
    {
       //This bond is just thick
    }
@@ -526,16 +526,16 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
    printf("SU: (%lf; %lf) (%lf; %lf)  %lf\n", bb.x, bb.y, ee.x, ee.y, Vec2d::distance(bb, ee));
 #endif
 
-   double coef = 0.28;
-   if (_bond_length < 40)
-      coef = 0.4;
+   double coef = consts::WedgeBondExtractor::SingleUpDefCoeff;
+   if (_bond_length < consts::WedgeBondExtractor::SingleUpIncLengthTresh)
+	   coef = consts::WedgeBondExtractor::SingleUpIncCoeff;
 
    if (Vec2d::distance(bb, ee) < _bond_length * coef)
       return false;
    
    Vec2d b(bb), e(ee);
-   b.interpolate(ee, bb, 0.07);
-   e.interpolate(bb, ee, 0.07);
+   b.interpolate(ee, bb, consts::WedgeBondExtractor::SingleUpInterpolateEps);
+   e.interpolate(bb, ee, consts::WedgeBondExtractor::SingleUpInterpolateEps);
    b.x = round(b.x);
    b.y = round(b.y);
    e.x = round(e.x);
@@ -585,7 +585,7 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
       visited.push_back(cur);
 
       double dp = Vec2d::distance(cur, e);
-      dp = sqrt(dp * dp + 1) + 0.21;
+	  dp = sqrt(dp * dp + 1) + consts::WedgeBondExtractor::SingleUpMagicAddition;
       for (int i = round(cur.x) - 1; i <= round(cur.x) + 1; i++)
       {
          for (int j = round(cur.y) - 1; j <= round(cur.y) + 1; j++)
@@ -666,7 +666,7 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
                    p3.x * p4.y - p4.x * p3.y +
                    p4.x * p1.y - p1.x * p4.y) * 0.5;
 
-   double S2 = visited.size() / 1.6;
+   double S2 = visited.size() / consts::WedgeBondExtractor::SingleUpS2Divisor;
 
    for (size_t i = 0; i < visited.size(); i++)
    {
@@ -678,7 +678,7 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
    a1 += b1; a2 += b2;
    double a_min = std::min(a1, a2), a_max = std::max(a1, a2);
 
-   if (a_min < 1.5)
+   if (a_min < consts::WedgeBondExtractor::SingleUpMinATresh)
       return false;
 
    double thick_ratio = a_max / a_min;
@@ -694,14 +694,12 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
       catch (Exception &e)
       {
 		  getLogExt().append("_isSingleUp skipped exception", e.what());
-         //if (getSettings()["DebugSession"])
-         //   LPRINT(0, "Skipped exception: %s", e.what());
       }
    }
 
-   if (thick_ratio < thick_ratio_eps ||
-       square_ratio < 0.7 ||
-       angle < 0.065)
+   if (thick_ratio < consts::WedgeBondExtractor::SingleUpRatioEps ||
+	   square_ratio < consts::WedgeBondExtractor::SingleUpSquareRatio ||
+	   angle < consts::WedgeBondExtractor::SingleUpAngleTresh)
       return false;
 
    return true;

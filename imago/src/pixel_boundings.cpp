@@ -1,5 +1,5 @@
 #include "pixel_boundings.h"
-
+#include "constants.h"
 
 namespace imago
 {
@@ -11,7 +11,7 @@ namespace imago
 
 	RectShapedBounding::RectShapedBounding(const Points2i& pts)
 	{
-		int min_x = MAX_IMAGE_DIMENSIONS, min_y = MAX_IMAGE_DIMENSIONS, max_x = 0, max_y = 0;
+		int min_x = consts::MaxImageDimensions, min_y = consts::MaxImageDimensions, max_x = 0, max_y = 0;
 		for (Points2i::const_iterator it = pts.begin(); it != pts.end(); it++)
 		{
 			min_x = std::min(min_x, it->x);
@@ -65,12 +65,12 @@ namespace imago
 
 	CustomShapedBounding::CustomShapedBounding(const Points2i& pts) // now simple min-max boundary init
 	{
-		int map_x_y1[MAX_IMAGE_DIMENSIONS];
-		int map_x_y2[MAX_IMAGE_DIMENSIONS];
-		for (int u = 0; u < MAX_IMAGE_DIMENSIONS; u++)
+		int map_x_y1[consts::MaxImageDimensions];
+		int map_x_y2[consts::MaxImageDimensions];
+		for (int u = 0; u < consts::MaxImageDimensions; u++)
 		{
 			// pre-fill
-			map_x_y1[u] = MAX_IMAGE_DIMENSIONS;
+			map_x_y1[u] = consts::MaxImageDimensions;
 			map_x_y2[u] = 0;
 		}
 
@@ -84,9 +84,9 @@ namespace imago
 		}
 
 		int min_idx = -1, max_idx = -1;
-		for (int u = 0; u < MAX_IMAGE_DIMENSIONS; u++)
+		for (int u = 0; u < consts::MaxImageDimensions; u++)
 		{
-			if (map_x_y1[u] != MAX_IMAGE_DIMENSIONS)
+			if (map_x_y1[u] != consts::MaxImageDimensions)
 			{
 				if (min_idx == -1)
 					min_idx = u;

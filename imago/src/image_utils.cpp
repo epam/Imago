@@ -29,6 +29,7 @@
 #include "thin_filter2.h"
 #include "vec2d.h"
 #include "log_ext.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -61,7 +62,6 @@ namespace imago
 
    bool ImageUtils::testSlashLine( Segment &img, double *angle, double eps )
    {
-      const double SLASH_LINE_DENSITY = 0.46; //TODO: Handwriting, original 0.56
       double density, thetha, r;
 
       //ImageUtils::saveImageToFile(img, "output/origin.png");
@@ -78,7 +78,7 @@ namespace imago
       density = tmp.density() / density;
       //ImageUtils::saveImageToFile(tmp, "output/origin_orient1.png");
 
-      if (density < SLASH_LINE_DENSITY)
+	  if (density < consts::ImageUtils::SlashLineDensity)
       {
          if (angle != 0)
             *angle = thetha;
@@ -95,7 +95,7 @@ namespace imago
       density = tmp.density() / density;
       //ImageUtils::saveImageToFile(tmp, "output/origin_orient2.png");
    
-      if (density < SLASH_LINE_DENSITY)
+      if (density < consts::ImageUtils::SlashLineDensity)
       {
          if (angle != 0)
             *angle = thetha;
@@ -186,13 +186,14 @@ namespace imago
 
       double density = (double)sum / s;
 
-   if (density > 0.4)
+	  if (density > consts::ImageUtils::TestPlusDensity)
    {
 	   getLogExt().append("[testPlus] Density", density);     
    }
 
       //TODO: write more convenient criteria
-      return (density > 0.4 && max_sq < 0.38 * s); //0.55
+      return (density > consts::ImageUtils::TestPlusDensity 
+		      && max_sq < consts::ImageUtils::TestPlusSq * s);  // 0.55
    }
 
    bool ImageUtils::testMinus( const Segment &img, int cap_height )
@@ -209,7 +210,9 @@ namespace imago
       double density = (double)black / total;
       double ratio = (double)h / w;
 
-      return (ratio < 0.33 && density > 0.7 && w < 0.75 * cap_height); //0.95
+	  return (ratio < consts::ImageUtils::TestMinusRatio 
+		  && density > consts::ImageUtils::TestMinusDensity 
+		  && w < consts::ImageUtils::TestMinusHeightFactor * cap_height); 
    }
 
    void ImageUtils::putSegment( Image &img, const Segment &seg, bool careful )

@@ -24,7 +24,6 @@
 #include "recognition_settings.h"
 #include "current_session.h"
 #include "log_ext.h"
-//#include "font.h"
 #include "character_recognizer.h"
 #include "rng_builder.h"
 #include "segments_graph.h"
@@ -32,6 +31,7 @@
 #include "image_draw_utils.h"
 #include "output.h"
 #include "algebra.h"
+#include "constants.h"
 
 using namespace imago;
 
@@ -110,7 +110,8 @@ int LabelCombiner::_findCapitalHeight()
 			 min_d = d;
 			 cap_height = seg_height;
 		} 
-		else if (d < min_d && seg_height > cap_height && (d < 3.0 && c != 'O') )
+		else if (d < min_d && seg_height > cap_height 
+			     && (d < consts::LabelCombiner::MaximalSymbolDistance && c != 'O') )
 		{
 			min_d = d;
 			cap_height = seg_height;
@@ -166,10 +167,11 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
 
          if (!plus && !minus)
          {
-            if (ImageUtils::testSlashLine(**cur_s, 0, 3.3)) //TODO: Handwriting, original 1.3
+			 if (ImageUtils::testSlashLine(**cur_s, 0, consts::LabelCombiner::TestSlashLineEps))
                continue;   
-            if ((seg_rect.height < 0.45 * _cap_height || seg_rect.height > 1.2 * _cap_height || //0.65 //0.42
-                r > _maxSymRatio || r < _minSymRatio))
+			 if (seg_rect.height < consts::LabelCombiner::TestMinHeightFactor * _cap_height 
+				 || seg_rect.height > consts::LabelCombiner::TestMaxHeightFactor * _cap_height 
+				 || r > _maxSymRatio || r < _minSymRatio)
                continue;
          }
       }
@@ -182,16 +184,17 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
          if (Rectangle::distance(seg_rect, rect) > _space)
             continue;
 
-         int h1 = (int)absolute(rect.y - seg_rect.y - 0.5 * seg_rect.height); //TODO: Handwriting. Original 0.4
-         int h2 = (int)absolute(rect.y + 0.5 * rect.height - seg_rect.y);
+		 int h1 = (int)absolute(rect.y - seg_rect.y 
+			                    - consts::LabelCombiner::RectHeightRatio * seg_rect.height); 
+         int h2 = (int)absolute(rect.y + consts::LabelCombiner::RectHeightRatio * rect.height - seg_rect.y);
          int h3 = (int)absolute(rect.y + rect.height - seg_rect.y -
-                                seg_rect.height);
+                                seg_rect.height); // ? consts::LabelCombiner::RectHeightRatio
          int h4 = (int)absolute(rect.y + rect.height - seg_rect.y -
-                                0.5 * seg_rect.height);
+                                consts::LabelCombiner::RectHeightRatio * seg_rect.height);
 
-         if (h1 > 1.1 * _space && //TODO: Handwriting.Original 0.5 //superscript
-             (h2 > 0.6 * _space || h3 > 0.5 * _space) && //lowercase letter
-             h4 > 0.5 * _space)                          //subscript
+		 if (h1 > consts::LabelCombiner::H1SuperscriptSpace * _space && //TODO: Handwriting.Original 0.5 //superscript
+			 (h2 > consts::LabelCombiner::H2LowercaseSpace * _space || h3 > consts::LabelCombiner::H3LowercaseSpace * _space) && //lowercase letter
+			 h4 > consts::LabelCombiner::H4SubscriptSpace * _space)                          //subscript
             continue;
          
          _symbols_layer.push_back(*cur_s);
@@ -246,13 +249,6 @@ void LabelCombiner::_locateLabels()
 	  double width_e = s_e->getWidth();
 	  double width = (width_b+2*width_e)/3;
 	  double height = std::min(s_b->getHeight(), s_e->getHeight());
-//#ifdef DEBUG
-//	  Image img(960, 720);
-//	  ImageUtils::putSegment(img, *s_b);
-//	  ImageUtils::putSegment(img, *s_e);
-//	  ImageUtils::saveImageToFile(img, "output/tmp.png");
-//#endif
-
 
 	  double x_b = width_b * sign_x / 2.0 + b_pos.x; 
 	  double x_e = -width_e * sign_x / 2.0  + e_pos.x; 
@@ -268,6 +264,7 @@ void LabelCombiner::_locateLabels()
       //double length = Vec2d::distance(b_pos, e_pos);
       ++next;
       //TODO: Find an appropriate length!
+	  // TODO!
 	  if ((fabs(y_e - y_b) < width && fabs((double)(s_b->getCenter().x - s_e->getCenter().x)) < width/2)|| 
 		  (fabs(x_e - x_b) < width && fabs((double)(s_b->getCenter().y - s_e->getCenter().y)) < height))//(_space * 0.5 + 1.25 * _cap_height)) // ||
           //(fabs(k) > _parLinesEps && fabs(fabs(k) - PI) > _parLinesEps &&
@@ -278,14 +275,6 @@ void LabelCombiner::_locateLabels()
          boost::remove_edge(*ei, seg_graph);
    }
    
-   /*if (getLogExt().loggingEnabled())// rs["DebugSession"])
-   {
-      Image img(_imgWidth, _imgHeight);
-      img.fillWhite();
-      ImageDrawUtils::putGraph(img, seg_graph);
-      //ImageUtils::saveImageToFile(img, "output/lc_rng.png");
-	  getLogExt().append("lc_rng", img);
-   }*/
    getLogExt().appendGraph("seg_graph", seg_graph);
 
    std::vector<int> _components(boost::num_vertices(seg_graph));
@@ -321,8 +310,8 @@ void LabelCombiner::_fillLabelInfo( Label &l )
    int new_line_sep = -1;
    for (int i = 0, first_cap = -1; i < size; i++)
    {
-      if (first_cap < 0 && symbols[i]->getHeight() > _cap_height_error * 0.5 *
-                                                                   _cap_height)
+	   if (first_cap < 0 && symbols[i]->getHeight() > 
+		   _cap_height_error * consts::LabelCombiner::FillLabelFactor1 * _cap_height)
       {
          first_cap = i;
          first_line_y = symbols[i]->getY() + symbols[i]->getHeight();
@@ -331,7 +320,7 @@ void LabelCombiner::_fillLabelInfo( Label &l )
       
       if (first_cap >= 0)
       {
-         int mid = round(symbols[i]->getY() + 0.5 * symbols[i]->getHeight());
+		  int mid = round(symbols[i]->getY() + consts::LabelCombiner::FillLabelFactor2 * symbols[i]->getHeight());
 
          if (mid - first_line_y > _space)
          {

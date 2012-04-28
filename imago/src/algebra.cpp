@@ -17,6 +17,7 @@
 #include "algebra.h"
 #include "rectangle.h"
 #include "exception.h"
+#include "constants.h"
 
 using namespace imago;
 
@@ -96,13 +97,12 @@ Vec2d Algebra::linesIntersection( const Vec2d &p11, const Vec2d &p12,
    Line l2 = points2line(p21, p22);
    double den = l1.A * l2.B - l2.A * l1.B;
 
-   //Nonstandart behaviour
-   if (absolute(den) < 0.01) //"Constants" ?
+   if (absolute(den) < consts::Algebra::IntersectionEps)
    {
       Vec2d res;
       res.add(p11);
       res.add(p21);
-      res.scale(0.5);
+      res.scale(0.5); // average
       return res;
    }
    else
@@ -115,7 +115,7 @@ Vec2d Algebra::linesIntersection( const Line &l1, const Line &l2 )
 {
    double den = l1.A * l2.B - l2.A * l1.B; 
 
-   if (absolute(den) < 0.01) //"Constants" ?
+   if (absolute(den) < consts::Algebra::IntersectionEps) 
       throw DivizionByZeroException("linesIntersection");
 
    Vec2d res;
@@ -240,14 +240,12 @@ bool Algebra::rangesSeparable (double a1, double a2, double b1, double b2)
 bool Algebra::SegmentsOnSameLine(Vec2d &b1, Vec2d &e1, 
 								Vec2d &b2, Vec2d &e2)
 {
-	double eps = 0.2;
-
 	Vec2d bdif, edif;
 	bdif.diff(b1, b2);
 	edif.diff(e1, e2);
 
-	if(Algebra::segmentsParallel(b1, e1, b2, e2, eps) &&
-		Algebra::segmentsParallel(bdif, edif, b2, e2, eps))
+	if(Algebra::segmentsParallel(b1, e1, b2, e2, consts::Algebra::SameLineEps) &&
+		Algebra::segmentsParallel(bdif, edif, b2, e2, consts::Algebra::SameLineEps))
 		return true;
 	return false;
 }

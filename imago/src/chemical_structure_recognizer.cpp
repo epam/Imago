@@ -48,6 +48,7 @@
 #include "prefilter_cv.h"
 #include "pixel_boundings.h"
 #include "weak_segmentator.h"
+#include "constants.h"
 
 using namespace imago;
 
@@ -127,20 +128,12 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 	  double lth = estimateLineThickness(_img);
 	  rs.set("LineThickness", lth);
 	  
-      //if (rs["DebugSession"])
-      //{
-      //   ImageUtils::saveImageToFile(_img, "output/real_img.png");
-      //}
 	  getLogExt().appendImage("Cropped image", _img);
-
-      /*
-	  TIME(Segmentator::segmentate(_img, segments), "Normal segmentation");
-	  */
 
 	  ////////////-----------------------
 	  WeakSegmentator ws(_img.getWidth(),_img.getHeight());
 	  //ws.ConnectMode = true;
-	  ws.appendData(ImgAdapter(_img, _img), 1);//1+round(lth/2));
+	  ws.appendData(ImgAdapter(_img, _img), consts::ChemicalStructureRecognizer::WeakSegmentatorDist);
 	  for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 	  {
 		  const Points2i& pts = it->second;
@@ -173,9 +166,9 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
       Separator sep(segments, _img);
 
       //Settings for handwriting separation
-      rs.set("SymHeightErr", 28); //42
-      rs.set("MaxSymRatio", 1.14);   
-      rs.set("ParLinesEps", 0.5);
+	  rs.set("SymHeightErr", (int)consts::ChemicalStructureRecognizer::SymHeightErr);
+	  rs.set("MaxSymRatio", consts::ChemicalStructureRecognizer::MaxSymRatio);   
+	  rs.set("ParLinesEps", consts::ChemicalStructureRecognizer::ParLinesEps);
 
       TIME(sep.firstSeparation(layer_symbols, layer_graphics), 
          "Symbols/Graphics elements separation");
@@ -212,11 +205,11 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 
 			  char filename[1024] = {0};
 
-			  if (dist > 3.5)
+			  if (dist > consts::CharactersRecognition::PossibleCharacterDistanceWeak)
 			  {
 				  sprintf(filename, "./characters/bad/%c_d%f_q%f.png", res, dist, qual);
 			  }
-			  else if (qual < 0.05)
+			  else if (qual < consts::CharactersRecognition::PossibleCharacterMinimalQuality)
 			  {
 				  sprintf(filename, "./characters/similar/%c_d%f_q%f.png", res, dist, qual);
 			  }
@@ -265,7 +258,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 		  double lnThickness = getSettings()["LineThickness"];
 		  getLogExt().append("Line Thickness", lnThickness);
          CvApproximator cvApprox;
-         GraphicsDetector gd(&cvApprox, lnThickness * 1.5);//8.0
+		 GraphicsDetector gd(&cvApprox, lnThickness * consts::ChemicalStructureRecognizer::LineVectorizationFactor);
 #else
          SimpleApproximator sApprox;
          GraphicsDetector gd(&sApprox, 0.3);
@@ -279,9 +272,9 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 
       TIME(wbe.singleUpFetch(mol), "Fetching single-up bonds");
 
-      while (mol._dissolveShortEdges(0.45, true));
+	  while (mol._dissolveShortEdges(consts::ChemicalStructureRecognizer::Dissolve, true));
 
-      mol.deleteBadTriangles(2.0);
+	  mol.deleteBadTriangles(consts::ChemicalStructureRecognizer::DeleteBadTriangles);
       
       if (!layer_symbols.empty())
       {         

@@ -6,21 +6,10 @@
 #include "weak_segmentator.h"
 #include "prefilter.h"
 #include "prefilter_cv.h"
+#include "constants.h"
 
 namespace imago
 {
-	/* Affects: recognition quality (LO), recognition time(LO)
-	   Depends on: jpeg artifacts / camera noise / etc(LO)
-	   */
-	const int    INTERPOLATION_LEVEL = 2;      // (2*n+1)^2 kernel for mean filter will be used
-
-	/* Affects: recognition quality(LO), recognition time(HI)
-		*/
-	const int    MAX_CROPS = 1;                
-	const int    MAX_REFINE_ITERS = 2;
-
-	// ---------------------------------------------------------------------------------
-
 	void AdaptiveFilter::interpolateImage(const AdaptiveFilter& src, int radius) 
 	{
 		logEnterFunction();
@@ -77,12 +66,6 @@ namespace imago
 				cx = ncx; cy = ncy;
 			}
 
-			/*if (iterations > 0 && at(cx,cy).intensity > 250) // glare // TODO: !!!
-			{
-				iterations /= 2;
-				goto restart;				
-			}*/
-			
 			unsigned char d = absolute(at(cx,cy).intensity - at(sx,sy).intensity);
 			
 			// small fixup to avoid recalculation if diff too big
@@ -223,16 +206,21 @@ namespace imago
 			for (int y = 0; y < bitmask.getHeight(); y++)
 				if (bitmask.getByte(x, y) == 0)
 					inkPercentage += 1.0;
-		inkPercentage /= bitmask.getWidth() * bitmask.getHeight() * 2;
-		inkPercentage *= 1.2;
+		inkPercentage /= bitmask.getWidth() * bitmask.getHeight();
+		inkPercentage *= consts::AdaptiveFilter::GuessInkThresholdFactor;
 		
 		// update line thickness
 		double lineThickness = estimateLineThickness(bitmask);
 
-		if (lineThickness <= 1.0) lineThickness = 1.0;
-		if (lineThickness >= 10.0) lineThickness = 10.0;
-		if (inkPercentage > 0.15) inkPercentage = 0.15;
-		if (inkPercentage < 0.001) inkPercentage = 0.001;
+		if (lineThickness < consts::GeneralFiltering::MinimalLineThickness) 
+			lineThickness = consts::GeneralFiltering::MinimalLineThickness;
+		if (lineThickness > consts::GeneralFiltering::MaximalLineThickness)
+			lineThickness = consts::GeneralFiltering::MaximalLineThickness;
+
+		if (inkPercentage < consts::GeneralFiltering::MinimalInkPercentage) 
+			inkPercentage = consts::GeneralFiltering::MinimalInkPercentage;
+		if (inkPercentage > consts::GeneralFiltering::MaximalInkPercentage) 
+			inkPercentage = consts::GeneralFiltering::MaximalInkPercentage;		
 
 		getLogExt().append("Line thickness", lineThickness);
 		getLogExt().append("Ink percentage", inkPercentage);
@@ -251,14 +239,14 @@ namespace imago
 		diffStepRange = 1; // one step pixels count
 		diffIterations = lineThickness; // max steps count
 
-		while (diffIterations > 4)
+		while (diffIterations > consts::AdaptiveFilter::MaxDiffIterations)
 		{
 			diffStepRange++;
 			diffIterations = lineThickness / diffStepRange;
 		}
 
 		int diffFullPath  = diffStepRange * diffIterations;
-		int winSize = 2 * lineThickness;
+		int winSize = consts::AdaptiveFilter::WindowSizeFactor * lineThickness;
 
 		double inkTresh = 1.0 - probablyInkPercentage;
 		double refineTresh = inkTresh; // fixed, cause it's meaning is relative
@@ -282,10 +270,10 @@ namespace imago
 
 		Rectangle crop(0, 0, this->width(), this->height());
 		AdaptiveFilter interpolated(this->width(), this->height());
-		interpolated.interpolateImage(*this, INTERPOLATION_LEVEL);
+		interpolated.interpolateImage(*this, consts::AdaptiveFilter::InterpolationLevel);
 
 		// maximal crops allowed loop
-		for (int crop_attempt = 0; crop_attempt <= MAX_CROPS; crop_attempt++)
+		for (int crop_attempt = 0; crop_attempt <= consts::AdaptiveFilter::MaxCrops; crop_attempt++)
 		{
 			int bound = interpolated.getIntensityBound(inkTresh, crop);
 			ImageAdapter img(*this, crop, bound);
@@ -293,12 +281,12 @@ namespace imago
 
 			int addedPixels = ws.appendData(img, diffIterations);
 
-			if (!allowCrop || crop_attempt == MAX_CROPS || !ws.needCrop(crop, winSize))
+			if (!allowCrop || crop_attempt == consts::AdaptiveFilter::MaxCrops || !ws.needCrop(crop, winSize))
 			{
 				getLogExt().appendText("Enter refinements loop");
 
 				// refine loop
-				for (int refine_iter = 1; refine_iter <= MAX_REFINE_ITERS; refine_iter++)
+				for (int refine_iter = 1; refine_iter <= consts::AdaptiveFilter::MaxRefineIterations; refine_iter++)
 				{
 					ws.updateRefineMap(diffFullPath);
 

@@ -68,9 +68,9 @@ namespace imago
       int operator() ( const std::pair<Edge, Edge> &a,
                        const std::pair<Edge, Edge> &b )
       {
-         double la = 0.5 * (types[a.first].length + types[a.second].length);
-         double lb = 0.5 * (types[b.first].length + types[b.second].length);
-         return (la > lb);
+         double average_len_a = 0.5 * (types[a.first].length + types[a.second].length);
+         double average_len_b = 0.5 * (types[b.first].length + types[b.second].length);
+         return average_len_a > average_len_b;
       }
    private:
       typename boost::property_map<Graph, boost::edge_type_t>::type

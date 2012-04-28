@@ -6,8 +6,6 @@
 
 namespace imago
 {
-	const int MAX_IMAGE_DIMENSIONS = 1560;
-
 	class PixelIterableInterface
 	{
 	public:

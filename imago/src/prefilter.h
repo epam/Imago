@@ -2,6 +2,7 @@
 #define _prefilter_h_
 
 #include <vector>
+#include "constants.h"
 
 namespace imago
 {
@@ -25,6 +26,6 @@ namespace imago
    void prefilterImage( Image &image, const CharacterRecognizer &cr );
 
    bool   isCircle(Image &seg);
-   double estimateLineThickness(Image &bwimg, int grid = 10);
+   double estimateLineThickness(Image &bwimg, int grid = consts::Estimation::DefaultLineGridSize);
 }
 #endif /* _prefilter_h_ */

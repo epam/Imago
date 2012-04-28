@@ -4,12 +4,10 @@
 #include "pixel_boundings.h"
 #include "color_channels.h"
 #include "thin_filter2.h"
+#include "constants.h"
 
 namespace imago
 {	
-	static const double RECTANGULAR_AREA_THRESHOLD = 0.30; // %, minimal rectangle coverage of image
-	static const double RECTANGULAR_PASS_THRESHOLD = 0.95; // %, for rectangle testing
-
 	Points2i WeakSegmentator::getNeighbors(const Image& img, const Vec2i& p, int range)
 	{
 		Points2i neighb;
@@ -52,7 +50,7 @@ namespace imago
 						average_dy += (double)(current.y - p[u].y) / p.size();
 					}
 
-					if (fabs(average_dx) < 1.5 && fabs(average_dy) < 1.5)
+					if (fabs(average_dx) < consts::WeakSegmentator::MinD && fabs(average_dy) < consts::WeakSegmentator::MinD)
 					{
 						// draw square
 						for (int j = -max_len/2; j <= max_len/2; j++)
@@ -73,11 +71,11 @@ namespace imago
 						// draw trinagle
 						double norm = sqrt(average_dx*average_dx + average_dy*average_dy);
 						double dx = average_dx/norm, dy = average_dy/norm;
-						double subpx = 0.5;
+						double subpx = consts::WeakSegmentator::Subpixel;
 
 						for (int j = (int)(-max_len / subpx); j < (int)(max_len / subpx); j++)
 						{
-							int bnd = round(absolute(j)*0.9 + 2);
+							int bnd = round(absolute(j)*consts::WeakSegmentator::RefineWidth + 2);
 							for (int k = -bnd; k <= bnd; k++)
 							{
 								int _x = round((double)x + dx * (double)(j*subpx) - dy * (double)(k*subpx));
@@ -98,7 +96,7 @@ namespace imago
 			for (int y = 0; y < height(); y++)
 				for (int x = 0; x < width(); x++)
 					if (at(x, y).refineGeneration == currentRefineGeneration)
-						thin.getByte(x, y) = 128; // only visual
+						thin.getByte(x, y) = 128; // only visual effect
 
 			getLogExt().appendImage("Image with endvectors", thin);
 		}
@@ -128,6 +126,7 @@ namespace imago
 
 		Points2i result;
 
+		// only visual effect
 		const int DECORNERED = 200;
 		const int TRACED = 230;
 		const int ENDPOINT = 1;		
@@ -232,7 +231,7 @@ namespace imago
 	{
 		logEnterFunction();
 
-		int area_pixels = round(width() * height() * RECTANGULAR_AREA_THRESHOLD);
+		int area_pixels = round(width() * height() * consts::WeakSegmentator::RectangularCropAreaTreshold);
 		for (size_t id = 1; id <= SegmentPoints.size(); id++)
 		{			
 			Rectangle bounds;
@@ -257,8 +256,8 @@ namespace imago
 	{
 		Points2i& p = SegmentPoints[id];
 			
-		int map_x[MAX_IMAGE_DIMENSIONS] = {0};
-		int map_y[MAX_IMAGE_DIMENSIONS] = {0};
+		int map_x[consts::MaxImageDimensions] = {0};
+		int map_y[consts::MaxImageDimensions] = {0};
 		for (Points2i::iterator it = p.begin(); it != p.end(); it++)
 		{
 			map_x[it->x]++;
@@ -287,7 +286,7 @@ namespace imago
 						good++;
 					else
 						bad++;
-				if ((double)good / (good+bad) > RECTANGULAR_PASS_THRESHOLD)
+				if ((double)good / (good+bad) > consts::WeakSegmentator::RectangularCropFitTreshold)
 				{
 					bound = Rectangle((int)x1c, (int)y1c, (int)x2c, (int)y2c, 0);
 					return true;

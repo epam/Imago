@@ -26,6 +26,7 @@
 #include "recognition_settings.h"
 #include "segment.h"
 #include "skeleton.h"
+#include "constants.h"
 
 using namespace imago;
 
@@ -54,15 +55,9 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const SegmentDeque &se
 
    RecognitionSettings &rs = getSettings();
 
-   //if (rs["DebugSession"])
-   //{
-   //   ImageUtils::saveImageToFile(tmp, "output/tmp.png");
-   //}
    getLogExt().appendImage("Working image", tmp);
 
-   //TODO: We were thinking about refactoring it.
    extract(gd, tmp, graph);
-
 }
 
 void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skeleton &graph )
@@ -98,38 +93,17 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
 
 		  double dist = Vec2d::distance(p1, p2);
 
-		  if (dist > 2.0)
+		  if (dist > consts::GraphExtractor::MinimalDistTresh)
 			 graph.addBond(p1, p2);      
 	   }
 
 	   RecognitionSettings &rs = getSettings();
 
-	   /*if (getLogExt().loggingEnabled()) // rs["DebugSession"])
-	   {
-		  Image tmp;
-
-		  tmp.emptyCopy(img);
-		  ImageDrawUtils::putGraph(tmp, (Skeleton::SkeletonGraph)graph);
-		  //ImageUtils::saveImageToFile(tmp, "output/graph_begin.png");		  
-	   }*/
-
-	   
-
 	   getLogExt().appendSkeleton("Source skeleton", (Skeleton::SkeletonGraph)graph);	   
 
 	   graph.modifyGraph();
 
-	   /*if (getLogExt().loggingEnabled()) // rs["DebugSession"])
-	   {
-		  Image tmp;
-
-		  tmp.emptyCopy(img);
-		  ImageDrawUtils::putGraph(tmp, (Skeleton::SkeletonGraph)graph);
-		  //ImageUtils::saveImageToFile(tmp, "output/graph_mod.png");		  
-	   }*/
 	   getLogExt().appendSkeleton("Modified skeleton", (Skeleton::SkeletonGraph)graph);
-
-	 
    }
    
 }

@@ -24,6 +24,7 @@
 #include "image_draw_utils.h"
 #include "current_session.h"
 #include "image_utils.h"
+#include "constants.h"
 
 using namespace imago;
 
@@ -185,8 +186,8 @@ DoubleBondMaker::Result DoubleBondMaker::_hard()
    if (fe != se)
       boost::remove_vertex(se, _g);
 
-   bool left = l1 > 0.3 * _avgBondLength,
-        right = l2 > 0.3 * _avgBondLength;
+   bool left = l1 > consts::DoubleBondMaker::LeftLengthTresh * _avgBondLength;
+   bool right = l2 > consts::DoubleBondMaker::RightLengthTresh * _avgBondLength;
 
    if (left && right)
    {
@@ -276,12 +277,12 @@ DoubleBondMaker::Result DoubleBondMaker::operator()( std::pair<Edge,Edge> edges 
           sl = bs.length;
    double mult;
 
-   if (_avgBondLength > 100)
-      mult = 0.5;
-   else if (_avgBondLength > 85)
-      mult = 0.75;
+   if (_avgBondLength > consts::DoubleBondMaker::Case1LengthTresh)
+	   mult = consts::DoubleBondMaker::Case1Factor;
+   else if (_avgBondLength > consts::DoubleBondMaker::Case2LengthTresh)
+	   mult = consts::DoubleBondMaker::Case2Factor;
    else
-      mult = 0.97;
+	   mult = consts::DoubleBondMaker::Case3Factor;
 
    //printf("SIMPLE OR HARD %lf %lf\n", fl - sl, mult * _avgBondLength);
    if (fl - sl < mult * _avgBondLength)

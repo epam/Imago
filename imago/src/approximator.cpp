@@ -24,6 +24,7 @@
 #include "algebra.h"
 #include "image_utils.h"
 #include "image_draw_utils.h"
+#include "constants.h"
 
 using namespace imago;
 
@@ -50,18 +51,7 @@ void SimpleApproximator::apply( double eps, const Points2d &input,Points2d &outp
       _Line &l1 = lines[i];
       _Line &l2 = lines[i + 1];
 
-      /*
-      ratio = lengths[i] / lengths[i + 1];
-      if (ratio < 0.3 || ratio > 3.3)
-         mult = 0.6;
-      else if (ratio < 0.7 || ratio > 10.0 / 7)
-         mult = 0.485;
-      else
-         mult = 0.27;
-      */
-
-      //changed in "handwriting"
-      if (absolute<double>(l1.a * l2.b - l2.a * l1.b) < eps) //"Constants" //0.65
+      if (absolute<double>(l1.a * l2.b - l2.a * l1.b) < eps)
       {
          l2.a = (l1.a + l2.a) / 2;
          l2.b = (l1.b + l2.b) / 2;
@@ -78,15 +68,15 @@ void SimpleApproximator::apply( double eps, const Points2d &input,Points2d &outp
 }
 
 void SimpleApproximator::_prepare( const Points2d &poly, IntVector &sample ) const
-{
-   double epsilons[2] = {1.13, 0.8}; //"Constants" //1.33, 1.2
+{   
    double dist = 0;
    sample.push_back(0);
 
    for (int l = 0; l < 1; l++)
    {
       int i = 0;
-      double epsilon = epsilons[l];
+	  double epsilon = (l == 0) ? consts::Approximator::ApproxEps1 : consts::Approximator::ApproxEps2;
+
 
       while (i < (int)poly.size() - 2)
       {
@@ -131,8 +121,9 @@ void SimpleApproximator::_calc_line( const Points2d &input, int begin, int end, 
    int n = end - begin;
    double dev = Sx2 - 2 * (Sx / n) * Sx + Sx * Sx / n;
    dev = dev / (n - 1);
+   
    //TODO: consider vert lines carefully
-   if (dev < 1.0) //"Constants"
+   if (dev < consts::Approximator::CalcLineTresh)
    {
       res.a = 1;
       res.b = 0;

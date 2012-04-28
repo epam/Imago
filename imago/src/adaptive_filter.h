@@ -31,9 +31,7 @@ namespace imago
 		virtual ~AdaptiveFilter() { }
 
 		 // the really main method
-		void filterImage(Image& img, bool allowCrop = true,
-			             double probablyInkPercentage = 0.005,
-						 int lineThickness = 6);
+		void filterImage(Image& img, bool allowCrop, double probablyInkPercentage, int lineThickness);
 
 		
 		// TODO: provide getters/setters
