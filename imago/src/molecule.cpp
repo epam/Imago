@@ -22,6 +22,7 @@
 #include "segment.h"
 #include "log_ext.h"
 #include "recognition_settings.h"
+#include "constants.h"
 
 using namespace imago;
 
@@ -113,12 +114,12 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
 {
    double space, space2;
    double bl = bondLength();
-   if (bl > 100.0)
-      space = 0.3 * bl; //0.3
-   else if (bl > 85)
-      space = 0.4 * bl; //0.5
+   if (bl > consts::Molecule::len1)
+	   space = consts::Molecule::space1 * bl;
+   else if (bl > consts::Molecule::len2)
+      space = consts::Molecule::space2 * bl; 
    else
-      space = 0.46 * bl; //0.7
+      space = consts::Molecule::space3 * bl; 
 
 //   printf("****: %lf %lf\n", bl, space);
 
@@ -136,7 +137,7 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
 
 
       nearest.clear();
-	  space = l.MaxSymbolWidth() * 1.5;
+	  space = l.MaxSymbolWidth() * consts::Molecule::spaceMul;
 	  space2 = l.rect.width < l.rect.height ? l.rect.width : l.rect.height;
 	   
 	     boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type
@@ -145,7 +146,7 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
       BGL_FORALL_EDGES(e, _g, SkeletonGraph)
       {
          double d1, d2;
-         d1 = d2 = 1e16;
+         d1 = d2 = 1e16; // inf
 
 		 if(boost::degree(boost::source(e, _g), _g) > 1 &&
 			 boost::degree(boost::target(e, _g), _g) > 1)
@@ -209,8 +210,8 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
             try
             {
                double ang = Vec2d::angle(n1, n2);
-               if (fabs(ang) < 0.25 ||
-                   fabs(ang - PI) < 0.25)
+			   if (fabs(ang) < consts::Molecule::angTresh ||
+                   fabs(ang - PI) < consts::Molecule::angTresh)
                   throw Exception("Jumping to catch");
                else
                   m.copy(Algebra::linesIntersection(v_a, v_c, v_b, v_d));
@@ -280,7 +281,7 @@ void Molecule::aromatize( Points2d &aromatic_centers )
 
       do
       {         
-         distance = 1e10;
+         distance = 1e10; // inf
 
          BGL_FORALL_ADJ(cur_vertex, u, _g, SkeletonGraph)
          {

@@ -261,7 +261,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 		 GraphicsDetector gd(&cvApprox, lnThickness * consts::ChemicalStructureRecognizer::LineVectorizationFactor);
 #else
          SimpleApproximator sApprox;
-         GraphicsDetector gd(&sApprox, 0.3);
+         GraphicsDetector gd(&sApprox, 0.3); // no one cares
 #endif
          TIME(gd.extractRingsCenters(layer_graphics, ringCenters),
             "Extracting aromatic rings");

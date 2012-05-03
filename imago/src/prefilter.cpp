@@ -513,7 +513,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 	img.clear();
 	ImageUtils::copyMatToImage(matred, img);
 	//if(strongThresh)
-	_unsharpMask(img, consts::Prefilter::UnsharpSize, consts::Prefilter::UnsharpAmount, 0);
+	_unsharpMask(img, consts::Prefilter::UnsharpSize, (float)consts::Prefilter::UnsharpAmount, 0);
 	ImageUtils::copyImageToMat(img, matred);
 	img.clear();
    
@@ -707,7 +707,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 		if(ymax < (sy + sh))
 			ymax = (sy +sh);
 		double sarea = (s->getHeight()*s->getWidth()*s->getDensity()) / maxDensity;
-		if(sarea > 0.3)
+		if(sarea > consts::Prefilter::SAreaTresh)
 		{
 			center.add( s->getCenter());
 			accumSize++;
@@ -745,7 +745,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    int mad = medInd % 2 != 0? deviations[medInd>>1]:(deviations[medInd>>1] + deviations[(medInd>>1) - 1])/2;
 
    psegs.clear();
-   float koeff = consts::Prefilter::MagicCoeff;
+   double koeff = consts::Prefilter::MagicCoeff;
 
    if (std::max(image.getWidth(), image.getHeight()) < 300) koeff *= 2.0;
 

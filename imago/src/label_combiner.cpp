@@ -192,7 +192,7 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
          int h4 = (int)absolute(rect.y + rect.height - seg_rect.y -
                                 consts::LabelCombiner::RectHeightRatio * seg_rect.height);
 
-		 if (h1 > consts::LabelCombiner::H1SuperscriptSpace * _space && //TODO: Handwriting.Original 0.5 //superscript
+		 if (h1 > consts::LabelCombiner::H1SuperscriptSpace * _space &&
 			 (h2 > consts::LabelCombiner::H2LowercaseSpace * _space || h3 > consts::LabelCombiner::H3LowercaseSpace * _space) && //lowercase letter
 			 h4 > consts::LabelCombiner::H4SubscriptSpace * _space)                          //subscript
             continue;
@@ -265,8 +265,8 @@ void LabelCombiner::_locateLabels()
       ++next;
       //TODO: Find an appropriate length!
 	  // TODO!
-	  if ((fabs(y_e - y_b) < width && fabs((double)(s_b->getCenter().x - s_e->getCenter().x)) < width/2)|| 
-		  (fabs(x_e - x_b) < width && fabs((double)(s_b->getCenter().y - s_e->getCenter().y)) < height))//(_space * 0.5 + 1.25 * _cap_height)) // ||
+	  if ((fabs(y_e - y_b) < width && fabs((double)(s_b->getCenter().x - s_e->getCenter().x)) < width/2) || 
+		  (fabs(x_e - x_b) < width && fabs((double)(s_b->getCenter().y - s_e->getCenter().y)) < height))
           //(fabs(k) > _parLinesEps && fabs(fabs(k) - PI) > _parLinesEps &&
           // fabs(k - PI_2) > _parLinesEps &&
           // fabs(fabs(k - PI_2) - PI) > _parLinesEps))

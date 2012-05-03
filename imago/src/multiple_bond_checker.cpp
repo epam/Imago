@@ -19,6 +19,7 @@
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/iteration_macros.hpp"
 #include "boost/foreach.hpp"
+#include "constants.h"
 
 using namespace imago;
 
@@ -26,15 +27,14 @@ MultipleBondChecker::MultipleBondChecker( Skeleton &s ) : _s(s), _g(_s.getGraph(
 {
    _avgBondLength = _s.bondLength();
 
-   if (_avgBondLength > 125)
-      _multiBondErr = 0.35; //0.18; //handwriting
-   else if (_avgBondLength > 85)
-      _multiBondErr = 0.4;
+   if (_avgBondLength > consts::MultipleBond::LongBond)
+	   _multiBondErr = consts::MultipleBond::LongErr; 
+   else if (_avgBondLength > consts::MultipleBond::MediumBond)
+	   _multiBondErr = consts::MultipleBond::MediumErr;
    else
-      _multiBondErr = 0.65; //TODO: handwriting, original: 0.4
+	   _multiBondErr = consts::MultipleBond::DefaultErr; 
    
-   //_parLinesEps = getSettings()["ParLinesEps"];
-   _parLinesEps = 0.335;
+   _parLinesEps = consts::MultipleBond::ParLinesEps;
 }
 
 MultipleBondChecker::~MultipleBondChecker()
@@ -89,10 +89,8 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       db = Vec2d::distance(p1, sb_pos);
       ratio = bs.length / bf.length;
    }
-//#ifdef DEBUG
-//   printf("\t\t%lf\n", ratio);
-//#endif
-   if (ratio > 7.5)
+
+   if (ratio > consts::MultipleBond::DoubleRatioTresh)
       return false;
 
    double dbb = Vec2d::distance(fb_pos, sb_pos) + Vec2d::distance(fe_pos, se_pos),
@@ -114,7 +112,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
          return false;
 
       dd = Vec2d::distance(m1, m2); 
-      if (dd < 0.085 * _avgBondLength)      
+	  if (dd < consts::MultipleBond::DoubleCoef * _avgBondLength)      
          return false;
    }
 
@@ -122,17 +120,17 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       std::swap(db, de);
 
    if (bf.length < bs.length)
-      d = 0.5 * (Algebra::distance2segment(fb_pos, sb_pos, se_pos) +
+      d = 0.5 * (Algebra::distance2segment(fb_pos, sb_pos, se_pos) + // average
                  Algebra::distance2segment(fe_pos, sb_pos, se_pos));
    else
-      d = 0.5 * (Algebra::distance2segment(sb_pos, fb_pos, fe_pos) +
+      d = 0.5 * (Algebra::distance2segment(sb_pos, fb_pos, fe_pos) + // average
                  Algebra::distance2segment(se_pos, fb_pos, fe_pos));
 
 //#ifdef DEBUG
 //   printf("DC0: %lf\n", d);
 //#endif   
    
-   if (!(dm < 0.98 * de && dm < 0.98 * db))
+   if (!(dm < consts::MultipleBond::DoubleMagic1 * de && dm < consts::MultipleBond::DoubleMagic2 * db))
    {
       return false;
    }
@@ -161,7 +159,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       if (d1 > d || d2 > d)
          continue;
       
-      if (coef > 0.1 && coef < 0.9)
+	  if (coef > consts::MultipleBond::DoubleTreshMin && coef < consts::MultipleBond::DoubleTreshMax)
       {
          return false;
       }
@@ -183,28 +181,28 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
 //   printf("DC1: %d %d\n", maxLength, minLength);
 //#endif   
    
-   if (maxLength > 160.0)
-      _multiBondErr = 0.08; //0.18; //handwriting
-   else if (maxLength > 125.0)
+   if (maxLength > consts::MultipleBond::MaxLen1)
+	   _multiBondErr = consts::MultipleBond::mbe1;
+   else if (maxLength > consts::MultipleBond::MaxLen2)
    {
-      if (minLength > 90.0)
-         _multiBondErr = 0.157;
+	   if (minLength > consts::MultipleBond::MinLen1)
+         _multiBondErr = consts::MultipleBond::mbe2;
       else
-         _multiBondErr = 0.203;
+         _multiBondErr = consts::MultipleBond::mbe3;
    }
-   else if (maxLength > 110.0)
-      _multiBondErr = 0.185;
-   else if (maxLength > 108.0)
+   else if (maxLength > consts::MultipleBond::MaxLen3) // TODO: WARNING: some trash here!
+      _multiBondErr = consts::MultipleBond::mbe4;
+   else if (maxLength > consts::MultipleBond::MaxLen4)
    {
-      if (minLength > 75.0)
-         _multiBondErr = 0.165;
+	   if (minLength > consts::MultipleBond::MinLen2)
+         _multiBondErr = consts::MultipleBond::mbe5;
       else
-         _multiBondErr = 0.20;
+         _multiBondErr = consts::MultipleBond::mbe6;
    }
-   else if (maxLength > 85.0)
-      _multiBondErr = 0.38;
+   else if (maxLength > consts::MultipleBond::MaxLen5)
+      _multiBondErr = consts::MultipleBond::mbe7;
    else
-      _multiBondErr = 0.5; //0.65 //TODO: handwriting, original: 0.4
+	   _multiBondErr = consts::MultipleBond::mbe_def;
 
 #ifdef DEBUG
    printf("DC:%d; %lf\nDC: %lf < %lf\n", maxLength, _multiBondErr, d, _multiBondErr * maxLength);

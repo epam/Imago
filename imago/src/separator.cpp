@@ -42,6 +42,7 @@
 #include "graph_extractor.h"
 #include "stat_utils.h"
 #include "algebra.h"
+#include "constants.h"
 
 using namespace imago;
 
@@ -51,9 +52,9 @@ Separator::Separator( SegmentDeque &segs, const Image &img ) : _segs(segs), _img
 
    RecognitionSettings &rs = gSession.get()->settings();
 
-   rs.set("SegmentVerEps", 4);
-   rs.set("SymHeightErr", 6);
-   rs.set("DoubleBondDist", 20);   
+   rs.set("SegmentVerEps", consts::Separator::SegmentVerEps);
+   rs.set("SymHeightErr", consts::Separator::SymHeightErr);
+   rs.set("DoubleBondDist", consts::Separator::DoubleBondDist);   
 }
 
 void _getHuMomentsC(const Image &img, double hu[7])
@@ -73,51 +74,11 @@ void _getHuMomentsC(const Image &img, double hu[7])
 
 int Separator::HuClassifier(double hu[7])
 {
-	//double matpc[][3] = {
-	//	{0.239445987460827,	0.0778149678928670,	-0.384740698680061},
-	//	{0.889609936663605,	-0.366408195402987,	-0.0670250155791175},
-	//	{0.304641979881942,	0.869553202214745,	-0.191900867468113},
-	//	{0.0666904782761663,	0.141855697993849,	0.0667214690651129},
-	//	{0.159876932055093,	0.222103596196416,	0.671526195889114},
-	//	{0.151946955159813,	0.0662951511185019,	0.578530144516904},
-	//	{-0.0731909372361464,	0.172391995385271,	-0.143387533685890}
-	//};
-	//double pc1 = 0.0, pc2 = 0.0, pc3 = 0.0;
-
-	//for(int i=0;i<7;i++)
-	//{
-	//	pc1 += matpc[i][0]*hu[i];
-	//	pc2 += matpc[i][1]*hu[i];
-	//	pc3 += matpc[i][2]*hu[i];
-	//}
-
-	//if(pc1 > 0.5479 || (pc1> 0.321724 && pc1 < 0.523859) || 
-	//	(pc1<0.321724 && pc3>-0.0966595))//0.83333
-	//	return SEP_BOND;
-	//if(pc1< 0.5479 && pc1 > 0.523859 || 
-	//	(pc1<0.321724 && pc3<-0.0966595)) //0.039735
-	//	return SEP_SYMBOL;
-
-	if(hu[1] > 0.204424 || (hu[1] <0.07919 && hu[0] < 0.248338))
+	if (hu[1] > consts::Separator::hu_1_1 || (hu[1] < consts::Separator::hu_1_2 && hu[0] < consts::Separator::hu_0_1))
 		return SEP_BOND;
-	if(hu[1] <0.07919 && hu[0] > 0.248338)
+	if (hu[1] < consts::Separator::hu_1_3 && hu[0] > consts::Separator::hu_0_2)
 		return SEP_SYMBOL;
-	return SEP_SUSPICIOUS;
 
-	///TODO: to be removed
-	if(hu[1] > 0.273411)
-		return SEP_BOND;
-	if(hu[1] > 0.1569 && hu[1] < 0.2734)
-		if(hu[4] > -0.00238)
-			return SEP_BOND;
-		else
-			return SEP_SYMBOL;
-	if(hu[1] < 0.157 && (hu[0] < 0.2483 && hu[2] > 0.0001 ||
-		hu[0] > 0.2483 && hu[1] > 0.079 && hu[1] < 0.117 ||
-		hu[0] > 0.2483 && hu[1] < 0.079 && hu[1] > 0.057 && hu[0] < 0.3125))
-		return SEP_BOND;
-	else
-		return SEP_SYMBOL;
 	return SEP_SUSPICIOUS;
 }
 
@@ -163,9 +124,9 @@ bool Separator::_bIsTextContext(SegmentDeque &layer_symbols, imago::Rectangle re
 	bool yfirstSeparable = Algebra::rangesSeparable(rec.y, rec.y+rec.height, firstNear->getY(), firstNear->getX() + firstNear->getHeight());
 
 	if((xfirstSeparable || yfirstSeparable) && 
-		rec.height < cap_height + 3*line_thickness && 
-		rec.height > cap_height*0.5 &&
-		dist1 < 1.5*cap_height)
+		rec.height < cap_height + consts::Separator::ltFactor1 * line_thickness && 
+		rec.height > cap_height * consts::Separator::capHeightMin &&
+		dist1 < consts::Separator::capHeightMax * cap_height)
 		return true;
 	return false;
 }
@@ -181,7 +142,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 	 double lnThickness = getSettings()["LineThickness"];
     CvApproximator cvApprox;
 	imago::Skeleton graph;
-    GraphicsDetector gd(&cvApprox, lnThickness * 1.5);
+    GraphicsDetector gd(&cvApprox, lnThickness * consts::Separator::gdConst);
 
 	Image timg(_img.getWidth(), _img.getHeight());
 	timg.fillWhite();
@@ -220,7 +181,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		if(lengths[i] > max)
 			max = lengths[i];
 	}
-	if(fabs(min - max) < 0.01)
+	if(fabs(min - max) < 0.01) // eps
 		return;
 
 	//avg_size = StatUtils::Median(lengths.begin(), lengths.end());
@@ -269,7 +230,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		c1 = sum1 / count1;
 		c2 = sum2 / count2;
 	
-	}while(fabs(c1 - c1_o) > 0.1 || fabs(c2 - c2_o) > 0.1);
+	}while(fabs(c1 - c1_o) > 0.1 || fabs(c2 - c2_o) > 0.1); // eps
 
 	if(count1 == 0 || count2 == 0)
 		return;
@@ -534,11 +495,9 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 
 
-				double surf_coeff = 3.0;
-				 if(//mark == SEP_SYMBOL && 
-					//(!(extracted.getHeight() >= cap_height - sym_height_err && extracted.getHeight() <= cap_height + sym_height_err && extracted.getHeight() <= cap_height * 2 && extracted.getWidth() <= 1.8 * cap_height)
-					//|| 
-					extracted.getHeight() < 0.25 *cap_height || (symbRects[i].height * symbRects[i].width > surf_coeff * cap_height * cap_height))
+				double surf_coeff = consts::Separator::SurfCoef;
+
+				 if(extracted.getHeight() < consts::Separator::capHeightRatio *cap_height || (symbRects[i].height * symbRects[i].width > surf_coeff * cap_height * cap_height))
 				 {
 					mark = SEP_SUSPICIOUS;
 					getLogExt().appendText("mark -> SEP_SUSPICIOUS");
@@ -571,9 +530,9 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 				 if (s->getHeight() >= cap_height - sym_height_err && 
 					 s->getHeight() <= cap_height + sym_height_err &&
 					 s->getHeight() <= cap_height * 2 &&
-					 s->getWidth() <= 1.8 * cap_height) 
+					 s->getWidth() <= consts::Separator::capHeightRatio2 * cap_height) 
 				 {
-					if (s->getRatio() > 0.96 && s->getRatio() < 1.05)
+					 if (s->getRatio() > consts::Separator::getRatio1 && s->getRatio() < consts::Separator::getRatio2)
 					{
 					   if (_analyzeSpecialSegment(s, layer_graphics, layer_symbols))
 					   {
@@ -582,10 +541,10 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 					   }
 					}
 					if (s->getRatio() > adequate_ratio_max)
-					   if (ImageUtils::testSlashLine(*s, 0, 3.2)) //TODO: To rs immediately. Original is 1.0
+						if (ImageUtils::testSlashLine(*s, 0, consts::Separator::testSlashLine1))
 						  mark = SEP_BOND;
 					   else
-						  mark = LineCount[i] != 4?SEP_SYMBOL:SEP_BOND;
+						  mark = (LineCount[i] != 4) ? SEP_SYMBOL : SEP_BOND;
 					else
 					   if (s->getRatio() < adequate_ratio_min)
 						  if (_testDoubleBondV(*s))
@@ -593,7 +552,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 						  else
 							 mark = SEP_SUSPICIOUS;
 					   else
-						  if (ImageUtils::testSlashLine(*s, 0, 3.0)) //TODO: To rs immediately. Original is 1.3 
+						  if (ImageUtils::testSlashLine(*s, 0, consts::Separator::testSlashLine2))
 							 mark = SEP_BOND;
 						  else 
 							 mark = SEP_SUSPICIOUS;
@@ -605,28 +564,9 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 				 if(mark == SEP_SYMBOL)
 				 {
-					 
-
-					  /*left = (symbRects[i].x - line_thick) < 0 ? symbRects[i].x : (symbRects[i].x - line_thick);
-					  top = (symbRects[i].y - line_thick) < 0 ? symbRects[i].y : (symbRects[i].y - line_thick);
-					  right = (symbRects[i].x + symbRects[i].width + line_thick) > timg.getWidth()? symbRects[i].x + symbRects[i].width :
-					 																(symbRects[i].x + symbRects[i].width + line_thick);
-					  bottom = (symbRects[i].y + symbRects[i].height + line_thick) > timg.getHeight() ? symbRects[i].y + symbRects[i].height:
-					 (symbRects[i].y + symbRects[i].height + line_thick);*/
-					 
-					 //TODO: combine segmented lines and segmentation to get only the useful part
-					/*Segment *s = new Segment();
-					 s->getX() = left;
-					 s->getY() = top;
-
-					 s->init(right - left +1, bottom - top + 1);*/
-					 //timg.extract(left, top, right, bottom, *s);
-
-					 //memcpy(s->getData(), extracted.getData(), extracted.getWidth()*extracted.getHeight() *sizeof(byte));
 					 imago::ImageUtils::cutSegment(timg, *s, false, 255);
 					 layer_symbols.push_back(s);
-					 found_symbol = true;
-					 
+					 found_symbol = true;					 
 				 }
 				 else
 					 delete s;
@@ -706,7 +646,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 
 		if(mark == SEP_SYMBOL && 
 			(!(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= cap_height)
-			|| s->getHeight() < 0.25 *cap_height)
+			|| s->getHeight() < consts::Separator::capHeightRatio *cap_height)
 			)
 			mark = SEP_SUSPICIOUS;
 		
@@ -724,9 +664,9 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 			 if (s->getHeight() >= cap_height - sym_height_err && 
 				 s->getHeight() <= cap_height + sym_height_err &&
 				 s->getHeight() <= cap_height * 2 &&
-				 s->getWidth() <= 1.8 * cap_height) 
+				 s->getWidth() <= consts::Separator::capHeightRatio2 * cap_height) 
 			 {
-				if (thinseg->getRatio() > 0.96 && thinseg->getRatio() < 1.05)
+				 if (thinseg->getRatio() > consts::Separator::getRatio1 && thinseg->getRatio() < consts::Separator::getRatio2)
 				{
 				   if (_analyzeSpecialSegment(thinseg, layer_graphics, layer_symbols))
 				   {
@@ -735,7 +675,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 				   }
 				}
 				if (thinseg->getRatio() > adequate_ratio_max)
-				   if (ImageUtils::testSlashLine(*thinseg, 0, 3.2)) //TODO: To rs immediately. Original is 1.0
+					if (ImageUtils::testSlashLine(*thinseg, 0, consts::Separator::testSlashLine1))
 					  mark = SEP_BOND;
 				   else
 					  mark = SEP_SPECIAL;
@@ -746,7 +686,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 					  else
 						 mark = SEP_SUSPICIOUS;
 				   else
-					  if (ImageUtils::testSlashLine(*thinseg, 0, 3.0)) //TODO: To rs immediately. Original is 1.3 
+					   if (ImageUtils::testSlashLine(*thinseg, 0, consts::Separator::testSlashLine2))
 						 mark = SEP_BOND;
 					  else 
 						 mark = SEP_SYMBOL;
@@ -758,15 +698,15 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 
 
 				if (mark != SEP_SYMBOL && 
-					s->getHeight() > 0.3 * cap_height && 
-					s->getHeight() < 2.0 * cap_height &&
-					s->getWidth() / s->getHeight() > 0.3 && 
-					s->getWidth() / s->getHeight() < 1.5 )
+					s->getHeight() > consts::Separator::extCapHeightMin * cap_height && 
+					s->getHeight() < consts::Separator::extCapHeightMax * cap_height &&
+					s->getWidth() / s->getHeight() > consts::Separator::extRatioMin && 
+					s->getWidth() / s->getHeight() < consts::Separator::extRatioMax )
 				{
 					int segs = _getApproximationSegmentsCount(s) - 1;
 					getLogExt().append("Approx segs", segs);
-					if (segs > 4 && isPossibleCharacter(*s) ||
-						segs > 8 && isPossibleCharacter(*s, true))
+					if (segs > consts::Separator::minApproxSegsStrong && isPossibleCharacter(*s) ||
+						segs > consts::Separator::minApproxSegsWeak && isPossibleCharacter(*s, true))
 					{
 						getLogExt().appendText("Segment moved to layer_symbols");
 						mark = SEP_SYMBOL;
@@ -820,17 +760,10 @@ int Separator::_getApproximationSegmentsCount( Segment *seg /*, SegmentDeque &la
    Image tmp;
    CvApproximator cvApprox;
    double lnThickness = getSettings()["LineThickness"];
-   GraphicsDetector gd(&cvApprox, lnThickness * 1.5);//7.0
+   GraphicsDetector gd(&cvApprox, lnThickness * consts::Separator::gdConst);
    Points2d lsegments;
-
    tmp.copy(*seg);
-
    gd.detect(tmp, lsegments);
-
-   /*if (lsegments.size() == 4)// && lsegments.size() <= 10)
-      return true;
-   else
-      return false;*/
    return lsegments.size();
 }
 
@@ -1009,7 +942,7 @@ bool Separator::_checkSequence( IntPair &checking, IntPair &symbols_graphics, do
    //TODO: consider to be dirty hack
    if (checking.second - checking.first == 1)
    {
-      if (_segs[checking.first]->getDensity() < 0.2)
+	   if (_segs[checking.first]->getDensity() < consts::Separator::minDensity)
       {
          symbols_graphics.first = 1;
          symbols_graphics.second = 0;
@@ -1024,7 +957,7 @@ bool Separator::_checkSequence( IntPair &checking, IntPair &symbols_graphics, do
 
    for (int i = checking.first; i < checking.second; i++)
    {
-      if (_segs[i]->getDensity() > 0.9 && (_segs[i]->getHeight() > _segs[i]->getWidth()))
+	   if (_segs[i]->getDensity() > consts::Separator::maxDensity && (_segs[i]->getHeight() > _segs[i]->getWidth()))
       {
          if (!_testDoubleBondV(*_segs[i]))
          {

@@ -36,6 +36,7 @@
 #include "output.h"
 #include "prefilter.h"
 #include "weak_segmentator.h"
+#include "constants.h"
 
 using namespace imago;
 
@@ -235,7 +236,7 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
 
    for (SegmentDeque::iterator it = segments.begin(); it != segments.end();)
    {      
-      if (absolute((*it)->getRatio() - 1.0) < 0.4)
+	   if (absolute((*it)->getRatio() - consts::GraphExtractor::RatioSub) < consts::GraphExtractor::RatioTresh)
       {
          Segment tmp;
 

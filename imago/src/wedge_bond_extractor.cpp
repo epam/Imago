@@ -116,7 +116,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
    for (size_t i = 0; i < segs_info.size(); i++)
       for (size_t j = i + 1; j < segs_info.size(); j++)
       {
-         if (segs_info[i].used && segs_info[j].used && fabs(segs_info[i].angle - segs_info[j].angle) < 0.1)
+		  if (segs_info[i].used && segs_info[j].used && fabs(segs_info[i].angle - segs_info[j].angle) < consts::WedgeBondExtractor::SomeTresh)
          {
             //f++;
             DoubleVector distances;
@@ -664,7 +664,7 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
    double S1 = fabs(p1.x * p2.y - p2.x * p1.y +
                    p2.x * p3.y - p3.x * p2.y +
                    p3.x * p4.y - p4.x * p3.y +
-                   p4.x * p1.y - p1.x * p4.y) * 0.5;
+                   p4.x * p1.y - p1.x * p4.y) * 0.5; // average
 
    double S2 = visited.size() / consts::WedgeBondExtractor::SingleUpS2Divisor;
 

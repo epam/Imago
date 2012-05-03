@@ -193,7 +193,7 @@ namespace imago
 
       //TODO: write more convenient criteria
       return (density > consts::ImageUtils::TestPlusDensity 
-		      && max_sq < consts::ImageUtils::TestPlusSq * s);  // 0.55
+		      && max_sq < consts::ImageUtils::TestPlusSq * s); 
    }
 
    bool ImageUtils::testMinus( const Segment &img, int cap_height )
