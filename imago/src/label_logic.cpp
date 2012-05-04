@@ -111,7 +111,7 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
          letters.erase(letters.begin() + 7); //cuz of Al
 	  }
 
-	  if (seg->getHeight() <= vars::getCapitalHeightError() * vars::getCapitalHeight())
+	  if (seg->getHeight() <= consts::LabelLogic::capHeightError * vars::getCapitalHeight())
 	  {
 		  getLogExt().appendText("Too small height branch");
          letters.clear();

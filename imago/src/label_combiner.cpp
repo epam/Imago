@@ -69,7 +69,7 @@ int LabelCombiner::_findCapitalHeight()
       {
 		  c = _cr.recognize(*seg, CharacterRecognizer::all, &d);
       }
-      catch(OCRException &e)
+	  catch(ImagoException &e)
       {
 		  logEnterFunction();
 		  getLogExt().appendText(e.what());
