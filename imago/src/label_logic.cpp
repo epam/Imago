@@ -664,7 +664,7 @@ void LabelLogic::recognizeLabel( Label& label )
       {         
 		 process(label.symbols[i], y);
       }
-      catch(OCRException &e)
+      catch(ImagoException &e)
       {
 		  try
 		  {
@@ -672,7 +672,7 @@ void LabelLogic::recognizeLabel( Label& label )
 			  getLogExt().appendText("Give another try to process_ext() now");
 			  process_ext(label.symbols[i], y);
 		  }
-		  catch(OCRException &e)
+		  catch(ImagoException &e)
 		  {
 				getLogExt().append("Exception", e.what());
 				_postProcess();
