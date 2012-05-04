@@ -280,7 +280,7 @@ int main( int argc, char **argv )
 
       delete output_name;
    }
-   else
+   else // output to stdout
    {
       int size;
       char *buf;

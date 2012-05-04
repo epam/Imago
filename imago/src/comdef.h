@@ -32,18 +32,6 @@ namespace boost
    BOOST_INSTALL_PROPERTY(edge, type);
 }
 
-#define DO_LOG
-
-#ifndef NDEBUG
-#define DEBUG
-#define DPRINTF printf
-#define DFPRINTF fprintf
-#else
-#undef DEBUG
-#define DPRINTF(...)
-#define DFPRINTF(...)
-#endif
-
 #ifdef _WIN32
 
 #define DLLEXPORT __declspec(dllexport)
@@ -79,6 +67,11 @@ namespace imago
    template <typename T> T absolute(const T& a)
    {
       return a > 0 ? a : -a;
+   }
+
+   template <typename T> int sign(const T& x)
+   {
+	   return (x > 0) ? 1 : ((x < 0) ? -1 : 0);
    }
 }
 

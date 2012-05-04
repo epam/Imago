@@ -64,7 +64,7 @@ void HistogramTools::GetStretchLimits(float &lowLim, float &hiLim)
    float hi_sat = 1.0f - low_sat;
    
    if(hi_sat < low_sat)
-	   throw Exception("Saturation level not correct");
+	   throw ImagoException("Saturation level is not correct");
 
    cv::calcHist(&matred, 1, channels, cv::Mat(),  hist, 1, histsize, ranges);
    double cumsum[256]; 

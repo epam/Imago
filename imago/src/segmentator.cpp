@@ -63,7 +63,7 @@ void Segmentator::_walkSegment( const Image &img, BitArray &visited,
             {
                int ind = (i * width) + j;
 
-               if (visited.getBit(ind))
+               if (visited.at(j, i))
                   continue;
 
                if (img.getByte(j, i) == validColor)
@@ -78,8 +78,7 @@ void Segmentator::_walkSegment( const Image &img, BitArray &visited,
 
                   segment_elements.push_back(ind);
 
-                  visited.setBit(ind, 1);
-                  //printf("%i %i %i\n", i, j, ind);
+                  visited.at(j, i) = 1;
                }
             }
          }

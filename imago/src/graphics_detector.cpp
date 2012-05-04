@@ -30,8 +30,6 @@
 #include "binarizer.h"
 #include "molecule.h"
 #include "fourier_descriptors.h"
-#include "recognition_settings.h"
-#include "current_session.h"
 #include "log_ext.h"
 #include "output.h"
 #include "prefilter.h"
@@ -59,7 +57,6 @@ void GraphicsDetector::_decorner( Image &img ) const
 	logEnterFunction();
 
    int x, y, i, j;
-   RecognitionSettings &rs = getSettings();
 
    for (y = 0; y < img.getHeight(); y++)
    {
@@ -90,15 +87,11 @@ void GraphicsDetector::_decorner( Image &img ) const
                }
             }
             
-            //img.getByte(x, y) = 255;
          }
       }
    }
 
-   //if (rs["DebugSession"])
-   //   ImageUtils::saveImageToFile(img, "output/decornered.png");
    getLogExt().appendImage("Decornered image", img);
-
 }
 
 void GraphicsDetector::_extractPolygon( const Segment &seg, Points2d &poly ) const
@@ -307,9 +300,9 @@ void GraphicsDetector::detect( const Image &img, Points2d &lsegments ) const
    tmp.copy(img);
    
    ThinFilter2 tf2(tmp);
-   TIME(tf2.apply(), "Thinning");
+   tf2.apply();
      
-   if ((bool)getSettings()["IsHandwritten"] == true)
+   if (vars::getHandwritten())
    {
 	   // less accurate, but more stable
 	   _decorner(tmp);   

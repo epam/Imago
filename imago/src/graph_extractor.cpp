@@ -17,13 +17,11 @@
 #include "boost/foreach.hpp"
 
 #include "comdef.h"
-#include "current_session.h"
 #include "log_ext.h"
 #include "graph_extractor.h"
 #include "graphics_detector.h"
 #include "image_utils.h"
 #include "image_draw_utils.h"
-#include "recognition_settings.h"
 #include "segment.h"
 #include "skeleton.h"
 #include "constants.h"
@@ -52,8 +50,6 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const SegmentDeque &se
    {
       ImageUtils::putSegment(tmp, *s, true);
    }
-
-   RecognitionSettings &rs = getSettings();
 
    getLogExt().appendImage("Working image", tmp);
 
@@ -96,8 +92,6 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
 		  if (dist > consts::GraphExtractor::MinimalDistTresh)
 			 graph.addBond(p1, p2);      
 	   }
-
-	   RecognitionSettings &rs = getSettings();
 
 	   getLogExt().appendSkeleton("Source skeleton", (Skeleton::SkeletonGraph)graph);	   
 

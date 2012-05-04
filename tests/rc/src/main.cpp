@@ -1,11 +1,11 @@
-#include "session_manager.h"
+#include "comdef.h"
 #include "virtual_fs.h"
 #include "image_utils.h"
 #include "chemical_structure_recognizer.h"
 #include "molfile_saver.h"
-#include "recognition_settings.h"
 #include "log_ext.h"
 #include "prefilter.h"
+#include "molecule.h"
 #include "prefilter_cv.h"
 #include "adaptive_filter.h"
 #include "superatom_expansion.h"
@@ -53,7 +53,7 @@ RecognitionResult recognizeImage(const imago::Image& src, FilterType filterType)
 	result.warnings = 0;
 	try
 	{
-		imago::ChemicalStructureRecognizer &csr = imago::getRecognizer();
+		imago::ChemicalStructureRecognizer _csr;
 		imago::Molecule mol;
 		imago::Image img;
 		img.copy(src);
@@ -70,10 +70,10 @@ RecognitionResult recognizeImage(const imago::Image& src, FilterType filterType)
 			
 		if (filterType == ftStd)
 		{
-			prefilterImage(img, csr.getCharacterRecognizer());
+			prefilterImage(img, _csr.getCharacterRecognizer());
 		}
 
-		csr.image2mol(img, mol);
+		_csr.image2mol(img, mol);
 		result.molecule = imago::expandSuperatoms(mol);
 		result.warnings = mol.getWarningsCount() + mol.getDissolvingsCount() / imago::consts::Main::DissolvingsFactor;
 
@@ -83,6 +83,9 @@ RecognitionResult recognizeImage(const imago::Image& src, FilterType filterType)
 	{
 		result.exceptions = true;
 		printf("Filter [%u], exception \"%s\"\n", filterType, e.what());
+#ifdef _DEBUG
+		throw;
+#endif
 	}
 	return result;
 }
@@ -112,14 +115,11 @@ int performFileAction(const std::string& imageName, const FileActionParams& para
 
 	try
 	{
-		qword sid = imago::SessionManager::getInstance().allocSID();
-		imago::SessionManager::getInstance().setSID(sid);
-      
 		imago::Image src_img;	  
 
 		if (params.logLevel > 0)
 		{
-			imago::getSettings()["DebugSession"] = true;
+			imago::vars::setDebugSession(true);
 			if (params.logLevel > 1)
 				imago::getLogExt().SetVirtualFS(vfs);
 		}
@@ -134,8 +134,9 @@ int performFileAction(const std::string& imageName, const FileActionParams& para
 			{
 				prefilterCV(src_img);
 			}
-			imago::ChemicalStructureRecognizer &csr = imago::getRecognizer();
-			csr.extractCharacters(src_img);
+			
+			imago::ChemicalStructureRecognizer _csr;
+			_csr.extractCharacters(src_img);
 		}
 		else
 		{
@@ -143,13 +144,12 @@ int performFileAction(const std::string& imageName, const FileActionParams& para
 
 			if (isBinarized(src_img))
 			{
-				imago::getSettings().set("IsHandwritten", false);
-
+				imago::vars::setHandwritten(false);
 				result = recognizeImage(src_img, ftPass);
 			}
 			else
 			{
-				imago::getSettings().set("IsHandwritten", true);
+				imago::vars::setHandwritten(true);
 
 				result = recognizeImage(src_img, ftCV);
 				if (result.exceptions)
@@ -176,12 +176,14 @@ int performFileAction(const std::string& imageName, const FileActionParams& para
 			fout.writeString(result.molecule);
 		}
 
-		imago::SessionManager::getInstance().releaseSID(sid);      
 	}
 	catch (std::exception &e)
 	{
 		result = 2; // error mark
 		puts(e.what());
+#ifdef _DEBUG
+		throw;
+#endif
 	}
 
 	dumpVFS(vfs);

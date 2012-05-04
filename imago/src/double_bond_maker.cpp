@@ -22,7 +22,6 @@
 #include "exception.h"
 
 #include "image_draw_utils.h"
-#include "current_session.h"
 #include "image_utils.h"
 #include "constants.h"
 
@@ -213,7 +212,7 @@ DoubleBondMaker::Result DoubleBondMaker::_hard()
    }
    else
    {
-      throw LogicException("DoubleBondMake::_hard:%d", __LINE__);
+      throw LogicException("DoubleBondMake::_hard");
    }
 }
 

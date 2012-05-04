@@ -110,7 +110,7 @@ std::string expandSuperatoms( const Molecule &molecule )
    {
       //printf("$$$%d\n", item);
       if (item == -1)
-         throw LogicException("%s", indigoGetLastError());
+         throw LogicException(indigoGetLastError());
    
       string symbol = indigoSymbol(item);
       bool found = false;
@@ -152,7 +152,7 @@ std::string expandSuperatoms( const Molecule &molecule )
       while (item = indigoNext(iter))
       {
          if (item == -1)
-            throw LogicException("%s", indigoGetLastError());
+            throw LogicException(indigoGetLastError());
             
          if (indigoIsRSite(item))
          {
@@ -160,7 +160,7 @@ std::string expandSuperatoms( const Molecule &molecule )
             while (item2 = indigoNext(iter2))
             {
                if (item2 == -1)
-                  throw LogicException("%s", indigoGetLastError());
+                  throw LogicException(indigoGetLastError());
    
                attachment = item2;
                   
@@ -181,7 +181,7 @@ std::string expandSuperatoms( const Molecule &molecule )
       while (item2 = indigoNext(iter2))
       {
          if (item2 == -1)
-            throw LogicException("%s", indigoGetLastError());         
+            throw LogicException(indigoGetLastError());         
 
          atom_from = item2;
          bond_order = indigoBondOrder(indigoBond(atom_from));
@@ -205,7 +205,7 @@ std::string expandSuperatoms( const Molecule &molecule )
       while (item = indigoNext(iter))
       {
          if (item == -1)
-            throw LogicException("%s", indigoGetLastError());         
+            throw LogicException(indigoGetLastError());         
             
          int midx = indigoIndex(indigoMapAtom(mapping, item));
          superatom_vertices.push_back(midx);

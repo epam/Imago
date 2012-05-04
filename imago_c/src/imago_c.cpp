@@ -20,19 +20,17 @@
 #include "indigo.h"
 #include "image_utils.h"
 #include "molfile_saver.h"
-#include "log.h"
 #include "exception.h"
 #include "output.h"
 #include "scanner.h"
 #include "comdef.h"
-#include "recognition_settings.h"
 #include "session_manager.h"
 #include "current_session.h"
 #include "superatom_expansion.h"
 
 #define IMAGO_BEGIN try {                                                    
 
-#define IMAGO_END   } catch ( Exception &e )                                 \
+#define IMAGO_END   } catch ( ImagoException &e )                                 \
                     {                                                        \
                        RecognitionContext *context =                         \
                           (RecognitionContext*)gSession.get()->context();    \
@@ -46,7 +44,6 @@
 
 namespace imago
 {
-   void prefilterFile (const char *filename, Image &img, const CharacterRecognizer &cr );
    void prefilterImage( Image &image, const CharacterRecognizer &cr );
 }
 
@@ -98,14 +95,15 @@ CEXPORT void imagoReleaseSessionId( qword id )
 
 CEXPORT int imagoGetConfigsCount()
 {
-   return RecognitionSettings::CONF_COUNT;
+  // return RecognitionSettings::CONF_COUNT;
+	return 1;
 }
 
 CEXPORT int imagoSetConfigNumber( const int number )
 {
    IMAGO_BEGIN;
 
-   getSettings().initConfig(number);
+   //getSettings().initConfig(number);
 
    IMAGO_END;
 }

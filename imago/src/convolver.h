@@ -15,11 +15,11 @@
 #ifndef _convolver_h
 #define _convolver_h
 
-#include "filter.h"
+#include "image.h"
 
 namespace imago
 {
-   class Convolver : public Filter
+   class Convolver
    {
    public:
       Convolver( Image &img );
@@ -43,6 +43,7 @@ namespace imago
       int *_kernel;
       int _rows, _cols;
       double _invBias;
+	  Image& _img;
    };
 }
 

@@ -125,7 +125,7 @@ namespace imago
 
 			  if(d1 == imago::MAX_LINE && d2 == imago::MAX_LINE)
 			  {
-				  throw imago::Exception("Lines not set");
+				  throw ImagoException("Lines not set");
 			  }
 
 			  return d1 > d2;

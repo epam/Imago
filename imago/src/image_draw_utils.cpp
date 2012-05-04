@@ -147,8 +147,8 @@ bool ImageDrawUtils::_imagePlot( int x, int y, int color, void *userdata )
    int w, h;
    Image *img = (Image *)userdata;
 
-   if (img == 0)
-      throw NullPointerException();
+   if (img == NULL)
+      throw ImagoException("Null-pointer passed");
 
    w = img->getWidth();
    h = img->getHeight();

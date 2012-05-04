@@ -15,24 +15,19 @@
 #ifndef _binarizer_h
 #define _binarizer_h
 
-#include "filter.h"
 #include "stl_fwd.h"
+#include "image.h"
 
 namespace imago
 {
-   class Binarizer : public Filter
+   class Binarizer
    {
    public:
 
-      Binarizer( Image &img, int threshold = -1 );
-     
-      void apply();
-            
-      ~Binarizer();
+      static void apply(Image &img, int threshold = -1);
 
    private:
-      int _t;
-      int _getThreshold();
+	   static int _getThreshold(const Image &img);
       static bool _comparePair( IntPair a, IntPair b );
    };
 }

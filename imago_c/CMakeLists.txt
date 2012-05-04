@@ -7,8 +7,18 @@ set(SRC
   src/imago_c.cpp
   )
 
+file(GLOB SRC src/*.cpp)
+file(GLOB SRC_posix src/*_posix.cpp)
+file(GLOB SRC_win src/*_win.cpp)
+
 FILE(GLOB HEADERS "src/*.h")
 list(APPEND SRC ${HEADERS})
+
+if(WIN32)
+  list(REMOVE_ITEM SRC ${SRC_posix})
+else(WIN32)
+  list(REMOVE_ITEM SRC ${SRC_win})
+endif(WIN32)
 
 if(${IMAGO_SHARED})
 	add_library(imago_c SHARED ${SRC})

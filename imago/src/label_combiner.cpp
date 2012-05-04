@@ -17,12 +17,9 @@
 #include <cfloat>
 
 #include "boost/foreach.hpp"
-//#include "boost/bind.hpp"
 #include "boost/graph/connected_components.hpp"
 
 #include "label_combiner.h"
-#include "recognition_settings.h"
-#include "current_session.h"
 #include "log_ext.h"
 #include "character_recognizer.h"
 #include "rng_builder.h"
@@ -35,43 +32,20 @@
 
 using namespace imago;
 
-LabelCombiner::LabelCombiner( SegmentDeque &symbols_layer,
-                              SegmentDeque &other_layer, int cap_height,
-                              const CharacterRecognizer &cr ) :
-   _symbols_layer(symbols_layer),
-   _cr(cr),
-   _cap_height(cap_height)
+LabelCombiner::LabelCombiner( SegmentDeque &symbols_layer, SegmentDeque &other_layer, const CharacterRecognizer &cr ) :
+   _symbols_layer(symbols_layer), _cr(cr)
+   
 {
-   RecognitionSettings &rs = getSettings();
-   setParameters((double)rs["CapHeightErr"], (double)rs["MaxSymRatio"],
-                 (double)rs["MinSymRatio"]);
+	vars::setCapitalHeight(_findCapitalHeight());
 
-   _imgWidth = rs["imgWidth"];
-   _imgHeight = rs["imgHeight"];
-
-   _cap_height = _findCapitalHeight();
-   rs["CapitalHeight"] = _cap_height;
-
-   if (cap_height != -1)
+	if (vars::getCapitalHeight() > 0.0)
    {
-      _cap_height_error = (double)rs["CapHeightErr"];
-      _space = _cap_height >> 1;
-
-      //_fetchSymbols(other_layer);
-
       _locateLabels();
       BOOST_FOREACH(Label &l, _labels)
          _fillLabelInfo(l);
    }
 }
 
-void LabelCombiner::setParameters( double capHeightError, double maxSymRatio,
-                                   double minSymRatio )
-{
-   _cap_height_error = capHeightError;
-   _maxSymRatio = maxSymRatio;
-   _minSymRatio = minSymRatio;
-}
 
 int LabelCombiner::_findCapitalHeight()
 {
@@ -139,11 +113,9 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
    {
       next_s = cur_s + 1;
 
-      //if (getSettings()["DebugSession"])
-      //   ImageUtils::saveImageToFile(**cur_s, "output/tmp_fetch.png");
 	  getLogExt().appendSegment("Work segment", **cur_s);
 
-      if ((*cur_s)->getHeight() > _cap_height + (int)getSettings()["SymHeightErr"])
+	  if ((*cur_s)->getHeight() > (int)(vars::getCapitalHeight() + vars::getSymHeightErr()))
          continue;
 
       int angle;
@@ -154,24 +126,22 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
 
       if (angle != -1)
       {
-         bool minus = ImageUtils::testMinus(**cur_s, _cap_height);
+         bool minus = ImageUtils::testMinus(**cur_s, (int)vars::getCapitalHeight());
          bool plus = ImageUtils::testPlus(**cur_s);
 
          if (minus)
 			 getLogExt().appendText("Minus detected");
-            //puts("MINUS!!!");
 
          if (plus)
 			 getLogExt().appendText("Plus detected");
-            //puts("PLUS!!!");
 
          if (!plus && !minus)
          {
 			 if (ImageUtils::testSlashLine(**cur_s, 0, consts::LabelCombiner::TestSlashLineEps))
                continue;   
-			 if (seg_rect.height < consts::LabelCombiner::TestMinHeightFactor * _cap_height 
-				 || seg_rect.height > consts::LabelCombiner::TestMaxHeightFactor * _cap_height 
-				 || r > _maxSymRatio || r < _minSymRatio)
+			 if (seg_rect.height < consts::LabelCombiner::TestMinHeightFactor * vars::getCapitalHeight() 
+				 || seg_rect.height > consts::LabelCombiner::TestMaxHeightFactor * vars::getCapitalHeight() 
+				 || r > vars::getMaxSymRatio() || r < vars::getMinSymRatio())
                continue;
          }
       }
@@ -181,7 +151,7 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
          //if (Vec2d::distance2rect(center, cur_l->x, cur_l->y, cur_l->width,
          //                         cur_l->height) < _space)
          Rectangle rect = (*cur_l)->getRectangle();
-         if (Rectangle::distance(seg_rect, rect) > _space)
+		 if (Rectangle::distance(seg_rect, rect) > vars::getCharactersSpace())
             continue;
 
 		 int h1 = (int)absolute(rect.y - seg_rect.y 
@@ -192,9 +162,10 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
          int h4 = (int)absolute(rect.y + rect.height - seg_rect.y -
                                 consts::LabelCombiner::RectHeightRatio * seg_rect.height);
 
-		 if (h1 > consts::LabelCombiner::H1SuperscriptSpace * _space &&
-			 (h2 > consts::LabelCombiner::H2LowercaseSpace * _space || h3 > consts::LabelCombiner::H3LowercaseSpace * _space) && //lowercase letter
-			 h4 > consts::LabelCombiner::H4SubscriptSpace * _space)                          //subscript
+		 if (h1 > consts::LabelCombiner::H1SuperscriptSpace * vars::getCharactersSpace() &&
+			 (h2 > consts::LabelCombiner::H2LowercaseSpace * vars::getCharactersSpace()
+			     || h3 > consts::LabelCombiner::H3LowercaseSpace * vars::getCharactersSpace()) && 
+			 h4 > consts::LabelCombiner::H4SubscriptSpace * vars::getCharactersSpace())
             continue;
          
          _symbols_layer.push_back(*cur_s);
@@ -230,8 +201,7 @@ void LabelCombiner::_locateLabels()
    boost::property_map<segments_graph::SegmentsGraph, boost::vertex_seg_ptr_t>::
 	   type img_ptrs = boost::get(boost::vertex_seg_ptr, seg_graph);
 
-   RecognitionSettings &rs = getSettings();
-
+   
    for (next = ei; ei != ei_end; ei = next)
    {
       Vec2d b_pos = positions[boost::source(*ei, seg_graph)],
@@ -311,7 +281,7 @@ void LabelCombiner::_fillLabelInfo( Label &l )
    for (int i = 0, first_cap = -1; i < size; i++)
    {
 	   if (first_cap < 0 && symbols[i]->getHeight() > 
-		   _cap_height_error * consts::LabelCombiner::FillLabelFactor1 * _cap_height)
+		   vars::getCapitalHeightError() * consts::LabelCombiner::FillLabelFactor1 * vars::getCapitalHeight())
       {
          first_cap = i;
          first_line_y = symbols[i]->getY() + symbols[i]->getHeight();
@@ -322,7 +292,7 @@ void LabelCombiner::_fillLabelInfo( Label &l )
       {
 		  int mid = round(symbols[i]->getY() + consts::LabelCombiner::FillLabelFactor2 * symbols[i]->getHeight());
 
-         if (mid - first_line_y > _space)
+		  if (mid - first_line_y > vars::getCharactersSpace())
          {
             new_line_sep = i;
             break;
@@ -351,7 +321,7 @@ void LabelCombiner::_fillLabelInfo( Label &l )
       l.multi_begin = new_line_sep;
       for (int i = new_line_sep; i < size; i++)
       {
-         if (symbols[i]->getHeight() > _cap_height_error * _cap_height)
+		  if (symbols[i]->getHeight() > vars::getCapitalHeightError() * vars::getCapitalHeight())
          {
             l.multi_line_y = symbols[i]->getY() + symbols[i]->getHeight();
             break;

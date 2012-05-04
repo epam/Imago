@@ -59,17 +59,14 @@ namespace imago
    class LabelCombiner
    {
    public:
-      LabelCombiner( SegmentDeque &symbols_layer, SegmentDeque &other_layer,
-                     int cap_height, const CharacterRecognizer &cr );
+      LabelCombiner( SegmentDeque &symbols_layer, SegmentDeque &other_layer, const CharacterRecognizer &cr );
       ~LabelCombiner();
-      void extractLabels( std::deque<Label> &labels );
-      void setParameters( double capHeightError, double maxSymRatio,
-                          double minSymRatio );
+      
+	  void extractLabels( std::deque<Label> &labels );
+
    private:
       SegmentDeque &_symbols_layer;
       const CharacterRecognizer &_cr;
-      int _cap_height;
-      int _space;
 
       std::deque<Label> _labels;
       void _fetchSymbols( SegmentDeque &layer );
@@ -82,12 +79,6 @@ namespace imago
                                      const Segment* const &b );
 
       int _findCapitalHeight();
-      //DEBUG vars
-      int _imgHeight, _imgWidth;
-      //
-      //"Constants"
-      double _cap_height_error;
-      double _maxSymRatio, _minSymRatio;
    };
 }
 #endif /* _label_combiner_h */

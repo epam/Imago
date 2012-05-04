@@ -14,7 +14,6 @@
 
 #include "multiple_bond_checker.h"
 #include "algebra.h"
-#include "current_session.h"
 #include "log_ext.h"
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/iteration_macros.hpp"
@@ -126,9 +125,6 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       d = 0.5 * (Algebra::distance2segment(sb_pos, fb_pos, fe_pos) + // average
                  Algebra::distance2segment(se_pos, fb_pos, fe_pos));
 
-//#ifdef DEBUG
-//   printf("DC0: %lf\n", d);
-//#endif   
    
    if (!(dm < consts::MultipleBond::DoubleMagic1 * de && dm < consts::MultipleBond::DoubleMagic2 * db))
    {
@@ -177,10 +173,6 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       minLength = bf.length;
    }
 
-//#ifdef DEBUG
-//   printf("DC1: %d %d\n", maxLength, minLength);
-//#endif   
-   
    if (maxLength > consts::MultipleBond::MaxLen1)
 	   _multiBondErr = consts::MultipleBond::mbe1;
    else if (maxLength > consts::MultipleBond::MaxLen2)

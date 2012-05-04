@@ -20,19 +20,13 @@
 #include "character_recognizer.h"
 #include "label_combiner.h"
 #include "image_utils.h"
-#include "current_session.h"
 #include "log_ext.h"
 #include "constants.h"
 
 using namespace imago;
 
-LabelLogic::LabelLogic( const CharacterRecognizer &cr, double capHeightError ) :
-   _cr(cr),
-   cap_height_error(capHeightError), _hwcr(cr),
-   _satom(NULL), _cur_atom(NULL)
+LabelLogic::LabelLogic( const CharacterRecognizer &cr ) : _cr(cr), _hwcr(cr), _satom(NULL), _cur_atom(NULL)
 {
-	cap_height_error = consts::LabelLogic::capHeightError;
-   _cap_height = (int)getSettings()["CapitalHeight"];
    flushed = was_charge = was_letter = was_super = 0;
 }
 
@@ -117,7 +111,7 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
          letters.erase(letters.begin() + 7); //cuz of Al
 	  }
 
-      if (seg->getHeight() <= cap_height_error * _cap_height)
+	  if (seg->getHeight() <= vars::getCapitalHeightError() * vars::getCapitalHeight())
 	  {
 		  getLogExt().appendText("Too small height branch");
          letters.clear();
@@ -159,7 +153,7 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 
 	// acquire image params
 	double underline = SegmentTools::getPercentageUnderLine(*seg, line_y);
-	double ratio = (double)SegmentTools::getRealHeight(*seg) / (double)_cap_height;
+	double ratio = (double)SegmentTools::getRealHeight(*seg) / vars::getCapitalHeight();
 
 	{ // adjust using image params
 		getLogExt().append("Percentage under baseline", underline);
@@ -352,7 +346,7 @@ void LabelLogic::process( Segment *seg, int line_y )
    getLogExt().append("plus", plus);
 
    //TODO: This can slowdown recognition process! Check this!
-   if (seg->getHeight() > consts::LabelLogic::heightRatio * _cap_height && (hwc == -1 || hwc < '0' || hwc > '9'))
+   if (seg->getHeight() > consts::LabelLogic::heightRatio * vars::getCapitalHeight() && (hwc == -1 || hwc < '0' || hwc > '9'))
       capital = true;
    else if (hwc == -1 && plus)
       capital = false;
@@ -508,8 +502,8 @@ void LabelLogic::process( Segment *seg, int line_y )
       int med = bottom - seg->getHeight() / 2;
 	  getLogExt().append("med", med);
       //small letter
-      if (bottom >= (line_y - sameLineEps * _cap_height) &&
-          bottom <= (line_y + sameLineEps * _cap_height) &&
+      if (bottom >= (line_y - sameLineEps * vars::getCapitalHeight()) &&
+          bottom <= (line_y + sameLineEps * vars::getCapitalHeight()) &&
           (digit_small == -1 || digit_small == 1))
       {
          if (was_letter)
@@ -526,7 +520,7 @@ void LabelLogic::process( Segment *seg, int line_y )
             throw LabelException("Unexpected symbol position (small instead of capital)");
       }
       //superscript
-      else if (med < line_y - consts::LabelLogic::medHeightFactor * _cap_height && digit_small == 0)
+      else if (med < line_y - consts::LabelLogic::medHeightFactor * vars::getCapitalHeight() && digit_small == 0)
       {
          was_super = 1;
          if (was_charge)
@@ -556,7 +550,7 @@ void LabelLogic::process( Segment *seg, int line_y )
             {
                tmp = '+';
             }
-            else if (ImageUtils::testMinus(*seg, _cap_height)) //testMinus
+            else if (ImageUtils::testMinus(*seg, (int)vars::getCapitalHeight())) //testMinus
             {
                tmp = '-';
             }
@@ -592,7 +586,7 @@ void LabelLogic::process( Segment *seg, int line_y )
          }
       }
       //subscript
-      else if (med > line_y - consts::LabelLogic::medHeightFactor * _cap_height)
+      else if (med > line_y - consts::LabelLogic::medHeightFactor * vars::getCapitalHeight())
       {
          //If subscript will appear before any letter, do some BADABUM
          if (_cur_atom->label_first == 0)

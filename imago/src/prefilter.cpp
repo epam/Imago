@@ -3,8 +3,6 @@
 #include <boost/foreach.hpp>
 
 #include "image.h"
-#include "log.h"
-#include "current_session.h"
 #include "log_ext.h"
 #include "exception.h"
 #include "segmentator.h"
@@ -18,6 +16,7 @@
 #include "HistogramTools.h"
 #include "prefilter.h"
 #include "constants.h"
+#include "segment_tools.h"
 
 namespace imago
 {
@@ -222,13 +221,7 @@ double estimateLineThickness(Image &bwimg, int grid)
 void CombineWeakStrong(SegmentDeque &weak_segments, SegmentDeque &strong_segments, Image &image)//const Image &weakimg, const Image &strongimg
 {
 	logEnterFunction();
-   //bool debug_session = getSettings()["DebugSession"];
 
-   //if (debug_session)
-   //{
-   //   fprintf(stderr, "%d weak segments\n", weak_segments.size());
-   //   fprintf(stderr, "%d strong segments\n", strong_segments.size());
-   //}
 	getLogExt().append("Weak segments count", weak_segments.size());
 	getLogExt().append("Strong segments count", strong_segments.size());
 
@@ -460,8 +453,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 			}
 			else
 			{
-				double lt = getSettings()["LineThickness"];
-				cv::bilateralFilter(mat, matred, consts::Prefilter::Bilateral_d, consts::Prefilter::BilateralSpace, lt);
+				cv::bilateralFilter(mat, matred, consts::Prefilter::Bilateral_d, consts::Prefilter::BilateralSpace, vars::getLineThickness());
 			}
 		}
 	}
@@ -470,7 +462,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 		mat.copyTo(matred);
 	}
    
-	if(getLogExt().loggingEnabled()) // debug_session)
+	if(getLogExt().loggingEnabled())
 	{
 		ImageUtils::copyMatToImage(matred, cimg);
 		if (p.logSteps)
@@ -540,7 +532,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 	//wiener filter
 	if(!p.strongThresh)
 	{
-		int blockS = (int) ( (double)getSettings()["LineThickness"] );
+		int blockS = (int)vars::getLineThickness();
 		blockS = (blockS % 2) == 0 ? blockS+1 : blockS;
 		_wiener2(matred, blockS);
 	}
@@ -586,7 +578,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 		{
 			//HistogramTools ht2(mat);
 			//ht2.ImageAdjust(mat, true);
-			int blockS = (int) ((double)(getSettings()["LineThickness"]));
+			int blockS = (int)vars::getLineThickness();
 			blockS = (blockS % 2) == 0 ? blockS +1:blockS;
 			cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, blockS*consts::Prefilter::BlockSAdaptive, consts::Prefilter::BlockSAdaptive);
 		}
@@ -658,9 +650,9 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    double lineThickness = estimateLineThickness(image);
 
    if(lineThickness < 1)
-	   throw Exception("Image prefiltering failed");
+	   throw ImagoException("Image prefiltering failed");
 
-   getSettings()["LineThickness"] = lineThickness;
+   vars::setLineThickness(lineThickness);
    
    //Image outImg(raw.getWidth(), raw.getHeight());
    //outImg.fillWhite();
@@ -784,8 +776,6 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    //p2.reduceImage = false;
    prefilterKernel(cimg, cs, p2);
 
-   //if(getSettings()["DebugSession"])
-	//		ImageUtils::saveImageToFile(cs, "output/pref3_final.png");
 	getLogExt().appendImage("After _prefilterInternal3", cs);
 	
    
@@ -795,21 +785,20 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    cimg.clear();
    cimg.init(cs.getWidth(), cs.getHeight());
 
-#if 0
+   if (consts::Prefilter::MakeSegmentsConnected)
+   {
     for(rsit = weak_segments.rbegin(); rsit != weak_segments.rend(); rsit++)
 	{		
 		Segment *s = *rsit;		
 		SegmentTools::makeSegmentConnected(*s, raw, 0.5);		
 	}
-#endif
+   }
 
 	if(psegs.size() > 0)
 		CombineWeakStrong(weak_segments, psegs, cimg);
 	else
 		cimg.copy(cs);
 
-   //if(getSettings()["DebugSession"])
-	//   ImageUtils::saveImageToFile(cimg, "output/pref3_final.png");
    getLogExt().appendImage("Pref3 final", cimg);
    
    BOOST_FOREACH(Segment *s, weak_segments)
@@ -846,7 +835,7 @@ bool isCircle (Image &seg)
    }
 
    if (npoints == 0)
-      throw Exception("empty fragment?");
+      throw ImagoException("Empty fragment");
 
    centerx /= npoints;
    centery /= npoints;

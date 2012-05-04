@@ -18,9 +18,9 @@
 #include "stl_fwd.h"
 #include <vector>
 
-#include "bitarray.h"
 #include "segment.h"
 #include "separator.h"
+#include "basic_2d_storage.h"
 
 namespace imago
 {
@@ -29,13 +29,15 @@ namespace imago
    class Segmentator
    {
    public:
+
+	   typedef Basic2dStorage<unsigned char> BitArray;
       
       template<typename Container>
       static void segmentate( const Image &img, Container &segments, int windowSize = 3, byte validColor = 0 )
       {
          int i, j;
 
-         BitArray visited(img.getHeight() * img.getWidth());
+         BitArray visited(img.getWidth(), img.getHeight());
 
          segments.clear();
 
@@ -45,7 +47,7 @@ namespace imago
             {
                if (img.getByte(j, i) == validColor)
                {
-                  if (visited.getBit(i * img.getWidth() + j))
+                  if (visited.at(j, i))
                      continue;
 
                   Segment *newImg = new Segment();

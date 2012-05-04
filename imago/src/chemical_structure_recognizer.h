@@ -45,8 +45,6 @@ namespace imago
       CharacterRecognizer _cr;
       Image _origImage;
       
-      void _processFilter();
-
       ChemicalStructureRecognizer( const ChemicalStructureRecognizer &csr );
    };
 }

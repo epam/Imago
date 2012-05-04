@@ -21,12 +21,10 @@
 #include "exception.h"
 #include "segment.h"
 #include "log_ext.h"
-#include "recognition_settings.h"
 #include "constants.h"
 
 using namespace imago;
 
-#define sign(x) ((x > 0) ? 1 : ((x < 0) ? -1 : 0))
 
 Molecule::Molecule()
 {
@@ -206,19 +204,17 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
             n2.diff(v_b, v_d);
 
             Vec2d m;
-            //TODO: Check whether this is right
-            try
-            {
-               double ang = Vec2d::angle(n1, n2);
-			   if (fabs(ang) < consts::Molecule::angTresh ||
-                   fabs(ang - PI) < consts::Molecule::angTresh)
-                  throw Exception("Jumping to catch");
-               else
-                  m.copy(Algebra::linesIntersection(v_a, v_c, v_b, v_d));
-            } catch (Exception &)
-            {
-               m.middle(v_a, v_b);
-            }
+
+			double ang = Vec2d::angle(n1, n2);
+			if (fabs(ang) < consts::Molecule::angTresh ||
+                fabs(ang - PI) < consts::Molecule::angTresh)                  
+			{
+				m.middle(v_a, v_b);
+			}
+            else
+			{
+                m.copy(Algebra::linesIntersection(v_a, v_c, v_b, v_d));
+			}
 
             middle.add(m);
          }

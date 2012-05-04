@@ -19,7 +19,6 @@
 #include "boost/foreach.hpp"
 
 #include "comdef.h"
-#include "current_session.h"
 #include "log_ext.h"
 #include "image.h"
 #include "image_utils.h"
@@ -331,6 +330,8 @@ bool WedgeBondExtractor::_intersectionFinderPlotCallBack( int x, int y, int colo
 
 void WedgeBondExtractor::fixStereoCenters( Molecule &mol )
 {
+	logEnterFunction();
+
    Skeleton::SkeletonGraph &graph = mol.getSkeleton();
    const Molecule::ChemMapping &labels = mol.getMappedLabels();
    std::vector<Skeleton::Edge> to_reverse_bonds;
@@ -442,24 +443,18 @@ bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex &v,
 
 void WedgeBondExtractor::singleUpFetch( Skeleton &g )
 {   
+	logEnterFunction();
+
    int count = 0;
 
    Skeleton::SkeletonGraph &graph = g.getGraph();
-   RecognitionSettings &rs = getSettings();
+   //RecognitionSettings &rs = getSettings();
 
    if (g.getEdgesCount() >= 1)
    {
       Image img;
       img.copy(_img);
-      _bond_length = rs["AvgBondLength"];
-      
-      //printf("A:%d %d\n", img.getWidth(), img.getHeight()); fflush(stdout);
-      /*
-      for (int i = g.vertexHead(); i != g.vertexEnd(); i = g.vertexNext(i))
-      {
-         Vec2d &v = g.getVertex(i).pos;
-         img.getByte(v.x, v.y) = 255;
-      }*/
+	  _bond_length = vars::getAvgBondLength(); 
 
       //TODO: Watch out. v.x & v.y can be larger than picture size
 
@@ -495,7 +490,7 @@ void WedgeBondExtractor::singleUpFetch( Skeleton &g )
 //   if (false)
 //      g.drawGraph(_img.getWidth(), _img.getHeight(), "output/graph_su.png");
 
-   LPRINT(0, "Single-up bonds: %d", count);
+   getLogExt().append("Single-up bonds", count);
 }
 
 bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
@@ -691,7 +686,7 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
       {
          angle = Vec2d::angle(n1, n2);
       }
-      catch (Exception &e)
+      catch (ImagoException &e)
       {
 		  getLogExt().append("_isSingleUp skipped exception", e.what());
       }

@@ -19,7 +19,7 @@
 
 using namespace imago;
 
-ThinFilter2::ThinFilter2( Image &I ) : Filter(I)
+ThinFilter2::ThinFilter2( Image &I ) : _img(I)
 {
    width = _img.getWidth();
    height = _img.getHeight();

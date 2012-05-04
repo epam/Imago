@@ -21,11 +21,11 @@
 #define _thin_filter2_h
 
 #include "comdef.h"
-#include "filter.h"
+#include "image.h"
 
 namespace imago
 {
-   class ThinFilter2 : public Filter
+   class ThinFilter2
    {
    public:
       ThinFilter2( Image &I );
@@ -33,6 +33,7 @@ namespace imago
       ~ThinFilter2();
       
    private:
+	   Image& _img;
       ThinFilter2( const ThinFilter2& );
       byte get( int x, int y );
       void set( int x, int y, byte val );

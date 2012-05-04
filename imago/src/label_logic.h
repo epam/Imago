@@ -28,7 +28,7 @@ namespace imago
    class LabelLogic
    {
    public:
-      LabelLogic( const CharacterRecognizer &cr, double capHeightError );
+      LabelLogic( const CharacterRecognizer &cr );
       ~LabelLogic();
 
       void setSuperatom( Superatom *satom );
@@ -39,9 +39,7 @@ namespace imago
 
    private:
       HWCharacterRecognizer _hwcr;
-      int _cap_height;
       const CharacterRecognizer &_cr;
-      double cap_height_error;
       Superatom *_satom;
       Atom *_cur_atom;
       bool flushed, was_super, was_charge, was_letter;

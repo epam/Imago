@@ -287,7 +287,7 @@ namespace imago
    {
       cv::Mat mat = cv::imdecode(cv::Mat(buffer), 0);
       if (mat.empty())
-         throw Exception("Image data is invalid");
+         throw ImagoException("Image data is invalid");
       copyMatToImage(mat, img);
    }
 
@@ -306,17 +306,17 @@ namespace imago
       std::string fname(FileName);
 
       if (fname.length() < 5)
-         throw Exception("Unknown file format");
+         throw ImagoException("Unknown file format " + fname);
 
       FILE *f = fopen(fname.c_str(), "r");
       if (f == 0)
-         throw FileNotFoundException("%s", fname.c_str());
+         throw FileNotFoundException(fname.c_str());
       fclose(f);
 
       cv::Mat mat = cv::imread(fname, 0);
 
       if (mat.empty())
-         throw Exception("Image file is invalid");
+         throw ImagoException("Image file is invalid, CV returned empty mat");
 
       copyMatToImage(mat, img);
    }

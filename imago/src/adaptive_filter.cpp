@@ -7,6 +7,7 @@
 #include "prefilter.h"
 #include "prefilter_cv.h"
 #include "constants.h"
+#include "segment_tools.h"
 
 namespace imago
 {

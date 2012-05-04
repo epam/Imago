@@ -47,7 +47,7 @@ int Scanner::readInt1()
    buf.push_back(0);
 
    if (sscanf(buf.c_str(), "%d", &result) < 1)
-      throw IOException("readInt(): error parsing %s", buf.c_str());
+      throw IOException("readInt(): error parsing " + buf);
 
    return result;
 }
@@ -71,7 +71,7 @@ int Scanner::readInt()
    buf.push_back(0);
 
    if (sscanf(buf.c_str(), "%d", &result) < 1)
-      throw IOException("readInt(): error parsing %s", buf.c_str());
+      throw IOException("readInt(): error parsing " + buf);
 
    return result;
 }
@@ -121,7 +121,7 @@ double Scanner::readDouble()
    buf.push_back(0);
 
    if (sscanf(buf.c_str(), "%lf", &result) < 1)
-      throw IOException("readDouble(): error parsing %s", buf.c_str());
+      throw IOException("readDouble(): error parsing " + buf);
 
    return result;
 }
@@ -348,7 +348,7 @@ FileScanner::FileScanner( const char *format, ... ) : Scanner()
    _file = fopen(filename, "rb");
 
    if (_file == NULL)
-      throw FileNotFoundException("can't open file %s", filename);
+      throw FileNotFoundException("can't open file " + std::string(filename));
 
    fseek(_file, 0, SEEK_END);
    _file_len = ftell(_file);
@@ -403,7 +403,7 @@ void BufferScanner::seek( int pos, int from )
    }
 
    if ((_size >= 0 && _offset > _size) || _offset < 0)
-      throw IOException("size = %d, offset = %d after seek()", _size, _offset);
+      throw IOException("size < offset after seek()");
 }
 
 byte BufferScanner::readByte ()

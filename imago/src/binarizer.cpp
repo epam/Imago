@@ -21,16 +21,13 @@
 
 using namespace imago;
 
-Binarizer::Binarizer( Image &img, int threshold ) : Filter(img), _t(threshold)
+void Binarizer::apply(Image &_img, int _t )
 {
-   if (_t > 255)
+	if (_t > 255)
       _t = 255;
    if (_t < 0)
-      _t = _getThreshold();   
-}
+      _t = _getThreshold(_img);   
 
-void Binarizer::apply()
-{
    int i, n;
 
    n = _img.getHeight() * _img.getWidth();
@@ -51,7 +48,7 @@ bool Binarizer::_comparePair( IntPair a, IntPair b )
    return a.second < b.second;
 }
 
-int Binarizer::_getThreshold()
+int Binarizer::_getThreshold(const Image &_img)
 {
    std::vector<IntPair> histogram(256, std::make_pair(0, 0));
 
@@ -66,8 +63,4 @@ int Binarizer::_getThreshold()
    std::stable_sort(histogram.begin(), histogram.end(), _comparePair);
 
    return histogram[histogram.size() / 2].first;
-}
-
-Binarizer::~Binarizer()
-{
 }

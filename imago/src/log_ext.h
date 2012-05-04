@@ -7,13 +7,12 @@
 #include <string>
 #include <map>
 #include <sstream>
+#include "stl_fwd.h"
 #include "segment.h"
 #include "skeleton.h"
 #include "segments_graph.h"
 #include "image_utils.h"
 #include "image_draw_utils.h"
-#include "recognition_settings.h"
-#include "current_session.h"
 #include "virtual_fs.h"
 
 #define logEnterFunction imago::log_ext_service::LogEnterFunction _entry(__FUNCTION__, imago::getLogExt()); _entry._logEnterFunction

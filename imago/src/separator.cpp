@@ -26,7 +26,6 @@
 
 #include "approximator.h"
 #include "comdef.h"
-#include "current_session.h"
 #include "log_ext.h"
 #include "graphics_detector.h"
 #include "exception.h"
@@ -38,23 +37,18 @@
 #include "segmentator.h"
 #include "stat_utils.h"
 #include "thin_filter2.h"
-#include "recognition_settings.h"
 #include "graph_extractor.h"
 #include "stat_utils.h"
 #include "algebra.h"
 #include "constants.h"
+#include "character_recognizer.h"
+#include "molecule.h"
 
 using namespace imago;
 
 Separator::Separator( SegmentDeque &segs, const Image &img ) : _segs(segs), _img(img)
 {
-   std::sort(_segs.begin(), _segs.end(), _segmentsComparator);
-
-   RecognitionSettings &rs = gSession.get()->settings();
-
-   rs.set("SegmentVerEps", consts::Separator::SegmentVerEps);
-   rs.set("SymHeightErr", consts::Separator::SymHeightErr);
-   rs.set("DoubleBondDist", consts::Separator::DoubleBondDist);   
+   std::sort(_segs.begin(), _segs.end(), _segmentsComparator);    
 }
 
 void _getHuMomentsC(const Image &img, double hu[7])
@@ -88,12 +82,6 @@ bool Separator::_bIsTextContext(SegmentDeque &layer_symbols, imago::Rectangle re
 		*secNear = NULL;
 	double dist1 = imago::MAX_LINE,
 		dist2 = imago::MAX_LINE;
-	RecognitionSettings &rs = getSettings();
-	int sym_height_err = rs["SymHeightErr"], cap_height = rs["CapitalHeight"];;
-    double susp_seg_density = rs["SuspSegDensity"],
-            adequate_ratio_max = rs["MaxSymRatio"],
-            adequate_ratio_min = rs["MinSymRatio"],
-			line_thickness = rs["LineThickness"];
 
 	//find first pair of symbols closer to rec
 	BOOST_FOREACH(Segment *s, layer_symbols)
@@ -124,9 +112,9 @@ bool Separator::_bIsTextContext(SegmentDeque &layer_symbols, imago::Rectangle re
 	bool yfirstSeparable = Algebra::rangesSeparable(rec.y, rec.y+rec.height, firstNear->getY(), firstNear->getX() + firstNear->getHeight());
 
 	if((xfirstSeparable || yfirstSeparable) && 
-		rec.height < cap_height + consts::Separator::ltFactor1 * line_thickness && 
-		rec.height > cap_height * consts::Separator::capHeightMin &&
-		dist1 < consts::Separator::capHeightMax * cap_height)
+		rec.height < vars::getCapitalHeight() + consts::Separator::ltFactor1 * vars::getLineThickness() && 
+		rec.height > vars::getCapitalHeight() * consts::Separator::capHeightMin &&
+		dist1 < consts::Separator::capHeightMax * vars::getCapitalHeight())
 		return true;
 	return false;
 }
@@ -139,10 +127,11 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 
 	Molecule mol;
 	Points2d lsegments;
-	 double lnThickness = getSettings()["LineThickness"];
+	
+	double line_thick = vars::getLineThickness();
     CvApproximator cvApprox;
 	imago::Skeleton graph;
-    GraphicsDetector gd(&cvApprox, lnThickness * consts::Separator::gdConst);
+    GraphicsDetector gd(&cvApprox, line_thick * consts::Separator::gdConst);
 
 	Image timg(_img.getWidth(), _img.getHeight());
 	timg.fillWhite();
@@ -242,8 +231,6 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 	for(size_t i=0;i<classes.size(); i++)
 		visited.push_back(false);
 	int ri = -1;
-	RecognitionSettings &rs = getSettings();
-	double line_thick = rs["LineThickness"];
 
 	PriorityQueue pq;
 	IntDeque symInds;
@@ -374,10 +361,10 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 		bool found_symbol = false;
 		
 			
-		int sym_height_err = rs["SymHeightErr"], cap_height = rs["CapitalHeight"];
-		double susp_seg_density = rs["SuspSegDensity"],
-			adequate_ratio_max = rs["MaxSymRatio"],
-			adequate_ratio_min = rs["MinSymRatio"];
+		int sym_height_err = (int)vars::getSymHeightErr(), cap_height = (int)vars::getCapitalHeight();
+		//double susp_seg_density = rs["SuspSegDensity"],
+		double adequate_ratio_max = vars::getMaxSymRatio();
+		double adequate_ratio_min = vars::getMinSymRatio();
 
 		for(size_t i=0;i< symbRects.size(); i++)
 		{
@@ -588,12 +575,8 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 
    int cap_height;
    IntVector suspicious_segments;
-   RecognitionSettings &rs = getSettings();
+   //RecognitionSettings &rs = getSettings();
    SegmentDeque layer_suspicious;
-
-#ifdef DEBUG
-   puts("************");
-#endif
 
    if (_segs.size() == 0)
    {
@@ -603,12 +586,7 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
    else
       cap_height = _estimateCapHeight();   
 
-#ifdef DEBUG
-   printf("CH: %d\n", cap_height);
-   puts("************");
-#endif
-
-   rs.set("CapitalHeight", cap_height);
+   vars::setCapitalHeight(cap_height);
 
    //Assume that there are no symbols in the picture
    if (cap_height == -1)
@@ -618,10 +596,10 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
    }
    else
    {
-      int sym_height_err = rs["SymHeightErr"];
-      double susp_seg_density = rs["SuspSegDensity"],
-             adequate_ratio_max = rs["MaxSymRatio"],
-             adequate_ratio_min = rs["MinSymRatio"];
+	   int sym_height_err = (int)vars::getSymHeightErr();
+      //double susp_seg_density = rs["SuspSegDensity"],
+	   double adequate_ratio_max = vars::getMaxSymRatio();
+	   double adequate_ratio_min = vars::getMinSymRatio();
       
       IntVector seg_marks, suspicious_segments;
 
@@ -629,9 +607,6 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
       BOOST_FOREACH( Segment *s, _segs )
       {
          int mark;
-
-         //if (rs["DebugSession"])
-         //   ImageUtils::saveImageToFile(*s, "output/tmp.png");
 
 		 getLogExt().appendSegment("Segment", *s);
 
@@ -759,8 +734,7 @@ int Separator::_getApproximationSegmentsCount( Segment *seg /*, SegmentDeque &la
 {
    Image tmp;
    CvApproximator cvApprox;
-   double lnThickness = getSettings()["LineThickness"];
-   GraphicsDetector gd(&cvApprox, lnThickness * consts::Separator::gdConst);
+   GraphicsDetector gd(&cvApprox, vars::getLineThickness() * consts::Separator::gdConst);
    Points2d lsegments;
    tmp.copy(*seg);
    gd.detect(tmp, lsegments);
@@ -794,7 +768,6 @@ int Separator::_estimateCapHeight()
    PairIntVector seq_pairs;
    IntVector heights, seq_lengths;
    IntPair p;
-   RecognitionSettings &rs = gSession.get()->settings();
 
    /*IntVector goodHeights;
 
@@ -831,7 +804,7 @@ int Separator::_estimateCapHeight()
    puts("");
 #endif
 
-   int seg_ver_eps = rs["SegmentVerEps"];
+   int seg_ver_eps = vars::getSegmentVerEps();
    getLogExt().append("Seg_ver_eps", seg_ver_eps);
 
    for (size_t i = 0; i < heights.size(); )
@@ -937,9 +910,7 @@ int Separator::_estimateCapHeight()
 
 bool Separator::_checkSequence( IntPair &checking, IntPair &symbols_graphics, double &density )
 {
-   RecognitionSettings &rs = gSession.get()->settings();
-   
-   //TODO: consider to be dirty hack
+      //TODO: consider to be dirty hack
    if (checking.second - checking.first == 1)
    {
 	   if (_segs[checking.first]->getDensity() < consts::Separator::minDensity)
@@ -952,8 +923,8 @@ bool Separator::_checkSequence( IntPair &checking, IntPair &symbols_graphics, do
       }
    }
 
-   double adequate_ratio_max = rs["MaxSymRatio"],
-          adequate_ratio_min = rs["MinSymRatio"];
+   double adequate_ratio_max = vars::getMaxSymRatio();
+   double adequate_ratio_min = vars::getMinSymRatio();
 
    for (int i = checking.first; i < checking.second; i++)
    {
@@ -993,19 +964,11 @@ bool Separator::_testDoubleBondV( Segment &segment )
 {
 	logEnterFunction();
 
-   int double_bond_dist;
-   double adequate_ratio_min;
    bool ret = false;
    SegmentList segs;
    Segment tmp, segment_tmp;
-   RecognitionSettings &rs = gSession.get()->settings();
 
-   //if (rs["DebugSession"])
-   //   ImageUtils::saveImageToFile(segment, "output/tmp_seg.png");
    getLogExt().appendSegment("segment", segment);
-
-   adequate_ratio_min = rs["MinSymRatio"];
-   double_bond_dist = rs["DoubleBondDist"];
 
    segment_tmp.emptyCopy(segment);
    segment_tmp.getY() = 0;
@@ -1026,8 +989,8 @@ bool Separator::_testDoubleBondV( Segment &segment )
 
    BOOST_FOREACH( Segment *s, segs )
    {
-      if (s->getRatio() <= adequate_ratio_min)
-         if (absolute(s->getX() - segment.getX()) < double_bond_dist) 
+	   if (s->getRatio() <= vars::getMinSymRatio())
+         if (absolute(s->getX() - segment.getX()) < vars::getDoubleBondDist()) 
          {
             ret = true;
             break;

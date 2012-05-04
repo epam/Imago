@@ -238,7 +238,7 @@ namespace imago
          double na = a.norm();
          double nb = b.norm();
          if (fabs(na * nb) < EPS)
-            throw DivizionByZeroException();
+            throw DivizionByZeroException("angle calculation");
 
          d = d / na / nb;
 

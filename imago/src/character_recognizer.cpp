@@ -16,7 +16,6 @@
 #include "stl_fwd.h"
 #include "thin_filter2.h"
 #include "image_utils.h"
-#include "current_session.h"
 #include "log_ext.h"
 #include "prefilter.h"
 #include "recognition_tree.h"
@@ -77,7 +76,7 @@ CharacterRecognizer::CharacterRecognizer( int k, const std::string &filename) : 
    _mapping.resize(255, -1);
    std::ifstream in(filename.c_str());
    if (in == 0)
-      throw FileNotFoundException("%s", filename.c_str());
+      throw FileNotFoundException(filename.c_str());
 
    _loadData(in);
    in.close();
@@ -376,18 +375,8 @@ HWCharacterRecognizer::HWCharacterRecognizer( const CharacterRecognizer &cr ) : 
       FILL_FEATURES(n6);
 #undef FILL_FEATURES
 
-      /*{
-       _readFile("h1.png", features_h1);
-       _readFile("h2.png", features_h2);
-       _readFile("h3.png", features_h3);
-       _readFile("h4.png", features_h4);
-       _readFile("n1.png", features_n1);
-       _readFile("n2.png", features_n2);
-       _readFile("n3.png", features_n3);
-       _readFile("n4.png", features_n4);
-       }*/
    }
-   catch (Exception &e)
+   catch (ImagoException &e)
    {
       fprintf(stderr, "%s\n", e.what());
       return;
@@ -467,11 +456,6 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    if (err_n[min_n] > 100)
       err_n[min_n] = 100;
 
-#ifdef DEBUG
-   printf(" h %.2lf", err_h[min_h]);
-   printf(" n %.2lf\n", err_n[min_n]);
-#endif
-
    static const std::string candidates =
       "ABCDFGHIKMNPRST"
       "aehiklnr" //u
@@ -479,11 +463,6 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    
    double err;
    char c = _cr.recognize(seg, candidates, &err);
-
-#ifdef DEBUG
-   if (c != 0)
-      printf(" [%c] %.2lf \n", c, err);
-#endif
 
    bool line = (c == 'l' || c == 'i' || c == '1');
    bool tricky = (c == 'r');
@@ -504,9 +483,5 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    if (hard && err < consts::CharactersRecognition::HW_Hard)
       return c;
 
-#ifdef DEBUG
-   puts("HWCR returned nothing");
-   fflush(stdout);
-#endif
    return -1;
 }

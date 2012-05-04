@@ -239,7 +239,7 @@ void Image::extract( int x1, int y1, int x2, int y2, Image &res )
 {
 	if(x1 < 0 || x2 > _width || 
 		y1 < 0 || y2 > _height)
-		throw Exception("Coordinates out of bounds");
+		throw ImagoException("Coordinates out of bounds");
 	res.clear();
 	res.init(x2 - x1, y2 - y1);
 

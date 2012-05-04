@@ -7,6 +7,7 @@
 namespace imago
 {
    class Image;
+   class CharacterRecognizer;
 
    struct PrefilterParams
    {

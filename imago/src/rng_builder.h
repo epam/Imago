@@ -21,7 +21,6 @@
 
 #include "stl_fwd.h"
 #include "comdef.h"
-#include "current_session.h"
 
 namespace imago
 {

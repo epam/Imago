@@ -20,9 +20,7 @@
 
 #include "comdef.h"
 #include "algebra.h"
-#include "current_session.h"
 #include "log_ext.h"
-#include "recognition_settings.h"
 #include "skeleton.h"
 #include "double_bond_maker.h"
 #include "triple_bond_maker.h"
@@ -41,7 +39,7 @@ Skeleton::Skeleton()
 void Skeleton::setInitialAvgBondLength( double avg_length )
 {
    // DP: NOT USING WHAT IS SET HERE
-   RecognitionSettings &rs = getSettings();
+   //RecognitionSettings &rs = getSettings();
 
    _avg_bond_length = avg_length;
 
@@ -56,9 +54,9 @@ void Skeleton::setInitialAvgBondLength( double avg_length )
 	   mult = consts::Skeleton::LongMul;
    else
       mult = consts::Skeleton::BaseMult;
-
-   rs.set("AddVertexEps", mult * _avg_bond_length);
-   _addVertexEps = rs["AddVertexEps"];
+   
+   _addVertexEps = mult * _avg_bond_length;
+   vars::setAddVertexEps(_addVertexEps);
 }
 
 void Skeleton::recalcAvgBondLength()
@@ -92,8 +90,9 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
    {
       //Graph already has edge
 	   _warnings++;
-      if (getSettings()["DebugSession"])
-         LPRINT(0, "WARNING: Already has edge (%x, %x)", v1, v2);
+	   std::ostringstream temp;
+	   temp << "WARNING: Already has edge (" << v1 << ", " << v2 << ")";
+	   getLogExt().appendText(temp.str());
       return p.first;
    }
 
@@ -104,8 +103,11 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
 
    if (!p.second)
    {
-      throw LogicException("Can`t add bond (%lf, %lf) (%lf, %lf)", begin.x,
-         begin.y, end.x, end.y);
+	   std::ostringstream temp;
+	   temp << "ERROR: Can't add bond (" << begin.x << ", " <<  begin.y << ") (" << end.x << ", " << end.y << ")";
+	   getLogExt().appendText(temp.str());
+
+      throw LogicException("Can't add bond");
    }
 
    Edge e = p.first;
@@ -192,9 +194,9 @@ void Skeleton::_repairBroken()
 
    //TODO: Tuning here?
    double toSmallErr;
-   if (_avg_bond_length > 115)
+   if (_avg_bond_length > consts::Skeleton::LongBondLen)
 	   toSmallErr = consts::Skeleton::LongSmallErr;
-   else if (_avg_bond_length > 85)
+   else if (_avg_bond_length > consts::Skeleton::MediumBondLen)
 	   toSmallErr = consts::Skeleton::MediumSmallErr;
    else
 	   toSmallErr = consts::Skeleton::BaseSmallErr;
@@ -274,7 +276,6 @@ bool Skeleton::_isEqualDirection( const Edge &first, const Edge &second ) const
 
 bool Skeleton::_isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex &b2,const Vertex &e2)  const
 {
-#define sign(x) ((x > 0) ? 1 : ((x < 0) ? -1 : 0))
    Vec2d begin1 = boost::get(boost::vertex_pos, _g, b1),
          end1 = boost::get(boost::vertex_pos, _g, e1);
 
@@ -385,8 +386,11 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 				  edge_len < _avg_bond_length * coeff)
 			  {
 				  _dissolvings++;
-				  LPRINT(0, "dissolving edge len: %.2lf, max_edge_beg: %.2lf, max_edge_end: %.2lf",
-					  edge_len, max_edge_beg, max_edge_end);
+
+				  std::ostringstream temp;
+				  temp << "dissolving edge len: " << edge_len << ", max_edge_beg: " << max_edge_beg << ", max_edge_end: " << max_edge_end;
+				  getLogExt().appendText(temp.str());
+
 				  // dissolve the edge
 				  if (max_edge_end < max_edge_beg)
 				  {          
@@ -495,9 +499,12 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 				  edge_len < max_edge_end * coeff)
 			  {
 				  _dissolvings++;
-				 LPRINT(0, "dissolving edge len: %.2lf, max_edge_beg: %.2lf, max_edge_end: %.2lf",
-						edge_len, max_edge_beg, max_edge_end);
-				 // dissolve the edge
+
+				  std::ostringstream temp;
+				  temp << "dissolving edge len: " << edge_len << ", max_edge_beg: " << max_edge_beg << ", max_edge_end: " << max_edge_end;
+				  getLogExt().appendText(temp.str());
+				  
+				  // dissolve the edge
 				 if (max_edge_end < max_edge_beg)
 				 {
 					_reconnectBonds(end, beg);
@@ -566,7 +573,7 @@ bool Skeleton::_dissolveIntermediateVertices ()
       }
       else
       {
-         throw Exception("internal error: edges not adjacent");
+         throw ImagoException("Edges are not adjacent");
       }
 
       double d = Vec2d::dot(dir1, dir2);
@@ -594,7 +601,9 @@ bool Skeleton::_dissolveIntermediateVertices ()
    if (min_err < consts::Skeleton::DissolveMinErr) 
    {
 	   _dissolvings++;
-      LPRINT(0, "dissolving vertex, err = %.2lf", min_err);
+      
+	   getLogExt().append("dissolving vertex, err", min_err);
+
       std::deque<Vertex> neighbors;
       boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
       boost::tie(b, e) = boost::adjacent_vertices(to_dissolve, _g);
@@ -728,24 +737,7 @@ void Skeleton::_findMultiple()
       
       std::sort(doubleBonds.begin(), doubleBonds.end(),
                 DoubleBondComparator<SkeletonGraph>(getGraph()));
-      
-      // if (getSettings()["DebugSession"])
-      // {
-      //    Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-      //    img.fillWhite();
-      //    for (int i = 0; i < (int)doubleBonds.size(); ++i)
-      //    {
-      //       Edge f = doubleBonds[i].first, s = doubleBonds[i].second;
-      //       Vertex fb, fe, sb, se;
-      //       fb = boost::source(f, _g), fe = boost::target(f, _g);
-      //       sb = boost::source(s, _g), se = boost::target(s, _g);
-      //       ImageDrawUtils::putLineSegment(img, boost::get(boost::vertex_pos, _g, fb), boost::get(boost::vertex_pos, _g, fe), 0);
-      //       ImageDrawUtils::putLineSegment(img, boost::get(boost::vertex_pos, _g, sb), boost::get(boost::vertex_pos, _g, se), 0);
-      //       ImageUtils::saveImageToFile(img, "output/gdb.png");
-      //    }
-      //    ImageUtils::saveImageToFile(img, "output/gdb.png");
-      // }
-      
+            
       for (int i = 0; i < (int)doubleBonds.size(); ++i)
       {
          DoubleBondMaker::Result ret = _makeDouble(doubleBonds[i]);
@@ -1030,7 +1022,7 @@ void Skeleton::_connectBridgedBonds()
 
 				double min = d1 < d2 ? d1 : d2;
 
-				double LineS = getSettings()["LineThickness"];
+				double LineS = vars::getLineThickness();
 				double blockS = LineS * consts::Skeleton::ConnectBlockS;
 
 				Vec2d nearP1, nearP2;
@@ -1139,9 +1131,9 @@ void Skeleton::modifyGraph()
 {
 	logEnterFunction();
 
-   RecognitionSettings &rs = getSettings();
+   //RecognitionSettings &rs = getSettings();
 
-   _parLinesEps = getSettings()["ParLinesEps"];
+	_parLinesEps = vars::getParLinesEps();
 
    recalcAvgBondLength();
 
@@ -1230,21 +1222,14 @@ void Skeleton::modifyGraph()
     }
 
 
-    /*if (getSettings()["DebugSession"])
-    {
-       Image img(getSettings()["imgWidth"], getSettings()["imgHeight"]);
-       img.fillWhite();
-       ImageDrawUtils::putGraph(img, _g);
-       ImageUtils::saveImageToFile(img, "output/ggg6.png");
-    }*/
 	getLogExt().appendSkeleton("after shrinking", _g);
 
 
    // ---------------------------------------------------------
 	   // analyze graph for vertex mess
-	   Image temp(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+	Image temp(vars::getImageWidth(), vars::getImageHeight());
 
-	   double distTresh = (int)getSettings()["CapitalHeight"];
+	double distTresh = vars::getCapitalHeight();
 	   if (distTresh > _avg_bond_length/consts::Skeleton::DistTreshLimFactor)
 		   distTresh = _avg_bond_length/consts::Skeleton::DistTreshLimFactor;
 
@@ -1295,7 +1280,7 @@ void Skeleton::modifyGraph()
 	   // ---------------------------------------------------------
 
 
-   rs.set("AvgBondLength", _avg_bond_length);   
+	   vars::setAvgBondLength(_avg_bond_length);
    
    BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
    {

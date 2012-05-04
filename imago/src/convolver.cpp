@@ -20,7 +20,7 @@
 
 using namespace imago;
 
-Convolver::Convolver( Image &img ) : Filter(img), _kernel(0), _rows(0), _cols(0), _invBias(1.0)
+Convolver::Convolver( Image &img ) : _img(img), _kernel(0), _rows(0), _cols(0), _invBias(1.0)
 {
 }
 

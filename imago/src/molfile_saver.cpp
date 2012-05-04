@@ -18,14 +18,13 @@
 
 #include "boost/graph/iteration_macros.hpp"
 
-#include "current_session.h"
 #include "label_combiner.h"
 #include "molecule.h"
 #include "molfile_saver.h"
 #include "output.h"
-#include "recognition_settings.h"
 #include "skeleton.h"
 #include "superatom.h"
+#include "constants.h"
 
 using namespace imago;
 
@@ -85,16 +84,8 @@ void MolfileSaver::_writeCtab()
    int i = 1, j;
    char label[3] = {0, 0, 0};
    double bond_length;
-   RecognitionSettings &rs = getSettings();
 
-   try
-   {
-      bond_length = rs["AvgBondLength"];
-   }
-   catch (Exception &) //This exception means that we mess with edgeless graph.
-   {
-      bond_length = 1;
-   }
+   bond_length = imago::vars::getAvgBondLength();
 
    BGL_FORALL_VERTICES(v, graph, Skeleton::SkeletonGraph)
    {

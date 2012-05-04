@@ -24,7 +24,7 @@ namespace imago
    {
       Image img;
       img.copy(image);
-      Binarizer(img, 190).apply();
+	  Binarizer::apply(img, 190); // TODO: is it required?
 
       int w = img.getWidth(), h = img.getHeight(),
           k = (h + 1) * (w + 1), begin = 0, x, y, i;
@@ -81,7 +81,7 @@ namespace imago
             throw NoContourException("infinite loop");
 
          if (stack.size() == 0)
-            throw NoContourException();
+            throw NoContourException("stack.size == 0");
 
          cur = stack.back();
          stack.pop_back();

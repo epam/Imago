@@ -120,7 +120,7 @@ namespace imago
          int count = std::distance(begin, end);
 
          if (count == 0)
-            throw UnderflowException();
+            throw LogicException("count == 0");
 
          if (count == 1)
             return *begin;

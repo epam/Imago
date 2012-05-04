@@ -4,6 +4,7 @@
 #include "output.h"
 #include "prefilter.h"
 #include "pixel_boundings.h"
+#include "constants.h"
 
 #ifdef _WIN32
 #define MKDIR _mkdir
@@ -64,6 +65,7 @@ namespace imago
 	{
 		if (UseVirtualFS)
 		{
+			// do nothing
 		}
 		else if (FileOutput != NULL)
 		{
@@ -73,7 +75,7 @@ namespace imago
 
 	bool log_ext::loggingEnabled() const 
 	{
-		return getSettings()["DebugSession"];
+		return vars::getDebugSession();
 	}
 
 	void log_ext::appendText(const std::string& text)
@@ -104,7 +106,7 @@ namespace imago
 	{
 		if(!loggingEnabled()) return;
       
-		Image output(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+		Image output(vars::getImageWidth(), vars::getImageHeight());
 		output.fillWhite();
 		ImageDrawUtils::putGraph(output, g);
 		appendImage(name, output);
@@ -123,7 +125,7 @@ namespace imago
 	{
 		if(!loggingEnabled()) return;
       
-		Image output(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+		Image output(vars::getImageWidth(), vars::getImageHeight());
 		output.fillWhite();
 		ImageDrawUtils::putGraph(output, g);
 		appendImage(name, output);
@@ -159,7 +161,7 @@ namespace imago
 	{
 		if(!loggingEnabled()) return;
 
-		Image output(getSettings()["imgWidth"], getSettings()["imgHeight"]);
+		Image output(vars::getImageWidth(), vars::getImageHeight());
 		output.fillWhite();
 		ImageUtils::putSegment(output, seg, false);
 		ImageDrawUtils::putLineSegment(output, Vec2i(0, line_y), Vec2i(output.getWidth(), line_y), 64);

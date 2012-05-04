@@ -121,7 +121,7 @@ FileOutput::FileOutput( const char *format, ... )
    _f = fopen(filename, "wb");
 
    if (_f == NULL)
-      throw FileNotFoundException("%s", filename);
+      throw FileNotFoundException(filename);
 }
 
 void FileOutput::write( const void *data, int size )
@@ -175,7 +175,7 @@ void FileOutput::reopen( const char *format, ... )
    _f = fopen(filename, "wb");
 
    if (_f == NULL)
-      throw FileNotFoundException("can't open file %s", filename);
+      throw FileNotFoundException("can't open file " + std::string(filename));
 }
 
 FileOutput::~FileOutput()
@@ -201,7 +201,7 @@ void ArrayOutput::write( const void *data, int size )
 
 void ArrayOutput::seek( int offset, int from )
 {
-   throw Exception("no seek in Array Output");
+   throw ImagoException("no seek in Array Output");
 }
 
 int ArrayOutput::tell()

@@ -27,104 +27,83 @@
 
 #include "comdef.h"
 
-namespace std
+class ImagoException : public std::exception
 {
-   class bad_alloc;
-   class overflow_error;
-   class underflow_error;
-   class range_error;
-}
+public: 
+	ImagoException(const std::string& problemDescription) : std::exception(problemDescription.c_str())
+	{
+	}
+};
 
-namespace imago
+class OutOfBoundsException : public ImagoException
 {
-   /**
-    * @brief Exception class
-    */
-   class Exception : public std::exception
-   {
-   public:
-      /**
-       * Constructor (works like printf)
-       *
-       * @param format format string
-       */
-      explicit Exception( const char *format, ...);
+public:
+	OutOfBoundsException(const std::string& method, int index1, int index2)
+		: ImagoException(method)
+	{
+		// TODO
+	}
+};
 
-      Exception();
+class NoContourException : public ImagoException
+{
+public: 
+	NoContourException(const std::string& error) : ImagoException(error)
+	{
+	}
+};
 
-      /**
-       * Constructor (like previous, but also adds location of throw)
-       *
-       * @param file set by macros __FILE__
-       * @param line set by macros __LINE__
-       * @param func set by macros __FUNCTION__ or __PRETTY_FUNCTION__
-       * @param format format string
-       */
-      //Exception( const char *file, int line, const char *func, const char *format, ... );
+class LabelException : public ImagoException
+{
+public: 
+	LabelException(const std::string& error) : ImagoException(error)
+	{
+	}
+};
 
-      /**
-       * Destructor
-       */
-      virtual ~Exception() throw();
+class FileNotFoundException : public ImagoException
+{
+public: 
+	FileNotFoundException(const std::string& error) : ImagoException(error)
+	{
+	}
+};
 
-      /**
-       * @brief Returns exception's message
-       *
-       * @return Constant pointer to c-string
-       */
-      const char *what() const throw();
-   protected:
-      /// No default construction
-      
-      /// Message string
-      char _message[MAX_LINE];
-      const char *_exc_name;
-      void _prepare( const char *format, va_list args );
-   };
-#define CREATE_EXCEPTION(name, base)                                      \
-   class name##Exception: public base                                     \
-   {                                                                      \
-   public:                                                                \
-      explicit name##Exception( const char *format, ...)                  \
-      {                                                                   \
-         _exc_name = #name;                                               \
-         va_list args;                                                    \
-         va_start(args, format);                                          \
-         _prepare(format, args);                                          \
-         va_end(args);                                                    \
-      }                                                                   \
-      name##Exception()                                                   \
-      {                                                                   \
-         _exc_name = #name;                                               \
-         sprintf(_message, "%sException", _exc_name);                     \
-      }                                                                   \
-   };
+class LogicException : public ImagoException
+{
+public: 
+	LogicException(const std::string& error) : ImagoException(error)
+	{
+	}
 
-#define CREATE_BASE_EXCEPTION(name) CREATE_EXCEPTION(name, Exception);
-   CREATE_BASE_EXCEPTION(DivizionByZero);
-   CREATE_BASE_EXCEPTION(OutOfMemory);
-   CREATE_BASE_EXCEPTION(Overflow);
-   CREATE_BASE_EXCEPTION(Underflow);
-   CREATE_BASE_EXCEPTION(OutOfBounds);
-   //typedef std::bad_alloc OutOfMemoryException;
-   //typedef std::overflow_error OverflowException;
-   //typedef std::underflow_error UnderflowException;
-   //typedef std::range_error OutOfBoundsException;
-   CREATE_BASE_EXCEPTION(Logic);
-   CREATE_EXCEPTION(InvalidName, LogicException);
-   CREATE_EXCEPTION(InappropriateType, LogicException);
-   
-   CREATE_BASE_EXCEPTION(IO);
-   CREATE_EXCEPTION(FileNotFound, IOException);
-   CREATE_BASE_EXCEPTION(NullPointer);
-   
-   CREATE_BASE_EXCEPTION(OCR);
-   CREATE_EXCEPTION(NoContour, OCRException);
-   CREATE_EXCEPTION(Unrecognized, OCRException);
-   CREATE_EXCEPTION(Split, OCRException);
-   CREATE_EXCEPTION(Label, OCRException);
+	LogicException(const int errorCode) : ImagoException("TODO")
+	{
+		// TODO!
+	}
+};
 
-   CREATE_BASE_EXCEPTION(NoResult);
-}
+class IOException : public ImagoException
+{
+public: 
+	IOException(const std::string& error) : ImagoException(error)
+	{
+	}
+};
+
+class DivizionByZeroException : public ImagoException
+{
+public: 
+	DivizionByZeroException(const std::string& error) : ImagoException(error)
+	{
+	}
+};
+
+class OCRException : public ImagoException
+{
+public: 
+	OCRException(const std::string& error) : ImagoException(error)
+	{
+	}
+};
 
 #endif /* _exception_h */

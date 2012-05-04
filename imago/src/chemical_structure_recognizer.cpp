@@ -29,18 +29,14 @@
 #include "image_draw_utils.h"
 #include "label_combiner.h"
 #include "label_logic.h"
-#include "log.h"
 #include "molecule.h"
-#include "recognition_settings.h"
 #include "segment.h"
 #include "segmentator.h"
 #include "separator.h"
 #include "superatom.h"
 #include "thin_filter2.h"
-#include "thread_local_ptr.h"
 #include "vec2d.h"
 #include "wedge_bond_extractor.h"
-#include "current_session.h"
 #include "log_ext.h"
 #include "label_logic.h"
 #include "approximator.h"
@@ -61,36 +57,6 @@ ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname )
 {
 }
 
-void ChemicalStructureRecognizer::_processFilter()
-{
-	logEnterFunction();
-
-   RecognitionSettings &rs = getSettings();
-
-   const char *str = rs["Filter"];
-
-   getLogExt().append("Filter type", str);
-
-   if (strcmp(str, "blur") == 0)
-   {
-      Convolver conv(_origImage);
-
-      conv.initGauss();
-      conv.apply();
-   }
-   if (strcmp(str, "sharp") == 0)
-   {
-      Convolver conv(_origImage);
-
-      conv.initSharp();
-      conv.apply();
-   }
-
-
-   //TODO: Check threshold   
-
-   Binarizer(_origImage, rs["BinarizationLvl"]).apply();
-}
 
 void ChemicalStructureRecognizer::extractCharacters( Image &img )
 {
@@ -109,24 +75,19 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
       mol.clear();
 
       SegmentDeque layer_symbols, layer_graphics, segments;
-      RecognitionSettings &rs = getSettings();      
       
-     //TIME(_processFilter(), "Imago image processing");
-
       Image &_img = _origImage;
 
       _img.crop();
 
       if (!_img.isInit())
       {
-         LPRINT(0, "Empty image, nothing to recognize");
-         return;
+         throw ImagoException("Empty image, nothing to recognize");
       }
 
-      rs.set("imgHeight", _img.getHeight());
-      rs.set("imgWidth", _img.getWidth());
-	  double lth = estimateLineThickness(_img);
-	  rs.set("LineThickness", lth);
+	  vars::setImageWidth(_img.getHeight());
+	  vars::setImageHeight(_img.getWidth());
+	  vars::setLineThickness(estimateLineThickness(_img));
 	  
 	  getLogExt().appendImage("Cropped image", _img);
 
@@ -151,31 +112,23 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 
       if (segments.size() == 0)
       {
-         LPRINT(0, "Empty image, nothing to recognize");
-         return;
+         throw ImagoException("Empty image, nothing to recognize");
       }
 
       WedgeBondExtractor wbe(segments, _img);
       {
-         int sdb_count;
-         TIME(sdb_count = wbe.singleDownFetch(mol), "Fetching single-down bonds");
-         LPRINT(0, "Single-down bonds found: %d", sdb_count);
+         int sdb_count = wbe.singleDownFetch(mol);
+		 getLogExt().append("Single-down bonds found", sdb_count);
       }
-
 	  
       Separator sep(segments, _img);
 
-      //Settings for handwriting separation
-	  rs.set("SymHeightErr", (int)consts::ChemicalStructureRecognizer::SymHeightErr);
-	  rs.set("MaxSymRatio", consts::ChemicalStructureRecognizer::MaxSymRatio);   
-	  rs.set("ParLinesEps", consts::ChemicalStructureRecognizer::ParLinesEps);
+      sep.firstSeparation(layer_symbols, layer_graphics);
 
-      TIME(sep.firstSeparation(layer_symbols, layer_graphics), 
-         "Symbols/Graphics elements separation");
-      LPRINT(0, "Symbols: %i, Graphics: %i", layer_symbols.size(), 
-         layer_graphics.size());
-
-	  if (getLogExt().loggingEnabled()) // rs["DebugSession"])
+	  getLogExt().append("Symbols", layer_symbols.size());
+	  getLogExt().append("Graphics", layer_graphics.size());
+      
+	  if (getLogExt().loggingEnabled())
       {
          Image symbols, graphics;
 
@@ -188,9 +141,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
          BOOST_FOREACH( Segment *s, layer_graphics )
             ImageUtils::putSegment(graphics, *s, true);
 
-         //ImageUtils::saveImageToFile(symbols, "output/letters.png");
 		 getLogExt().appendImage("Letters", symbols);
-         //ImageUtils::saveImageToFile(graphics, "output/graphics.png");
 		 getLogExt().appendImage("Graphics", graphics);
       }
 
@@ -224,53 +175,51 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 	  }
 
 
-      LMARK;
       if (!layer_symbols.empty())
       {
-         LabelCombiner lc(layer_symbols, layer_graphics,
-                          rs["CapitalHeight"], _cr);
+         LabelCombiner lc(layer_symbols, layer_graphics, _cr);
 
-         if ((int)rs["CapitalHeight"] != -1)
+		 if (vars::getCapitalHeight() > 0.0)
             lc.extractLabels(mol.getLabels());
 
-		 if (getLogExt().loggingEnabled()) // rs["DebugSession"])
+		 if (getLogExt().loggingEnabled())
          {
             Image symbols;
             symbols.emptyCopy(_img);
             BOOST_FOREACH( Segment *s, layer_symbols )
                ImageUtils::putSegment(symbols, *s, true);
-            //ImageUtils::saveImageToFile(symbols, "output/letters2.png");
-			getLogExt().appendImage("Symbols with layer_symbols added", symbols);
+            getLogExt().appendImage("Symbols with layer_symbols added", symbols);
          }
 
-         LPRINT(1, "Found %d superatoms", mol.getLabels().size());
+		 getLogExt().append("Found superatoms", mol.getLabels().size());
       }
       else
       {
-         LPRINT(1, "No symbols found in image");
+		  getLogExt().appendText("No symbols found");
       }
 
       Points2d ringCenters;
 
-      {
-		  getLogExt().appendText("Before line vectorization");
-#if 1
-		  double lnThickness = getSettings()["LineThickness"];
-		  getLogExt().append("Line Thickness", lnThickness);
-         CvApproximator cvApprox;
-		 GraphicsDetector gd(&cvApprox, lnThickness * consts::ChemicalStructureRecognizer::LineVectorizationFactor);
-#else
-         SimpleApproximator sApprox;
-         GraphicsDetector gd(&sApprox, 0.3); // no one cares
-#endif
-         TIME(gd.extractRingsCenters(layer_graphics, ringCenters),
-            "Extracting aromatic rings");
+	getLogExt().appendText("Before line vectorization");
 
-         TIME(GraphExtractor::extract(gd, layer_graphics, mol),
-            "Extracting molecular graph");
-      }
+	if (consts::ChemicalStructureRecognizer::UseSimpleApproximator)
+	{
+		SimpleApproximator sApprox;
+		GraphicsDetector gd(&sApprox, 0.3); // no one cares
+		gd.extractRingsCenters(layer_graphics, ringCenters);
+		GraphExtractor::extract(gd, layer_graphics, mol);
+	}
+	else
+	{
+		double lnThickness = vars::getLineThickness();
+		getLogExt().append("Line Thickness", lnThickness);
+		CvApproximator cvApprox;
+		GraphicsDetector gd(&cvApprox, lnThickness * consts::ChemicalStructureRecognizer::LineVectorizationFactor);
+		gd.extractRingsCenters(layer_graphics, ringCenters);
+		GraphExtractor::extract(gd, layer_graphics, mol);
+	}		  
 
-      TIME(wbe.singleUpFetch(mol), "Fetching single-up bonds");
+      wbe.singleUpFetch(mol);
 
 	  while (mol._dissolveShortEdges(consts::ChemicalStructureRecognizer::Dissolve, true));
 
@@ -278,19 +227,18 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
       
       if (!layer_symbols.empty())
       {         
-         LMARK;
-         LabelLogic ll(_cr, getSettings()["CapHeightErr"]);
+		 LabelLogic ll(_cr);
          std::deque<Label> unmapped_labels;
                  
          BOOST_FOREACH(Label &l, mol.getLabels())
             ll.recognizeLabel(l);
          
-         LPRINT(1, "Label recognizing");
+		 getLogExt().appendText("Label recognizing");
          
          mol.mapLabels(unmapped_labels);
 
          GraphicsDetector().analyzeUnmappedLabels(unmapped_labels, ringCenters);
-         LPRINT(0, "Found %i rings", ringCenters.size());
+		 getLogExt().append("Found rings", ringCenters.size());
       }
 	  else
 	  {
@@ -300,9 +248,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
       mol.aromatize(ringCenters);
 	  //mol._connectBridgedBonds();
 
-      TIME(wbe.fixStereoCenters(mol), "Fixing stereo bonds directions");      
-
-      LPRINT(0, "Compound recognized with #%i config", (int)rs["CfgNumber"] + 1);
+      wbe.fixStereoCenters(mol);      
 
       BOOST_FOREACH( Segment *s, layer_symbols )
          delete s;
@@ -312,11 +258,11 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
       layer_symbols.clear();
       layer_graphics.clear();
 
-      LPRINT(1, "Recognition finished");
+	  getLogExt().appendText("Recognition finished");
    }
-   catch (Exception &e)
+   catch (ImagoException&)
    {
-      throw NoResultException("caused by: %s", e.what());
+      throw;
    }
 
 }

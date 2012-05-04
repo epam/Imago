@@ -2,6 +2,42 @@
 
 namespace imago
 {
+	namespace vars
+	{
+		void setHandwritten(bool value);
+		bool getHandwritten();
+
+		void setDebugSession(bool value);
+		bool getDebugSession();
+
+		double getLineThickness();
+		void setLineThickness(double value);
+
+		double getCapitalHeight();
+		void setCapitalHeight(double value);
+		
+		double getAvgBondLength();
+		void setAvgBondLength(double value);
+		
+		int getImageWidth();
+		void setImageWidth(int value);
+
+		int getImageHeight();
+		void setImageHeight(int value);
+
+		double getAddVertexEps();
+		void setAddVertexEps(double value);
+
+		double getCapitalHeightError();
+		double getParLinesEps();
+		double getCharactersSpace();
+		double getMaxSymRatio();
+		double getMinSymRatio();
+		double getSymHeightErr(); 
+		int getDoubleBondDist();
+		int getSegmentVerEps();
+	}
+	
 	namespace consts
 	{
 		const int MaxImageDimensions = 1566; //fuzzed from 1600
@@ -23,7 +59,6 @@ namespace imago
 			const double LongErr = 0.355546; //fuzzed from 0.35
 			const int MediumBond = 89; //fuzzed from 85
 			const double MediumErr = 0.392531; //fuzzed from 0.4
-			//const int ShortBond = 20;
 			const double DefaultErr = 0.633629; //fuzzed from 0.65
 			const double ParLinesEps = 0.340174; //fuzzed from 0.335
 			const double DoubleRatioTresh = 7.313650; //fuzzed from 7.5
@@ -116,6 +151,8 @@ namespace imago
 
 		namespace Prefilter
 		{
+			static const bool MakeSegmentsConnected = false;
+
 			const int SpotsWindowSize = 3; //fuzzed from 3
 			const double GreyTreshMinF = 1.085847; //fuzzed from 1.088456
 			const double GreyTreshMaxF = 0.953415; //fuzzed from 0.917166
@@ -218,11 +255,32 @@ namespace imago
 
 		namespace ChemicalStructureRecognizer
 		{
+			static const bool UseSimpleApproximator = false;
+
 			const double Dissolve = 0.502969; //fuzzed from 0.485932
 			const double DeleteBadTriangles = 1.952375; //fuzzed from 1.949059
-			const double SymHeightErr = 28.212650; //fuzzed from 28.296199
-			const double MaxSymRatio = 1.103637; //fuzzed from 1.088366
-			const double ParLinesEps = 0.521496; //fuzzed from 0.502616
+			
+			namespace hw // handwritten
+			{
+				const double SymHeightErr = 28.212650; //fuzzed from 28.296199
+				const double AddVertexEps = 5.2;
+				const double CharactersSpaceCoef = 0.5;
+				const double MinSymRatio = 0.34;
+				const double MaxSymRatio = 1.103637; //fuzzed from 1.088366
+				const double CapHeightError = 0.85;
+				const double ParLinesEps = 0.521496; //fuzzed from 0.502616
+			}
+			namespace sc // scanned
+			{
+				const double SymHeightErr = 28.212650; //fuzzed from 28.296199
+				const double AddVertexEps = 5.2;
+				const double CharactersSpaceCoef = 0.5;
+				const double MinSymRatio = 0.34;
+				const double MaxSymRatio = 1.103637; //fuzzed from 1.088366
+				const double CapHeightError = 0.85;
+				const double ParLinesEps = 0.521496; //fuzzed from 0.502616
+			}
+			
 			const int WeakSegmentatorDist = 1; //fuzzed from 1
 			const double LineVectorizationFactor = 1.578330; //fuzzed from 1.659550
 		}
@@ -267,9 +325,18 @@ namespace imago
 
 		namespace Separator
 		{
-			const int SegmentVerEps = 4; //fuzzed from 4
-			const int SymHeightErr = 6; //fuzzed from 6
-			const int DoubleBondDist = 20; //fuzzed from 20
+			namespace hw // handwritten
+			{
+				const int DoubleBondDist = 20; //fuzzed from 20
+				const int SegmentVerEps = 4; //fuzzed from 4
+			}
+			namespace sc // scanned
+			{
+				const int DoubleBondDist = 20; //fuzzed from 20
+				const int SegmentVerEps = 4; //fuzzed from 4
+			}
+
+			//const int SymHeightErr = 6; //fuzzed from 6
 			const double hu_1_1 = 0.199816; //fuzzed from 0.204424
 			const double hu_1_2 = 0.081394; //fuzzed from 0.07919
 			const double hu_0_1 = 0.242677; //fuzzed from 0.248338
