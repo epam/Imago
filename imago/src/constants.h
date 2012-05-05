@@ -2,57 +2,75 @@
 
 namespace imago
 {
-	namespace vars
-	{
-		void setHandwritten(bool value);
-		bool getHandwritten();
-
-		void setDebugSession(bool value);
-		bool getDebugSession();
-
-		double getLineThickness();
-		void setLineThickness(double value);
-
-		double getCapitalHeight();
-		void setCapitalHeight(double value);
-		
-		double getAvgBondLength();
-		void setAvgBondLength(double value);
-		
-		int getImageWidth();
-		void setImageWidth(int value);
-
-		int getImageHeight();
-		void setImageHeight(int value);
-
-		double getAddVertexEps();
-		void setAddVertexEps(double value);
-
-		double getCapitalHeightError();
-		double getParLinesEps();
-		double getCharactersSpace();
-		double getMaxSymRatio();
-		double getMinSymRatio();
-		double getSymHeightErr(); 
-		int getDoubleBondDist();
-		int getSegmentVerEps();
-	}
+	static const int MaxImageDimensions = 1600;
 	
+	static const int CLUSTER_SCANNED = 0;
+	static const int CLUSTER_HANDWRITTING = 1;
+
+	struct GeneralSettings
+	{
+		bool LogEnabled;
+		bool IsHandwritten;
+		int ImageWidth;
+		int ImageHeight;
+		GeneralSettings()
+		{
+			LogEnabled = IsHandwritten = false;
+			ImageWidth = ImageHeight = 0;
+		}
+	};
+
+	struct EstimationSettings
+	{
+		double CapitalHeight;
+		double LineThickness;
+		double AvgBondLength;
+		double AddVertexEps;
+		double MaxSymRatio;
+		double MinSymRatio;
+		double ParLinesEps;
+		double SymHeightErr;
+		double CapitalHeightError;
+		double CharactersSpaceCoeff;
+		int DoubleBondDist;
+		int SegmentVerEps;
+		EstimationSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
+	};
+
+	struct MoleculeSettings
+	{
+		double LengthFactor_long; 
+		double LengthFactor_medium; 
+		double LengthFactor_default; 
+		double LengthValue_long;   // dep.{LongestSide}
+		double LengthValue_medium; // dep.{LongestSide}
+		double SpaceMultiply;      // dep.{LongestSide}
+		double AngleTreshold;
+		MoleculeSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
+	};
+
+	struct MainSettings
+	{
+		int DissolvingsFactor;
+		int WarningsRecalcTreshold;
+		MainSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
+	};
+
+	struct Settings
+	{
+		GeneralSettings general;
+		
+		// should be called after general settings filled
+		void update();
+
+		// other settings
+		MoleculeSettings molecule;
+		EstimationSettings estimation;
+		MainSettings main;
+	};
+
 	namespace consts
 	{
-		const int MaxImageDimensions = 1566; //fuzzed from 1600
-
-		namespace Molecule
-		{
-			const double space1 = 0.307623; //fuzzed from 0.3
-			const double space2 = 0.418885; //fuzzed from 0.4
-			const double space3 = 0.480585; //fuzzed from 0.46
-			const double spaceMul = 1.449601; //fuzzed from 1.5
-			const double angTresh = 0.249862; //fuzzed from 0.25
-			const double len1 = 103.398083; //fuzzed from 100.0
-			const double len2 = 84.686506; //fuzzed from 85.0
-		}
-
 		namespace MultipleBond
 		{
 			const int LongBond = 120; //fuzzed from 125
@@ -171,11 +189,7 @@ namespace imago
 			const double SAreaTresh = 0.298385; //fuzzed from 0.3
 		}
 
-		namespace Main
-		{
-			const int DissolvingsFactor = 9; //fuzzed from 9
-			const int WarningsRecalcTreshold = 2; //fuzzed from 2
-		}
+		
 
 		namespace WedgeBondExtractor
 		{
@@ -260,26 +274,6 @@ namespace imago
 			const double Dissolve = 0.502969; //fuzzed from 0.485932
 			const double DeleteBadTriangles = 1.952375; //fuzzed from 1.949059
 			
-			namespace hw // handwritten
-			{
-				const double SymHeightErr = 28.212650; //fuzzed from 28.296199
-				const double AddVertexEps = 5.2;
-				const double CharactersSpaceCoef = 0.5;
-				const double MinSymRatio = 0.34;
-				const double MaxSymRatio = 1.103637; //fuzzed from 1.088366
-				const double CapHeightError = 0.85;
-				const double ParLinesEps = 0.521496; //fuzzed from 0.502616
-			}
-			namespace sc // scanned
-			{
-				const double SymHeightErr = 28.212650; //fuzzed from 28.296199
-				const double AddVertexEps = 5.2;
-				const double CharactersSpaceCoef = 0.5;
-				const double MinSymRatio = 0.34;
-				const double MaxSymRatio = 1.103637; //fuzzed from 1.088366
-				const double CapHeightError = 0.85;
-				const double ParLinesEps = 0.521496; //fuzzed from 0.502616
-			}
 			
 			const int WeakSegmentatorDist = 1; //fuzzed from 1
 			const double LineVectorizationFactor = 1.578330; //fuzzed from 1.659550
@@ -325,17 +319,6 @@ namespace imago
 
 		namespace Separator
 		{
-			namespace hw // handwritten
-			{
-				const int DoubleBondDist = 20; //fuzzed from 20
-				const int SegmentVerEps = 4; //fuzzed from 4
-			}
-			namespace sc // scanned
-			{
-				const int DoubleBondDist = 20; //fuzzed from 20
-				const int SegmentVerEps = 4; //fuzzed from 4
-			}
-
 			//const int SymHeightErr = 6; //fuzzed from 6
 			const double hu_1_1 = 0.199816; //fuzzed from 0.204424
 			const double hu_1_2 = 0.081394; //fuzzed from 0.07919
@@ -408,3 +391,9 @@ namespace imago
 		}
 	}
 }
+
+extern imago::Settings& imago_getSettings();
+#define vars imago_getSettings()
+
+
+

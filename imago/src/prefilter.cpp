@@ -558,7 +558,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 			}
 			else
 			{
-				cv::bilateralFilter(mat, matred, consts::Prefilter::Bilateral_d, consts::Prefilter::BilateralSpace, vars::getLineThickness());
+				cv::bilateralFilter(mat, matred, consts::Prefilter::Bilateral_d, consts::Prefilter::BilateralSpace, vars.estimation.LineThickness);
 			}
 		}
 	}
@@ -637,7 +637,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 	//wiener filter
 	if(!p.strongThresh)
 	{
-		int blockS = (int)vars::getLineThickness();
+		int blockS = (int)vars.estimation.LineThickness;
 		blockS = (blockS % 2) == 0 ? blockS+1 : blockS;
 		_wiener2(matred, blockS);
 	}
@@ -683,7 +683,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 		{
 			//HistogramTools ht2(mat);
 			//ht2.ImageAdjust(mat, true);
-			int blockS = (int)vars::getLineThickness();
+			int blockS = (int)vars.estimation.LineThickness;
 			blockS = (blockS % 2) == 0 ? blockS +1:blockS;
 			cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, blockS*consts::Prefilter::BlockSAdaptive, consts::Prefilter::BlockSAdaptive);
 		}
@@ -757,7 +757,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    if(lineThickness < 1)
 	   throw ImagoException("Image prefiltering failed");
 
-   vars::setLineThickness(lineThickness);
+   vars.estimation.LineThickness = lineThickness;
    
    SegmentDeque segs, psegs;
    imago::Segmentator::segmentate(image, segs, (int)(std::min(lineThickness, 3.0)));

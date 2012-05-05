@@ -77,7 +77,7 @@ RecognitionResult recognizeImage(const imago::Image& src, FilterType filterType)
 
 		_csr.image2mol(img, mol);
 		result.molecule = imago::expandSuperatoms(mol);
-		result.warnings = mol.getWarningsCount() + mol.getDissolvingsCount() / imago::consts::Main::DissolvingsFactor;
+		result.warnings = mol.getWarningsCount() + mol.getDissolvingsCount() / vars.main.DissolvingsFactor;
 
 		printf("Filter [%s] done, warnings: %u.\n", FilterName[filterType], result.warnings);
 	}
@@ -121,7 +121,7 @@ int performFileAction(const std::string& imageName, const FileActionParams& para
 
 		if (params.logLevel > 0)
 		{
-			imago::vars::setDebugSession(true);
+			vars.general.LogEnabled = true;
 			if (params.logLevel > 1)
 				imago::getLogExt().SetVirtualFS(vfs);
 		}
@@ -146,12 +146,12 @@ int performFileAction(const std::string& imageName, const FileActionParams& para
 
 			if (isBinarized(src_img))
 			{
-				imago::vars::setHandwritten(false);
+				vars.general.IsHandwritten = false;
 				result = recognizeImage(src_img, ftPass);
 			}
 			else
 			{
-				imago::vars::setHandwritten(true);
+				vars.general.IsHandwritten = true;
 
 				result = recognizeImage(src_img, ftCV);
 				if (result.exceptions)
@@ -166,7 +166,7 @@ int performFileAction(const std::string& imageName, const FileActionParams& para
 						}
 					}
 				} 
-				else if (result.warnings > imago::consts::Main::WarningsRecalcTreshold)
+				else if (result.warnings > vars.main.WarningsRecalcTreshold)
 				{
 					RecognitionResult r2 = recognizeImage(src_img, ftStd);
 					if (!r2.exceptions && r2.warnings < result.warnings)

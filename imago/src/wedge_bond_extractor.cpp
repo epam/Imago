@@ -454,7 +454,7 @@ void WedgeBondExtractor::singleUpFetch( Skeleton &g )
    {
       Image img;
       img.copy(_img);
-	  _bond_length = vars::getAvgBondLength(); 
+	  _bond_length = vars.estimation.AvgBondLength;
 
       //TODO: Watch out. v.x & v.y can be larger than picture size
 

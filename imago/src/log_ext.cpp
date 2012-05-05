@@ -75,7 +75,7 @@ namespace imago
 
 	bool log_ext::loggingEnabled() const 
 	{
-		return vars::getDebugSession();
+		return vars.general.LogEnabled;
 	}
 
 	void log_ext::appendText(const std::string& text)
@@ -106,7 +106,7 @@ namespace imago
 	{
 		if(!loggingEnabled()) return;
       
-		Image output(vars::getImageWidth(), vars::getImageHeight());
+		Image output(vars.general.ImageWidth, vars.general.ImageHeight);
 		output.fillWhite();
 		ImageDrawUtils::putGraph(output, g);
 		appendImage(name, output);
@@ -125,7 +125,7 @@ namespace imago
 	{
 		if(!loggingEnabled()) return;
       
-		Image output(vars::getImageWidth(), vars::getImageHeight());
+		Image output(vars.general.ImageWidth, vars.general.ImageHeight);
 		output.fillWhite();
 		ImageDrawUtils::putGraph(output, g);
 		appendImage(name, output);
@@ -161,7 +161,7 @@ namespace imago
 	{
 		if(!loggingEnabled()) return;
 
-		Image output(vars::getImageWidth(), vars::getImageHeight());
+		Image output(vars.general.ImageWidth, vars.general.ImageHeight);
 		output.fillWhite();
 		ImageUtils::putSegment(output, seg, false);
 		ImageDrawUtils::putLineSegment(output, Vec2i(0, line_y), Vec2i(output.getWidth(), line_y), 64);

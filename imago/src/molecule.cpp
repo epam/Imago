@@ -112,12 +112,12 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
 {
    double space, space2;
    double bl = bondLength();
-   if (bl > consts::Molecule::len1)
-	   space = consts::Molecule::space1 * bl;
-   else if (bl > consts::Molecule::len2)
-      space = consts::Molecule::space2 * bl; 
+   if (bl > vars.molecule.LengthValue_long)
+	   space = vars.molecule.LengthFactor_long;
+   else if (bl > vars.molecule.LengthValue_medium)
+	   space = vars.molecule.LengthFactor_medium; 
    else
-      space = consts::Molecule::space3 * bl; 
+	   space = vars.molecule.LengthFactor_default; 
 
 //   printf("****: %lf %lf\n", bl, space);
 
@@ -135,7 +135,7 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
 
 
       nearest.clear();
-	  space = l.MaxSymbolWidth() * consts::Molecule::spaceMul;
+	  space = l.MaxSymbolWidth() * vars.molecule.SpaceMultiply;
 	  space2 = l.rect.width < l.rect.height ? l.rect.width : l.rect.height;
 	   
 	     boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type
@@ -206,8 +206,8 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
             Vec2d m;
 
 			double ang = Vec2d::angle(n1, n2);
-			if (fabs(ang) < consts::Molecule::angTresh ||
-                fabs(ang - PI) < consts::Molecule::angTresh)                  
+			if (fabs(ang) < vars.molecule.AngleTreshold ||
+                fabs(ang - PI) < vars.molecule.AngleTreshold )
 			{
 				m.middle(v_a, v_b);
 			}

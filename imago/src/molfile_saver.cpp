@@ -85,7 +85,7 @@ void MolfileSaver::_writeCtab()
    char label[3] = {0, 0, 0};
    double bond_length;
 
-   bond_length = imago::vars::getAvgBondLength();
+   bond_length = vars.estimation.AvgBondLength;
 
    BGL_FORALL_VERTICES(v, graph, Skeleton::SkeletonGraph)
    {

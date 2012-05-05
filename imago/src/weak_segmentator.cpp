@@ -256,8 +256,8 @@ namespace imago
 	{
 		Points2i& p = SegmentPoints[id];
 			
-		int map_x[consts::MaxImageDimensions] = {0};
-		int map_y[consts::MaxImageDimensions] = {0};
+		int map_x[MaxImageDimensions] = {0};
+		int map_y[MaxImageDimensions] = {0};
 		for (Points2i::iterator it = p.begin(); it != p.end(); it++)
 		{
 			map_x[it->x]++;

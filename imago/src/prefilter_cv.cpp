@@ -19,7 +19,7 @@ namespace imago
 		int h = image.getHeight();
 		int m = std::max(w, h);
 		int scale = 1;
-		while (m / scale > consts::MaxImageDimensions) scale++;
+		while (m / scale > MaxImageDimensions) scale++;
 		if (scale == 1)
 		{
 			getLogExt().appendText("resample is not required");

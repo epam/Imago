@@ -84,14 +84,16 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
          throw ImagoException("Empty image, nothing to recognize");
       }
 
-	  vars::setImageWidth(_img.getHeight());
-	  vars::setImageHeight(_img.getWidth());
-	  vars::setLineThickness(estimateLineThickness(_img));
+	  vars.general.ImageWidth = _img.getWidth();
+	  vars.general.ImageHeight = _img.getHeight();
+	  vars.update();
+
+	  vars.estimation.LineThickness = estimateLineThickness(_img);
 	  
 	  getLogExt().appendImage("Cropped image", _img);
 
 	  ////////////-----------------------
-	  WeakSegmentator ws(_img.getWidth(),_img.getHeight());
+	  WeakSegmentator ws(_img.getWidth(), _img.getHeight());
 	  //ws.ConnectMode = true;
 	  ws.appendData(ImgAdapter(_img, _img), consts::ChemicalStructureRecognizer::WeakSegmentatorDist);
 	  for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
@@ -178,7 +180,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
       {
          LabelCombiner lc(layer_symbols, layer_graphics, _cr);
 
-		 if (vars::getCapitalHeight() > 0.0)
+		 if (vars.estimation.CapitalHeight > 0.0)
             lc.extractLabels(mol.getLabels());
 
 		 if (getLogExt().loggingEnabled())
@@ -210,7 +212,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 	}
 	else
 	{
-		double lnThickness = vars::getLineThickness();
+		double lnThickness = vars.estimation.LineThickness;
 		getLogExt().append("Line Thickness", lnThickness);
 		CvApproximator cvApprox;
 		GraphicsDetector gd(&cvApprox, lnThickness * consts::ChemicalStructureRecognizer::LineVectorizationFactor);

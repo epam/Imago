@@ -1,158 +1,111 @@
 #include "constants.h"
+#include <algorithm>
+
+imago::Settings& imago_getSettings()
+{
+	static imago::Settings _ThreadUnsafeSettings;
+	return _ThreadUnsafeSettings;
+}
 
 namespace imago
 {
-	static bool g_isHandwritten = false;
-	static bool g_debugSession = false;
-		
-	// only failsafe defaults
-	static int g_imageWidth = 800;
-	static int g_imageHeight = 600;
-	static double g_capitalHeight = 16.0;
-	static double g_lineThickness = 6.0;
-	static double g_avgBondLength = 30.0;
+	#define FUZZ ;
 
-	static double g_addVertexEps = consts::ChemicalStructureRecognizer::sc::AddVertexEps;
-	static double g_maxSymRatio = consts::ChemicalStructureRecognizer::sc::MaxSymRatio;
-	static double g_minSymRatio = consts::ChemicalStructureRecognizer::sc::MinSymRatio;
-	static double g_parLinesEps = consts::ChemicalStructureRecognizer::sc::ParLinesEps;
-	static double g_symHeightErr = consts::ChemicalStructureRecognizer::sc::SymHeightErr;
-	static double g_capitalHeightError = consts::ChemicalStructureRecognizer::sc::CapHeightError;
-	static int g_doubleBondDist = consts::Separator::sc::DoubleBondDist;
-	static int g_segmentVerEps = consts::Separator::sc::SegmentVerEps;
-
-	double imago::vars::getSymHeightErr()
+	void imago::Settings::update()
 	{
-		return g_symHeightErr;
+		int cluster = general.IsHandwritten ? CLUSTER_HANDWRITTING : CLUSTER_SCANNED;
+		int longestSide = std::max(general.ImageWidth, general.ImageHeight);
+
+		main = MainSettings(cluster, longestSide);
+		molecule = MoleculeSettings(cluster, longestSide);
+		estimation = EstimationSettings(cluster, longestSide);
+	}	
+
+	void NormalizeBySide(double &value, int longestSide)
+	{
+		// temporary to check the results matching!
+		return;
+
+		if (longestSide > 0)
+			value = value / 800.0 * (double)longestSide;
 	}
 
-	double imago::vars::getAddVertexEps()
-	{
-		return g_addVertexEps;
-	}
+	// ------------------------------------------------------------------
 
-	void imago::vars::setAddVertexEps(double value)
+	MoleculeSettings::MoleculeSettings(int cluster, int LongestSide)
 	{
-		g_addVertexEps = value;
-	}
-
-	void imago::vars::setHandwritten(bool value)
-	{
-		g_isHandwritten = value;
-		if (g_isHandwritten)
+		if (cluster == CLUSTER_HANDWRITTING)
 		{
-			g_addVertexEps = consts::ChemicalStructureRecognizer::hw::AddVertexEps;
-			g_maxSymRatio = consts::ChemicalStructureRecognizer::hw::MaxSymRatio;
-			g_minSymRatio = consts::ChemicalStructureRecognizer::hw::MinSymRatio;
-			g_parLinesEps = consts::ChemicalStructureRecognizer::hw::ParLinesEps;
-			g_symHeightErr = consts::ChemicalStructureRecognizer::hw::SymHeightErr;
-			g_capitalHeightError = consts::ChemicalStructureRecognizer::hw::CapHeightError;
-			g_doubleBondDist = consts::Separator::hw::DoubleBondDist;
-			g_segmentVerEps = consts::Separator::hw::SegmentVerEps;
+			FUZZ LengthFactor_long = 0.307623;
+			FUZZ LengthFactor_medium = 0.418885;
+			FUZZ LengthFactor_default = 0.480585; 
+			FUZZ LengthValue_long = 103.398083;
+			FUZZ LengthValue_medium = 84.686506;
+			FUZZ SpaceMultiply = 1.449601;
+			FUZZ AngleTreshold = 0.249862;
+		}
+		else if (cluster == CLUSTER_SCANNED)
+		{
+			FUZZ LengthFactor_long = 0.307623;
+			FUZZ LengthFactor_medium = 0.418885;
+			FUZZ LengthFactor_default = 0.480585; 
+			FUZZ LengthValue_long = 103.398083;
+			FUZZ LengthValue_medium = 84.686506;
+			FUZZ SpaceMultiply = 1.449601;
+			FUZZ AngleTreshold = 0.249862;
+		}
+
+		NormalizeBySide(LengthValue_long, LongestSide);
+		NormalizeBySide(LengthValue_medium, LongestSide);
+	}
+
+	MainSettings::MainSettings(int cluster, int LongestSide)
+	{
+		if (cluster == CLUSTER_HANDWRITTING)
+		{
+			FUZZ DissolvingsFactor = 9;
+			FUZZ WarningsRecalcTreshold = 2;
+		}
+		else if (cluster == CLUSTER_SCANNED)
+		{
+			FUZZ DissolvingsFactor = 9;
+			FUZZ WarningsRecalcTreshold = 2;
 		}
 	}
 
-	bool imago::vars::getHandwritten()
-	{
-		return g_isHandwritten;
-	}
 
-	void imago::vars::setDebugSession(bool value)
+	EstimationSettings::EstimationSettings(int cluster, int LongestSide)
 	{
-		g_debugSession = value;
-	}
+		// therse should be updated anyway
+		CapitalHeight = 16.0;
+		LineThickness = 6.0;
+		AvgBondLength = 30.0;
 
-	bool imago::vars::getDebugSession()
-	{
-		return g_debugSession;
-	}
+		if (cluster == CLUSTER_HANDWRITTING)
+		{
+			FUZZ AddVertexEps = 5.2;
+			FUZZ MaxSymRatio = 1.103637;
+			FUZZ MinSymRatio = 0.34;
+			FUZZ ParLinesEps = 0.521496;
+			FUZZ SymHeightErr = 28.212650;
+			FUZZ CapitalHeightError = 0.85;
+			FUZZ DoubleBondDist = 20;
+			FUZZ SegmentVerEps = 4;
+			FUZZ CharactersSpaceCoeff = 0.5;
+		}
+		else if (cluster == CLUSTER_SCANNED)
+		{
+			FUZZ AddVertexEps = 5.2;
+			FUZZ MaxSymRatio = 1.103637;
+			FUZZ MinSymRatio = 0.34;
+			FUZZ ParLinesEps = 0.521496;
+			FUZZ SymHeightErr = 28.212650;
+			FUZZ CapitalHeightError = 0.85;
+			FUZZ DoubleBondDist = 20;
+			FUZZ SegmentVerEps = 4;
+			FUZZ CharactersSpaceCoeff = 0.4;
+		}
 
-	double imago::vars::getLineThickness()
-	{
-		return g_lineThickness;
-	}
-
-	void imago::vars::setLineThickness(double value)
-	{
-		g_lineThickness = value;
-	}
-
-	double imago::vars::getCapitalHeight()
-	{
-		return g_capitalHeight;
-	}
-
-	void imago::vars::setCapitalHeight(double value)
-	{
-		g_capitalHeight = value;
-	}
-		
-	double imago::vars::getAvgBondLength()
-	{
-		return g_avgBondLength;
-	}
-
-	void imago::vars::setAvgBondLength(double value)
-	{
-		g_avgBondLength = value;
-	}
-
-	int imago::vars::getImageWidth()
-	{
-		return g_imageWidth;
-	}
-
-	void imago::vars::setImageWidth(int value)
-	{
-		g_imageWidth = value;
-	}
-
-	int imago::vars::getImageHeight()
-	{
-		return g_imageHeight;
-	}
-
-	void imago::vars::setImageHeight(int value)
-	{
-		g_imageHeight = value;
-	}
-
-	double imago::vars::getCharactersSpace()
-	{
-		double c = consts::ChemicalStructureRecognizer::sc::CharactersSpaceCoef;
-		if (g_isHandwritten)
-			c = consts::ChemicalStructureRecognizer::hw::CharactersSpaceCoef;
-
-		return g_capitalHeight * c;
-	}
-
-	double imago::vars::getCapitalHeightError()
-	{
-		return g_capitalHeightError;
-	}
-
-	double imago::vars::getParLinesEps()
-	{
-		return g_parLinesEps;
-	}
-
-	double imago::vars::getMaxSymRatio()
-	{
-		return g_maxSymRatio;
-	}
-
-	double imago::vars::getMinSymRatio()
-	{
-		return g_minSymRatio;
-	}
-
-	int imago::vars::getDoubleBondDist()
-	{
-		return g_doubleBondDist;
-	}
-
-	int imago::vars::getSegmentVerEps()
-	{		
-		return g_segmentVerEps;
+		NormalizeBySide(SymHeightErr, LongestSide);
 	}
 }
