@@ -22,7 +22,7 @@
 #include <queue>
 
 #include "boost/foreach.hpp"
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 
 #include "approximator.h"
 #include "comdef.h"

@@ -17,8 +17,8 @@
 #include <algorithm>
 #include <string>
 
-#include <opencv/cv.h>
-#include <opencv/highgui.h>
+#include <opencv2/opencv.hpp>
+//#include <opencv/highgui.h>
 
 #include "image.h"
 #include "image_utils.h"

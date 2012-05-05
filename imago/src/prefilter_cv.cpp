@@ -1,5 +1,5 @@
 #include "prefilter_cv.h"
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 #include "image.h"
 #include "image_utils.h"
 #include "pixel_boundings.h"
