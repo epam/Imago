@@ -75,7 +75,7 @@ void SimpleApproximator::_prepare( const Points2d &poly, IntVector &sample ) con
    for (int l = 0; l < 1; l++)
    {
       int i = 0;
-	  double epsilon = (l == 0) ? consts::Approximator::ApproxEps1 : consts::Approximator::ApproxEps2;
+	  double epsilon = (l == 0) ? vars.routines.Approx_Eps1 : vars.routines.Approx_Eps2;
 
 
       while (i < (int)poly.size() - 2)
@@ -123,7 +123,7 @@ void SimpleApproximator::_calc_line( const Points2d &input, int begin, int end, 
    dev = dev / (n - 1);
    
    //TODO: consider vert lines carefully
-   if (dev < consts::Approximator::CalcLineTresh)
+   if (dev < vars.routines.Approx_CalcLineTresh)
    {
       res.a = 1;
       res.b = 0;

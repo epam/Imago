@@ -42,9 +42,9 @@ namespace imago
 		double LengthFactor_long; 
 		double LengthFactor_medium; 
 		double LengthFactor_default; 
-		double LengthValue_long;   // dep.{LongestSide}
-		double LengthValue_medium; // dep.{LongestSide}
-		double SpaceMultiply;      // dep.{LongestSide}
+		double LengthValue_long;   
+		double LengthValue_medium; 
+		double SpaceMultiply;      
 		double AngleTreshold;
 		MoleculeSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
@@ -54,6 +54,154 @@ namespace imago
 		int DissolvingsFactor;
 		int WarningsRecalcTreshold;
 		MainSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
+	};
+
+	struct MultipleBondSettings
+	{
+		double LongBond, LongErr;
+		double MediumBond, MediumErr;
+		double DefaultErr;
+		double ParBondsEps;
+		double DoubleRatioTresh, DoubleCoef;
+		double DoubleMagic1, DoubleMagic2;
+		double DoubleTreshMin, DoubleTreshMax;
+		double MaxLen1, MaxLen2, MaxLen3, MaxLen4, MaxLen5, MinLen1, MinLen2;
+		double mbe1, mbe2, mbe3, mbe4, mbe5, mbe6, mbe7, mbe_def;
+		MultipleBondSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
+	};
+
+	struct SkeletonSettings
+	{
+		double MultiBondErr;
+		double BaseMult;
+		double BaseSmallErr;
+		double ShortBondLen;
+		double ShortMul;
+		double MediumBondLen;
+		double MediumMul;
+		double MediumSmallErr;
+		double LongBondLen;
+		double LongMul;
+		double LongSmallErr;
+		double BrokenRepairFactor;
+		double BrokenRepairCoef1;
+		double BrokenRepairCoef2;
+		double BrokenRepairAngleEps;
+		double DissolveMinErr;
+		double ConnectBlockS;
+		double ConnectFactor;
+		double JoinVerticiesConst;
+		double DissolveConst;
+		double Dissolve2Const;
+		double Join2Const;
+		double Join3Const;
+		double DistTreshLimFactor;
+		double SlopeFact1;
+		double SlopeFact2;
+		double ShrinkEps;
+		SkeletonSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
+	};
+
+	struct PrefilterCVSettings
+	{
+		int MaxNonBWPixelsProportion;
+		int MinGoodPixelsCount;
+		int MaxBadToGoodRatio;
+		int BorderPartProportion;
+		int MaxRectangleCropLineWidth;
+		int StrongBinarizeSize;
+		double StrongBinarizeTresh;
+		int WeakBinarizeSize;
+		double WeakBinarizeTresh;
+		PrefilterCVSettings();
+	};
+
+	struct AdaptiveFilterSettings
+	{
+		double MinimalLineThickness;
+		double MaximalLineThickness;
+		double MinimalInkPercentage;
+		double MaximalInkPercentage;
+		double GuessInkThresholdFactor;
+		int InterpolationLevel;
+		int MaxCrops;
+		int MaxRefineIterations;
+		int MaxDiffIterations;
+		int WindowSizeFactor;
+		AdaptiveFilterSettings();
+	};
+
+	struct PrefilterSettings
+	{
+		bool MakeSegmentsConnected;
+		int SpotsWindowSize;
+		double GreyTreshMinF;
+		double GreyTreshMaxF;
+		int ReduceImageDim;
+		int GaussianKernelSize;
+		int Bilateral_d;
+		double BilateralSpace;
+		int MinSSize;
+		int UnsharpSize;
+		double UnsharpAmount;
+		int WienerSize;
+		double TreshFactor;
+		int BlockSAdaptive;
+		double MaxLSSplah;
+		double MagicCoeff;
+		double SAreaTresh;
+		PrefilterSettings();
+	};
+
+	struct RoutinesSettings
+	{
+		int LineThick_Grid;
+		double Circle_Eps;
+		double Circle_GapMin;
+		double Circle_GapMax;
+		double Circle_RMax;
+		double Circle_AvgRadius;
+		double Circle_MaxRatio;
+		double Algebra_IntersectionEps;
+		double Algebra_SameLineEps;
+		double Approx_Eps1;
+		double Approx_Eps2;
+		double Approx_CalcLineTresh;
+		double Contour_Eps1;
+		double Contour_Eps2;
+		RoutinesSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
+	};
+
+	struct WeakSegmentatorSettings
+	{
+		double RectangularCropAreaTreshold;
+		double RectangularCropFitTreshold;
+		double RefineWidth;
+		double MinDistanceDraw;
+		double SubpixelDraw;
+		WeakSegmentatorSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
+	};
+
+	struct WedgeBondExtractorSettings
+	{
+		int PointsCompareDist;
+		int SingleDownCompareDist;
+		double SingleDownEps;
+		double SingleDownAngleMax;
+		double SingleDownDistancesMax;
+		double SingleDownLengthMax;
+		double SingleUpRatioEps;
+		double SingleUpDefCoeff;
+		double SingleUpIncCoeff;
+		double SingleUpIncLengthTresh;
+		double SingleUpInterpolateEps;
+		double SingleUpMagicAddition;
+		double SingleUpS2Divisor;
+		double SingleUpMinATresh;
+		double SingleUpSquareRatio;
+		double SingleUpAngleTresh;
+		double SomeTresh;
+		WedgeBondExtractorSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
 
 	struct Settings
@@ -67,177 +215,21 @@ namespace imago
 		MoleculeSettings molecule;
 		EstimationSettings estimation;
 		MainSettings main;
+		MultipleBondSettings mbond;
+		SkeletonSettings skeleton;
+		PrefilterCVSettings prefilterCV;
+		AdaptiveFilterSettings adaptive;
+		PrefilterSettings prefilter;
+		RoutinesSettings routines;
+		WeakSegmentatorSettings weak_seg;
+		WedgeBondExtractorSettings wbe;
 	};
 
 	namespace consts
 	{
-		namespace MultipleBond
-		{
-			const int LongBond = 120; //fuzzed from 125
-			const double LongErr = 0.355546; //fuzzed from 0.35
-			const int MediumBond = 89; //fuzzed from 85
-			const double MediumErr = 0.392531; //fuzzed from 0.4
-			const double DefaultErr = 0.633629; //fuzzed from 0.65
-			const double ParLinesEps = 0.340174; //fuzzed from 0.335
-			const double DoubleRatioTresh = 7.313650; //fuzzed from 7.5
-			const double DoubleCoef = 0.082163; //fuzzed from 0.085
-			const double DoubleMagic1 = 0.964608; //fuzzed from 0.98
-			const double DoubleMagic2 = 0.973610; //fuzzed from 0.98
-			const double DoubleTreshMin = 0.101401; //fuzzed from 0.1
-			const double DoubleTreshMax = 0.858590; //fuzzed from 0.9
-
-			const double MaxLen1 = 166.686972; //fuzzed from 160.0
-			const double MaxLen2 = 120.978614; //fuzzed from 125.0
-			const double MaxLen3 = 113.678808; //fuzzed from 110.0
-			const double MaxLen4 = 110.078292; //fuzzed from 108.0
-			const double MaxLen5 = 86.910405; //fuzzed from 85.0
-
-			const double MinLen1 = 85.970779; //fuzzed from 90.0
-			const double MinLen2 = 75.488563; //fuzzed from 75.0
-
-			const double mbe1 = 0.081863; //fuzzed from 0.08
-			const double mbe2 = 0.149657; //fuzzed from 0.157
-			const double mbe3 = 0.202220; //fuzzed from 0.203
-			const double mbe4 = 0.184702; //fuzzed from 0.185
-			const double mbe5 = 0.158555; //fuzzed from 0.165
-			const double mbe6 = 0.205762; //fuzzed from 0.20
-			const double mbe7 = 0.387195; //fuzzed from 0.38
-			const double mbe_def = 0.518222; //fuzzed from 0.5
-		}
-
-		namespace Skeleton
-		{
-			const double MultiBondErr = 0.288897; //fuzzed from 0.3
-			const double BaseMult = 0.096796; //fuzzed from 0.1
-			const double BaseSmallErr = 0.150513; //fuzzed from 0.153
-			const int ShortBondLen = 21; //fuzzed from 20
-			const double ShortMul = 0.305195; //fuzzed from 0.3
-			const int MediumBondLen = 86; //fuzzed from 85
-			const double MediumMul = 0.174502; //fuzzed from 0.175
-			const double MediumSmallErr = 0.135596; //fuzzed from 0.13
-			const int LongBondLen = 102; //fuzzed from 100
-			const double LongMul = 0.153650; //fuzzed from 0.15
-			const double LongSmallErr = 0.062265; //fuzzed from 0.06
-			const double BrokenRepairFactor = 2.916799; //fuzzed from 3.0
-			const double BrokenRepairCoef1 = 0.953562; //fuzzed from 1.0
-			const double BrokenRepairCoef2 = 2.639729; //fuzzed from 2.7
-			const double BrokenRepairAngleEps = 0.196705; //fuzzed from 0.2
-			const double DissolveMinErr = 0.175928; //fuzzed from 0.17
-			const double ConnectBlockS = 10.137806; //fuzzed from 10.0
-			const double ConnectFactor = 2.018851; //fuzzed from 2.0
-			const double JoinVerticiesConst = 0.098173; //fuzzed from 0.1
-			const double DissolveConst = 0.096792; //fuzzed from 0.1
-			const double Dissolve2Const = 0.201523; //fuzzed from 0.2
-			const double Join2Const = 0.336929; //fuzzed from 0.33
-			const double Join3Const = 0.190316; //fuzzed from 0.2
-			const double DistTreshLimFactor = 1.986538; //fuzzed from 2.0
-			const double SlopeFact1 = 0.098094; //fuzzed from 0.1
-			const double SlopeFact2 = 0.198126; //fuzzed from 0.2
-			const double ShrinkEps = 0.124899; //fuzzed from 0.13
-		}
-
-		namespace GeneralFiltering
-		{
-			const double MinimalLineThickness = 1.039231; //fuzzed from 1.093120
-			const double MaximalLineThickness = 10.265688; //fuzzed from 9.910034
-			const double MinimalInkPercentage = 0.094374; //fuzzed from 0.094627
-			const double MaximalInkPercentage = 8.740140; //fuzzed from 9.047041
-			const int MaxNonBWPixelsProportion = 11; //fuzzed from 11
-		}
-
-		namespace PrefilterCV
-		{
-			const int MinGoodPixelsCount = 18; //fuzzed from 18
-			const int MaxBadToGoodRatio = 8; //fuzzed from 8
-			const int BorderPartProportion = 40; //fuzzed from 42
-			const int MaxRectangleCropLineWidth = 11; //fuzzed from 11
-			const int StrongBinarizeSize = 4; //fuzzed from 4
-			const double StrongBinarizeTresh = 1.344729; //fuzzed from 1.288367
-			const int WeakBinarizeSize = 7; //fuzzed from 7
-			const double WeakBinarizeTresh = 1.129019; //fuzzed from 1.178619
-		}
-
-		namespace AdaptiveFilter
-		{
-			const double GuessInkThresholdFactor = 0.587444; //fuzzed from 0.591245
-			const int InterpolationLevel = 2; //fuzzed from 2
-			const int MaxCrops = 1; //fuzzed from 1
-			const int MaxRefineIterations = 2; //fuzzed from 2
-			const int MaxDiffIterations = 4; //fuzzed from 4
-			const int WindowSizeFactor = 2; //fuzzed from 2
-		}
-
-		namespace Prefilter
-		{
-			static const bool MakeSegmentsConnected = false;
-
-			const int SpotsWindowSize = 3; //fuzzed from 3
-			const double GreyTreshMinF = 1.085847; //fuzzed from 1.088456
-			const double GreyTreshMaxF = 0.953415; //fuzzed from 0.917166
-			const int ReduceImageDim = 269; //fuzzed from 268
-			const int GaussianKernelSize = 5; //fuzzed from 5
-			const int Bilateral_d = 5; //fuzzed from 5
-			const double BilateralSpace = 19.414779; //fuzzed from 19.090640
-			const int MinSSize = 23; //fuzzed from 23
-			const int UnsharpSize = 7; //fuzzed from 7
-			const double UnsharpAmount = 3.978068; //fuzzed from 3.918225
-			const int WienerSize = 5; //fuzzed from 5
-			const double TreshFactor = 0.197020; //fuzzed from 0.205623
-			const int BlockSAdaptive = 7; //fuzzed from 7
-			const double MaxLSSplah = 2.783276; //fuzzed from 2.810816
-			const double MagicCoeff = 8.438847; //fuzzed from 8.652838
-			const double SAreaTresh = 0.298385; //fuzzed from 0.3
-		}
-
 		
 
-		namespace WedgeBondExtractor
-		{
-			const int PointsCompareDist = 3; //fuzzed from 3
-			
-			const int SingleDownCompareDist = 2; //fuzzed from 2
-			const double SingleDownEps = 3.008877; //fuzzed from 2.924434
-			const double SingleDownAngleMax = 45.664699; //fuzzed from 43.804412
-			const double SingleDownDistancesMax = 9.742339; //fuzzed from 9.354137
-			const double SingleDownLengthMax = 44.086214; //fuzzed from 42.785999
-			
-			const double SingleUpRatioEps = 1.839959; //fuzzed from 1.770050
-			const double SingleUpDefCoeff = 0.282291; //fuzzed from 0.273103
-			const double SingleUpIncCoeff = 0.416666; //fuzzed from 0.420675
-			const double SingleUpIncLengthTresh = 36.420517; //fuzzed from 34.979829
-			const double SingleUpInterpolateEps = 0.059793; //fuzzed from 0.062390
-			const double SingleUpMagicAddition = 0.223878; //fuzzed from 0.213237
-			const double SingleUpS2Divisor = 1.644773; //fuzzed from 1.577473
-			const double SingleUpMinATresh = 1.701618; //fuzzed from 1.664169
-			const double SingleUpSquareRatio = 0.641111; //fuzzed from 0.655334
-			const double SingleUpAngleTresh = 0.067432; //fuzzed from 0.069811
-			
-			const double SomeTresh = 0.096512; //fuzzed from 0.1
-		}
-
-		namespace Estimation
-		{
-			const int DefaultLineGridSize = 10; //fuzzed from 10
-			const double CircleEps = 0.000009; //fuzzed from 0.000009
-			const double CircleGapMin = 0.096860; //fuzzed from 0.097346
-			const double CircleGapMax = 0.971710; //fuzzed from 0.977436
-			const double CircleRMax = 2.102963; //fuzzed from 2.029622
-			const double CircleAvgRadius = 0.000105; //fuzzed from 0.000100
-			const double CircleMaxRatio = 0.319711; //fuzzed from 0.324951
-		}
 		
-		namespace Algebra
-		{
-			const double IntersectionEps = 0.010220; //fuzzed from 0.010607
-			const double SameLineEps = 0.212478; //fuzzed from 0.210793
-		}
-
-		namespace Approximator
-		{
-			const double ApproxEps1 = 1.184722; //fuzzed from 1.151009
-			const double ApproxEps2 = 0.887856; //fuzzed from 0.856642
-			const double CalcLineTresh = 0.909670; //fuzzed from 0.870146
-		}
 
 		namespace CharactersRecognition
 		{
@@ -277,12 +269,6 @@ namespace imago
 			
 			const int WeakSegmentatorDist = 1; //fuzzed from 1
 			const double LineVectorizationFactor = 1.578330; //fuzzed from 1.659550
-		}
-
-		namespace ContourExtractor
-		{
-			const double ApproxEps1 = 1.123741; //fuzzed from 1.071862
-			const double ApproxEps2 = 0.675823; //fuzzed from 0.705507
 		}
 
 		namespace DoubleBondMaker
@@ -379,16 +365,7 @@ namespace imago
 		{
 			const double LeftLengthTresh = 0.251075; //fuzzed from 0.263060
 			const double RightLengthTresh = 0.230011; //fuzzed from 0.237006
-		}
-
-		namespace WeakSegmentator
-		{
-			const double RectangularCropAreaTreshold = 0.298603; //fuzzed from 0.291124
-			const double RectangularCropFitTreshold = 1.049695; //fuzzed from 1.023274
-			const double RefineWidth = 0.857144; //fuzzed from 0.901301
-			const double MinD = 1.352319; //fuzzed from 1.379527
-			const double Subpixel = 0.432968; //fuzzed from 0.440379
-		}
+		}		
 	}
 }
 

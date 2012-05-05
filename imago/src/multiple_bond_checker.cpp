@@ -26,14 +26,14 @@ MultipleBondChecker::MultipleBondChecker( Skeleton &s ) : _s(s), _g(_s.getGraph(
 {
    _avgBondLength = _s.bondLength();
 
-   if (_avgBondLength > consts::MultipleBond::LongBond)
-	   _multiBondErr = consts::MultipleBond::LongErr; 
-   else if (_avgBondLength > consts::MultipleBond::MediumBond)
-	   _multiBondErr = consts::MultipleBond::MediumErr;
+   if (_avgBondLength > vars.mbond.LongBond)
+	   _multiBondErr = vars.mbond.LongErr; 
+   else if (_avgBondLength > vars.mbond.MediumBond)
+	   _multiBondErr = vars.mbond.MediumErr;
    else
-	   _multiBondErr = consts::MultipleBond::DefaultErr; 
+	   _multiBondErr = vars.mbond.DefaultErr; 
    
-   _parLinesEps = consts::MultipleBond::ParLinesEps;
+   _parLinesEps = vars.mbond.ParBondsEps;
 }
 
 MultipleBondChecker::~MultipleBondChecker()
@@ -89,7 +89,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       ratio = bs.length / bf.length;
    }
 
-   if (ratio > consts::MultipleBond::DoubleRatioTresh)
+   if (ratio > vars.mbond.DoubleRatioTresh)
       return false;
 
    double dbb = Vec2d::distance(fb_pos, sb_pos) + Vec2d::distance(fe_pos, se_pos),
@@ -111,7 +111,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
          return false;
 
       dd = Vec2d::distance(m1, m2); 
-	  if (dd < consts::MultipleBond::DoubleCoef * _avgBondLength)      
+	  if (dd < vars.mbond.DoubleCoef * _avgBondLength)      
          return false;
    }
 
@@ -126,7 +126,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
                  Algebra::distance2segment(se_pos, fb_pos, fe_pos));
 
    
-   if (!(dm < consts::MultipleBond::DoubleMagic1 * de && dm < consts::MultipleBond::DoubleMagic2 * db))
+   if (!(dm < vars.mbond.DoubleMagic1 * de && dm < vars.mbond.DoubleMagic2 * db))
    {
       return false;
    }
@@ -155,7 +155,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       if (d1 > d || d2 > d)
          continue;
       
-	  if (coef > consts::MultipleBond::DoubleTreshMin && coef < consts::MultipleBond::DoubleTreshMax)
+	  if (coef > vars.mbond.DoubleTreshMin && coef < vars.mbond.DoubleTreshMax)
       {
          return false;
       }
@@ -173,28 +173,28 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
       minLength = bf.length;
    }
 
-   if (maxLength > consts::MultipleBond::MaxLen1)
-	   _multiBondErr = consts::MultipleBond::mbe1;
-   else if (maxLength > consts::MultipleBond::MaxLen2)
+   if (maxLength > vars.mbond.MaxLen1)
+	   _multiBondErr = vars.mbond.mbe1;
+   else if (maxLength > vars.mbond.MaxLen2)
    {
-	   if (minLength > consts::MultipleBond::MinLen1)
-         _multiBondErr = consts::MultipleBond::mbe2;
+	   if (minLength > vars.mbond.MinLen1)
+         _multiBondErr = vars.mbond.mbe2;
       else
-         _multiBondErr = consts::MultipleBond::mbe3;
+         _multiBondErr = vars.mbond.mbe3;
    }
-   else if (maxLength > consts::MultipleBond::MaxLen3) // TODO: WARNING: some trash here!
-      _multiBondErr = consts::MultipleBond::mbe4;
-   else if (maxLength > consts::MultipleBond::MaxLen4)
+   else if (maxLength > vars.mbond.MaxLen3) // TODO: WARNING: some trash here!
+      _multiBondErr = vars.mbond.mbe4;
+   else if (maxLength > vars.mbond.MaxLen4)
    {
-	   if (minLength > consts::MultipleBond::MinLen2)
-         _multiBondErr = consts::MultipleBond::mbe5;
+	   if (minLength > vars.mbond.MinLen2)
+         _multiBondErr = vars.mbond.mbe5;
       else
-         _multiBondErr = consts::MultipleBond::mbe6;
+         _multiBondErr = vars.mbond.mbe6;
    }
-   else if (maxLength > consts::MultipleBond::MaxLen5)
-      _multiBondErr = consts::MultipleBond::mbe7;
+   else if (maxLength > vars.mbond.MaxLen5)
+      _multiBondErr = vars.mbond.mbe7;
    else
-	   _multiBondErr = consts::MultipleBond::mbe_def;
+	   _multiBondErr = vars.mbond.mbe_def;
 
 #ifdef DEBUG
    printf("DC:%d; %lf\nDC: %lf < %lf\n", maxLength, _multiBondErr, d, _multiBondErr * maxLength);

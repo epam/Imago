@@ -97,7 +97,7 @@ Vec2d Algebra::linesIntersection( const Vec2d &p11, const Vec2d &p12,
    Line l2 = points2line(p21, p22);
    double den = l1.A * l2.B - l2.A * l1.B;
 
-   if (absolute(den) < consts::Algebra::IntersectionEps)
+   if (absolute(den) < vars.routines.Algebra_IntersectionEps)
    {
       Vec2d res;
       res.add(p11);
@@ -115,7 +115,7 @@ Vec2d Algebra::linesIntersection( const Line &l1, const Line &l2 )
 {
    double den = l1.A * l2.B - l2.A * l1.B; 
 
-   if (absolute(den) < consts::Algebra::IntersectionEps) 
+   if (absolute(den) < vars.routines.Algebra_IntersectionEps) 
       throw DivizionByZeroException("linesIntersection");
 
    Vec2d res;
@@ -244,8 +244,8 @@ bool Algebra::SegmentsOnSameLine(Vec2d &b1, Vec2d &e1,
 	bdif.diff(b1, b2);
 	edif.diff(e1, e2);
 
-	if(Algebra::segmentsParallel(b1, e1, b2, e2, consts::Algebra::SameLineEps) &&
-		Algebra::segmentsParallel(bdif, edif, b2, e2, consts::Algebra::SameLineEps))
+	if(Algebra::segmentsParallel(b1, e1, b2, e2, vars.routines.Algebra_SameLineEps) &&
+		Algebra::segmentsParallel(bdif, edif, b2, e2, vars.routines.Algebra_SameLineEps))
 		return true;
 	return false;
 }

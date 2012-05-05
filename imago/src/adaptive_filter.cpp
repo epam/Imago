@@ -208,20 +208,20 @@ namespace imago
 				if (bitmask.getByte(x, y) == 0)
 					inkPercentage += 1.0;
 		inkPercentage /= bitmask.getWidth() * bitmask.getHeight();
-		inkPercentage *= consts::AdaptiveFilter::GuessInkThresholdFactor;
+		inkPercentage *= vars.adaptive.GuessInkThresholdFactor;
 		
 		// update line thickness
 		double lineThickness = estimateLineThickness(bitmask);
 
-		if (lineThickness < consts::GeneralFiltering::MinimalLineThickness) 
-			lineThickness = consts::GeneralFiltering::MinimalLineThickness;
-		if (lineThickness > consts::GeneralFiltering::MaximalLineThickness)
-			lineThickness = consts::GeneralFiltering::MaximalLineThickness;
+		if (lineThickness < vars.adaptive.MinimalLineThickness) 
+			lineThickness = vars.adaptive.MinimalLineThickness;
+		if (lineThickness > vars.adaptive.MaximalLineThickness)
+			lineThickness = vars.adaptive.MaximalLineThickness;
 
-		if (inkPercentage < consts::GeneralFiltering::MinimalInkPercentage) 
-			inkPercentage = consts::GeneralFiltering::MinimalInkPercentage;
-		if (inkPercentage > consts::GeneralFiltering::MaximalInkPercentage) 
-			inkPercentage = consts::GeneralFiltering::MaximalInkPercentage;		
+		if (inkPercentage < vars.adaptive.MinimalInkPercentage) 
+			inkPercentage = vars.adaptive.MinimalInkPercentage;
+		if (inkPercentage > vars.adaptive.MaximalInkPercentage) 
+			inkPercentage = vars.adaptive.MaximalInkPercentage;		
 
 		getLogExt().append("Line thickness", lineThickness);
 		getLogExt().append("Ink percentage", inkPercentage);
@@ -240,14 +240,14 @@ namespace imago
 		diffStepRange = 1; // one step pixels count
 		diffIterations = lineThickness; // max steps count
 
-		while (diffIterations > consts::AdaptiveFilter::MaxDiffIterations)
+		while (diffIterations > vars.adaptive.MaxDiffIterations)
 		{
 			diffStepRange++;
 			diffIterations = lineThickness / diffStepRange;
 		}
 
 		int diffFullPath  = diffStepRange * diffIterations;
-		int winSize = consts::AdaptiveFilter::WindowSizeFactor * lineThickness;
+		int winSize = vars.adaptive.WindowSizeFactor * lineThickness;
 
 		double inkTresh = 1.0 - probablyInkPercentage;
 		double refineTresh = inkTresh; // fixed, cause it's meaning is relative
@@ -271,10 +271,10 @@ namespace imago
 
 		Rectangle crop(0, 0, this->width(), this->height());
 		AdaptiveFilter interpolated(this->width(), this->height());
-		interpolated.interpolateImage(*this, consts::AdaptiveFilter::InterpolationLevel);
+		interpolated.interpolateImage(*this, vars.adaptive.InterpolationLevel);
 
 		// maximal crops allowed loop
-		for (int crop_attempt = 0; crop_attempt <= consts::AdaptiveFilter::MaxCrops; crop_attempt++)
+		for (int crop_attempt = 0; crop_attempt <= vars.adaptive.MaxCrops; crop_attempt++)
 		{
 			int bound = interpolated.getIntensityBound(inkTresh, crop);
 			ImageAdapter img(*this, crop, bound);
@@ -282,12 +282,12 @@ namespace imago
 
 			int addedPixels = ws.appendData(img, diffIterations);
 
-			if (!allowCrop || crop_attempt == consts::AdaptiveFilter::MaxCrops || !ws.needCrop(crop, winSize))
+			if (!allowCrop || crop_attempt == vars.adaptive.MaxCrops || !ws.needCrop(crop, winSize))
 			{
 				getLogExt().appendText("Enter refinements loop");
 
 				// refine loop
-				for (int refine_iter = 1; refine_iter <= consts::AdaptiveFilter::MaxRefineIterations; refine_iter++)
+				for (int refine_iter = 1; refine_iter <= vars.adaptive.MaxRefineIterations; refine_iter++)
 				{
 					ws.updateRefineMap(diffFullPath);
 

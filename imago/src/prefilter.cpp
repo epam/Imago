@@ -201,7 +201,7 @@ void _removeSpots (Image &img, int validcolor, int max_size)
    SegmentDeque segments;
    int i, j;
 
-   Segmentator::segmentate(img, segments, consts::Prefilter::SpotsWindowSize, validcolor);
+   Segmentator::segmentate(img, segments, vars.prefilter.SpotsWindowSize, validcolor);
 
    for (SegmentDeque::iterator it = segments.begin(); it != segments.end(); ++it)
    {
@@ -269,6 +269,11 @@ void _removeSpots (Image &img, int validcolor, int max_size)
 
 double estimateLineThickness(Image &bwimg, int grid)
 {
+	if (grid <= 0)
+	{
+		grid = vars.routines.LineThick_Grid;
+	}
+
 	int w = bwimg.getWidth();
 	int h = bwimg.getHeight();
 	int d = grid;
@@ -509,7 +514,7 @@ int greyThresh(cv::Mat mat, bool strong)
 		bins.push_back(maxLoc.x);
 		sigma_b_squared.at<double>(maxLoc.x) = 0;
 		cv::minMaxLoc(sigma_b_squared, &min, &tmax, NULL, &maxLoc);
-	} while(tmax < max * consts::Prefilter::GreyTreshMaxF && tmax > max * consts::Prefilter::GreyTreshMinF);
+	} while(tmax < max * vars.prefilter.GreyTreshMaxF && tmax > max * vars.prefilter.GreyTreshMinF);
 
 	std::vector<int>::iterator it;
 	int cnt = 0;
@@ -543,7 +548,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 	cv::Mat matred((mat.rows+1)/2, (mat.cols+1)/2, CV_8U);
 	if (p.reduceImage)
 	{
-		if(maxside > consts::Prefilter::ReduceImageDim)
+		if(maxside > vars.prefilter.ReduceImageDim)
 		{
 			//Pydramid reduce
 			cv::pyrDown(mat, matred);
@@ -553,12 +558,12 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 		{
 			if(p.strongThresh)
 			{
-				cv::GaussianBlur(mat, matred, cv::Size(consts::Prefilter::GaussianKernelSize, consts::Prefilter::GaussianKernelSize),
+				cv::GaussianBlur(mat, matred, cv::Size(vars.prefilter.GaussianKernelSize, vars.prefilter.GaussianKernelSize),
 					   1, 1, cv::BORDER_REPLICATE);
 			}
 			else
 			{
-				cv::bilateralFilter(mat, matred, consts::Prefilter::Bilateral_d, consts::Prefilter::BilateralSpace, vars.estimation.LineThickness);
+				cv::bilateralFilter(mat, matred, vars.prefilter.Bilateral_d, vars.prefilter.BilateralSpace, vars.estimation.LineThickness);
 			}
 		}
 	}
@@ -599,7 +604,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 	if(matred.total() > (size_t)minA )
 	{
 		int ssize = (int)(matred.total() * 3.4722e-004 / 3.0); // round?
-		ssize = ssize < consts::Prefilter::MinSSize ? consts::Prefilter::MinSSize : ssize;
+		ssize = ssize < vars.prefilter.MinSSize ? vars.prefilter.MinSSize : ssize;
 		cv::Mat strel = cv::getStructuringElement(cv::MORPH_ELLIPSE, cv::Size(ssize, ssize));
 		matred = 255 - matred;
 		//perform tophat transformation
@@ -610,7 +615,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 	img.clear();
 	ImageUtils::copyMatToImage(matred, img);
 	//if(strongThresh)
-	_unsharpMask(img, consts::Prefilter::UnsharpSize, (float)consts::Prefilter::UnsharpAmount, 0);
+	_unsharpMask(img, vars.prefilter.UnsharpSize, (float)vars.prefilter.UnsharpAmount, 0);
 	ImageUtils::copyImageToMat(img, matred);
 	img.clear();
    
@@ -643,7 +648,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 	}
 	else
 	{
-		_wiener2(matred, consts::Prefilter::WienerSize);
+		_wiener2(matred, vars.prefilter.WienerSize);
 	}
 	
 	cimg.clear();
@@ -673,7 +678,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 	int wthresh = greyThresh(mat, false);
 
 	if(p.strongThresh)
-		wthresh = round(consts::Prefilter::TreshFactor*thresh + (1.0-consts::Prefilter::TreshFactor)*wthresh);
+		wthresh = round(vars.prefilter.TreshFactor*thresh + (1.0-vars.prefilter.TreshFactor)*wthresh);
 
 	if (p.binarizeImage)
 	{
@@ -685,7 +690,7 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 			//ht2.ImageAdjust(mat, true);
 			int blockS = (int)vars.estimation.LineThickness;
 			blockS = (blockS % 2) == 0 ? blockS +1:blockS;
-			cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, blockS*consts::Prefilter::BlockSAdaptive, consts::Prefilter::BlockSAdaptive);
+			cv::adaptiveThreshold(mat, mat, 255, CV_ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, blockS*vars.prefilter.BlockSAdaptive, vars.prefilter.BlockSAdaptive);
 		}
 		else
 			cv::threshold(mat, mat, wthresh, 255, cv::THRESH_BINARY);//cv::THRESH_OTSU|
@@ -722,7 +727,7 @@ bool isSplash(Segment *s, double lineSize)
 		return true;
 	s->extract(0, 0, s->getWidth(), s->getHeight(), img);
 	double ls = estimateLineThickness(img);
-	if(ls > consts::Prefilter::MaxLSSplah * lineSize || ls < 1.0)
+	if(ls > vars.prefilter.MaxLSSplah * lineSize || ls < 1.0)
 		return true;
 	return false;
 }
@@ -801,7 +806,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 		if(ymax < (sy + sh))
 			ymax = (sy +sh);
 		double sarea = (s->getHeight()*s->getWidth()*s->getDensity()) / maxDensity;
-		if(sarea > consts::Prefilter::SAreaTresh)
+		if(sarea > vars.prefilter.SAreaTresh)
 		{
 			center.add( s->getCenter());
 			accumSize++;
@@ -839,7 +844,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    int mad = medInd % 2 != 0? deviations[medInd>>1]:(deviations[medInd>>1] + deviations[(medInd>>1) - 1])/2;
 
    psegs.clear();
-   double koeff = consts::Prefilter::MagicCoeff;
+   double koeff = vars.prefilter.MagicCoeff;
 
    if (std::max(image.getWidth(), image.getHeight()) < 300) koeff *= 2.0;
 
@@ -887,7 +892,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    cimg.clear();
    cimg.init(cs.getWidth(), cs.getHeight());
 
-   if (consts::Prefilter::MakeSegmentsConnected)
+   if (vars.prefilter.MakeSegmentsConnected)
    {
     for(rsit = weak_segments.rbegin(); rsit != weak_segments.rend(); rsit++)
 	{		
@@ -977,12 +982,12 @@ bool isCircle (Image &seg)
       float r2 = fabs(points[i + 1].radius);
       float gapr = 1.f;
 
-	  if (r1 > r2 && r2 > consts::Estimation::CircleEps)
+	  if (r1 > r2 && r2 > vars.routines.Circle_Eps)
          gapr = r1 / r2;
-      else if (r2 < r1 && r1 > consts::Estimation::CircleEps)
+      else if (r2 < r1 && r1 > vars.routines.Circle_Eps)
          gapr = r2 / r1;
 
-	  if (gap < consts::Estimation::CircleGapMin && gapr > consts::Estimation::CircleRMax)
+	  if (gap < vars.routines.Circle_GapMin && gapr > vars.routines.Circle_RMax)
       {
          #ifdef DEBUG
          printf("large radios gap: %3f -> %3f at %3f\n", r1, r2, points[i].ang);
@@ -991,7 +996,7 @@ bool isCircle (Image &seg)
          return false;
       }
 
-	  if (gap > consts::Estimation::CircleGapMax)
+	  if (gap > vars.routines.Circle_GapMax)
       {
          #ifdef DEBUG
          printf("large gap: %3f at %3f\n", gap, points[i].ang);
@@ -1012,7 +1017,7 @@ bool isCircle (Image &seg)
 
    avg_radius /= npoints;
 
-   if (avg_radius < consts::Estimation::CircleAvgRadius)
+   if (avg_radius < vars.routines.Circle_AvgRadius)
    {
       #ifdef DEBUG
       printf("degenerate\n");
@@ -1035,7 +1040,7 @@ bool isCircle (Image &seg)
    #endif
 
    delete[] points;
-   if (ratio > consts::Estimation::CircleMaxRatio)
+   if (ratio > vars.routines.Circle_MaxRatio)
       return false; // not a circle
    return true;
 }

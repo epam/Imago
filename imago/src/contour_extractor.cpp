@@ -203,11 +203,10 @@ namespace imago
 
    void ContourExtractor::_approximize( Points2i &contour )
    {
-	   double epsilons[2] = { consts::ContourExtractor::ApproxEps1, consts::ContourExtractor::ApproxEps2 };
       for (int l = 0; l < 2; l++)
       {
          int i = 1;
-         double epsilon = epsilons[l];
+		 double epsilon = (l == 0) ? vars.routines.Contour_Eps1 : vars.routines.Contour_Eps2;
 
          while (i < (int)contour.size() - 2)
          {

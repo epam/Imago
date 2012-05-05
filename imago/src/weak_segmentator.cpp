@@ -50,7 +50,7 @@ namespace imago
 						average_dy += (double)(current.y - p[u].y) / p.size();
 					}
 
-					if (fabs(average_dx) < consts::WeakSegmentator::MinD && fabs(average_dy) < consts::WeakSegmentator::MinD)
+					if (fabs(average_dx) < vars.weak_seg.MinDistanceDraw && fabs(average_dy) < vars.weak_seg.MinDistanceDraw)
 					{
 						// draw square
 						for (int j = -max_len/2; j <= max_len/2; j++)
@@ -71,11 +71,11 @@ namespace imago
 						// draw trinagle
 						double norm = sqrt(average_dx*average_dx + average_dy*average_dy);
 						double dx = average_dx/norm, dy = average_dy/norm;
-						double subpx = consts::WeakSegmentator::Subpixel;
+						double subpx = vars.weak_seg.SubpixelDraw;
 
 						for (int j = (int)(-max_len / subpx); j < (int)(max_len / subpx); j++)
 						{
-							int bnd = round(absolute(j)*consts::WeakSegmentator::RefineWidth + 2);
+							int bnd = round(absolute(j) * vars.weak_seg.RefineWidth + 2);
 							for (int k = -bnd; k <= bnd; k++)
 							{
 								int _x = round((double)x + dx * (double)(j*subpx) - dy * (double)(k*subpx));
@@ -231,7 +231,7 @@ namespace imago
 	{
 		logEnterFunction();
 
-		int area_pixels = round(width() * height() * consts::WeakSegmentator::RectangularCropAreaTreshold);
+		int area_pixels = round(width() * height() * vars.weak_seg.RectangularCropAreaTreshold);
 		for (size_t id = 1; id <= SegmentPoints.size(); id++)
 		{			
 			Rectangle bounds;
@@ -286,7 +286,7 @@ namespace imago
 						good++;
 					else
 						bad++;
-				if ((double)good / (good+bad) > consts::WeakSegmentator::RectangularCropFitTreshold)
+				if ((double)good / (good+bad) > vars.weak_seg.RectangularCropFitTreshold)
 				{
 					bound = Rectangle((int)x1c, (int)y1c, (int)x2c, (int)y2c, 0);
 					return true;

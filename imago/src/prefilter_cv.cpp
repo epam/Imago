@@ -61,7 +61,7 @@ namespace imago
 		getLogExt().append("black_count", black_count);
 		getLogExt().append("others_count", others_count);
 
-		if (consts::GeneralFiltering::MaxNonBWPixelsProportion * others_count < black_count + white_count)
+		if (vars.prefilterCV.MaxNonBWPixelsProportion * others_count < black_count + white_count)
 		{	
 			getLogExt().appendText("image is binarized");
 			if (others_count > 0)
@@ -97,8 +97,8 @@ namespace imago
 			cv::adaptiveThreshold((what), (output), 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, 0 /*CV_THRESH_BINARY*/, (adaptiveThresholdBlockSize) + (adaptiveThresholdBlockSize) % 2 + 1, (adaptiveThresholdParameter));
 	
 		cv::Mat strong, weak;
-		binarize_impl(smoothed2x, strong, consts::PrefilterCV::StrongBinarizeSize, consts::PrefilterCV::StrongBinarizeTresh);
-		binarize_impl(smoothed2x,  weak,  consts::PrefilterCV::WeakBinarizeSize, consts::PrefilterCV::WeakBinarizeTresh);
+		binarize_impl(smoothed2x, strong, vars.prefilterCV.StrongBinarizeSize, vars.prefilterCV.StrongBinarizeTresh);
+		binarize_impl(smoothed2x,  weak,  vars.prefilterCV.WeakBinarizeSize,   vars.prefilterCV.WeakBinarizeTresh);
 
 		#undef binarize_impl
 	
@@ -111,11 +111,11 @@ namespace imago
 		WeakSegmentator ws(raw.getWidth(), raw.getHeight());
 		ws.appendData(ImgAdapter(raw,bin), 1);
 
-		int borderX = raw.getWidth()  / consts::PrefilterCV::BorderPartProportion + 1;
-		int borderY = raw.getHeight() / consts::PrefilterCV::BorderPartProportion + 1;
+		int borderX = raw.getWidth()  / vars.prefilterCV.BorderPartProportion + 1;
+		int borderY = raw.getHeight() / vars.prefilterCV.BorderPartProportion + 1;
 
 		Rectangle crop = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
-		bool need_crop = ws.needCrop(crop, consts::PrefilterCV::MaxRectangleCropLineWidth);
+		bool need_crop = ws.needCrop(crop, vars.prefilterCV.MaxRectangleCropLineWidth);
 
 		Image output(crop.width, crop.height);
 		output.fillWhite();
@@ -135,7 +135,7 @@ namespace imago
 					bad++;
 			}
 
-			if (consts::PrefilterCV::MaxBadToGoodRatio * good > bad && good > consts::PrefilterCV::MinGoodPixelsCount)
+			if (vars.prefilterCV.MaxBadToGoodRatio * good > bad && good > vars.prefilterCV.MinGoodPixelsCount)
 			{
 				getLogExt().append("Segment id", it->first);
 				getLogExt().append("Good points", good);

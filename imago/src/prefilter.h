@@ -27,6 +27,6 @@ namespace imago
    void prefilterImage( Image &image, const CharacterRecognizer &cr );
 
    bool   isCircle(Image &seg);
-   double estimateLineThickness(Image &bwimg, int grid = consts::Estimation::DefaultLineGridSize);
+   double estimateLineThickness(Image &bwimg, int grid = -1);
 }
 #endif /* _prefilter_h_ */

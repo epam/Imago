@@ -33,7 +33,7 @@ using namespace imago;
 
 Skeleton::Skeleton()
 {
-	_multiBondErr = consts::Skeleton::MultiBondErr;
+	_multiBondErr = vars.skeleton.MultiBondErr;
 }
 
 void Skeleton::setInitialAvgBondLength( double avg_length )
@@ -46,14 +46,14 @@ void Skeleton::setInitialAvgBondLength( double avg_length )
    double mult;
 
    //TODO: Stupid temporary fix. We should think about it carefully.
-   if (_avg_bond_length < consts::Skeleton::ShortBondLen)
-	   mult = consts::Skeleton::ShortMul;
-   else if (_avg_bond_length < consts::Skeleton::MediumBondLen)
-	   mult = consts::Skeleton::MediumMul;
-   else if (_avg_bond_length < consts::Skeleton::LongBondLen)
-	   mult = consts::Skeleton::LongMul;
+   if (_avg_bond_length < vars.skeleton.ShortBondLen)
+	   mult = vars.skeleton.ShortMul;
+   else if (_avg_bond_length < vars.skeleton.MediumBondLen)
+	   mult = vars.skeleton.MediumMul;
+   else if (_avg_bond_length < vars.skeleton.LongBondLen)
+	   mult = vars.skeleton.LongMul;
    else
-      mult = consts::Skeleton::BaseMult;
+      mult = vars.skeleton.BaseMult;
    
    _addVertexEps = mult * _avg_bond_length;
    vars.estimation.AddVertexEps = _addVertexEps;
@@ -194,12 +194,12 @@ void Skeleton::_repairBroken()
 
    //TODO: Tuning here?
    double toSmallErr;
-   if (_avg_bond_length > consts::Skeleton::LongBondLen)
-	   toSmallErr = consts::Skeleton::LongSmallErr;
-   else if (_avg_bond_length > consts::Skeleton::MediumBondLen)
-	   toSmallErr = consts::Skeleton::MediumSmallErr;
+   if (_avg_bond_length > vars.skeleton.LongBondLen)
+	   toSmallErr = vars.skeleton.LongSmallErr;
+   else if (_avg_bond_length > vars.skeleton.MediumBondLen)
+	   toSmallErr = vars.skeleton.MediumSmallErr;
    else
-	   toSmallErr = consts::Skeleton::BaseSmallErr;
+	   toSmallErr = vars.skeleton.BaseSmallErr;
 
    std::deque<Vertex> toRemove;
 
@@ -224,10 +224,10 @@ void Skeleton::_repairBroken()
           e2b.length < toSmallErr * _avg_bond_length)
          continue;
 
-	  coef = consts::Skeleton::BrokenRepairCoef1;
-	  if (e1b.length < consts::Skeleton::BrokenRepairFactor * toSmallErr * _avg_bond_length ||
-          e2b.length < consts::Skeleton::BrokenRepairFactor * toSmallErr * _avg_bond_length)
-         coef = consts::Skeleton::BrokenRepairCoef2;
+	  coef = vars.skeleton.BrokenRepairCoef1;
+	  if (e1b.length < vars.skeleton.BrokenRepairFactor * toSmallErr * _avg_bond_length ||
+          e2b.length < vars.skeleton.BrokenRepairFactor * toSmallErr * _avg_bond_length)
+         coef = vars.skeleton.BrokenRepairCoef2;
 
       Vec2d x_pos, y_pos, v_pos;
       x_pos = boost::get(boost::vertex_pos, _g, x);
@@ -241,7 +241,7 @@ void Skeleton::_repairBroken()
       try
       {
          double angle = Vec2d::angle(v1, v2);
-		 if (angle > PI - coef * consts::Skeleton::BrokenRepairAngleEps)
+		 if (angle > PI - coef * vars.skeleton.BrokenRepairAngleEps)
             found = true;
       }
       catch (DivizionByZeroException &)
@@ -598,7 +598,7 @@ bool Skeleton::_dissolveIntermediateVertices ()
       }
    }
    
-   if (min_err < consts::Skeleton::DissolveMinErr) 
+   if (min_err < vars.skeleton.DissolveMinErr) 
    {
 	   _dissolvings++;
       
@@ -975,8 +975,8 @@ void Skeleton::_connectBridgedBonds()
 			bool found_kFactor = false;
 			for(size_t i=0 ; i < kFactor.size() ; i++)
 			{
-				if(fabs(slope - kFactor[i]) < consts::Skeleton::SlopeFact1 ||
-					fabs(fabs(slope - kFactor[i]) - PI)< consts::Skeleton::SlopeFact2)
+				if(fabs(slope - kFactor[i]) < vars.skeleton.SlopeFact1 ||
+					fabs(fabs(slope - kFactor[i]) - PI)< vars.skeleton.SlopeFact2)
 				{
 					edge_groups_k[i].push_back(edge);
 					found_kFactor = true;
@@ -1023,7 +1023,7 @@ void Skeleton::_connectBridgedBonds()
 				double min = d1 < d2 ? d1 : d2;
 
 				double LineS = vars.estimation.LineThickness;
-				double blockS = LineS * consts::Skeleton::ConnectBlockS;
+				double blockS = LineS * vars.skeleton.ConnectBlockS;
 
 				Vec2d nearP1, nearP2;
 				if(d1 < d2)
@@ -1039,7 +1039,7 @@ void Skeleton::_connectBridgedBonds()
 				else
 					nearP2 = sp2;
 
-				if(min < blockS && min > consts::Skeleton::ConnectFactor * LineS && 
+				if(min < blockS && min > vars.skeleton.ConnectFactor * LineS && 
 					Algebra::SegmentsOnSameLine(p1, p2, sp1, sp2) &&
 					_isSegmentIntersectedByEdge(nearP1, nearP2, otherE))
 				{
@@ -1139,7 +1139,7 @@ void Skeleton::modifyGraph()
 
    getLogExt().appendSkeleton("init", _g);
 
-   _joinVertices(consts::Skeleton::JoinVerticiesConst);
+   _joinVertices(vars.skeleton.JoinVerticiesConst);
 
    recalcAvgBondLength();
 
@@ -1156,7 +1156,7 @@ void Skeleton::modifyGraph()
 
    getLogExt().appendSkeleton("after join verticies", _g);
 
-   while (_dissolveShortEdges(consts::Skeleton::DissolveConst))
+   while (_dissolveShortEdges(vars.skeleton.DissolveConst))
       ;
 
    getLogExt().appendSkeleton("after dissolve short edges", _g);
@@ -1185,15 +1185,15 @@ void Skeleton::modifyGraph()
 
     recalcAvgBondLength();
    
-	while (_dissolveShortEdges(consts::Skeleton::Dissolve2Const))
+	while (_dissolveShortEdges(vars.skeleton.Dissolve2Const))
       ;
 
 	getLogExt().appendSkeleton("after dissolve edges 2", _g);
 
     recalcAvgBondLength();
 
-	_joinVertices(consts::Skeleton::Join2Const);
-	_joinVertices(consts::Skeleton::Join3Const);
+	_joinVertices(vars.skeleton.Join2Const);
+	_joinVertices(vars.skeleton.Join3Const);
 
     //Shrinking short bonds (dots)
     std::vector<Edge> edgesToRemove;
@@ -1204,7 +1204,7 @@ void Skeleton::modifyGraph()
        Vec2d beg_pos = boost::get(boost::vertex_pos, _g, beg);
        const Vec2d &end_pos = boost::get(boost::vertex_pos, _g, end);
        if (boost::degree(beg, _g) == 1 && boost::degree(end, _g) == 1 &&
-           boost::get(boost::edge_type, _g, edge).length < consts::Skeleton::ShrinkEps * _avg_bond_length)
+           boost::get(boost::edge_type, _g, edge).length < vars.skeleton.ShrinkEps * _avg_bond_length)
        {
           beg_pos.add(end_pos);
           beg_pos.scale(0.5); // average
@@ -1231,8 +1231,8 @@ void Skeleton::modifyGraph()
 
 	double distTresh = vars.estimation.CapitalHeight;
 
-	   if (distTresh > _avg_bond_length/consts::Skeleton::DistTreshLimFactor)
-		   distTresh = _avg_bond_length/consts::Skeleton::DistTreshLimFactor;
+	   if (distTresh > _avg_bond_length/vars.skeleton.DistTreshLimFactor)
+		   distTresh = _avg_bond_length/vars.skeleton.DistTreshLimFactor;
 
 	   std::vector<Skeleton::Edge> bad_edges;
 	   BGL_FORALL_EDGES(e, _g, SkeletonGraph)
