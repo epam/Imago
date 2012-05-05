@@ -80,6 +80,8 @@ bool Separator::_bIsTextContext(SegmentDeque &layer_symbols, imago::Rectangle re
 {
 	Segment* firstNear = NULL,
 		*secNear = NULL;
+
+	// TODO: MAX_LINE here?!
 	double dist1 = imago::MAX_LINE,
 		dist2 = imago::MAX_LINE;
 

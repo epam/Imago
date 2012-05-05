@@ -24,86 +24,75 @@
 #include <cstdarg>
 #include <cstdio>
 #include <exception>
+#include <string>
 
 #include "comdef.h"
 
-class ImagoException : public std::exception
+namespace imago
 {
-public: 
-	ImagoException(const std::string& problemDescription) : std::exception(problemDescription.c_str())
+	class ImagoException : public std::exception
 	{
-	}
-};
+	public: 
+		ImagoException(const std::string& error) : std::exception(error.c_str()) { }
+		ImagoException(int errorCode) : std::exception(str(errorCode).c_str()) { }
+		
+		std::string str(int x)
+		{
+			char buffer[32];
+			sprintf(buffer, "%i", x);
+			return buffer;
+		}
+	};
 
-class OutOfBoundsException : public ImagoException
-{
-public:
-	OutOfBoundsException(const std::string& method, int index1, int index2)
-		: ImagoException(method)
+	class OutOfBoundsException : public ImagoException
 	{
-		// TODO
-	}
-};
+	public:
+		OutOfBoundsException(const std::string& error, int index1, int index2)
+			: ImagoException(error + " index(" + str(index1) + ", " + str(index2) + ")") { }
+	};
 
-class NoContourException : public ImagoException
-{
-public: 
-	NoContourException(const std::string& error) : ImagoException(error)
+	class NoContourException : public ImagoException
 	{
-	}
-};
+	public: 
+		NoContourException(const std::string& error) : ImagoException(error) { }
+	};
 
-class LabelException : public ImagoException
-{
-public: 
-	LabelException(const std::string& error) : ImagoException(error)
+	class LabelException : public ImagoException
 	{
-	}
-};
+	public: 
+		LabelException(const std::string& error) : ImagoException(error) { }
+	};
 
-class FileNotFoundException : public ImagoException
-{
-public: 
-	FileNotFoundException(const std::string& error) : ImagoException(error)
+	class FileNotFoundException : public ImagoException
 	{
-	}
-};
+	public: 
+		FileNotFoundException(const std::string& error) : ImagoException(error) { }
+	};
 
-class LogicException : public ImagoException
-{
-public: 
-	LogicException(const std::string& error) : ImagoException(error)
+	class LogicException : public ImagoException
 	{
-	}
+	public: 
+		LogicException(const std::string& error) : ImagoException(error) { }
+		LogicException(const int errorCode) : ImagoException("code: " + str(errorCode)) { }
+	};
 
-	LogicException(const int errorCode) : ImagoException("TODO")
+	class IOException : public ImagoException
 	{
-		// TODO!
-	}
-};
+	public: 
+		IOException(const std::string& error) : ImagoException(error) { }
+	};
 
-class IOException : public ImagoException
-{
-public: 
-	IOException(const std::string& error) : ImagoException(error)
+	class DivizionByZeroException : public ImagoException
 	{
-	}
-};
+	public: 
+		DivizionByZeroException(const std::string& error) : ImagoException(error) { }
+	};
 
-class DivizionByZeroException : public ImagoException
-{
-public: 
-	DivizionByZeroException(const std::string& error) : ImagoException(error)
+	class OCRException : public ImagoException
 	{
-	}
-};
-
-class OCRException : public ImagoException
-{
-public: 
-	OCRException(const std::string& error) : ImagoException(error)
-	{
-	}
-};
+	public: 
+		OCRException(const std::string& error) : ImagoException(error) { }
+	};
+}
 
 #endif /* _exception_h */

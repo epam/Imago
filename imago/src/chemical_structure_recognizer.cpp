@@ -21,7 +21,6 @@
 
 #include "binarizer.h"
 #include "chemical_structure_recognizer.h"
-#include "convolver.h"
 #include "graph_extractor.h"
 #include "graphics_detector.h"
 #include "image.h"

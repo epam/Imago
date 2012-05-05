@@ -130,7 +130,7 @@ double Algebra::slope( const Vec2d &b, const Vec2d &e )
    Vec2d dxdy;
    dxdy.diff(e, b);
    if (absolute(dxdy.x) < EPS)
-      return PI_2;
+      return HALF_PI;
    else
       return atan((double) dxdy.y / dxdy.x);
 }

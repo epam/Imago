@@ -27,6 +27,8 @@ enum FilterType
 	ftPass = 3
 };
 
+const char* FilterName[4] = {"std", "adaptive", "CV", "passthru" };
+
 void dumpVFS(imago::VirtualFS& vfs)
 {
 	if (!vfs.empty())
@@ -77,12 +79,12 @@ RecognitionResult recognizeImage(const imago::Image& src, FilterType filterType)
 		result.molecule = imago::expandSuperatoms(mol);
 		result.warnings = mol.getWarningsCount() + mol.getDissolvingsCount() / imago::consts::Main::DissolvingsFactor;
 
-		printf("Filter [%u], warnings: %u\n", filterType, result.warnings);
+		printf("Filter [%s] done, warnings: %u.\n", FilterName[filterType], result.warnings);
 	}
 	catch (std::exception &e)
 	{
 		result.exceptions = true;
-		printf("Filter [%u], exception \"%s\"\n", filterType, e.what());
+		printf("Filter [%s] exception \"%s\".\n", FilterName[filterType], e.what());
 #ifdef _DEBUG
 		throw;
 #endif

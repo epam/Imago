@@ -26,7 +26,6 @@
 #include "thin_filter2.h"
 #include "image_utils.h"
 #include "image_draw_utils.h"
-#include "convolver.h"
 #include "binarizer.h"
 #include "molecule.h"
 #include "fourier_descriptors.h"

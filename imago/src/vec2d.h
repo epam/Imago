@@ -242,7 +242,7 @@ namespace imago
 
          d = d / na / nb;
 
-         if (absolute(d - 1) < 1e-10)
+         if (absolute(d - 1) < EPS)
             return 0;
 
          return acos(d);

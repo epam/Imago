@@ -116,7 +116,7 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
    double k = 0;
 
    if (dx == 0)
-      k = PI_2;
+      k = HALF_PI;
    else
    {
       double angle = atan((double) dy / dx);
@@ -286,7 +286,7 @@ bool Skeleton::_isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex
    double k1 = 0;
 
    if (dx1 == 0)
-      k1 = PI_2;
+      k1 = HALF_PI;
    else
    {
       double angle1 = atan((double) dy1 / dx1);
@@ -297,7 +297,7 @@ bool Skeleton::_isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex
    double k2 = 0;
 
    if (dx2 == 0)
-      k2 = PI_2;
+      k2 = HALF_PI;
    else
    {
       double angle2 = atan((double) dy2 / dx2);

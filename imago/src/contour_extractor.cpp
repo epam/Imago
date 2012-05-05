@@ -31,7 +31,7 @@ namespace imago
       byte ul, ur, dl, dr;
       std::deque<int> prev(k, -1);
       double dist = 0;
-      double min_dist = 1e16;
+      double min_dist = DIST_INF;
       for (i = 0; i < w * h; i++)
       {
          if (img[i] != 255)

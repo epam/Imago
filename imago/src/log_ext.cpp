@@ -199,7 +199,7 @@ namespace imago
 
 	std::string log_ext::generateAnchor(const std::string& name)
 	{
-		char buf[1024] = {0};
+		char buf[MAX_LINE] = {0};
 		sprintf(buf, "%s_%lu", name.c_str(), CallIdent);
 		CallIdent++;
 		return buf;
@@ -207,7 +207,7 @@ namespace imago
 
 	std::string log_ext::generateImageName(std::string* html_name )
 	{
-		char path[1024] = {0};
+		char path[MAX_LINE] = {0};
 
 		const std::string ImagesFolder = "htmlimgs";
 

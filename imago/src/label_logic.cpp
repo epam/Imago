@@ -368,13 +368,13 @@ void LabelLogic::process( Segment *seg, int line_y )
          c_digit = _cr.recognize(*seg, CharacterRecognizer::digits, &d_digit);
 		 getLogExt().append("c_digit", c_digit);
 
-         if (d_big < d_small + 0.00001 && d_big < d_digit + 0.00001) // eps
+         if (d_big < d_small + SMALL_EPS && d_big < d_digit + SMALL_EPS) // eps
             capital = true;
          else
          {
-            if (d_digit + 1e-6 < d_small) // eps
+            if (d_digit + SMALL_EPS < d_small) 
                digit_small = 0;
-            else if (d_digit > d_small + 1e-6) // eps
+            else if (d_digit > d_small + SMALL_EPS) 
                digit_small = 1;
             
             if (c_small == 's' && c_digit == '2')

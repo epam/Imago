@@ -62,21 +62,22 @@ namespace imago
 
    bool ImageUtils::testSlashLine( Segment &img, double *angle, double eps )
    {
+	   logEnterFunction();
+
       double density, thetha, r;
 
-      //ImageUtils::saveImageToFile(img, "output/origin.png");
+	  getLogExt().appendSegment("segment", img);
 
       Image tmp;   
 
       tmp.copy(img);   
       ThinFilter2(tmp).apply();   
    
-      thetha = PI_2 + atan2((double)img.getHeight(), (double)img.getWidth());
+      thetha = HALF_PI + atan2((double)img.getHeight(), (double)img.getWidth());
       r = 0;
       density = tmp.density();
       ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
       density = tmp.density() / density;
-      //ImageUtils::saveImageToFile(tmp, "output/origin_orient1.png");
 
 	  if (density < consts::ImageUtils::SlashLineDensity)
       {

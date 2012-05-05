@@ -144,7 +144,7 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
       BGL_FORALL_EDGES(e, _g, SkeletonGraph)
       {
          double d1, d2;
-         d1 = d2 = 1e16; // inf
+         d1 = d2 = DIST_INF;
 
 		 if(boost::degree(boost::source(e, _g), _g) > 1 &&
 			 boost::degree(boost::target(e, _g), _g) > 1)
@@ -258,7 +258,7 @@ void Molecule::aromatize( Points2d &aromatic_centers )
    BOOST_FOREACH( Vec2d arom_center, aromatic_centers )
    {
       Vertex begin_vertex = (Vertex)0; 
-      double distance = 1e10;
+      double distance = DIST_INF;
   
       BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
       {
@@ -277,7 +277,7 @@ void Molecule::aromatize( Points2d &aromatic_centers )
 
       do
       {         
-         distance = 1e10; // inf
+         distance = DIST_INF;
 
          BGL_FORALL_ADJ(cur_vertex, u, _g, SkeletonGraph)
          {

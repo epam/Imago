@@ -541,7 +541,7 @@ bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
 
    double dist2line0, dist2line1, dist2line2;
    double min_d11, min_d12, min_d21, min_d22;
-   min_d11 = min_d12 = min_d21 = min_d22 = 1e16;
+   min_d11 = min_d12 = min_d21 = min_d22 = DIST_INF;
 
    double a1, a2, b1, b2;
    Vec2d pa1, pa2, pb1, pb2;

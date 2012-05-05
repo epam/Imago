@@ -51,12 +51,13 @@ namespace imago
    typedef unsigned int dword;
 
    const double EPS = 1e-10;
-   const int MAX_LINE = 1024;
+   const double SMALL_EPS = 1e-6;
+   const double DIST_INF = 1e10;
+   const unsigned int MAX_LINE = 1024;
    
    const double PI = 3.14159265358979323846;
-   const float PI_f = 3.14159265358979323846f;
-   const double PI_2 = 1.57079632679489661923;
-   const double PI_4 = 0.78539816339744830962;
+   const float  TWO_PI = 6.2831853071794f;
+   const double HALF_PI = 1.57079632679489661923;
 
    template <typename T> int round(const T& a)
    {
