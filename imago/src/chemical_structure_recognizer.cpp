@@ -77,6 +77,9 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
       
       Image &_img = _origImage;
 
+	  vars.general.OriginalImageWidth = _img.getWidth();
+	  vars.general.OriginalImageHeight = _img.getHeight();
+
       _img.crop();
 
       if (!_img.isInit())

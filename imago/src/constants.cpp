@@ -14,7 +14,7 @@ namespace imago
 	void imago::Settings::update()
 	{
 		int cluster = general.IsHandwritten ? CLUSTER_HANDWRITTING : CLUSTER_SCANNED;
-		int longestSide = std::max(general.ImageWidth, general.ImageHeight);
+		int longestSide = std::max(general.OriginalImageWidth, general.OriginalImageHeight);
 
 		main = MainSettings(cluster, longestSide);
 		molecule = MoleculeSettings(cluster, longestSide);
@@ -32,7 +32,7 @@ namespace imago
 	void NormalizeBySide(double &value, int longestSide)
 	{
 		if (longestSide > 0)
-			value = value / 900.0 * (double)longestSide;
+			value = value / 960.0 * (double)longestSide;
 	}
 
 	// ------------------------------------------------------------------

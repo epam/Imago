@@ -11,6 +11,8 @@ namespace imago
 	{
 		bool LogEnabled;
 		bool IsHandwritten;
+		int OriginalImageWidth;
+		int OriginalImageHeight;
 		int ImageWidth;
 		int ImageHeight;
 		GeneralSettings()
