@@ -85,7 +85,7 @@ int LabelCombiner::_findCapitalHeight()
 			 cap_height = seg_height;
 		} 
 		else if (d < min_d && seg_height > cap_height 
-			     && (d < consts::LabelCombiner::MaximalSymbolDistance && c != 'O') )
+			     && (d < vars.lcomb.MaximalSymbolDistance && c != 'O') )
 		{
 			min_d = d;
 			cap_height = seg_height;
@@ -137,10 +137,10 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
 
          if (!plus && !minus)
          {
-			 if (ImageUtils::testSlashLine(**cur_s, 0, consts::LabelCombiner::TestSlashLineEps))
+			 if (ImageUtils::testSlashLine(**cur_s, 0, vars.lcomb.TestSlashLineEps))
                continue;   
-			 if (seg_rect.height < consts::LabelCombiner::TestMinHeightFactor * vars.estimation.CapitalHeight 
-				 || seg_rect.height > consts::LabelCombiner::TestMaxHeightFactor * vars.estimation.CapitalHeight 
+			 if (seg_rect.height < vars.lcomb.TestMinHeightFactor * vars.estimation.CapitalHeight 
+				 || seg_rect.height > vars.lcomb.TestMaxHeightFactor * vars.estimation.CapitalHeight 
 				 || r > vars.estimation.MaxSymRatio|| r < vars.estimation.MinSymRatio)
                continue;
          }
@@ -155,18 +155,18 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
             continue;
 
 		 int h1 = (int)absolute(rect.y - seg_rect.y 
-			                    - consts::LabelCombiner::RectHeightRatio * seg_rect.height); 
-         int h2 = (int)absolute(rect.y + consts::LabelCombiner::RectHeightRatio * rect.height - seg_rect.y);
+			                    - vars.lcomb.RectHeightRatio * seg_rect.height); 
+         int h2 = (int)absolute(rect.y + vars.lcomb.RectHeightRatio * rect.height - seg_rect.y);
          int h3 = (int)absolute(rect.y + rect.height - seg_rect.y -
                                 seg_rect.height);
          int h4 = (int)absolute(rect.y + rect.height - seg_rect.y -
-                                consts::LabelCombiner::RectHeightRatio * seg_rect.height);
+                                vars.lcomb.RectHeightRatio * seg_rect.height);
 
 		 double space = vars.estimation.CharactersSpaceCoeff * vars.estimation.CapitalHeight;
 
-		 if (h1 > consts::LabelCombiner::H1SuperscriptSpace * space  &&
-			 (h2 > consts::LabelCombiner::H2LowercaseSpace * space || h3 > consts::LabelCombiner::H3LowercaseSpace * space) &&
-			 h4 > consts::LabelCombiner::H4SubscriptSpace * space)
+		 if (h1 > vars.lcomb.H1SuperscriptSpace * space  &&
+			 (h2 > vars.lcomb.H2LowercaseSpace * space || h3 > vars.lcomb.H3LowercaseSpace * space) &&
+			 h4 > vars.lcomb.H4SubscriptSpace * space)
             continue;
          
          _symbols_layer.push_back(*cur_s);
@@ -282,7 +282,7 @@ void LabelCombiner::_fillLabelInfo( Label &l )
    for (int i = 0, first_cap = -1; i < size; i++)
    {
 	   if (first_cap < 0 && symbols[i]->getHeight() > 
-		   vars.estimation.CapitalHeightError * consts::LabelCombiner::FillLabelFactor1 * vars.estimation.CapitalHeight)
+		   vars.estimation.CapitalHeightError * vars.lcomb.FillLabelFactor1 * vars.estimation.CapitalHeight)
       {
          first_cap = i;
          first_line_y = symbols[i]->getY() + symbols[i]->getHeight();
@@ -291,7 +291,7 @@ void LabelCombiner::_fillLabelInfo( Label &l )
       
       if (first_cap >= 0)
       {
-		  int mid = round(symbols[i]->getY() + consts::LabelCombiner::FillLabelFactor2 * symbols[i]->getHeight());
+		  int mid = round(symbols[i]->getY() + vars.lcomb.FillLabelFactor2 * symbols[i]->getHeight());
 
 		  if (mid - first_line_y > vars.estimation.CapitalHeight * vars.estimation.CharactersSpaceCoeff)
          {

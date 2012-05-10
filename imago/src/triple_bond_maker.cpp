@@ -117,8 +117,8 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
    l1 = Vec2d::distance(fb_pos, p1);
    l2 = Vec2d::distance(p2, fe_pos);
 
-   bool left = l1 > consts::TripleBondMaker::LeftLengthTresh * _avgBondLength;
-   bool right = l2 > consts::TripleBondMaker::RightLengthTresh * _avgBondLength;
+   bool left = l1 > vars.mbond.TripleLeftLengthTresh * _avgBondLength;
+   bool right = l2 > vars.mbond.TripleRightLengthTresh * _avgBondLength;
    
    boost::remove_edge(first, _g);
    boost::remove_edge(second, _g);

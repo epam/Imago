@@ -111,7 +111,7 @@ void LabelLogic::_predict( const Segment *seg, std::string &letters )
          letters.erase(letters.begin() + 7); //cuz of Al
 	  }
 
-	  if (seg->getHeight() <= consts::LabelLogic::capHeightError * vars.estimation.CapitalHeight)
+	  if (seg->getHeight() <= vars.labels.capHeightError * vars.estimation.CapitalHeight)
 	  {
 		  getLogExt().appendText("Too small height branch");
          letters.clear();
@@ -158,11 +158,11 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 	{ // adjust using image params
 		getLogExt().append("Percentage under baseline", underline);
 		// assume the n% underline is zero-point
-		pr.adjust(1.0 - consts::LabelLogic::weightUnderline * (underline - consts::LabelLogic::underlinePos), CharacterRecognizer::digits);		
+		pr.adjust(1.0 - vars.labels.weightUnderline * (underline - vars.labels.underlinePos), CharacterRecognizer::digits);		
 	
 		getLogExt().append("Height ratio", ratio);
 		// assume the n% height ratio is zero-point
-		pr.adjust(consts::LabelLogic::ratioBase + consts::LabelLogic::ratioWeight * ratio , CharacterRecognizer::lower + CharacterRecognizer::digits);	
+		pr.adjust(vars.labels.ratioBase + vars.labels.ratioWeight * ratio , CharacterRecognizer::lower + CharacterRecognizer::digits);	
 	}
 
 	{ // adjust using chemical structure logic
@@ -173,13 +173,13 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 			if (idx >= 0 && idx < 26)
 			{
 				// decrease probability of unallowed characters
-				pr.adjust(consts::LabelLogic::adjustDec, substract(CharacterRecognizer::lower, comb[idx]));		
+				pr.adjust(vars.labels.adjustDec, substract(CharacterRecognizer::lower, comb[idx]));		
 			}
 		} 
 		else if (_cur_atom->label_first == 0)
 		{
 			// should be a capital letter, increase probability of allowed characters
-			pr.adjust(consts::LabelLogic::adjustInc, substract(CharacterRecognizer::upper, "XJUVWQ"));
+			pr.adjust(vars.labels.adjustInc, substract(CharacterRecognizer::upper, "XJUVWQ"));
 		}
 	}
 
@@ -213,13 +213,13 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 		if (_cur_atom->label_second != 0)
 		{
 			getLogExt().appendText("Small letter comes after another small, fixup & retry");
-			pr.adjust(consts::LabelLogic::adjustDec, CharacterRecognizer::lower);
+			pr.adjust(vars.labels.adjustDec, CharacterRecognizer::lower);
 			goto retry;
 		}
 		else if (_cur_atom->label_first == 0)
 		{
 			getLogExt().appendText("Small specified for non-set captial, fixup & retry");
-			pr.adjust(consts::LabelLogic::adjustDec, CharacterRecognizer::lower);
+			pr.adjust(vars.labels.adjustDec, CharacterRecognizer::lower);
 			goto retry;
 		}
 		else
@@ -232,13 +232,13 @@ void LabelLogic::process_ext( Segment *seg, int line_y )
 		if (_cur_atom->count != 0)
 		{
 			getLogExt().appendText("Count specified twice, fixup & retry");
-			pr.adjust(consts::LabelLogic::adjustDec, CharacterRecognizer::digits);
+			pr.adjust(vars.labels.adjustDec, CharacterRecognizer::digits);
 			goto retry;
 		}
 		else if (_cur_atom->label_first == 0)
 		{
 			getLogExt().appendText("Count specified for non-set atom, fixup & retry");
-			pr.adjust(consts::LabelLogic::adjustDec, CharacterRecognizer::digits);
+			pr.adjust(vars.labels.adjustDec, CharacterRecognizer::digits);
 			goto retry;
 		}
 		else
@@ -335,7 +335,7 @@ void LabelLogic::process( Segment *seg, int line_y )
    std::string letters;
    int index_val = 0;
 
-   double sameLineEps = consts::LabelLogic::sameLineEps;
+   double sameLineEps = vars.labels.sameLineEps;
 
    bool capital = false;
    int digit_small = -1;
@@ -346,7 +346,7 @@ void LabelLogic::process( Segment *seg, int line_y )
    getLogExt().append("plus", plus);
 
    //TODO: This can slowdown recognition process! Check this!
-   if (seg->getHeight() > consts::LabelLogic::heightRatio * vars.estimation.CapitalHeight && (hwc == -1 || hwc < '0' || hwc > '9'))
+   if (seg->getHeight() > vars.labels.heightRatio * vars.estimation.CapitalHeight && (hwc == -1 || hwc < '0' || hwc > '9'))
       capital = true;
    else if (hwc == -1 && plus)
       capital = false;
@@ -520,7 +520,7 @@ void LabelLogic::process( Segment *seg, int line_y )
             throw LabelException("Unexpected symbol position (small instead of capital)");
       }
       //superscript
-      else if (med < line_y - consts::LabelLogic::medHeightFactor * vars.estimation.CapitalHeight && digit_small == 0)
+      else if (med < line_y - vars.labels.medHeightFactor * vars.estimation.CapitalHeight && digit_small == 0)
       {
          was_super = 1;
          if (was_charge)
@@ -586,7 +586,7 @@ void LabelLogic::process( Segment *seg, int line_y )
          }
       }
       //subscript
-	  else if (med > line_y - consts::LabelLogic::medHeightFactor * vars.estimation.CapitalHeight)
+	  else if (med > line_y - vars.labels.medHeightFactor * vars.estimation.CapitalHeight)
       {
          //If subscript will appear before any letter, do some BADABUM
          if (_cur_atom->label_first == 0)

@@ -31,7 +31,7 @@ const std::string CharacterRecognizer::like_bonds = "l1iI";
 
 double imago::getDistanceCapital(const Segment& seg)
 {
-	CharacterRecognizer temp(consts::CharactersRecognition::DefaultFourierClassesUse);
+	CharacterRecognizer temp(vars.characters.DefaultFourierClassesUse);
 	RecognitionDistance rd = temp.recognize_all(seg, CharacterRecognizer::all, false);
 	double best_dist;
 	char ch = rd.getBest(&best_dist);
@@ -44,17 +44,17 @@ double imago::getDistanceCapital(const Segment& seg)
 
 bool imago::isPossibleCharacter(const Segment& seg, bool loose_cmp)
 {
-	CharacterRecognizer temp(consts::CharactersRecognition::DefaultFourierClassesUse);
+	CharacterRecognizer temp(vars.characters.DefaultFourierClassesUse);
 	RecognitionDistance rd = temp.recognize_all(seg, CharacterRecognizer::all, false);
 	double best_dist;
 	char ch = rd.getBest(&best_dist);
 	if (std::find(CharacterRecognizer::like_bonds.begin(), CharacterRecognizer::like_bonds.end(), ch) != CharacterRecognizer::like_bonds.end())
 		return false;
-	if (best_dist < consts::CharactersRecognition::PossibleCharacterDistanceStrong && 
-		rd.getQuality() > consts::CharactersRecognition::PossibleCharacterMinimalQuality) 
+	if (best_dist < vars.characters.PossibleCharacterDistanceStrong && 
+		rd.getQuality() > vars.characters.PossibleCharacterMinimalQuality) 
 		return true;
-	if (loose_cmp && (best_dist < consts::CharactersRecognition::PossibleCharacterDistanceWeak 
-		          && rd.getQuality() > consts::CharactersRecognition::PossibleCharacterMinimalQuality))
+	if (loose_cmp && (best_dist < vars.characters.PossibleCharacterDistanceWeak 
+		          && rd.getQuality() > vars.characters.PossibleCharacterMinimalQuality))
 		return true;
 	return false;
 }
@@ -101,16 +101,16 @@ double CharacterRecognizer::_compareDescriptors( const std::vector<double> &d1,
       if (i < size / 2)
       {
          if (i % 2)
-			 weight = consts::CharactersRecognition::DescriptorsOddFactorStrong;
+			 weight = vars.characters.DescriptorsOddFactorStrong;
          else
-			 weight = consts::CharactersRecognition::DescriptorsEvenFactorStrong;
+			 weight = vars.characters.DescriptorsEvenFactorStrong;
       }
       else
       {
          if (i % 2)
-			 weight = consts::CharactersRecognition::DescriptorsOddFactorWeak;
+			 weight = vars.characters.DescriptorsOddFactorWeak;
          else
-			 weight = consts::CharactersRecognition::DescriptorsEvenFactorWeak;
+			 weight = vars.characters.DescriptorsEvenFactorWeak;
       }
       d += absolute(weight * r);
    }
@@ -160,34 +160,34 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 		std::string probably, surely;
 		static EndpointsData endpointsHandler;
 
-		if (endpoints.size() <= consts::CharactersRecognition::MaximalEndpointsUse)
+		if ((int)endpoints.size() <= vars.characters.MaximalEndpointsUse)
 		{
 			endpointsHandler.getImpossibleToWrite(endpoints.size(), probably, surely);
-			rec.adjust(consts::CharactersRecognition::WriteProbablyImpossibleFactor, probably);
-			rec.adjust(consts::CharactersRecognition::WriteSurelyImpossibleFactor, surely);
+			rec.adjust(vars.characters.WriteProbablyImpossibleFactor, probably);
+			rec.adjust(vars.characters.WriteSurelyImpossibleFactor, surely);
 		}
 	
 		// easy-to-write adjust
 		switch(endpoints.size())
 		{
 		case 0:
-			rec.adjust(consts::CharactersRecognition::WriteVeryEasyFactor, "0oO");
+			rec.adjust(vars.characters.WriteVeryEasyFactor, "0oO");
 			break;
 		case 1:
-			rec.adjust(consts::CharactersRecognition::WriteEasyFactor, "Ppe");
+			rec.adjust(vars.characters.WriteEasyFactor, "Ppe");
 			break;
 		case 2:
-			rec.adjust(consts::CharactersRecognition::WriteEasyFactor, "ILNSsZz");
+			rec.adjust(vars.characters.WriteEasyFactor, "ILNSsZz");
 			break;
 		case 3:
-			rec.adjust(consts::CharactersRecognition::WriteVeryEasyFactor, "3");
-			rec.adjust(consts::CharactersRecognition::WriteEasyFactor, "F");
+			rec.adjust(vars.characters.WriteVeryEasyFactor, "3");
+			rec.adjust(vars.characters.WriteEasyFactor, "F");
 			break;
 		case 4:
-			rec.adjust(consts::CharactersRecognition::WriteEasyFactor, "fHK");
+			rec.adjust(vars.characters.WriteEasyFactor, "fHK");
 			break;
 		case 6:
-			rec.adjust(consts::CharactersRecognition::WriteEasyFactor, "^");
+			rec.adjust(vars.characters.WriteEasyFactor, "^");
 			break;
 		};
 
@@ -468,19 +468,19 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    bool tricky = (c == 'r');
    bool hard = (c == 'R' || c == 'S');
 
-   if (c == 'F' && err < consts::CharactersRecognition::HW_F)
+   if (c == 'F' && err < vars.characters.HW_F)
       return c;
 
-   if (line && err < consts::CharactersRecognition::HW_Line)
+   if (line && err < vars.characters.HW_Line)
       return c;
 
-   if (tricky && err < consts::CharactersRecognition::HW_Tricky)
+   if (tricky && err < vars.characters.HW_Tricky)
       return c;
 
-   if (!line && !tricky && err < consts::CharactersRecognition::HW_Other)
+   if (!line && !tricky && err < vars.characters.HW_Other)
       return c;
 
-   if (hard && err < consts::CharactersRecognition::HW_Hard)
+   if (hard && err < vars.characters.HW_Hard)
       return c;
 
    return -1;

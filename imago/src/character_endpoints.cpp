@@ -84,10 +84,10 @@ namespace imago
 		surely = "";
 		for (size_t u = 0; u < size(); u++)
 		{
-			if (consts::CharactersRecognition::HackFor3Use && endpoints_count == 3 && at(u).min > 3)
+			if (vars.characters.HackFor3Use && endpoints_count == 3 && at(u).min > 3)
 				surely.push_back( at(u).c );
-			else if (endpoints_count < at(u).min - consts::CharactersRecognition::ImpossibleToWriteDelta || 
-				     endpoints_count > at(u).max + consts::CharactersRecognition::ImpossibleToWriteDelta)
+			else if (endpoints_count < at(u).min - vars.characters.ImpossibleToWriteDelta || 
+				     endpoints_count > at(u).max + vars.characters.ImpossibleToWriteDelta)
 				surely.push_back( at(u).c );
 			else if (endpoints_count < at(u).min || endpoints_count > at(u).max )
 				probably.push_back ( at(u).c );

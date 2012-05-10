@@ -89,7 +89,7 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
 
 		  double dist = Vec2d::distance(p1, p2);
 
-		  if (dist > consts::GraphExtractor::MinimalDistTresh)
+		  if (dist > vars.graph.MinimalDistTresh)
 			 graph.addBond(p1, p2);      
 	   }
 

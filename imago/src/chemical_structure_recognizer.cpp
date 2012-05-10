@@ -98,7 +98,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 	  ////////////-----------------------
 	  WeakSegmentator ws(_img.getWidth(), _img.getHeight());
 	  //ws.ConnectMode = true;
-	  ws.appendData(ImgAdapter(_img, _img), consts::ChemicalStructureRecognizer::WeakSegmentatorDist);
+	  ws.appendData(ImgAdapter(_img, _img), vars.csr.WeakSegmentatorDist);
 	  for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 	  {
 		  const Points2i& pts = it->second;
@@ -160,11 +160,11 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 
 			  char filename[1024] = {0};
 
-			  if (dist > consts::CharactersRecognition::PossibleCharacterDistanceWeak)
+			  if (dist > vars.characters.PossibleCharacterDistanceWeak)
 			  {
 				  sprintf(filename, "./characters/bad/%c_d%f_q%f.png", res, dist, qual);
 			  }
-			  else if (qual < consts::CharactersRecognition::PossibleCharacterMinimalQuality)
+			  else if (qual < vars.characters.PossibleCharacterMinimalQuality)
 			  {
 				  sprintf(filename, "./characters/similar/%c_d%f_q%f.png", res, dist, qual);
 			  }
@@ -206,7 +206,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 
 	getLogExt().appendText("Before line vectorization");
 
-	if (consts::ChemicalStructureRecognizer::UseSimpleApproximator)
+	if (vars.csr.UseSimpleApproximator)
 	{
 		SimpleApproximator sApprox;
 		GraphicsDetector gd(&sApprox, 0.3); // no one cares
@@ -218,16 +218,16 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 		double lnThickness = vars.estimation.LineThickness;
 		getLogExt().append("Line Thickness", lnThickness);
 		CvApproximator cvApprox;
-		GraphicsDetector gd(&cvApprox, lnThickness * consts::ChemicalStructureRecognizer::LineVectorizationFactor);
+		GraphicsDetector gd(&cvApprox, lnThickness * vars.csr.LineVectorizationFactor);
 		gd.extractRingsCenters(layer_graphics, ringCenters);
 		GraphExtractor::extract(gd, layer_graphics, mol);
 	}		  
 
       wbe.singleUpFetch(mol);
 
-	  while (mol._dissolveShortEdges(consts::ChemicalStructureRecognizer::Dissolve, true));
+	  while (mol._dissolveShortEdges(vars.csr.Dissolve, true));
 
-	  mol.deleteBadTriangles(consts::ChemicalStructureRecognizer::DeleteBadTriangles);
+	  mol.deleteBadTriangles(vars.csr.DeleteBadTriangles);
       
       if (!layer_symbols.empty())
       {         

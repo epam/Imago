@@ -228,7 +228,7 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
 
    for (SegmentDeque::iterator it = segments.begin(); it != segments.end();)
    {      
-	   if (absolute((*it)->getRatio() - consts::GraphExtractor::RatioSub) < consts::GraphExtractor::RatioTresh)
+	   if (absolute((*it)->getRatio() - vars.graph.RatioSub) < vars.graph.RatioTresh)
       {
          Segment tmp;
 

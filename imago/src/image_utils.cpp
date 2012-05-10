@@ -79,7 +79,7 @@ namespace imago
       ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
       density = tmp.density() / density;
 
-	  if (density < consts::ImageUtils::SlashLineDensity)
+	  if (density < vars.utils.SlashLineDensity)
       {
          if (angle != 0)
             *angle = thetha;
@@ -96,7 +96,7 @@ namespace imago
       density = tmp.density() / density;
       //ImageUtils::saveImageToFile(tmp, "output/origin_orient2.png");
    
-      if (density < consts::ImageUtils::SlashLineDensity)
+      if (density < vars.utils.SlashLineDensity)
       {
          if (angle != 0)
             *angle = thetha;
@@ -187,14 +187,14 @@ namespace imago
 
       double density = (double)sum / s;
 
-	  if (density > consts::ImageUtils::TestPlusDensity)
+	  if (density > vars.utils.TestPlusDensity)
    {
 	   getLogExt().append("[testPlus] Density", density);     
    }
 
       //TODO: write more convenient criteria
-      return (density > consts::ImageUtils::TestPlusDensity 
-		      && max_sq < consts::ImageUtils::TestPlusSq * s); 
+      return (density > vars.utils.TestPlusDensity 
+		      && max_sq < vars.utils.TestPlusSq * s); 
    }
 
    bool ImageUtils::testMinus( const Segment &img, int cap_height )
@@ -211,9 +211,9 @@ namespace imago
       double density = (double)black / total;
       double ratio = (double)h / w;
 
-	  return (ratio < consts::ImageUtils::TestMinusRatio 
-		  && density > consts::ImageUtils::TestMinusDensity 
-		  && w < consts::ImageUtils::TestMinusHeightFactor * cap_height); 
+	  return (ratio < vars.utils.TestMinusRatio 
+		  && density > vars.utils.TestMinusDensity 
+		  && w < vars.utils.TestMinusHeightFactor * cap_height); 
    }
 
    void ImageUtils::putSegment( Image &img, const Segment &seg, bool careful )

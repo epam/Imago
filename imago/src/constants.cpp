@@ -27,6 +27,13 @@ namespace imago
 		routines = RoutinesSettings(cluster, longestSide);
 		weak_seg = WeakSegmentatorSettings(cluster, longestSide);
 		wbe = WedgeBondExtractorSettings(cluster, longestSide);
+		characters = CharactersRecognitionSettings(cluster, longestSide);
+		csr = ChemicalStructureRecognizerSettings(cluster, longestSide);
+		graph = GraphExtractorSettings(cluster, longestSide);
+		utils = ImageUtilsSettings(cluster, longestSide);
+		separator = SeparatorSettings(cluster, longestSide);
+		labels = LabelLogicSettings(cluster, longestSide);
+		lcomb = LabelCombinerSettings(cluster, longestSide);
 	}	
 
 	void NormalizeBySide(double &value, int longestSide)
@@ -83,7 +90,7 @@ namespace imago
 
 	EstimationSettings::EstimationSettings(int cluster, int LongestSide)
 	{
-		// therse should be updated anyway
+		// these should be updated anyway
 		CapitalHeight = 16.0;
 		LineThickness = 6.0;
 		AvgBondLength = 30.0;
@@ -150,6 +157,16 @@ namespace imago
 			FUZZ mbe6 = 0.205762; //fuzzed from 0.20
 			FUZZ mbe7 = 0.387195; //fuzzed from 0.38
 			FUZZ mbe_def = 0.518222; //fuzzed from 0.5
+
+			FUZZ DoubleLeftLengthTresh = 0.322094; //fuzzed from 0.327570
+			FUZZ DoubleRightLengthTresh = 0.307856; //fuzzed from 0.315731			
+			FUZZ TripleLeftLengthTresh = 0.251938; //fuzzed from 0.251075
+			FUZZ TripleRightLengthTresh = 0.230476; //fuzzed from 0.230011
+			FUZZ Case1LengthTresh = 102.570547; //fuzzed from 102.782043
+			FUZZ Case1Factor = 0.454008; //fuzzed from 0.450273
+			FUZZ Case2LengthTresh = 80.525857; //fuzzed from 80.980534
+			FUZZ Case2Factor = 0.714327; //fuzzed from 0.716376
+			FUZZ Case3Factor = 0.910078; //fuzzed from 0.916153
 		}
 		else if (cluster == CLUSTER_SCANNED)
 		{
@@ -183,6 +200,16 @@ namespace imago
 			FUZZ mbe6 = 0.205762; //fuzzed from 0.20
 			FUZZ mbe7 = 0.387195; //fuzzed from 0.38
 			FUZZ mbe_def = 0.518222; //fuzzed from 0.5
+
+			FUZZ DoubleLeftLengthTresh = 0.322094; //fuzzed from 0.327570
+			FUZZ DoubleRightLengthTresh = 0.307856; //fuzzed from 0.315731			
+			FUZZ TripleLeftLengthTresh = 0.251938; //fuzzed from 0.251075
+			FUZZ TripleRightLengthTresh = 0.230476; //fuzzed from 0.230011
+			FUZZ Case1LengthTresh = 102.570547; //fuzzed from 102.782043
+			FUZZ Case1Factor = 0.454008; //fuzzed from 0.450273
+			FUZZ Case2LengthTresh = 80.525857; //fuzzed from 80.980534
+			FUZZ Case2Factor = 0.714327; //fuzzed from 0.716376
+			FUZZ Case3Factor = 0.910078; //fuzzed from 0.916153
 		}
 		
 		NormalizeBySide(LongBond, LongestSide);
@@ -414,5 +441,232 @@ namespace imago
 
 		NormalizeBySide(SingleDownDistancesMax, LongestSide);
 		NormalizeBySide(SingleUpIncLengthTresh, LongestSide);
+	}
+
+	CharactersRecognitionSettings::CharactersRecognitionSettings(int cluster, int LongestSide)
+	{
+		if (cluster == CLUSTER_HANDWRITTING)
+		{
+			FUZZ MaximalEndpointsUse = 7; //fuzzed from 7
+			FUZZ HackFor3Use = true; //fuzzed from true
+			FUZZ ImpossibleToWriteDelta = 1; //fuzzed from 1
+			FUZZ WriteProbablyImpossibleFactor = 1.046730; //fuzzed from 1.025579
+			FUZZ WriteSurelyImpossibleFactor = 1.155355; //fuzzed from 1.172038
+			FUZZ WriteEasyFactor = 0.937002; //fuzzed from 0.950538
+			FUZZ WriteVeryEasyFactor = 0.858265; //fuzzed from 0.861989			
+			FUZZ DefaultFourierClassesUse = 3; //fuzzed from 3
+			FUZZ PossibleCharacterDistanceStrong = 2.961838; //fuzzed from 3.001713
+			FUZZ PossibleCharacterDistanceWeak = 3.438545; //fuzzed from 3.480779
+			FUZZ PossibleCharacterMinimalQuality = 0.101465; //fuzzed from 0.102027
+			FUZZ DescriptorsOddFactorStrong = 2.543958; //fuzzed from 2.541862
+			FUZZ DescriptorsEvenFactorStrong = 3.749121; //fuzzed from 3.715868
+			FUZZ DescriptorsOddFactorWeak = 0.956401; //fuzzed from 0.946020
+			FUZZ DescriptorsEvenFactorWeak = 0.292766; //fuzzed from 0.299552
+			FUZZ HW_Line = 1.683180; //fuzzed from 1.715817
+			FUZZ HW_F = 3.182398; //fuzzed from 3.258852
+			FUZZ HW_Tricky = 2.617124; //fuzzed from 2.613660
+			FUZZ HW_Hard = 4.261644; //fuzzed from 4.370636
+			FUZZ HW_Other = 3.756106; //fuzzed from 3.805273
+		}
+		else if (cluster == CLUSTER_SCANNED)
+		{
+			FUZZ MaximalEndpointsUse = 7; //fuzzed from 7
+			FUZZ HackFor3Use = false; //fuzzed from true
+			FUZZ ImpossibleToWriteDelta = 1; //fuzzed from 1
+			FUZZ WriteProbablyImpossibleFactor = 1.046730; //fuzzed from 1.025579
+			FUZZ WriteSurelyImpossibleFactor = 1.155355; //fuzzed from 1.172038
+			FUZZ WriteEasyFactor = 0.937002; //fuzzed from 0.950538
+			FUZZ WriteVeryEasyFactor = 0.858265; //fuzzed from 0.861989			
+			FUZZ DefaultFourierClassesUse = 3; //fuzzed from 3
+			FUZZ PossibleCharacterDistanceStrong = 2.961838; //fuzzed from 3.001713
+			FUZZ PossibleCharacterDistanceWeak = 3.438545; //fuzzed from 3.480779
+			FUZZ PossibleCharacterMinimalQuality = 0.101465; //fuzzed from 0.102027
+			FUZZ DescriptorsOddFactorStrong = 2.543958; //fuzzed from 2.541862
+			FUZZ DescriptorsEvenFactorStrong = 3.749121; //fuzzed from 3.715868
+			FUZZ DescriptorsOddFactorWeak = 0.956401; //fuzzed from 0.946020
+			FUZZ DescriptorsEvenFactorWeak = 0.292766; //fuzzed from 0.299552
+			FUZZ HW_Line = 1.683180; //fuzzed from 1.715817
+			FUZZ HW_F = 3.182398; //fuzzed from 3.258852
+			FUZZ HW_Tricky = 2.617124; //fuzzed from 2.613660
+			FUZZ HW_Hard = 4.261644; //fuzzed from 4.370636
+			FUZZ HW_Other = 3.756106; //fuzzed from 3.805273
+		}
+	}
+
+	ChemicalStructureRecognizerSettings::ChemicalStructureRecognizerSettings(int cluster, int LongestSide)
+	{
+		UseSimpleApproximator = false;
+		if (cluster == CLUSTER_HANDWRITTING)
+		{			
+			FUZZ Dissolve = 0.499845; //fuzzed from 0.502969
+			FUZZ DeleteBadTriangles = 1.938750; //fuzzed from 1.952375						
+			FUZZ WeakSegmentatorDist = 1; //fuzzed from 1
+			FUZZ LineVectorizationFactor = 1.573529; //fuzzed from 1.578330
+		}
+		else if (cluster == CLUSTER_SCANNED)
+		{
+			FUZZ Dissolve = 0.499845; //fuzzed from 0.502969
+			FUZZ DeleteBadTriangles = 1.938750; //fuzzed from 1.952375						
+			FUZZ WeakSegmentatorDist = 1; //fuzzed from 1
+			FUZZ LineVectorizationFactor = 1.573529; //fuzzed from 1.578330
+		}
+	}
+
+	GraphExtractorSettings::GraphExtractorSettings(int cluster, int LongestSide)
+	{
+		if (cluster == CLUSTER_HANDWRITTING)
+		{
+			FUZZ MinimalDistTresh = 1.987439; //fuzzed from 1.980547
+			FUZZ RatioSub = 0.997247; //fuzzed from 0.982591
+			FUZZ RatioTresh = 0.396361; //fuzzed from 0.390179
+		}
+		else if (cluster == CLUSTER_SCANNED)
+		{
+			FUZZ MinimalDistTresh = 1.987439; //fuzzed from 1.980547
+			FUZZ RatioSub = 0.997247; //fuzzed from 0.982591
+			FUZZ RatioTresh = 0.396361; //fuzzed from 0.390179
+		}
+	}
+
+	ImageUtilsSettings::ImageUtilsSettings(int cluster, int LongestSide)
+	{
+		if (cluster == CLUSTER_HANDWRITTING)
+		{
+			FUZZ SlashLineDensity = 0.472472; //fuzzed from 0.472098
+			FUZZ TestPlusDensity = 0.416082; //fuzzed from 0.425686
+			FUZZ TestPlusSq = 0.418662; //fuzzed from 0.421232
+			FUZZ TestMinusRatio = 0.377571; //fuzzed from 0.374708
+			FUZZ TestMinusDensity = 0.635891; //fuzzed from 0.639021
+			FUZZ TestMinusHeightFactor = 0.842092; //fuzzed from 0.827580
+		}
+		else if (cluster == CLUSTER_SCANNED)
+		{
+			FUZZ SlashLineDensity = 0.472472; //fuzzed from 0.472098
+			FUZZ TestPlusDensity = 0.416082; //fuzzed from 0.425686
+			FUZZ TestPlusSq = 0.418662; //fuzzed from 0.421232
+			FUZZ TestMinusRatio = 0.377571; //fuzzed from 0.374708
+			FUZZ TestMinusDensity = 0.635891; //fuzzed from 0.639021
+			FUZZ TestMinusHeightFactor = 0.842092; //fuzzed from 0.827580
+		}
+	}
+
+	SeparatorSettings::SeparatorSettings(int cluster, int LongestSide)
+	{
+		if (cluster == CLUSTER_HANDWRITTING)
+		{
+			FUZZ hu_1_1 = 0.201446; //fuzzed from 0.199816
+			FUZZ hu_1_2 = 0.081428; //fuzzed from 0.081394
+			FUZZ hu_0_1 = 0.240900; //fuzzed from 0.242677
+			FUZZ hu_1_3 = 0.082495; //fuzzed from 0.082532
+			FUZZ hu_0_2 = 0.246948; //fuzzed from 0.251853
+			FUZZ ltFactor1 = 3; //fuzzed from 3
+			FUZZ capHeightMin = 0.512869; //fuzzed from 0.524367
+			FUZZ capHeightMax = 1.453239; //fuzzed from 1.469542
+			FUZZ gdConst = 1.499669; //fuzzed from 1.526224
+			FUZZ SurfCoef = 2.903305; //fuzzed from 2.865619
+			FUZZ capHeightRatio = 0.250076; //fuzzed from 0.252356
+			FUZZ capHeightRatio2 = 1.879189; //fuzzed from 1.858715
+			FUZZ getRatio1 = 0.932427; //fuzzed from 0.951728
+			FUZZ getRatio2 = 1.067133; //fuzzed from 1.073513
+			FUZZ testSlashLine1 = 3.117584; //fuzzed from 3.137464
+			FUZZ testSlashLine2 = 2.893067; //fuzzed from 2.951947
+			FUZZ minDensity = 0.199655; //fuzzed from 0.199442
+			FUZZ maxDensity = 0.881712; //fuzzed from 0.868659
+			FUZZ extCapHeightMin = 0.289489; //fuzzed from 0.285352
+			FUZZ extCapHeightMax = 2.069933; //fuzzed from 2.069884
+			FUZZ extRatioMin = 0.290043; //fuzzed from 0.292182
+			FUZZ extRatioMax = 1.467457; //fuzzed from 1.484012
+			FUZZ minApproxSegsStrong = 4; //fuzzed from 4
+			FUZZ minApproxSegsWeak = 8; //fuzzed from 8
+		}
+		else if (cluster == CLUSTER_SCANNED)
+		{
+			FUZZ hu_1_1 = 0.201446; //fuzzed from 0.199816
+			FUZZ hu_1_2 = 0.081428; //fuzzed from 0.081394
+			FUZZ hu_0_1 = 0.240900; //fuzzed from 0.242677
+			FUZZ hu_1_3 = 0.082495; //fuzzed from 0.082532
+			FUZZ hu_0_2 = 0.246948; //fuzzed from 0.251853
+			FUZZ ltFactor1 = 3; //fuzzed from 3
+			FUZZ capHeightMin = 0.512869; //fuzzed from 0.524367
+			FUZZ capHeightMax = 1.453239; //fuzzed from 1.469542
+			FUZZ gdConst = 1.499669; //fuzzed from 1.526224
+			FUZZ SurfCoef = 2.903305; //fuzzed from 2.865619
+			FUZZ capHeightRatio = 0.250076; //fuzzed from 0.252356
+			FUZZ capHeightRatio2 = 1.879189; //fuzzed from 1.858715
+			FUZZ getRatio1 = 0.932427; //fuzzed from 0.951728
+			FUZZ getRatio2 = 1.067133; //fuzzed from 1.073513
+			FUZZ testSlashLine1 = 3.117584; //fuzzed from 3.137464
+			FUZZ testSlashLine2 = 2.893067; //fuzzed from 2.951947
+			FUZZ minDensity = 0.199655; //fuzzed from 0.199442
+			FUZZ maxDensity = 0.881712; //fuzzed from 0.868659
+			FUZZ extCapHeightMin = 0.289489; //fuzzed from 0.285352
+			FUZZ extCapHeightMax = 2.069933; //fuzzed from 2.069884
+			FUZZ extRatioMin = 0.290043; //fuzzed from 0.292182
+			FUZZ extRatioMax = 1.467457; //fuzzed from 1.484012
+			FUZZ minApproxSegsStrong = 4; //fuzzed from 4
+			FUZZ minApproxSegsWeak = 8; //fuzzed from 8
+		}
+	}
+
+	LabelLogicSettings::LabelLogicSettings(int cluster, int LongestSide)
+	{
+		if (cluster == CLUSTER_HANDWRITTING)
+		{
+			FUZZ underlinePos = 0.455575; //fuzzed from 0.461956
+			FUZZ weightUnderline = 0.303806; //fuzzed from 0.305701
+			FUZZ ratioBase = 0.822301; //fuzzed from 0.836528
+			FUZZ ratioWeight = 0.278613; //fuzzed from 0.276296
+			FUZZ adjustDec = 1.231845; //fuzzed from 1.242949
+			FUZZ adjustInc = 0.814867; //fuzzed from 0.833078
+			FUZZ sameLineEps = 0.129919; //fuzzed from 0.129725
+			FUZZ heightRatio = 0.810683; //fuzzed from 0.824740
+			FUZZ medHeightFactor = 0.492709; //fuzzed from 0.496049
+			FUZZ capHeightError = 0.563351; //fuzzed from 0.565914
+		}
+		else if (cluster == CLUSTER_SCANNED)
+		{
+			FUZZ underlinePos = 0.455575; //fuzzed from 0.461956
+			FUZZ weightUnderline = 0.303806; //fuzzed from 0.305701
+			FUZZ ratioBase = 0.822301; //fuzzed from 0.836528
+			FUZZ ratioWeight = 0.278613; //fuzzed from 0.276296
+			FUZZ adjustDec = 1.231845; //fuzzed from 1.242949
+			FUZZ adjustInc = 0.814867; //fuzzed from 0.833078
+			FUZZ sameLineEps = 0.129919; //fuzzed from 0.129725
+			FUZZ heightRatio = 0.810683; //fuzzed from 0.824740
+			FUZZ medHeightFactor = 0.492709; //fuzzed from 0.496049
+			FUZZ capHeightError = 0.563351; //fuzzed from 0.565914
+		}
+	}
+
+	LabelCombinerSettings::LabelCombinerSettings(int cluster, int LongestSide)
+	{
+		if (cluster == CLUSTER_HANDWRITTING)
+		{
+			FUZZ MaximalSymbolDistance = 2.730463; //fuzzed from 2.669776
+			FUZZ TestSlashLineEps = 2.987886; //fuzzed from 2.945150
+			FUZZ TestMinHeightFactor = 0.510776; //fuzzed from 0.501754
+			FUZZ TestMaxHeightFactor = 1.205275; //fuzzed from 1.208078
+			FUZZ RectHeightRatio = 0.497612; //fuzzed from 0.505892
+			FUZZ H1SuperscriptSpace = 1.133820; //fuzzed from 1.145896
+			FUZZ H2LowercaseSpace = 0.516874; //fuzzed from 0.522418
+			FUZZ H3LowercaseSpace = 0.484226; //fuzzed from 0.490625
+			FUZZ H4SubscriptSpace = 0.529349; //fuzzed from 0.541011
+			FUZZ FillLabelFactor1 = 0.501753; //fuzzed from 0.502930
+			FUZZ FillLabelFactor2 = 0.516108; //fuzzed from 0.518600
+		}
+		else if (cluster == CLUSTER_SCANNED)
+		{
+			FUZZ MaximalSymbolDistance = 2.730463; //fuzzed from 2.669776
+			FUZZ TestSlashLineEps = 2.987886; //fuzzed from 2.945150
+			FUZZ TestMinHeightFactor = 0.510776; //fuzzed from 0.501754
+			FUZZ TestMaxHeightFactor = 1.205275; //fuzzed from 1.208078
+			FUZZ RectHeightRatio = 0.497612; //fuzzed from 0.505892
+			FUZZ H1SuperscriptSpace = 1.133820; //fuzzed from 1.145896
+			FUZZ H2LowercaseSpace = 0.516874; //fuzzed from 0.522418
+			FUZZ H3LowercaseSpace = 0.484226; //fuzzed from 0.490625
+			FUZZ H4SubscriptSpace = 0.529349; //fuzzed from 0.541011
+			FUZZ FillLabelFactor1 = 0.501753; //fuzzed from 0.502930
+			FUZZ FillLabelFactor2 = 0.516108; //fuzzed from 0.518600
+		}
 	}
 }

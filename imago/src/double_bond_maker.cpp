@@ -185,8 +185,8 @@ DoubleBondMaker::Result DoubleBondMaker::_hard()
    if (fe != se)
       boost::remove_vertex(se, _g);
 
-   bool left = l1 > consts::DoubleBondMaker::LeftLengthTresh * _avgBondLength;
-   bool right = l2 > consts::DoubleBondMaker::RightLengthTresh * _avgBondLength;
+   bool left = l1 > vars.mbond.DoubleLeftLengthTresh * _avgBondLength;
+   bool right = l2 > vars.mbond.DoubleRightLengthTresh * _avgBondLength;
 
    if (left && right)
    {
@@ -276,12 +276,12 @@ DoubleBondMaker::Result DoubleBondMaker::operator()( std::pair<Edge,Edge> edges 
           sl = bs.length;
    double mult;
 
-   if (_avgBondLength > consts::DoubleBondMaker::Case1LengthTresh)
-	   mult = consts::DoubleBondMaker::Case1Factor;
-   else if (_avgBondLength > consts::DoubleBondMaker::Case2LengthTresh)
-	   mult = consts::DoubleBondMaker::Case2Factor;
+   if (_avgBondLength > vars.mbond.Case1LengthTresh)
+	   mult = vars.mbond.Case1Factor;
+   else if (_avgBondLength > vars.mbond.Case2LengthTresh)
+	   mult = vars.mbond.Case2Factor;
    else
-	   mult = consts::DoubleBondMaker::Case3Factor;
+	   mult = vars.mbond.Case3Factor;
 
    //printf("SIMPLE OR HARD %lf %lf\n", fl - sl, mult * _avgBondLength);
    if (fl - sl < mult * _avgBondLength)
