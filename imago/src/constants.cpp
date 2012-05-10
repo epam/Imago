@@ -31,8 +31,10 @@ namespace imago
 
 	void NormalizeBySide(double &value, int longestSide)
 	{
+		return; // temporary, works not fine now
+
 		if (longestSide > 0)
-			value = value / 960.0 * (double)longestSide;
+			value = value * sqrt((double)longestSide / 1200.0);
 	}
 
 	// ------------------------------------------------------------------
