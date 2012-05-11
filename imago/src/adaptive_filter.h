@@ -5,6 +5,7 @@
 #include "basic_2d_storage.h"
 #include "pixel_boundings.h"
 #include "weak_segmentator.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -24,19 +25,12 @@ namespace imago
 	class AdaptiveFilter : public Basic2dStorage<FilterPackedRecord>
 	{
 	public:
-		static void process(Image& img);
+		static void process(const Settings& vars, Image& img);
 
 		AdaptiveFilter(int width, int height) : Basic2dStorage<FilterPackedRecord>(width, height) { }
-
 		virtual ~AdaptiveFilter() { }
-
-		 // the really main method
-		void filterImage(Image& img, bool allowCrop, double probablyInkPercentage, int lineThickness);
-
-		
-		// TODO: provide getters/setters
+		void filterImage(const Settings& vars, Image& img, bool allowCrop, double probablyInkPercentage, int lineThickness);		
 		friend class ImageAdapter; 
-		friend class FilterImageStub;
 
 	protected:		
 		void interpolateImage(const AdaptiveFilter& src, int interpolation = 0);

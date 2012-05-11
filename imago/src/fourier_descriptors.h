@@ -18,6 +18,7 @@
 #include "vec2d.h"
 #include "segment.h"
 #include "stl_fwd.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -27,7 +28,7 @@ namespace imago
    {
    public:
       //TODO: change Segment to Contour
-      static void calculate( const Image *seg, int count,
+      static void calculate( const Settings& vars, const Image *seg, int count,
                              std::vector<double> &descriptors );
       
       static void calculate( const Points2i &contour, int count,

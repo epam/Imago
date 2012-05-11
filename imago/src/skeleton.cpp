@@ -32,11 +32,10 @@
 using namespace imago;
 
 Skeleton::Skeleton()
-{
-	_multiBondErr = vars.skeleton.MultiBondErr;
+{	
 }
 
-void Skeleton::setInitialAvgBondLength( double avg_length )
+void Skeleton::setInitialAvgBondLength(Settings& vars, double avg_length )
 {
    // DP: NOT USING WHAT IS SET HERE
    //RecognitionSettings &rs = getSettings();
@@ -187,7 +186,7 @@ Skeleton::Vertex Skeleton::getBondEnd( const Skeleton::Edge &e ) const
    return boost::target(e, _g);
 }
 
-void Skeleton::_repairBroken()
+void Skeleton::_repairBroken(const Settings& vars)
 {
    double coef;
    recalcAvgBondLength();
@@ -524,7 +523,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
    return false;
 }
 
-bool Skeleton::_dissolveIntermediateVertices ()
+bool Skeleton::_dissolveIntermediateVertices (const Settings& vars)
 {
    std::set<Vertex> vertices;
    boost::graph_traits<SkeletonGraph>::vertex_iterator vi, vi_end;
@@ -617,11 +616,11 @@ bool Skeleton::_dissolveIntermediateVertices ()
    return false;
 }
 
-void Skeleton::_findMultiple()
+void Skeleton::_findMultiple(const Settings& vars)
 {
-   DoubleBondMaker _makeDouble(*this);
-   TripleBondMaker _makeTriple(*this);
-   MultipleBondChecker _checker(*this);
+   DoubleBondMaker  _makeDouble(vars, *this);
+   TripleBondMaker  _makeTriple(vars, *this);
+   MultipleBondChecker _checker(vars, *this);
    
    std::vector<Edge> toProcess;
    boost::property_map<SkeletonGraph, boost::edge_type_t>::type types =
@@ -651,7 +650,7 @@ void Skeleton::_findMultiple()
                 used[j])
                continue;
 
-            if (!_checker.checkDouble(i, j))
+            if (!_checker.checkDouble(vars, i, j))
                continue;
 
             {
@@ -673,7 +672,7 @@ void Skeleton::_findMultiple()
                       used[k])
                      continue;
                   
-                  if (!_checker.checkTriple(k))
+                  if (!_checker.checkTriple(vars, k))
                      continue;
                   
                   //Check degrees!
@@ -926,7 +925,7 @@ void Skeleton::_joinVertices(double eps)
    }
 }
 
-bool Skeleton::_isSegmentIntersectedByEdge(Vec2d &b, Vec2d &e, std::deque<Edge> edges)
+bool Skeleton::_isSegmentIntersectedByEdge(const Settings& vars, Vec2d &b, Vec2d &e, std::deque<Edge> edges)
 {
 	std::deque<Edge>::iterator it;
 
@@ -935,7 +934,7 @@ bool Skeleton::_isSegmentIntersectedByEdge(Vec2d &b, Vec2d &e, std::deque<Edge> 
 		Edge edge = *it;
 		Vec2d p1 = getVertexPos(getBondBegin(edge));
 		Vec2d p2 = getVertexPos(getBondEnd(edge));
-		Vec2d intersection = Algebra::linesIntersection(b, e, p1, p2);
+		Vec2d intersection = Algebra::linesIntersection(vars, b, e, p1, p2);
 
 		//check if intersection point is in segment p1, p2
 		//TODO
@@ -958,9 +957,10 @@ bool Skeleton::_isSegmentIntersectedByEdge(Vec2d &b, Vec2d &e, std::deque<Edge> 
 	return false;
 }
 
-void Skeleton::_connectBridgedBonds()
+void Skeleton::_connectBridgedBonds(const Settings& vars)
 {
 	logEnterFunction();
+
 	std::vector<double> kFactor;
 	std::vector<std::vector<Edge> > edge_groups_k;
 	//group all parallel edges by similar factors
@@ -1040,8 +1040,8 @@ void Skeleton::_connectBridgedBonds()
 					nearP2 = sp2;
 
 				if(min < blockS && min > vars.skeleton.ConnectFactor * LineS && 
-					Algebra::SegmentsOnSameLine(p1, p2, sp1, sp2) &&
-					_isSegmentIntersectedByEdge(nearP1, nearP2, otherE))
+					Algebra::SegmentsOnSameLine(vars, p1, p2, sp1, sp2) &&
+					_isSegmentIntersectedByEdge(vars, nearP1, nearP2, otherE))
 				{
 					getLogExt().appendText("Candidate edges for bridge connections");
 					getLogExt().append("Distance", min);
@@ -1127,7 +1127,7 @@ void Skeleton::_connectBridgedBonds()
 	}
 }
 
-void Skeleton::modifyGraph()
+void Skeleton::modifyGraph(Settings& vars)
 {
 	logEnterFunction();
 
@@ -1137,7 +1137,7 @@ void Skeleton::modifyGraph()
 
    recalcAvgBondLength();
 
-   getLogExt().appendSkeleton("init", _g);
+   getLogExt().appendSkeleton(vars, "init", _g);
 
    _joinVertices(vars.skeleton.JoinVerticiesConst);
 
@@ -1154,41 +1154,41 @@ void Skeleton::modifyGraph()
       }
    }
 
-   getLogExt().appendSkeleton("after join verticies", _g);
+   getLogExt().appendSkeleton(vars, "after join verticies", _g);
 
    while (_dissolveShortEdges(vars.skeleton.DissolveConst))
       ;
 
-   getLogExt().appendSkeleton("after dissolve short edges", _g);
+   getLogExt().appendSkeleton(vars, "after dissolve short edges", _g);
 
-   while (_dissolveIntermediateVertices())
+   while (_dissolveIntermediateVertices(vars))
       ;
    //_repairBroken();
 
    recalcAvgBondLength();
 
-    getLogExt().appendSkeleton("after dissolve intermediate vertrices", _g);
+    getLogExt().appendSkeleton(vars, "after dissolve intermediate vertrices", _g);
 
     //_repairBroken(); // DP: disabled
    
     recalcAvgBondLength();
 
-    _findMultiple();
+    _findMultiple(vars);
     //while (_dissolveIntermediateVertices())
     //   ;
     
-	getLogExt().appendSkeleton("after find multiple", _g);
+	getLogExt().appendSkeleton(vars, "after find multiple", _g);
 
-	_connectBridgedBonds();
+	_connectBridgedBonds(vars);
 
-	getLogExt().appendSkeleton("after connecting bridge bonds", _g);
+	getLogExt().appendSkeleton(vars, "after connecting bridge bonds", _g);
 
     recalcAvgBondLength();
    
 	while (_dissolveShortEdges(vars.skeleton.Dissolve2Const))
       ;
 
-	getLogExt().appendSkeleton("after dissolve edges 2", _g);
+	getLogExt().appendSkeleton(vars, "after dissolve edges 2", _g);
 
     recalcAvgBondLength();
 
@@ -1222,7 +1222,7 @@ void Skeleton::modifyGraph()
     }
 
 
-	getLogExt().appendSkeleton("after shrinking", _g);
+	getLogExt().appendSkeleton(vars, "after shrinking", _g);
 
 
    // ---------------------------------------------------------

@@ -16,8 +16,8 @@
 #define _triple_bond_maker_h
 
 #include "boost/tuple/tuple.hpp"
-
 #include "skeleton.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -28,7 +28,7 @@ namespace imago
       typedef Skeleton::Edge Edge;
       typedef Skeleton::SkeletonGraph Graph;
    public:
-      TripleBondMaker( Skeleton &s );
+      TripleBondMaker( const Settings& settings, Skeleton &s );
 
       typedef boost::tuple<int, Edge, Edge> Result;
 
@@ -47,6 +47,8 @@ namespace imago
       Skeleton &_s;
       Graph &_g;
       double _avgBondLength;
+
+	  const Settings& vars;
    };
 }
 

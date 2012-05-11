@@ -28,26 +28,25 @@
 #include "image_draw_utils.h"
 #include "output.h"
 #include "algebra.h"
-#include "constants.h"
 
 using namespace imago;
 
-LabelCombiner::LabelCombiner( SegmentDeque &symbols_layer, SegmentDeque &other_layer, const CharacterRecognizer &cr ) :
+LabelCombiner::LabelCombiner(Settings& vars, SegmentDeque &symbols_layer, SegmentDeque &other_layer, const CharacterRecognizer &cr ) :
    _symbols_layer(symbols_layer), _cr(cr)
    
 {
-	vars.estimation.CapitalHeight = _findCapitalHeight();
+	vars.estimation.CapitalHeight = _findCapitalHeight(vars);
 
 	if (vars.estimation.CapitalHeight > 0.0)
    {
-      _locateLabels();
+      _locateLabels(vars);
       BOOST_FOREACH(Label &l, _labels)
-         _fillLabelInfo(l);
+         _fillLabelInfo(vars, l);
    }
 }
 
 
-int LabelCombiner::_findCapitalHeight()
+int LabelCombiner::_findCapitalHeight(const Settings& vars)
 {
 	logEnterFunction();
 
@@ -67,7 +66,7 @@ int LabelCombiner::_findCapitalHeight()
 	  char c = 0;
       try
       {
-		  c = _cr.recognize(*seg, CharacterRecognizer::all, &d);
+		  c = _cr.recognize(vars, *seg, CharacterRecognizer::all, &d);
       }
 	  catch(ImagoException &e)
       {
@@ -102,7 +101,7 @@ int LabelCombiner::_findCapitalHeight()
    return cap_height;
 }
 
-void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
+void LabelCombiner::_fetchSymbols(const Settings& vars,  SegmentDeque &layer )
 {
 	logEnterFunction();
 
@@ -119,15 +118,15 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
          continue;
 
       int angle;
-      ImageUtils::testVertHorLine(**cur_s, angle);
+      ImageUtils::testVertHorLine(vars, **cur_s, angle);
 
       Rectangle seg_rect = (*cur_s)->getRectangle();
       double r = (*cur_s)->getRatio();
 
       if (angle != -1)
       {
-		  bool minus = ImageUtils::testMinus(**cur_s, (int)vars.estimation.CapitalHeight);
-         bool plus = ImageUtils::testPlus(**cur_s);
+		  bool minus = ImageUtils::testMinus(vars, **cur_s, (int)vars.estimation.CapitalHeight);
+         bool plus = ImageUtils::testPlus(vars, **cur_s);
 
          if (minus)
 			 getLogExt().appendText("Minus detected");
@@ -137,7 +136,7 @@ void LabelCombiner::_fetchSymbols( SegmentDeque &layer )
 
          if (!plus && !minus)
          {
-			 if (ImageUtils::testSlashLine(**cur_s, 0, vars.lcomb.TestSlashLineEps))
+			 if (ImageUtils::testSlashLine(vars, **cur_s, 0, vars.lcomb.TestSlashLineEps)) // TODO
                continue;   
 			 if (seg_rect.height < vars.lcomb.TestMinHeightFactor * vars.estimation.CapitalHeight 
 				 || seg_rect.height > vars.lcomb.TestMaxHeightFactor * vars.estimation.CapitalHeight 
@@ -183,7 +182,7 @@ void LabelCombiner::extractLabels( std::deque<Label> &labels )
    labels.assign(_labels.begin(), _labels.end());
 }
 
-void LabelCombiner::_locateLabels()
+void LabelCombiner::_locateLabels(const Settings& vars)
 {
 	logEnterFunction();
 
@@ -246,7 +245,7 @@ void LabelCombiner::_locateLabels()
          boost::remove_edge(*ei, seg_graph);
    }
    
-   getLogExt().appendGraph("seg_graph", seg_graph);
+   getLogExt().appendGraph(vars, "seg_graph", seg_graph);
 
    std::vector<int> _components(boost::num_vertices(seg_graph));
    int cc = boost::connected_components(seg_graph, &_components[0]);
@@ -271,7 +270,7 @@ void LabelCombiner::_locateLabels()
 
 }
 
-void LabelCombiner::_fillLabelInfo( Label &l )
+void LabelCombiner::_fillLabelInfo(const Settings& vars, Label &l )
 {
    std::vector<Segment*> &symbols = l.symbols;
    int size = symbols.size();

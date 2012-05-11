@@ -22,12 +22,14 @@ int main(int argc, char **argv)
 
       ImageUtils::loadImageFromFile(img, f);
       
-      prefilterImage(img, csr.getCharacterRecognizer());
+	  Settings vars;
+
+      prefilterImage(vars, img, csr.getCharacterRecognizer());
       Molecule mol;
 
-      csr.image2mol(img, mol);
+      csr.image2mol(vars, img, mol);
 
-      std::string molfile = expandSuperatoms(mol);
+      std::string molfile = expandSuperatoms(vars, mol);
 
       FileOutput fout("molecule.mol");
       fout.writeString(molfile);      

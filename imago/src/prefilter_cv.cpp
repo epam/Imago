@@ -6,7 +6,6 @@
 #include "segment_tools.h"
 #include "weak_segmentator.h"
 #include "log_ext.h"
-#include "constants.h"
 
 namespace imago
 {
@@ -43,7 +42,7 @@ namespace imago
 		}
 	}
 
-	bool isBinarized(Image &image)
+	bool isBinarized(const Settings& vars, Image &image)
 	{
 		logEnterFunction();		
 
@@ -81,7 +80,7 @@ namespace imago
 		}
 	}	
 
-	void prefilterCV(Image& raw)
+	void prefilterCV(const Settings& vars, Image& raw)
 	{
 		logEnterFunction();
 
@@ -115,7 +114,7 @@ namespace imago
 		int borderY = raw.getHeight() / vars.prefilterCV.BorderPartProportion + 1;
 
 		Rectangle crop = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
-		bool need_crop = ws.needCrop(crop, vars.prefilterCV.MaxRectangleCropLineWidth);
+		bool need_crop = ws.needCrop(vars, crop, vars.prefilterCV.MaxRectangleCropLineWidth);
 
 		Image output(crop.width, crop.height);
 		output.fillWhite();

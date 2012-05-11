@@ -108,7 +108,7 @@ bool testCollision(Vec2d &beg, Vec2d &end, Rectangle &rec)
 	return min*max < 0;
 }
 
-void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
+void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_labels )
 {
    double space, space2;
    double bl = bondLength();
@@ -213,7 +213,7 @@ void Molecule::mapLabels( std::deque<Label> &unmapped_labels )
 			}
             else
 			{
-                m.copy(Algebra::linesIntersection(v_a, v_c, v_b, v_d));
+                m.copy(Algebra::linesIntersection(vars, v_a, v_c, v_b, v_d));
 			}
 
             middle.add(m);

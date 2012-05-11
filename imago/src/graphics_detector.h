@@ -18,6 +18,7 @@
 #include "vec2d.h"
 #include "stl_fwd.h"
 #include "label_combiner.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -37,17 +38,17 @@ namespace imago
    public:
       GraphicsDetector();
       GraphicsDetector( const BaseApproximator *approximator, double eps );
-      void extractRingsCenters( SegmentDeque &segments, Points2d &ring_centers ) const;
+      void extractRingsCenters(const Settings& vars, SegmentDeque &segments, Points2d &ring_centers ) const;
       void analyzeUnmappedLabels( std::deque<Label> &unmapped_labels, 
          Points2d &ring_centers );
-      void detect( const Image &img, Points2d &lsegments ) const;
+      void detect(const Settings& vars, const Image &img, Points2d &lsegments ) const;
       ~GraphicsDetector();
 
    private:
       const BaseApproximator *_approximator;
       double _approx_eps;
       void _decorner( Image &img ) const;
-      void _extractPolygon( const Segment &seg, Points2d &poly ) const;
+      void _extractPolygon(const Settings& vars, const Segment &seg, Points2d &poly ) const;
       int _countBorderBlackPoints( const Image &img ) const;
       GraphicsDetector( const GraphicsDetector & );
    };

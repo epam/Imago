@@ -21,6 +21,7 @@
 #include "comdef.h"
 #include "bond.h"
 #include "vec2d.h"
+#include "constants.h"
 
 namespace imago
 {          
@@ -72,10 +73,11 @@ namespace imago
 
       void reverseEdge( const Edge &e );
 
-      void setInitialAvgBondLength( double avg_length );
+      void setInitialAvgBondLength(Settings& vars, double avg_length );
       void recalcAvgBondLength();
       double bondLength() { return _avg_bond_length; } 
-      void modifyGraph();
+      
+	  void modifyGraph(Settings& vars);
 
       void clear();
 
@@ -101,15 +103,13 @@ namespace imago
 	  bool _checkMidBonds( Vertex from, Vertex to );
 	  void _reconnectBondsRWT( Vertex from, Vertex to, BondType new_t);
       void _joinVertices(double eps);
-      void _repairBroken();
-
-      double _multiBondErr; //TODO: add to RecognitionSettings?
-      void _findMultiple();
+      void _repairBroken(const Settings& vars);
+      void _findMultiple(const Settings& vars);
    public:
       bool _dissolveShortEdges (double coeff,const bool has2nb = false);
       void deleteBadTriangles( double eps );
    private:
-      bool _dissolveIntermediateVertices ();
+      bool _dissolveIntermediateVertices (const Settings& vars);
       double _avgEdgeLendth (const Vertex &v, int &nnei);
       typedef boost::tuple<bool, Edge, Edge> MakersReturn;
       //MakersReturn _makeDouble( std::pair<Edge, Edge> edges );
@@ -117,9 +117,9 @@ namespace imago
       bool _isParallel( const Edge &first, const Edge &second ) const;
 	  bool _isEqualDirection( const Edge &first, const Edge &second ) const;
       bool _isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex &b2,const Vertex &e2)  const;
-	  bool _isSegmentIntersectedByEdge(Vec2d &b, Vec2d &e, std::deque<Edge> edges);
+	  bool _isSegmentIntersectedByEdge(const Settings& vars, Vec2d &b, Vec2d &e, std::deque<Edge> edges);
 
-	  void _connectBridgedBonds();
+	  void _connectBridgedBonds(const Settings& vars);
 	  
       double _avg_bond_length,
              _parLinesEps,

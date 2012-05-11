@@ -14,6 +14,7 @@
 #include "image_utils.h"
 #include "image_draw_utils.h"
 #include "virtual_fs.h"
+#include "constants.h"
 
 #define logEnterFunction imago::log_ext_service::LogEnterFunction _entry(__FUNCTION__, imago::getLogExt()); _entry._logEnterFunction
 
@@ -47,6 +48,7 @@ namespace imago
 		}
 
 		bool loggingEnabled() const;
+		void setLoggingEnabled(bool value);
 
 		template <class t> void append(const std::string& name, const t& value)
 		{
@@ -84,17 +86,19 @@ namespace imago
 		void appendText(const std::string& text);
 		void appendImage(const std::string& caption, const Image& img);   
 		void appendMat(const std::string& caption, const cv::Mat& mat);
-		void appendGraph(const std::string& name, const segments_graph::SegmentsGraph& g);   
-		void appendSkeleton(const std::string& name, const Skeleton::SkeletonGraph& g);   
 		void appendSegment(const std::string& name, const Segment& seg);
 		void appendPoints(const std::string& name, const Points2i& pts);
-		void appendSegmentWithYLine(const std::string& name, const Segment& seg, int line_y);
+
+		void appendGraph(const Settings& vars, const std::string& name, const segments_graph::SegmentsGraph& g);
+		void appendSkeleton(const Settings& vars, const std::string& name, const Skeleton::SkeletonGraph& g);   
+		void appendSegmentWithYLine(const Settings& vars, const std::string& name, const Segment& seg, int line_y);
 
 		void enterFunction(const std::string& name);
 		void leaveFunction();
 
 	private:
 		FILE* FileOutput;
+		bool enabled;
 		bool UseVirtualFS;
 		VirtualFS* pVFS;
 		std::string Folder;

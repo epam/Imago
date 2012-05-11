@@ -1,5 +1,4 @@
 #include "character_endpoints.h"
-#include "constants.h"
 
 namespace imago
 {
@@ -78,7 +77,7 @@ namespace imago
 		push_back(EndpointsRecord('z', 2, 5));
 	}
 
-	void EndpointsData::getImpossibleToWrite(int endpoints_count, std::string& probably, std::string& surely) const
+	void EndpointsData::getImpossibleToWrite(const Settings& vars, int endpoints_count, std::string& probably, std::string& surely) const
 	{
 		probably = "";
 		surely = "";

@@ -21,7 +21,6 @@
 #include "label_combiner.h"
 #include "image_utils.h"
 #include "log_ext.h"
-#include "constants.h"
 
 using namespace imago;
 
@@ -79,7 +78,7 @@ const static char *comb[28] = //"Constants", not config but name ?
         "abcdeghiklmnoprstuyz",
 };
 
-void LabelLogic::_predict( const Segment *seg, std::string &letters )
+void LabelLogic::_predict(const Settings& vars, const Segment *seg, std::string &letters )
 {
 	logEnterFunction();
    
@@ -144,12 +143,12 @@ std::string substract(const std::string& fullset, const std::string& reduction)
 {
 }*/
 
-void LabelLogic::process_ext( Segment *seg, int line_y )
+void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 {
 	logEnterFunction();
-	getLogExt().appendSegmentWithYLine("segment with baseline", *seg, line_y);
+	getLogExt().appendSegmentWithYLine(vars, "segment with baseline", *seg, line_y);
 
-	RecognitionDistance pr = _cr.recognize_all(*seg);
+	RecognitionDistance pr = _cr.recognize_all(vars, *seg);
 
 	// acquire image params
 	double underline = SegmentTools::getPercentageUnderLine(*seg, line_y);
@@ -324,13 +323,13 @@ bool LabelLogic::_fixupTrickySubst(char sym)
 	return false;
 }
 
-void LabelLogic::process( Segment *seg, int line_y )
+void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 {
    //ImageUtils::saveImageToFile(*seg, "output/aaa.png");
 
 	logEnterFunction();
 
-	getLogExt().appendSegmentWithYLine("segment with baseline", *seg, line_y);
+	getLogExt().appendSegmentWithYLine(vars, "segment with baseline", *seg, line_y);
 
    std::string letters;
    int index_val = 0;
@@ -339,9 +338,9 @@ void LabelLogic::process( Segment *seg, int line_y )
 
    bool capital = false;
    int digit_small = -1;
-   char hwc = _hwcr.recognize(*seg);
+   char hwc = _hwcr.recognize(vars, *seg);
 
-   bool plus = ImageUtils::testPlus(*seg);
+   bool plus = ImageUtils::testPlus(vars, *seg);
 
    getLogExt().append("plus", plus);
 
@@ -361,11 +360,11 @@ void LabelLogic::process( Segment *seg, int line_y )
          capital = true;
       else if (seg->getFeatures().recognizable)
       {
-         c_big = _cr.recognize(*seg, CharacterRecognizer::upper, &d_big);
+         c_big = _cr.recognize(vars, *seg, CharacterRecognizer::upper, &d_big);
 		 getLogExt().append("c_big", c_big);
-         c_small = _cr.recognize(*seg, CharacterRecognizer::lower, &d_small);
+         c_small = _cr.recognize(vars, *seg, CharacterRecognizer::lower, &d_small);
 		 getLogExt().append("c_small", c_small);
-         c_digit = _cr.recognize(*seg, CharacterRecognizer::digits, &d_digit);
+         c_digit = _cr.recognize(vars, *seg, CharacterRecognizer::digits, &d_digit);
 		 getLogExt().append("c_digit", c_digit);
 
          if (d_big < d_small + SMALL_EPS && d_big < d_digit + SMALL_EPS) // eps
@@ -402,7 +401,7 @@ void LabelLogic::process( Segment *seg, int line_y )
    if (capital) //seg->getHeight() > cap_height_error * _cap_height)
    {
       //Check for tall small letters
-      _predict(seg, letters);
+      _predict(vars, seg, letters);
       char sym = hwc;
 
       if (sym == 'N')
@@ -412,7 +411,7 @@ void LabelLogic::process( Segment *seg, int line_y )
       else if (sym == 'O')
          ;
       else if (seg->getFeatures().recognizable)
-         sym = _cr.recognize(*seg, letters); //TODO: Can use c_big here
+         sym = _cr.recognize(vars, *seg, letters); //TODO: Can use c_big here
       else
          sym = '?';
 
@@ -508,10 +507,10 @@ void LabelLogic::process( Segment *seg, int line_y )
       {
          if (was_letter)
          {
-            _predict(seg, letters);
+            _predict(vars, seg, letters);
             if (seg->getFeatures().recognizable)
 			{
-               _cur_atom->label_second = _cr.recognize(*seg, letters);
+               _cur_atom->label_second = _cr.recognize(vars, *seg, letters);
 			}
             else
                _cur_atom->label_second = '?';
@@ -536,7 +535,7 @@ void LabelLogic::process( Segment *seg, int line_y )
          if (_cur_atom->label_first == 0)
          {
             if (seg->getFeatures().recognizable)
-               index_val = _cr.recognize(*seg, CharacterRecognizer::digits) - '0';
+               index_val = _cr.recognize(vars, *seg, CharacterRecognizer::digits) - '0';
             else
                index_val = 0;
             _cur_atom->isotope = _cur_atom->isotope * 10 + index_val;
@@ -550,7 +549,7 @@ void LabelLogic::process( Segment *seg, int line_y )
             {
                tmp = '+';
             }
-			else if (ImageUtils::testMinus(*seg, (int)vars.estimation.CapitalHeight)) //testMinus
+			else if (ImageUtils::testMinus(vars, *seg, (int)vars.estimation.CapitalHeight)) //testMinus
             {
                tmp = '-';
             }
@@ -562,7 +561,7 @@ void LabelLogic::process( Segment *seg, int line_y )
                   letters = "0123456789";
 
                if (seg->getFeatures().recognizable)
-                  tmp = _cr.recognize(*seg, letters);
+                  tmp = _cr.recognize(vars, *seg, letters);
                else
                   tmp = 0; //TODO: what to do if charge is unrecognizable
             }
@@ -593,7 +592,7 @@ void LabelLogic::process( Segment *seg, int line_y )
             throw LabelException("Unexpected symbol position (subscript instaed of capital)");
 
          if (seg->getFeatures().recognizable)
-            index_val = _cr.recognize(*seg, CharacterRecognizer::digits) - '0';
+            index_val = _cr.recognize(vars, *seg, CharacterRecognizer::digits) - '0';
          else
             index_val = 0;
          _cur_atom->count = _cur_atom->count * 10 + index_val;
@@ -641,7 +640,7 @@ void LabelLogic::_eraseHydrogen(Label& label)
    }
 }
 
-void LabelLogic::recognizeLabel( Label& label )
+void LabelLogic::recognizeLabel(const Settings& vars, Label& label )
 {
    logEnterFunction();
 
@@ -662,7 +661,7 @@ void LabelLogic::recognizeLabel( Label& label )
 
       try
       {         
-		 process(label.symbols[i], y);
+		 process(vars, label.symbols[i], y);
       }
       catch(ImagoException &e)
       {
@@ -670,7 +669,7 @@ void LabelLogic::recognizeLabel( Label& label )
 		  {
 			  getLogExt().append("Exception", e.what());
 			  getLogExt().appendText("Give another try to process_ext() now");
-			  process_ext(label.symbols[i], y);
+			  process_ext(vars, label.symbols[i], y);
 		  }
 		  catch(ImagoException &e)
 		  {

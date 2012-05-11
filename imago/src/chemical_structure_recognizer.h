@@ -18,6 +18,7 @@
 #include "image.h"
 #include "character_recognizer.h"
 #include "stl_fwd.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -31,12 +32,11 @@ namespace imago
 
       ChemicalStructureRecognizer();
       ChemicalStructureRecognizer( const char *fontfile );
-      //ChemicalStructureRecognizer( const CharacterRecognizer &cr );
 
       void setImage( Image &img );
-      void recognize( Molecule &mol, bool only_extract_characters = false ); 
-      void image2mol( Image &img, Molecule &mol );
-	  void extractCharacters (Image& img);
+      void recognize( Settings& vars, Molecule &mol); 
+      void image2mol( Settings& vars, Image &img, Molecule &mol );
+	  void extractCharacters (Settings& vars, Image& img);
       const CharacterRecognizer &getCharacterRecognizer() { return  _cr; };
 
       ~ChemicalStructureRecognizer();

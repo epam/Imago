@@ -21,7 +21,7 @@
 
 using namespace imago;
 
-TripleBondMaker::TripleBondMaker( Skeleton &s ) : _s(s), _g(_s.getGraph())
+TripleBondMaker::TripleBondMaker( const Settings& settings, Skeleton &s ) : _s(s), _g(_s.getGraph()), vars(settings)
 {
    _avgBondLength = _s.bondLength();
 }

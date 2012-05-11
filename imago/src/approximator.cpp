@@ -24,24 +24,23 @@
 #include "algebra.h"
 #include "image_utils.h"
 #include "image_draw_utils.h"
-#include "constants.h"
 
 using namespace imago;
 
-void SimpleApproximator::apply( double eps, const Points2d &input,Points2d &output ) const
+void SimpleApproximator::apply(const Settings& vars, double eps, const Points2d &input,Points2d &output ) const
 {
    IntVector sample;
    std::vector<_Line> lines;
    std::vector<double> lengths;
    output.clear();
 
-   _prepare(input, sample);
+   _prepare(vars, input, sample);
 
    lines.resize(sample.size() - 1);
    lengths.resize(sample.size() - 1);
    for (int i = 0; i < (int)sample.size() - 1; i++)
    {
-      _calc_line(input, sample[i], sample[i + 1], lines[i]);
+      _calc_line(vars, input, sample[i], sample[i + 1], lines[i]);
       lengths[i] = Vec2d::distance(input[sample[i]], input[sample[i + 1]]);
    }
 
@@ -67,7 +66,7 @@ void SimpleApproximator::apply( double eps, const Points2d &input,Points2d &outp
    output.push_back(input.back());
 }
 
-void SimpleApproximator::_prepare( const Points2d &poly, IntVector &sample ) const
+void SimpleApproximator::_prepare(const Settings& vars, const Points2d &poly, IntVector &sample ) const
 {   
    double dist = 0;
    sample.push_back(0);
@@ -106,7 +105,7 @@ void SimpleApproximator::_prepare( const Points2d &poly, IntVector &sample ) con
    }
 }
 
-void SimpleApproximator::_calc_line( const Points2d &input, int begin, int end, _Line &res ) const
+void SimpleApproximator::_calc_line(const Settings& vars, const Points2d &input, int begin, int end, _Line &res ) const
 {
    double Sx = 0, Sy = 0, Sx2 = 0, Sxy = 0;
    
@@ -137,7 +136,7 @@ void SimpleApproximator::_calc_line( const Points2d &input, int begin, int end, 
    }
 }
 
-void CvApproximator::apply( double eps, const Points2d &input, Points2d &output ) const
+void CvApproximator::apply(const Settings& vars, double eps, const Points2d &input, Points2d &output ) const
 {
    std::vector<cv::Point> vcurve;
    for (size_t i = 0; i < input.size(); i++)
@@ -196,7 +195,7 @@ void DPApproximator::_apply_int( double eps, const Points2d &input, Points2d &ou
    output.push_back(input.back());
 }
 
-void DPApproximator::apply( double eps, const Points2d &input, Points2d &output ) const
+void DPApproximator::apply(const Settings& vars, double eps, const Points2d &input, Points2d &output ) const
 {
    assert(input.size() > 1);
    output.clear();

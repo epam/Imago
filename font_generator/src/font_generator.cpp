@@ -37,7 +37,8 @@ imago::SymbolFeatures calc_features(const fs::path &p, int count)
    imago::Segment img;
    imago::ImageUtils::loadImageFromFile(img, "%s", p.string().c_str());
 
-   img.initFeatures(count);
+   imago::Settings local; // TODO
+   img.initFeatures(local, count);
    return img.getFeatures();
 }
 
@@ -47,7 +48,8 @@ imago::Points2i calc_contours(const fs::path &p)
    imago::ImageUtils::loadImageFromFile(img, "%s", p.string().c_str());
 
    imago::Points2i contour;
-   imago::ContourExtractor().getApproxContour(img, contour);
+   imago::Settings local; // TODO
+   imago::ContourExtractor().getApproxContour(local, img, contour);
    return contour;
 }
 

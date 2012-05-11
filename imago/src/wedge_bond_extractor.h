@@ -56,8 +56,8 @@ namespace imago
 
       WedgeBondExtractor( SegmentDeque &segs, Image &img );
 
-      int singleDownFetch( Skeleton &g );
-      void singleUpFetch( Skeleton &g );
+      int singleDownFetch(const Settings& vars, Skeleton &g );
+      void singleUpFetch(const Settings& vars, Skeleton &g );
 
       void fixStereoCenters( Molecule &mol ); 
 
@@ -76,11 +76,10 @@ namespace imago
       };
 
       void _fitSingleDownBorders( Vec2d &p1, Vec2d &p2, Vec2d &v1, Vec2d &v2 );
-      static bool _intersectionFinderPlotCallBack( int x, int y, int color, void *userdata );
+      static bool _intersectionFinderPlotCallBack( int x, int y, int color, void *userdata );	  
+      static bool _pointsCompare(const SegCenter &a, const SegCenter &b );
 
-      static bool _pointsCompare( const SegCenter &a, const SegCenter &b );
-
-      bool _isSingleUp( Skeleton &g, Skeleton::Edge &e );
+      bool _isSingleUp(const Settings& vars, Skeleton &g, Skeleton::Edge &e );
       int _radiusFinder( const Vec2d &v );
       static bool _radiusFinderPlotCallback( int x, int y, int color, void *userdata );
       static int _doubleCompare( const void *a, const void *b );

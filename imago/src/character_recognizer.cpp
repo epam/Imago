@@ -29,10 +29,10 @@ const std::string CharacterRecognizer::digits = "0123456789";
 const std::string CharacterRecognizer::all = CharacterRecognizer::upper + CharacterRecognizer::lower + CharacterRecognizer::digits;
 const std::string CharacterRecognizer::like_bonds = "l1iI";
 
-double imago::getDistanceCapital(const Segment& seg)
+double imago::getDistanceCapital(const Settings& vars, const Segment& seg)
 {
 	CharacterRecognizer temp(vars.characters.DefaultFourierClassesUse);
-	RecognitionDistance rd = temp.recognize_all(seg, CharacterRecognizer::all, false);
+	RecognitionDistance rd = temp.recognize_all(vars, seg, CharacterRecognizer::all, false);
 	double best_dist;
 	char ch = rd.getBest(&best_dist);
 	if (std::find(CharacterRecognizer::upper.begin(), CharacterRecognizer::upper.end(), ch) != CharacterRecognizer::upper.end())
@@ -42,10 +42,10 @@ double imago::getDistanceCapital(const Segment& seg)
 	return DBL_MAX;
 }
 
-bool imago::isPossibleCharacter(const Segment& seg, bool loose_cmp)
+bool imago::isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp)
 {
 	CharacterRecognizer temp(vars.characters.DefaultFourierClassesUse);
-	RecognitionDistance rd = temp.recognize_all(seg, CharacterRecognizer::all, false);
+	RecognitionDistance rd = temp.recognize_all(vars, seg, CharacterRecognizer::all, false);
 	double best_dist;
 	char ch = rd.getBest(&best_dist);
 	if (std::find(CharacterRecognizer::like_bonds.begin(), CharacterRecognizer::like_bonds.end(), ch) != CharacterRecognizer::like_bonds.end())
@@ -86,7 +86,7 @@ CharacterRecognizer::~CharacterRecognizer()
 {
 }
 
-double CharacterRecognizer::_compareDescriptors( const std::vector<double> &d1,
+double CharacterRecognizer::_compareDescriptors(const Settings& vars,  const std::vector<double> &d1,
                                                  const std::vector<double> &d2 )
 {
    size_t size = std::min(d1.size(), d2.size());
@@ -118,11 +118,11 @@ double CharacterRecognizer::_compareDescriptors( const std::vector<double> &d1,
    return d;
 }
 
-double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
+double CharacterRecognizer::_compareFeatures(const Settings& vars,  const SymbolFeatures &f1,
                                               const SymbolFeatures &f2 )
 {
 
-   double d = _compareDescriptors(f1.descriptors, f2.descriptors);
+   double d = _compareDescriptors(vars, f1.descriptors, f2.descriptors);
 
    if (f1.inner_contours_count == -1 || f2.inner_contours_count == -1)
       return sqrt(d);
@@ -133,21 +133,20 @@ double CharacterRecognizer::_compareFeatures( const SymbolFeatures &f1,
    for (int i = 0; i < f1.inner_contours_count; i++)
       if (f1.inner_descriptors[i].size() != 0 &&
           f2.inner_descriptors[i].size() != 0)
-         d += _compareDescriptors(f1.inner_descriptors[i],
-                                  f2.inner_descriptors[i]);
+         d += _compareDescriptors(vars, f1.inner_descriptors[i], f2.inner_descriptors[i]);
 
    return sqrt(d);
 }
 
-RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const std::string &candidates, bool can_adjust) const
+RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, const Segment &seg, const std::string &candidates, bool can_adjust) const
 {
    logEnterFunction();
 
    getLogExt().appendSegment("Source segment", seg);
    getLogExt().append("Candidates", candidates);
 
-	seg.initFeatures(_count);
-	RecognitionDistance rec = recognize(seg.getFeatures(), candidates, true);
+	seg.initFeatures(vars, _count);
+	RecognitionDistance rec = recognize(vars, seg.getFeatures(), candidates, true);
 
 	getLogExt().appendMap("Distance map for source", rec);
 
@@ -162,7 +161,7 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
 
 		if ((int)endpoints.size() <= vars.characters.MaximalEndpointsUse)
 		{
-			endpointsHandler.getImpossibleToWrite(endpoints.size(), probably, surely);
+			endpointsHandler.getImpossibleToWrite(vars, endpoints.size(), probably, surely);
 			rec.adjust(vars.characters.WriteProbablyImpossibleFactor, probably);
 			rec.adjust(vars.characters.WriteSurelyImpossibleFactor, surely);
 		}
@@ -200,15 +199,15 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Segment &seg, const
    return rec;
 }
 
-char CharacterRecognizer::recognize( const Segment &seg,
+char CharacterRecognizer::recognize(const Settings& vars,  const Segment &seg,
                                      const std::string &candidates,
                                      double *dist ) const
 {
-   return recognize_all(seg, candidates).getBest(dist);
+   return recognize_all(vars, seg, candidates).getBest(dist);
 }
 
 
- RecognitionDistance CharacterRecognizer::recognize( const SymbolFeatures &features,
+ RecognitionDistance CharacterRecognizer::recognize(const Settings& vars,  const SymbolFeatures &features,
                                                         const std::string &candidates, bool full_range) const
 {
    if (!_loaded)
@@ -224,7 +223,7 @@ char CharacterRecognizer::recognize( const Segment &seg,
       const SymbolClass &cls = _classes[ind];
       for (size_t i = 0; i < cls.shapes.size(); i++)
       {
-         d = _compareFeatures(features, cls.shapes[i]);
+         d = _compareFeatures(vars, features, cls.shapes[i]);
 
 		 if (d > 1000.0) // avoid to add some trash
 			 continue;
@@ -391,13 +390,14 @@ void HWCharacterRecognizer::_readFile(const char *filename, SymbolFeatures &feat
       
    Segmentator::segmentate(img, segments, 3, 0);
    Segment &seg = **segments.begin();
-   seg.initFeatures(25);
+   const Settings vars; // TODO: workaround
+   seg.initFeatures(vars, 25);
    features = seg.getFeatures();
 }
 
-int HWCharacterRecognizer::recognize (Segment &seg)
+int HWCharacterRecognizer::recognize (const Settings& vars, Segment &seg)
 {
-   seg.initFeatures(25);
+   seg.initFeatures(vars, 25);
    SymbolFeatures &features = seg.getFeatures();
 
    Segment thinseg;
@@ -410,7 +410,7 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    printf(" (%d ic)", features.inner_contours_count);
 #endif
    
-   if (isCircle(thinseg))
+   if (isCircle(vars, thinseg))
    {
 #ifdef DEBUG
       printf(" circle ");
@@ -419,24 +419,24 @@ int HWCharacterRecognizer::recognize (Segment &seg)
    }
 
  
-   double errh1 = CharacterRecognizer::_compareFeatures(features, features_h1);
-   double errh2 = CharacterRecognizer::_compareFeatures(features, features_h2);
-   double errh3 = CharacterRecognizer::_compareFeatures(features, features_h3);
-   double errh4 = CharacterRecognizer::_compareFeatures(features, features_h4);
-   double errh5 = CharacterRecognizer::_compareFeatures(features, features_h5);
-   double errh6 = CharacterRecognizer::_compareFeatures(features, features_h6);
-   double errh7 = CharacterRecognizer::_compareFeatures(features, features_h7);
-   double errh8 = CharacterRecognizer::_compareFeatures(features, features_h8);
-   double errh9 = CharacterRecognizer::_compareFeatures(features, features_h9);
-   double errh10 = CharacterRecognizer::_compareFeatures(features, features_h10);
-   double errh11 = CharacterRecognizer::_compareFeatures(features, features_h11);
+   double errh1 = CharacterRecognizer::_compareFeatures(vars, features, features_h1);
+   double errh2 = CharacterRecognizer::_compareFeatures(vars, features, features_h2);
+   double errh3 = CharacterRecognizer::_compareFeatures(vars, features, features_h3);
+   double errh4 = CharacterRecognizer::_compareFeatures(vars, features, features_h4);
+   double errh5 = CharacterRecognizer::_compareFeatures(vars, features, features_h5);
+   double errh6 = CharacterRecognizer::_compareFeatures(vars, features, features_h6);
+   double errh7 = CharacterRecognizer::_compareFeatures(vars, features, features_h7);
+   double errh8 = CharacterRecognizer::_compareFeatures(vars, features, features_h8);
+   double errh9 = CharacterRecognizer::_compareFeatures(vars, features, features_h9);
+   double errh10 = CharacterRecognizer::_compareFeatures(vars, features, features_h10);
+   double errh11 = CharacterRecognizer::_compareFeatures(vars, features, features_h11);
 
-   double errn1 = CharacterRecognizer::_compareFeatures(features, features_n1);
-   double errn2 = CharacterRecognizer::_compareFeatures(features, features_n2);
-   double errn3 = CharacterRecognizer::_compareFeatures(features, features_n3);
-   double errn4 = CharacterRecognizer::_compareFeatures(features, features_n4);
-   double errn5 = CharacterRecognizer::_compareFeatures(features, features_n5);
-   double errn6 = CharacterRecognizer::_compareFeatures(features, features_n6);
+   double errn1 = CharacterRecognizer::_compareFeatures(vars, features, features_n1);
+   double errn2 = CharacterRecognizer::_compareFeatures(vars, features, features_n2);
+   double errn3 = CharacterRecognizer::_compareFeatures(vars, features, features_n3);
+   double errn4 = CharacterRecognizer::_compareFeatures(vars, features, features_n4);
+   double errn5 = CharacterRecognizer::_compareFeatures(vars, features, features_n5);
+   double errn6 = CharacterRecognizer::_compareFeatures(vars, features, features_n6);
 
    double err_h[] = {errh1, errh2, errh3, errh4, errh5, errh6, errh7, errh8, errh9, errh10, errh11};
    double err_n[] = {errn1, errn2, errn3, errn4, errn5, errn6, 1e16, 1e16, 1e16, 1e16, 1e16};
@@ -462,7 +462,7 @@ int HWCharacterRecognizer::recognize (Segment &seg)
       "1236";
    
    double err;
-   char c = _cr.recognize(seg, candidates, &err);
+   char c = _cr.recognize(vars, seg, candidates, &err);
 
    bool line = (c == 'l' || c == 'i' || c == '1');
    bool tricky = (c == 'r');

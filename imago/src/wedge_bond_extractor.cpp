@@ -37,7 +37,10 @@ WedgeBondExtractor::WedgeBondExtractor( SegmentDeque &segs, Image &img ) : _segs
 {
 }
 
-bool WedgeBondExtractor::_pointsCompare( const SegCenter &c, const SegCenter &d )
+
+static int __PointsCompareDist = 3; // TODO: workaround (but this variable should not change after initializtion)
+
+bool WedgeBondExtractor::_pointsCompare(const SegCenter &c, const SegCenter &d )
 {
    bool res;
 
@@ -46,14 +49,15 @@ bool WedgeBondExtractor::_pointsCompare( const SegCenter &c, const SegCenter &d 
    if (a.x > b.x)  
       res = true;
    if (a.x < b.x) 
-      res = false;
-   if (fabs(a.x - b.x) <= vars.wbe.PointsCompareDist)
+      res = false;   
+
+   if (fabs(a.x - b.x) <= __PointsCompareDist)
    {
       if (a.y > b.y)
          res = true;
       if (a.y < b.y)
          res = false;
-      if (fabs(a.y - b.y) <= vars.wbe.PointsCompareDist)
+      if (fabs(a.y - b.y) <= __PointsCompareDist)
          res = false;
    }
 
@@ -83,7 +87,7 @@ void WedgeBondExtractor::_fitSingleDownBorders( Vec2d &p1, Vec2d &p2, Vec2d &v1,
       p2 = ic.intersection_point;
 }
 
-int WedgeBondExtractor::singleDownFetch( Skeleton &g )
+int WedgeBondExtractor::singleDownFetch(const Settings& vars, Skeleton &g )
 {
    int sdb_count = 0;
    double eps = vars.wbe.SingleDownEps, angle;   
@@ -94,7 +98,7 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
 
    for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); ++it)
    {
-      if (ImageUtils::testSlashLine(**it, &angle, eps))
+      if (ImageUtils::testSlashLine(vars, **it, &angle, eps))
       {
          Vec2d a = (*it)->getCenter();
          segs_info.push_back(SegCenter(it, a, angle));
@@ -160,7 +164,8 @@ int WedgeBondExtractor::singleDownFetch( Skeleton &g )
                }
             }
 
-            std::sort(cur_points.begin(), cur_points.end(), _pointsCompare);
+			__PointsCompareDist = vars.wbe.PointsCompareDist;
+			std::sort(cur_points.begin(), cur_points.end(), _pointsCompare);
 
             //Minimum segments count in single-down bond is 3, right?
             if (cur_points.size() >= 3)
@@ -441,7 +446,7 @@ bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex &v,
    return false;
 }
 
-void WedgeBondExtractor::singleUpFetch( Skeleton &g )
+void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
 {   
 	logEnterFunction();
 
@@ -476,7 +481,7 @@ void WedgeBondExtractor::singleUpFetch( Skeleton &g )
 
       BGL_FORALL_EDGES(b, graph, Skeleton::SkeletonGraph)
       {
-         if (_isSingleUp(g, b))
+         if (_isSingleUp(vars, g, b))
          {
             count++;
             g.setBondType(b, SINGLE_UP);
@@ -493,7 +498,7 @@ void WedgeBondExtractor::singleUpFetch( Skeleton &g )
    getLogExt().append("Single-up bonds", count);
 }
 
-bool WedgeBondExtractor::_isSingleUp( Skeleton &g, Skeleton::Edge &e1 )
+bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton::Edge &e1 )
 {
    Bond bond = g.getBondInfo(e1);
 

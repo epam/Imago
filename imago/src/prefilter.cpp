@@ -14,7 +14,6 @@
 #include "thin_filter2.h"
 #include "segment.h"
 #include "prefilter.h"
-#include "constants.h"
 #include "segment_tools.h"
 
 namespace imago
@@ -196,7 +195,7 @@ static void _unsharpMask (Image &img, int radius, float amount, int threshold)
       }
 }
 
-void _removeSpots (Image &img, int validcolor, int max_size)
+void _removeSpots (const Settings& vars, Image &img, int validcolor, int max_size)
 {
    SegmentDeque segments;
    int i, j;
@@ -269,11 +268,6 @@ void _removeSpots (Image &img, int validcolor, int max_size)
 
 double estimateLineThickness(Image &bwimg, int grid)
 {
-	if (grid <= 0)
-	{
-		grid = vars.routines.LineThick_Grid;
-	}
-
 	int w = bwimg.getWidth();
 	int h = bwimg.getHeight();
 	int d = grid;
@@ -457,7 +451,7 @@ void _wiener2(cv::Mat &mat, int size)
 	f.convertTo(mat, CV_8U, 255.0);
 }
 
-int greyThresh(cv::Mat mat, bool strong)
+int greyThresh(const Settings& vars, cv::Mat mat, bool strong)
 {
 	cv::Mat dmat, cmat;
 
@@ -525,7 +519,7 @@ int greyThresh(cv::Mat mat, bool strong)
 }
 
 
-void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
+void prefilterKernel(const Settings& vars, const Image &raw, Image &image, const PrefilterParams& p)
 {
 	logEnterFunction();
 
@@ -674,8 +668,8 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 		cv::pyrUp(matred, mat);
 	else
 		mat = matred;
-	int thresh = greyThresh(mat, true);
-	int wthresh = greyThresh(mat, false);
+	int thresh = greyThresh(vars, mat, true);
+	int wthresh = greyThresh(vars, mat, false);
 
 	if(p.strongThresh)
 		wthresh = round(vars.prefilter.TreshFactor*thresh + (1.0-vars.prefilter.TreshFactor)*wthresh);
@@ -720,13 +714,13 @@ void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p)
 	//LPRINT(0, "Filtering done");
 }
 
-bool isSplash(Segment *s, double lineSize)
+bool isSplash(const Settings& vars, Segment *s, double lineSize)
 {
 	Image img;
 	if(s->getWidth() < lineSize && s->getHeight() < lineSize)
 		return true;
 	s->extract(0, 0, s->getWidth(), s->getHeight(), img);
-	double ls = estimateLineThickness(img);
+	double ls = estimateLineThickness(img, vars.routines.LineThick_Grid);
 	if(ls > vars.prefilter.MaxLSSplah * lineSize || ls < 1.0)
 		return true;
 	return false;
@@ -739,7 +733,7 @@ bool SegCompare (Segment *i, Segment *j)
 	return (area1 < area2); 
 }
 
-void prefilterImage( Image &image, const CharacterRecognizer &cr )
+void prefilterImage(Settings& vars, Image &image, const CharacterRecognizer &cr )
 {
 	logEnterFunction();
 
@@ -755,9 +749,9 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 
    PrefilterParams p;
    p.strongThresh = true;
-   prefilterKernel(raw, image, p);
+   prefilterKernel(vars, raw, image, p);
 
-   double lineThickness = estimateLineThickness(image);
+   double lineThickness = estimateLineThickness(image, vars.routines.LineThick_Grid);
 
    if(lineThickness < 1)
 	   throw ImagoException("Image prefiltering failed");
@@ -785,7 +779,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 	   int sw = s->getWidth();
 	   int sh = s->getHeight();
 
-	   if(sx == 0 || sy == 0 || (sx + sw) >= w || (sy + sh) >= h || isSplash(s, lineThickness))
+	   if(sx == 0 || sy == 0 || (sx + sw) >= w || (sy + sh) >= h || isSplash(vars, s, lineThickness))
 	   {
 		   imago::ImageUtils::cutSegment(cimg, *s, true, imMean);
 		   continue;
@@ -879,9 +873,11 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
    cimg.copy(raw);
 
    Image cs(cimg.getWidth(), cimg.getHeight());
+   
    PrefilterParams p2;
    //p2.reduceImage = false;
-   prefilterKernel(cimg, cs, p2);
+
+   prefilterKernel(vars, cimg, cs, p2);
 
 	getLogExt().appendImage("After _prefilterInternal3", cs);
 	
@@ -920,7 +916,7 @@ void prefilterImage( Image &image, const CharacterRecognizer &cr )
 }
 	
 // NOTE: the input image must be thinned
-bool isCircle (Image &seg)
+bool isCircle (const Settings& vars, Image &seg)
 {
    int w = seg.getWidth();
    int h = seg.getHeight();

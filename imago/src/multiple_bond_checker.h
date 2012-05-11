@@ -16,6 +16,7 @@
 #define _multiple_bond_checker_h
 
 #include "skeleton.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -26,11 +27,11 @@ namespace imago
       typedef Skeleton::Vertex Vertex;
       typedef Skeleton::Edge Edge;
    public:
-      MultipleBondChecker( Skeleton &s );
+      MultipleBondChecker(const Settings& vars, Skeleton &s );
       ~MultipleBondChecker();
 
-      bool checkDouble( Edge frst, Edge scnd );
-      bool checkTriple( Edge thrd );
+      bool checkDouble(const Settings& vars, Edge frst, Edge scnd );
+      bool checkTriple(const Settings& vars, Edge thrd );
    private:
       Edge first, second, third;
       Vertex fb, fe, sb, se, tb, te;

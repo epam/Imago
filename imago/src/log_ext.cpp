@@ -4,7 +4,6 @@
 #include "output.h"
 #include "prefilter.h"
 #include "pixel_boundings.h"
-#include "constants.h"
 
 #ifdef _WIN32
 #define MKDIR _mkdir
@@ -56,7 +55,7 @@ namespace imago
 	{
 		Folder = folder;
 		ImgIdent = CallIdent = 0;
-		UseVirtualFS = false;
+		enabled = UseVirtualFS = false;
 		pVFS = NULL;
 		FileOutput = NULL;
 	}
@@ -75,7 +74,12 @@ namespace imago
 
 	bool log_ext::loggingEnabled() const 
 	{
-		return vars.general.LogEnabled;
+		return enabled;
+	}
+
+	void log_ext::setLoggingEnabled(bool value)
+	{
+		enabled = value;
 	}
 
 	void log_ext::appendText(const std::string& text)
@@ -102,7 +106,7 @@ namespace imago
 		dump(getStringPrefix() + table);
 	}
    
-	void log_ext::appendGraph(const std::string& name, const segments_graph::SegmentsGraph& g)
+	void log_ext::appendGraph(const Settings& vars, const std::string& name, const segments_graph::SegmentsGraph& g)
 	{
 		if(!loggingEnabled()) return;
       
@@ -121,7 +125,7 @@ namespace imago
 		appendImage(caption, output);
 	}
    
-	void log_ext::appendSkeleton(const std::string& name, const Skeleton::SkeletonGraph& g)
+	void log_ext::appendSkeleton(const Settings& vars, const std::string& name, const Skeleton::SkeletonGraph& g)
 	{
 		if(!loggingEnabled()) return;
       
@@ -157,7 +161,7 @@ namespace imago
 		appendImage(name, output);
 	}
 
-	void log_ext::appendSegmentWithYLine(const std::string& name, const Segment& seg, int line_y)
+	void log_ext::appendSegmentWithYLine(const Settings& vars, const std::string& name, const Segment& seg, int line_y)
 	{
 		if(!loggingEnabled()) return;
 

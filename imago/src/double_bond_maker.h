@@ -17,8 +17,8 @@
 
 #include "boost/graph/graph_traits.hpp"
 #include "boost/tuple/tuple.hpp"
-
 #include "skeleton.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -29,7 +29,8 @@ namespace imago
       typedef Skeleton::Edge Edge;
       typedef Skeleton::SkeletonGraph Graph;
    public:
-      DoubleBondMaker( Skeleton &s );
+	   // TODO: associate Settings with class - not overall good
+      DoubleBondMaker( const Settings& settings, Skeleton &s );
 
       typedef boost::tuple<int, Edge, Edge> Result;
 
@@ -55,6 +56,8 @@ namespace imago
       Skeleton &_s;
       Graph &_g;
       double _avgBondLength;
+	  
+	  const Settings& vars;
    };
 
    template <class Graph> class DoubleBondComparator

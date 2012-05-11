@@ -44,7 +44,7 @@
 
 namespace imago
 {
-   void prefilterImage( Image &image, const CharacterRecognizer &cr );
+   void prefilterImage( Settings& vars, Image &image, const CharacterRecognizer &cr );
 }
 
 using namespace imago;
@@ -56,6 +56,7 @@ struct RecognitionContext
    std::string molfile;
    std::string out_buf;
    std::string error_buf;
+   Settings vars;
    void *session_specific_data;
    RecognitionContext () 
    {
@@ -150,7 +151,7 @@ CEXPORT int imagoFilterImage()
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
    Image &img = context->img;
 
-   prefilterImage(img, getRecognizer().getCharacterRecognizer());
+   prefilterImage(context->vars, img, getRecognizer().getCharacterRecognizer());
    IMAGO_END;
 }
 
@@ -243,8 +244,8 @@ CEXPORT int imagoRecognize()
    ChemicalStructureRecognizer &csr = getRecognizer();
 
    csr.setImage(context->img);
-   csr.recognize(context->mol);
-   context->molfile = expandSuperatoms(context->mol);
+   csr.recognize(context->vars, context->mol);
+   context->molfile = expandSuperatoms(context->vars, context->mol);
 
    IMAGO_END;
 }

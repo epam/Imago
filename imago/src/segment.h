@@ -18,6 +18,7 @@
 #include "vec2d.h"
 #include "image.h"
 #include "symbol_features.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -48,7 +49,7 @@ namespace imago
 
       SymbolFeatures &getFeatures() const;
       SymbolFeatures &getFeatures();
-      void initFeatures( int descriptorsCount ) const;
+      void initFeatures( const Settings& vars, int descriptorsCount ) const;
 
       ~Segment();
 

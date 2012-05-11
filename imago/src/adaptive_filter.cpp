@@ -6,7 +6,6 @@
 #include "weak_segmentator.h"
 #include "prefilter.h"
 #include "prefilter_cv.h"
-#include "constants.h"
 #include "segment_tools.h"
 
 namespace imago
@@ -190,13 +189,13 @@ namespace imago
 		int diff_bound;
 	};
 
-	void AdaptiveFilter::process(Image& raw)
+	void AdaptiveFilter::process(const Settings& vars, Image& raw)
 	{
 		logEnterFunction();
 
 		Image bitmask;
 		bitmask.copy(raw);
-		prefilterCV(bitmask);
+		prefilterCV(vars, bitmask);
 
 		getLogExt().appendImage("raw", raw);		
 		getLogExt().appendImage("binarized", bitmask);
@@ -211,7 +210,7 @@ namespace imago
 		inkPercentage *= vars.adaptive.GuessInkThresholdFactor;
 		
 		// update line thickness
-		double lineThickness = estimateLineThickness(bitmask);
+		double lineThickness = estimateLineThickness(bitmask, vars.routines.LineThick_Grid);
 
 		if (lineThickness < vars.adaptive.MinimalLineThickness) 
 			lineThickness = vars.adaptive.MinimalLineThickness;
@@ -227,11 +226,11 @@ namespace imago
 		getLogExt().append("Ink percentage", inkPercentage);
 		
 		AdaptiveFilter af(raw.getWidth(), raw.getHeight());
-		af.filterImage(raw, true, inkPercentage, (int)lineThickness);
+		af.filterImage(vars, raw, true, inkPercentage, (int)lineThickness);
 		getLogExt().appendImage("filtered", raw);
 	}
 
-	void AdaptiveFilter::filterImage(Image& output, bool allowCrop, 
+	void AdaptiveFilter::filterImage(const Settings& vars, Image& output, bool allowCrop, 
 		                             double probablyInkPercentage, 
 									 int lineThickness)
 	{	
@@ -263,8 +262,6 @@ namespace imago
 		p.binarizeImage = false;
 		p.strongThresh = true;
 
-		//prefilterKernel(output, output, p);
-
 		for (int h = 0; h < output.getHeight() && h < height(); h++)
 			for (int w = 0; w < output.getWidth() && w < width(); w++)
 				at(w,h).intensity = output.getByte(w,h);
@@ -282,14 +279,14 @@ namespace imago
 
 			int addedPixels = ws.appendData(img, diffIterations);
 
-			if (!allowCrop || crop_attempt == vars.adaptive.MaxCrops || !ws.needCrop(crop, winSize))
+			if (!allowCrop || crop_attempt == vars.adaptive.MaxCrops || !ws.needCrop(vars, crop, winSize))
 			{
 				getLogExt().appendText("Enter refinements loop");
 
 				// refine loop
 				for (int refine_iter = 1; refine_iter <= vars.adaptive.MaxRefineIterations; refine_iter++)
 				{
-					ws.updateRefineMap(diffFullPath);
+					ws.updateRefineMap(vars, diffFullPath);
 
 					int new_bound = interpolated.getIntensityBound(refineTresh, crop, &ws);
 

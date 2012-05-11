@@ -18,11 +18,10 @@
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/iteration_macros.hpp"
 #include "boost/foreach.hpp"
-#include "constants.h"
 
 using namespace imago;
 
-MultipleBondChecker::MultipleBondChecker( Skeleton &s ) : _s(s), _g(_s.getGraph())
+MultipleBondChecker::MultipleBondChecker(const Settings& vars, Skeleton &s ) : _s(s), _g(_s.getGraph())
 {
    _avgBondLength = _s.bondLength();
 
@@ -40,7 +39,7 @@ MultipleBondChecker::~MultipleBondChecker()
 {
 }
 
-bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
+bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd )
 {
 	//logEnterFunction();
 
@@ -212,7 +211,7 @@ bool MultipleBondChecker::checkDouble( Edge frst, Edge scnd )
    return true;
 }
 
-bool MultipleBondChecker::checkTriple( Edge thrd )
+bool MultipleBondChecker::checkTriple(const Settings& vars, Edge thrd )
 {
 	//logEnterFunction();
 

@@ -2,6 +2,16 @@
 
 namespace imago
 {
+	enum FilterType
+	{
+		ftStd = 0,
+		ftAdaptive = 1,
+		ftCV = 2,
+		ftPass = 3
+	};
+
+	static const char* FilterName[4] = {"std", "adaptive", "CV", "passthru" };
+
 	static const int MaxImageDimensions = 1600;
 	
 	static const int CLUSTER_SCANNED = 0;
@@ -9,7 +19,10 @@ namespace imago
 
 	struct GeneralSettings
 	{
+		FilterType DefaultFilterType;
 		bool LogEnabled;
+		bool LogVFSEnabled;
+		bool ExtractCharactersOnly;
 		bool IsHandwritten;
 		int OriginalImageWidth;
 		int OriginalImageHeight;
@@ -17,8 +30,9 @@ namespace imago
 		int ImageHeight;
 		GeneralSettings()
 		{
-			LogEnabled = IsHandwritten = false;
-			ImageWidth = ImageHeight = 0;
+			LogEnabled = LogVFSEnabled = ExtractCharactersOnly = IsHandwritten = false;
+			OriginalImageWidth = OriginalImageHeight = ImageWidth = ImageHeight = 0;
+			DefaultFilterType = ftCV;
 		}
 	};
 
@@ -69,7 +83,8 @@ namespace imago
 	{
 		double ShortBondLen, MediumBondLen, LongBondLen;
 		double ShortMul, MediumMul, LongMul, BaseMult;
-		double MultiBondErr, MediumSmallErr, LongSmallErr, BaseSmallErr;
+		//double MultiBondErr; // unused
+		double MediumSmallErr, LongSmallErr, BaseSmallErr;
 		double BrokenRepairCoef1, BrokenRepairCoef2;
 		double BrokenRepairFactor, BrokenRepairAngleEps;
 		double DissolveMinErr;
@@ -214,6 +229,7 @@ namespace imago
 		double extCapHeightMin, extCapHeightMax;
 		double extRatioMin, extRatioMax;
 		int minApproxSegsStrong, minApproxSegsWeak;
+		int specialSegmentsTreat;
 		SeparatorSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
 
@@ -267,9 +283,3 @@ namespace imago
 		LabelCombinerSettings lcomb;
 	};
 }
-
-extern imago::Settings& imago_getSettings();
-#define vars imago_getSettings()
-
-
-

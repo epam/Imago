@@ -20,6 +20,7 @@
 #include "superatom.h"
 #include "rectangle.h"
 #include "segment.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -59,7 +60,7 @@ namespace imago
    class LabelCombiner
    {
    public:
-      LabelCombiner( SegmentDeque &symbols_layer, SegmentDeque &other_layer, const CharacterRecognizer &cr );
+      LabelCombiner(Settings& vars, SegmentDeque &symbols_layer, SegmentDeque &other_layer, const CharacterRecognizer &cr );
       ~LabelCombiner();
       
 	  void extractLabels( std::deque<Label> &labels );
@@ -69,16 +70,16 @@ namespace imago
       const CharacterRecognizer &_cr;
 
       std::deque<Label> _labels;
-      void _fetchSymbols( SegmentDeque &layer );
-      void _locateLabels();
-      void _fillLabelInfo( Label &l );
+      void _fetchSymbols(const Settings& vars,  SegmentDeque &layer );
+      void _locateLabels(const Settings& vars);
+      void _fillLabelInfo(const Settings& vars, Label &l );
       static bool _segmentsComparator( const Segment* const &a,
                                        const Segment* const &b );
 
       static bool _segmentsCompareX( const Segment* const &a,
                                      const Segment* const &b );
 
-      int _findCapitalHeight();
+      int _findCapitalHeight(const Settings& vars);
    };
 }
 #endif /* _label_combiner_h */

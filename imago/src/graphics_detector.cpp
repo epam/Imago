@@ -93,7 +93,7 @@ void GraphicsDetector::_decorner( Image &img ) const
    getLogExt().appendImage("Decornered image", img);
 }
 
-void GraphicsDetector::_extractPolygon( const Segment &seg, Points2d &poly ) const
+void GraphicsDetector::_extractPolygon(const Settings& vars, const Segment &seg, Points2d &poly ) const
 {
 	logEnterFunction();
 
@@ -179,7 +179,7 @@ void GraphicsDetector::_extractPolygon( const Segment &seg, Points2d &poly ) con
    getLogExt().append("eps" , _approx_eps);
 
    if (_approximator)
-      _approximator->apply(_approx_eps, contour, poly);
+      _approximator->apply(vars, _approx_eps, contour, poly);
 
 	if (getLogExt().loggingEnabled())
 	{		
@@ -222,7 +222,7 @@ int GraphicsDetector::_countBorderBlackPoints( const Image &img ) const
    return count;
 }
 
-void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ring_centers ) const
+void GraphicsDetector::extractRingsCenters(const Settings& vars, SegmentDeque &segments, Points2d &ring_centers ) const
 {
 	logEnterFunction();
 
@@ -237,7 +237,7 @@ void GraphicsDetector::extractRingsCenters( SegmentDeque &segments, Points2d &ri
 
 		 getLogExt().appendSegment("Ring?", tmp);
          
-         if (isCircle(tmp))
+         if (isCircle(vars, tmp))
          {
             bool valid = true;
             double r = ((*it)->getWidth() + (*it)->getHeight()) / 4;
@@ -289,7 +289,7 @@ void GraphicsDetector::analyzeUnmappedLabels( std::deque<Label> &unmapped_labels
    }
 }
 
-void GraphicsDetector::detect( const Image &img, Points2d &lsegments ) const
+void GraphicsDetector::detect(const Settings& vars, const Image &img, Points2d &lsegments ) const
 {
 	logEnterFunction();
 
@@ -317,7 +317,7 @@ void GraphicsDetector::detect( const Image &img, Points2d &lsegments ) const
    BOOST_FOREACH( Segment *s, segs )
    {
       poly.clear();
-      _extractPolygon(*s, poly);
+      _extractPolygon(vars, *s, poly);
 
 	  for (size_t i = 1; i < poly.size(); i++)
       {

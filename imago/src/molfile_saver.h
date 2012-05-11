@@ -16,6 +16,7 @@
 #define _molfile_saver_h
 
 #include <cstdio>
+#include "constants.h"
 
 namespace imago
 {
@@ -26,12 +27,12 @@ namespace imago
     {
     public:
         MolfileSaver( Output &out );
-        void saveMolecule( const Molecule &mol );
+        void saveMolecule(const Settings& vars, const Molecule &mol );
         ~MolfileSaver();
     private:
         MolfileSaver( const MolfileSaver &);
         void _writeHeader();
-        void _writeCtab();
+        void _writeCtab(const Settings& vars);
         const Molecule *_mol;
         Output &_out;
     };

@@ -29,11 +29,11 @@
 #include "thin_filter2.h"
 #include "vec2d.h"
 #include "log_ext.h"
-#include "constants.h"
+
 
 namespace imago
 {
-   bool ImageUtils::testVertHorLine( Segment &img, int &angle )
+   bool ImageUtils::testVertHorLine(const Settings& vars, Segment &img, int &angle )
    {
       Image tmp;
 
@@ -60,7 +60,7 @@ namespace imago
       return false;
    }
 
-   bool ImageUtils::testSlashLine( Segment &img, double *angle, double eps )
+   bool ImageUtils::testSlashLine(const Settings& vars, Segment &img, double *angle, double eps )
    {
 	   logEnterFunction();
 
@@ -169,7 +169,7 @@ namespace imago
       return max_sq;
    }
 
-   bool ImageUtils::testPlus( const Segment &img )
+   bool ImageUtils::testPlus(const Settings& vars, const Segment &img )
    {
       int sq[4];
       int w[4], h[4];
@@ -197,7 +197,7 @@ namespace imago
 		      && max_sq < vars.utils.TestPlusSq * s); 
    }
 
-   bool ImageUtils::testMinus( const Segment &img, int cap_height )
+   bool ImageUtils::testMinus(const Settings& vars, const Segment &img, int cap_height )
    {
       int w = img.getWidth(), h = img.getHeight();
       int black = 0;

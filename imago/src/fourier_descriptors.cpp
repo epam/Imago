@@ -28,11 +28,11 @@
 
 using namespace imago;
 
-void FourierDescriptors::calculate( const Image *seg, int count,
+void FourierDescriptors::calculate( const Settings& vars, const Image *seg, int count,
                                     std::vector<double> &d)
 {
    Points2i contour;
-   ContourExtractor().getApproxContour(*seg, contour);
+   ContourExtractor().getApproxContour(vars, *seg, contour);
    calculate(contour, count, d);
 }
 

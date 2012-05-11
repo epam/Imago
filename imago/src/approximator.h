@@ -17,40 +17,41 @@
 
 #include "vec2d.h"
 #include "stl_fwd.h"
+#include "constants.h"
 
 namespace imago
 {
    class BaseApproximator
    {
    public:
-       virtual void apply( double eps, const Points2d &input, Points2d &output ) const = 0;
+       virtual void apply(const Settings& vars, double eps, const Points2d &input, Points2d &output ) const = 0;
    };
 
    class SimpleApproximator: public BaseApproximator
    {
    public:
-      void apply( double eps, const Points2d &input, Points2d &output ) const;
+      void apply(const Settings& vars, double eps, const Points2d &input, Points2d &output ) const;
    private:
       struct _Line
       {
          double a, b, c;
       };
-      void _calc_line( const Points2d &input, int begin, int end, _Line &res ) const;
-      void _prepare( const Points2d &poly, IntVector &sample ) const;
+      void _calc_line(const Settings& vars, const Points2d &input, int begin, int end, _Line &res ) const;
+      void _prepare(const Settings& vars, const Points2d &poly, IntVector &sample ) const;
    };
 
 
    class CvApproximator: public BaseApproximator
    {
    public:
-      void apply( double eps, const Points2d &input, Points2d &output ) const;
+      void apply(const Settings& vars, double eps, const Points2d &input, Points2d &output ) const;
    };
 
    class DPApproximator: public BaseApproximator
    {
       void _apply_int( double eps, const Points2d &input, Points2d &output ) const; 
    public:
-      void apply( double eps, const Points2d &input, Points2d &output ) const;
+      void apply(const Settings& vars, double eps, const Points2d &input, Points2d &output ) const;
    };
 }
 #endif /* _approximator_h */

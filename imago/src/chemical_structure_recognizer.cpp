@@ -43,11 +43,10 @@
 #include "prefilter_cv.h"
 #include "pixel_boundings.h"
 #include "weak_segmentator.h"
-#include "constants.h"
 
 using namespace imago;
 
-ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr(3)
+ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr(3) // TODO
 {
 }
 
@@ -56,16 +55,7 @@ ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname )
 {
 }
 
-
-void ChemicalStructureRecognizer::extractCharacters( Image &img )
-{
-	logEnterFunction();
-	setImage(img);
-	Molecule temp;
-	recognize(temp, true);
-}
-
-void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_characters ) 
+void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol) 
 {
 	logEnterFunction();
 
@@ -91,7 +81,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 	  vars.general.ImageHeight = _img.getHeight();
 	  vars.update();
 
-	  vars.estimation.LineThickness = estimateLineThickness(_img);
+	  vars.estimation.LineThickness = estimateLineThickness(_img, vars.routines.LineThick_Grid);
 	  
 	  getLogExt().appendImage("Cropped image", _img);
 
@@ -121,13 +111,13 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 
       WedgeBondExtractor wbe(segments, _img);
       {
-         int sdb_count = wbe.singleDownFetch(mol);
+         int sdb_count = wbe.singleDownFetch(vars, mol);
 		 getLogExt().append("Single-down bonds found", sdb_count);
       }
 	  
       Separator sep(segments, _img);
 
-      sep.firstSeparation(layer_symbols, layer_graphics);
+      sep.firstSeparation(vars, layer_symbols, layer_graphics);
 
 	  getLogExt().append("Symbols", layer_symbols.size());
 	  getLogExt().append("Graphics", layer_graphics.size());
@@ -149,11 +139,11 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 		 getLogExt().appendImage("Graphics", graphics);
       }
 
-	  if (only_extract_characters)
+	  if (vars.general.ExtractCharactersOnly)
 	  {
 		  BOOST_FOREACH( Segment *s, layer_symbols )
 		  {
-			  RecognitionDistance rd = getCharacterRecognizer().recognize_all(*s, CharacterRecognizer::all, false);
+			  RecognitionDistance rd = getCharacterRecognizer().recognize_all(vars, *s, CharacterRecognizer::all, false);
 			  double dist = 0.0;
 			  char res = rd.getBest(&dist);
 			  double qual = rd.getQuality();
@@ -181,7 +171,7 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 
       if (!layer_symbols.empty())
       {
-         LabelCombiner lc(layer_symbols, layer_graphics, _cr);
+         LabelCombiner lc(vars, layer_symbols, layer_graphics, _cr);
 
 		 if (vars.estimation.CapitalHeight > 0.0)
             lc.extractLabels(mol.getLabels());
@@ -210,8 +200,8 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 	{
 		SimpleApproximator sApprox;
 		GraphicsDetector gd(&sApprox, 0.3); // no one cares
-		gd.extractRingsCenters(layer_graphics, ringCenters);
-		GraphExtractor::extract(gd, layer_graphics, mol);
+		gd.extractRingsCenters(vars, layer_graphics, ringCenters);
+		GraphExtractor::extract(vars, gd, layer_graphics, mol);
 	}
 	else
 	{
@@ -219,11 +209,11 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 		getLogExt().append("Line Thickness", lnThickness);
 		CvApproximator cvApprox;
 		GraphicsDetector gd(&cvApprox, lnThickness * vars.csr.LineVectorizationFactor);
-		gd.extractRingsCenters(layer_graphics, ringCenters);
-		GraphExtractor::extract(gd, layer_graphics, mol);
+		gd.extractRingsCenters(vars, layer_graphics, ringCenters);
+		GraphExtractor::extract(vars, gd, layer_graphics, mol);
 	}		  
 
-      wbe.singleUpFetch(mol);
+      wbe.singleUpFetch(vars, mol);
 
 	  while (mol._dissolveShortEdges(vars.csr.Dissolve, true));
 
@@ -235,11 +225,11 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
          std::deque<Label> unmapped_labels;
                  
          BOOST_FOREACH(Label &l, mol.getLabels())
-            ll.recognizeLabel(l);
+            ll.recognizeLabel(vars, l);
          
 		 getLogExt().appendText("Label recognizing");
          
-         mol.mapLabels(unmapped_labels);
+         mol.mapLabels(vars, unmapped_labels);
 
          GraphicsDetector().analyzeUnmappedLabels(unmapped_labels, ringCenters);
 		 getLogExt().append("Found rings", ringCenters.size());
@@ -271,11 +261,21 @@ void ChemicalStructureRecognizer::recognize( Molecule &mol, bool only_extract_ch
 
 }
 
-void ChemicalStructureRecognizer::image2mol( Image &img, Molecule &mol )
+void ChemicalStructureRecognizer::image2mol(Settings& vars, Image &img, Molecule &mol )
 {
 	logEnterFunction();
 	setImage(img);
-	recognize(mol);
+	recognize(vars, mol);
+}
+
+void ChemicalStructureRecognizer::extractCharacters(Settings& vars, Image &img )
+{
+	logEnterFunction();
+	setImage(img);
+	Molecule temp;
+	// force-set characters extraction only:
+	vars.general.ExtractCharactersOnly = true;
+	recognize(vars, temp);
 }
 
 void ChemicalStructureRecognizer::setImage( Image &img )

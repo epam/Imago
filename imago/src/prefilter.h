@@ -23,10 +23,11 @@ namespace imago
 	   }
    };
 
-   void prefilterKernel( const Image &raw, Image &image, const PrefilterParams& p = PrefilterParams());
-   void prefilterImage( Image &image, const CharacterRecognizer &cr );
+   void prefilterKernel(const Settings& vars, const Image &raw, Image &image, const PrefilterParams& p = PrefilterParams());
+   
+   void prefilterImage(Settings& vars, Image &image, const CharacterRecognizer &cr );
 
-   bool   isCircle(Image &seg);
-   double estimateLineThickness(Image &bwimg, int grid = -1);
+   bool   isCircle(const Settings& vars, Image &seg);
+   double estimateLineThickness(Image &bwimg, int grid);
 }
 #endif /* _prefilter_h_ */

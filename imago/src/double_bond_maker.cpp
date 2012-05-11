@@ -27,7 +27,7 @@
 
 using namespace imago;
 
-DoubleBondMaker::DoubleBondMaker( Skeleton &s ) : _s(s), _g(_s.getGraph())
+DoubleBondMaker::DoubleBondMaker( const Settings& settings, Skeleton &s ) : _s(s), _g(_s.getGraph()), vars(settings)
 {
    _avgBondLength = _s.bondLength();
 }

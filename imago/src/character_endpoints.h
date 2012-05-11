@@ -1,6 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
+#include "constants.h"
 
 namespace imago
 {
@@ -15,6 +16,6 @@ namespace imago
 	{
 	public:
 		EndpointsData();
-		void getImpossibleToWrite(int endpointsCount, std::string& probably, std::string& surely) const;
+		void getImpossibleToWrite(const Settings& vars, int endpointsCount, std::string& probably, std::string& surely) const;
 	};
 }

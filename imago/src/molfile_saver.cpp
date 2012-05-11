@@ -36,12 +36,12 @@ MolfileSaver::~MolfileSaver()
 {
 }
 
-void MolfileSaver::saveMolecule( const Molecule &mol )
+void MolfileSaver::saveMolecule(const Settings& vars, const Molecule &mol )
 {
    _mol = &mol;
 
    _writeHeader();
-   _writeCtab();
+   _writeCtab(vars);
    _out.writeStringCR("M  END");
 }
 
@@ -58,7 +58,7 @@ void MolfileSaver::_writeHeader()
 }
 
 
-void MolfileSaver::_writeCtab()
+void MolfileSaver::_writeCtab(const Settings& vars)
 {
    //const Array< Pair<int> > &_vert2labels = _mol->_vert2labels;
 

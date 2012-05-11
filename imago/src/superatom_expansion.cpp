@@ -46,7 +46,7 @@ public:
    }
 };
 
-std::string expandSuperatoms( const Molecule &molecule )
+std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
 {
    using namespace std;
 
@@ -86,7 +86,7 @@ std::string expandSuperatoms( const Molecule &molecule )
    string molString;
    ArrayOutput so(molString);
    MolfileSaver ma(so);
-   ma.saveMolecule(molecule);
+   ma.saveMolecule(vars, molecule);
       
    indigoSetOption("treat-x-as-pseudoatom", "true");
    indigoSetOption("ignore-stereochemistry-errors", "true");

@@ -17,6 +17,7 @@
 
 #include "vec2d.h"
 #include <utility>
+#include "constants.h"
 
 namespace imago
 {
@@ -47,10 +48,10 @@ namespace imago
 
       static Line points2line( const Vec2d &b, const Vec2d &e );
 
-      static Vec2d linesIntersection( const Vec2d &p11, const Vec2d &p12,
+      static Vec2d linesIntersection(const Settings& vars, const Vec2d &p11, const Vec2d &p12,
                                       const Vec2d &p21, const Vec2d &p22 );
 
-      static Vec2d linesIntersection( const Line &l1, const Line &l2 );
+      static Vec2d linesIntersection(const Settings& vars, const Line &l1, const Line &l2 );
       
       static double slope( const Vec2d &b, const Vec2d &e );
 
@@ -68,7 +69,8 @@ namespace imago
 
       static bool rangesSeparable (double range1_bound1, double range1_bound2, 
          double range2_bound1, double range2_bound2);
-	  static bool SegmentsOnSameLine(Vec2d &b1, Vec2d &e1, 
+
+	  static bool SegmentsOnSameLine(const Settings& vars, Vec2d &b1, Vec2d &e1, 
 								Vec2d &b2, Vec2d &e2);
    };
 }

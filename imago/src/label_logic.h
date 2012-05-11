@@ -17,6 +17,7 @@
 
 #include "superatom.h"
 #include "character_recognizer.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -32,10 +33,10 @@ namespace imago
       ~LabelLogic();
 
       void setSuperatom( Superatom *satom );
-      void process( Segment *seg, int line_y );
-	  void process_ext( Segment *seg, int line_y );
+      void process(const Settings& vars, Segment *seg, int line_y );
+	  void process_ext(const Settings& vars, Segment *seg, int line_y );
 
-      void recognizeLabel( Label &label );
+      void recognizeLabel(const Settings& vars, Label &label );
 
    private:
       HWCharacterRecognizer _hwcr;
@@ -46,7 +47,7 @@ namespace imago
       LabelLogic( LabelLogic & );
 	  void _addAtom();
 	  void _fixupSingleAtom();
-      void _predict( const Segment *seg, std::string &letters );
+      void _predict(const Settings& vars,  const Segment *seg, std::string &letters );
       void _postProcess();
 	  void _eraseHydrogen(Label& label);
 	  bool _fixupTrickySubst(char sym);

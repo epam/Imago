@@ -24,11 +24,10 @@
 #include "image_draw_utils.h"
 #include "segment.h"
 #include "skeleton.h"
-#include "constants.h"
 
 using namespace imago;
 
-void GraphExtractor::extract( const GraphicsDetector &gd, const SegmentDeque &segments, Skeleton &graph )
+void GraphExtractor::extract(Settings& vars, const GraphicsDetector &gd, const SegmentDeque &segments, Skeleton &graph )
 {
 	logEnterFunction();
 
@@ -53,17 +52,17 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const SegmentDeque &se
 
    getLogExt().appendImage("Working image", tmp);
 
-   extract(gd, tmp, graph);
+   extract(vars, gd, tmp, graph);
 }
 
-void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skeleton &graph )
+void GraphExtractor::extract(Settings& vars, const GraphicsDetector &gd, const Image &img, Skeleton &graph )
 {
 	logEnterFunction();
 
    double avg_size = 0;
    Points2d lsegments;
 
-   gd.detect(img, lsegments);
+   gd.detect(vars, img, lsegments);
 
    if (!lsegments.empty())
    {
@@ -80,7 +79,7 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
 
 	   avg_size /= (lsegments.size() / 2);
 
-	   graph.setInitialAvgBondLength(avg_size);
+	   graph.setInitialAvgBondLength(vars, avg_size);
 
 	   for (size_t i = 0; i < lsegments.size() / 2; i++)
 	   {
@@ -93,11 +92,11 @@ void GraphExtractor::extract( const GraphicsDetector &gd, const Image &img, Skel
 			 graph.addBond(p1, p2);      
 	   }
 
-	   getLogExt().appendSkeleton("Source skeleton", (Skeleton::SkeletonGraph)graph);	   
+	   getLogExt().appendSkeleton(vars, "Source skeleton", (Skeleton::SkeletonGraph)graph);	   
 
-	   graph.modifyGraph();
+	   graph.modifyGraph(vars);
 
-	   getLogExt().appendSkeleton("Modified skeleton", (Skeleton::SkeletonGraph)graph);
+	   getLogExt().appendSkeleton(vars, "Modified skeleton", (Skeleton::SkeletonGraph)graph);
    }
    
 }

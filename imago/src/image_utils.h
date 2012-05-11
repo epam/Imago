@@ -16,6 +16,7 @@
 #define _image_utils_h
 
 #include <vector>
+#include "constants.h"
 
 namespace cv 
 {
@@ -40,14 +41,14 @@ namespace imago
       static void saveImageToBuffer( const Image &img, const std::string &format, std::vector<byte> &buffer );
       //static void saveImageToBuffer( const Image &img, const char *FileName, ... );
 
-      static bool testSlashLine( Segment &img, double *angle, double eps );
-      static bool testVertHorLine( Segment &img, int &angle );
+      static bool testSlashLine(const Settings& vars, Segment &img, double *angle, double eps );
+      static bool testVertHorLine(const Settings& vars, Segment &img, int &angle );
 
       static int findCornerRect( const Segment &img, bool corner, bool side,
                                  bool orient, int &out_w, int &out_h );
       
-      static bool testPlus( const Segment &img );
-      static bool testMinus( const Segment &img, int cap_height );
+      static bool testPlus(const Settings& vars, const Segment &img );
+      static bool testMinus(const Settings& vars, const Segment &img, int cap_height );
 
       static void putSegment( Image &img, const Segment &seg, bool careful = true );
       static void cutSegment( Image &img, const Segment &seg, bool forceCut = false, byte val = 255 );

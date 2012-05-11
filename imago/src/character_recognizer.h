@@ -4,21 +4,20 @@
 #include <string>
 #include <vector>
 #include <map>
-
 #include "character_recognizer_data.h"
 #include "symbol_features.h"
-
 #include "segment.h"
 #include "stl_fwd.h"
 #include "recognition_distance.h"
 #include "segment_tools.h"
+#include "constants.h"
 
 namespace imago
 {
    class Segment;
 
-   bool isPossibleCharacter(const Segment& seg, bool loose_cmp = false);
-   double getDistanceCapital(const Segment& seg);
+   bool isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp = false);
+   double getDistanceCapital(const Settings& vars, const Segment& seg);
 	
    class CharacterRecognizer: CharacterRecognizerData
    {
@@ -26,14 +25,14 @@ namespace imago
       CharacterRecognizer( int k );
       CharacterRecognizer( int k, const std::string &filename );
 
-      RecognitionDistance recognize( const SymbolFeatures &features,
+      RecognitionDistance recognize(const Settings& vars, const SymbolFeatures &features,
                                      const std::string &candidates, bool wide_range = false ) const;
 
-      RecognitionDistance recognize_all( const Segment &seg, 
+      RecognitionDistance recognize_all(const Settings& vars, const Segment &seg, 
 		                                 const std::string &candidates = all,
 										 bool can_adjust = true) const;
 
-	  char recognize( const Segment &seg, const std::string &candidates,
+	  char recognize(const Settings& vars, const Segment &seg, const std::string &candidates,
                       double *distance = 0 ) const;
 
       inline int getDescriptorsCount() const {return _count;}
@@ -42,11 +41,11 @@ namespace imago
       static const std::string upper, lower, digits, all;
 	  static const std::string like_bonds;
 
-      static double _compareFeatures( const SymbolFeatures &f1,
+      static double _compareFeatures(const Settings& vars,  const SymbolFeatures &f1,
                                       const SymbolFeatures &f2 );
    private:
       void _loadData( std::istream &in );
-      static double _compareDescriptors( const std::vector<double> &d1,
+      static double _compareDescriptors(const Settings& vars,  const std::vector<double> &d1,
                                          const std::vector<double> &d2 );      
       int _k;
    };
@@ -74,7 +73,7 @@ namespace imago
       SymbolFeatures features_n6;
       HWCharacterRecognizer ( const CharacterRecognizer &cr );
 
-      int recognize (Segment &seg);
+      int recognize (const Settings& vars, Segment &seg);
    protected:
       const CharacterRecognizer &_cr;
       void _readFile(const char *filename, SymbolFeatures &features);

@@ -7,6 +7,7 @@
 #include "basic_2d_storage.h"
 #include "rectangle.h"
 #include "stl_fwd.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -36,10 +37,10 @@ namespace imago
 		int appendData(const ImageInterface &img, int lookup_range);
 		
 		// updates the map for refineIsAllowed( )
-		void updateRefineMap(int max_len);
+		void updateRefineMap(const Settings& vars, int max_len);
 				
 		// updates crop if required
-		bool needCrop(Rectangle& crop, int winSize);		
+		bool needCrop(const Settings& vars, Rectangle& crop, int winSize);		
 
 		// required for AdaptiveFilter updateBound( )
 		bool alreadyExplored(int x, int y) const;
@@ -75,7 +76,7 @@ namespace imago
 		int getRectangularArea(int id);
 
 		// check segment with id has rectangular structure
-		bool hasRectangularStructure(int id, Rectangle& bound, int winSize);
+		bool hasRectangularStructure(const Settings& vars, int id, Rectangle& bound, int winSize);
 		
 		int currentRefineGeneration;
 

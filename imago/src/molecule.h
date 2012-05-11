@@ -20,6 +20,7 @@
 #include "comdef.h"
 #include "skeleton.h"
 #include "label_combiner.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -42,7 +43,7 @@ namespace imago
 
       void aromatize( Points2d &p );
 
-      void mapLabels( std::deque<Label> &unmapped_labels );
+      void mapLabels(const Settings& vars, std::deque<Label> &unmapped_labels );
 
       void clear();
 

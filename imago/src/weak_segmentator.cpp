@@ -4,7 +4,6 @@
 #include "pixel_boundings.h"
 #include "color_channels.h"
 #include "thin_filter2.h"
-#include "constants.h"
 
 namespace imago
 {	
@@ -20,7 +19,7 @@ namespace imago
 		return neighb;
 	}
 
-	void WeakSegmentator::updateRefineMap(int max_len)
+	void WeakSegmentator::updateRefineMap(const Settings& vars, int max_len)
 	{
 		logEnterFunction();
 
@@ -227,7 +226,7 @@ namespace imago
 		return added_pixels;
 	}
 
-	bool WeakSegmentator::needCrop(Rectangle& crop, int winSize)
+	bool WeakSegmentator::needCrop(const Settings& vars, Rectangle& crop, int winSize)
 	{
 		logEnterFunction();
 
@@ -235,7 +234,7 @@ namespace imago
 		for (size_t id = 1; id <= SegmentPoints.size(); id++)
 		{			
 			Rectangle bounds;
-			if (getRectangularArea(id) > area_pixels && hasRectangularStructure(id, bounds, winSize))
+			if (getRectangularArea(id) > area_pixels && hasRectangularStructure(vars, id, bounds, winSize))
 			{
 				getLogExt().append("Has rectangular structure, id", id);	
 				bounds.adjustBorder(winSize*2);
@@ -252,7 +251,7 @@ namespace imago
 		return b.getBounding().width * b.getBounding().height;
 	}		
 
-	bool WeakSegmentator::hasRectangularStructure(int id, Rectangle& bound, int winSize)
+	bool WeakSegmentator::hasRectangularStructure(const Settings& vars, int id, Rectangle& bound, int winSize)
 	{
 		Points2i& p = SegmentPoints[id];
 			

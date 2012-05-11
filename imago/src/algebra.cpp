@@ -17,7 +17,6 @@
 #include "algebra.h"
 #include "rectangle.h"
 #include "exception.h"
-#include "constants.h"
 
 using namespace imago;
 
@@ -90,7 +89,7 @@ Line Algebra::points2line( const Vec2d &b, const Vec2d &e )
    return l;
 }
 
-Vec2d Algebra::linesIntersection( const Vec2d &p11, const Vec2d &p12,
+Vec2d Algebra::linesIntersection(const Settings& vars, const Vec2d &p11, const Vec2d &p12,
                                   const Vec2d &p21, const Vec2d &p22 )
 {
    Line l1 = points2line(p11, p12);
@@ -107,11 +106,11 @@ Vec2d Algebra::linesIntersection( const Vec2d &p11, const Vec2d &p12,
    }
    else
    {
-      return linesIntersection(l1, l2);
+      return linesIntersection(vars, l1, l2);
    }
 }
 
-Vec2d Algebra::linesIntersection( const Line &l1, const Line &l2 )
+Vec2d Algebra::linesIntersection(const Settings& vars, const Line &l1, const Line &l2 )
 {
    double den = l1.A * l2.B - l2.A * l1.B; 
 
@@ -237,7 +236,7 @@ bool Algebra::rangesSeparable (double a1, double a2, double b1, double b2)
    return a_min > b_max;
 }
 
-bool Algebra::SegmentsOnSameLine(Vec2d &b1, Vec2d &e1, 
+bool Algebra::SegmentsOnSameLine(const Settings& vars, Vec2d &b1, Vec2d &e1, 
 								Vec2d &b2, Vec2d &e2)
 {
 	Vec2d bdif, edif;

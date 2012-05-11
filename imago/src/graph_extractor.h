@@ -16,6 +16,7 @@
 #define _graph_extractor_h
 
 #include "stl_fwd.h"
+#include "constants.h"
 
 namespace imago
 {
@@ -26,9 +27,10 @@ namespace imago
    
    struct GraphExtractor
    {
-      static void extract( const GraphicsDetector &gd,
+      static void extract( Settings& vars, const GraphicsDetector &gd,
                            const SegmentDeque &segments, Skeleton &graph );
-      static void extract( const GraphicsDetector &gd,
+
+      static void extract( Settings& vars, const GraphicsDetector &gd,
                            const Image &img, Skeleton &graph );
    };
 }
