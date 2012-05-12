@@ -87,7 +87,14 @@ int performFileAction(imago::Settings& vars, const std::string& imageName)
 	int result = 0; // ok mark
 	imago::VirtualFS vfs;
 
-	printf("Recognition of image \"%s\"\n", imageName.c_str());
+	if (vars.general.ExtractCharactersOnly)
+	{
+		printf("Characters extraction from image \"%s\"\n", imageName.c_str());
+	}
+	else
+	{
+		printf("Recognition of image \"%s\"\n", imageName.c_str());
+	}
 
 	try
 	{
@@ -190,6 +197,17 @@ int getdir(const std::string& dir, std::vector<std::string> &files)
 
 int main(int argc, char **argv)
 {
+	if (argc <= 1)
+	{
+		printf("Usage: %s [-log] [-logvfs] [-characters] [-dir dir_name] image_path \n", argv[0]);
+		printf("  -log: enables debug log output to ./log.html \n");
+		printf("  -logvfs: stores log in single encoded file ./log_vfs.txt \n");
+		printf("  -characters: extracts only characters from image(s) and store in ./characters/ \n");
+		printf("  -dir dir_name: process every image from dir dir_name \n");
+		printf("  image_path: full path to image to recognize (may be omitted if -dir specified) \n");
+		return 0;
+	}
+
 	std::string image = "";
 	std::string dir = "";
 

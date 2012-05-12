@@ -38,7 +38,11 @@ namespace imago
       inline int getDescriptorsCount() const {return _count;}
       ~CharacterRecognizer();
 
-      static const std::string upper, lower, digits, all;
+      static const std::string upper; 
+	  static const std::string lower;
+	  static const std::string digits;
+	  static const std::string charges;
+	  static const std::string all;
 	  static const std::string like_bonds;
 
       static double _compareFeatures(const Settings& vars,  const SymbolFeatures &f1,

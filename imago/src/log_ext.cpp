@@ -1,20 +1,8 @@
 #include "log_ext.h"
-#include <sys/stat.h>
-#include <errno.h>
 #include "output.h"
 #include "prefilter.h"
 #include "pixel_boundings.h"
-
-#ifdef _WIN32
-#define MKDIR _mkdir
-#include <direct.h>
-#include <Windows.h>
-#else
-int MKDIR(const char *dirname)
-{
-	return mkdir(dirname, S_IRWXU|S_IRGRP|S_IXGRP);
-}
-#endif
+#include "platform_tools.h"
 
 namespace imago
 {
@@ -22,29 +10,18 @@ namespace imago
 	{
 		name = n;
 		anchor = n;
-		#ifdef _WIN32
-		time = GetTickCount();
-		MEMORYSTATUSEX statex;
-		statex.dwLength = sizeof (statex);
-		GlobalMemoryStatusEx (&statex);
-		memory = static_cast<size_t>(statex.ullAvailVirtual / 1024);
-		#endif
+		time = platform::TICKS();
+		memory = platform::MEM_AVAIL();
 	}
 
 	std::string FunctionRecord::getPlatformSpecificInfo()
 	{
 		std::string result = "";
-		#ifdef _WIN32
 		char buf[64];
-		MEMORYSTATUSEX statex;
-		statex.dwLength = sizeof (statex);
-		GlobalMemoryStatusEx (&statex);
-		size_t mem_current = static_cast<size_t>(statex.ullAvailVirtual / 1024);
-		int mem_used = static_cast<int>(memory - mem_current);
-		int time_used = GetTickCount() - time;
+		int mem_used = static_cast<int>(memory - platform::MEM_AVAIL());
+		int time_used = platform::TICKS() - time;
 		sprintf(buf, " (memory: %iKb, time: %ims)", mem_used, time_used);
 		result = buf;
-		#endif
 		return result;
 	}
 	
@@ -216,7 +193,7 @@ namespace imago
 		const std::string ImagesFolder = "htmlimgs";
 
 		sprintf(path, "%s/%s", Folder.c_str(), ImagesFolder.c_str());
-		if (!UseVirtualFS && MKDIR(path) != 0)
+		if (!UseVirtualFS && platform::MKDIR(path) != 0)
 		{
 			if (errno == EEXIST)
 			{

@@ -43,6 +43,7 @@
 #include "prefilter_cv.h"
 #include "pixel_boundings.h"
 #include "weak_segmentator.h"
+#include "platform_tools.h"
 
 using namespace imago;
 
@@ -143,24 +144,29 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 	  {
 		  BOOST_FOREACH( Segment *s, layer_symbols )
 		  {
-			  RecognitionDistance rd = getCharacterRecognizer().recognize_all(vars, *s, CharacterRecognizer::all, false);
+			  RecognitionDistance rd = getCharacterRecognizer().recognize_all(vars, *s, CharacterRecognizer::all, true);
 			  double dist = 0.0;
 			  char res = rd.getBest(&dist);
 			  double qual = rd.getQuality();
 
 			  char filename[1024] = {0};
 
+			  platform::MKDIR("./characters");
+
 			  if (dist > vars.characters.PossibleCharacterDistanceWeak)
 			  {
-				  sprintf(filename, "./characters/bad/%c_d%f_q%f.png", res, dist, qual);
+				  platform::MKDIR("./characters/bad");
+				  sprintf(filename, "./characters/bad/%c_d%4.2f_q%4.2f.png", res, dist, qual);
 			  }
 			  else if (qual < vars.characters.PossibleCharacterMinimalQuality)
 			  {
-				  sprintf(filename, "./characters/similar/%c_d%f_q%f.png", res, dist, qual);
+				  platform::MKDIR("./characters/similar");
+				  sprintf(filename, "./characters/similar/%c_d%4.2f_q%4.2f.png", res, dist, qual);
 			  }
 			  else
 			  {
-				  sprintf(filename, "./characters/good/%c_d%f_q%f.png", res, dist, qual);
+				  platform::MKDIR("./characters/good");
+				  sprintf(filename, "./characters/good/%c_d%4.2f_q%4.2f.png", res, dist, qual);
 			  }
 
 			  ImageUtils::saveImageToFile(*s, filename);
