@@ -54,13 +54,13 @@ namespace imago
 		}
 		else if (cluster == CLUSTER_SCANNED)
 		{
-			FUZZ LengthFactor_long = 0.301128; // fuzzed, old value = 0.302295
-			FUZZ LengthFactor_medium = 0.412195; // fuzzed, old value = 0.416900
-			FUZZ LengthFactor_default = 0.478946; // fuzzed, old value = 0.489521
-			FUZZ LengthValue_long = 104.576605; // fuzzed, old value = 105.278715
-			FUZZ LengthValue_medium = 83.828508; // fuzzed, old value = 82.756203
-			FUZZ SpaceMultiply = 1.433167; // fuzzed, old value = 1.452524
-			FUZZ AngleTreshold = 0.259030; // fuzzed, old value = 0.255156
+			FUZZ LengthFactor_long = 0.302587; // fuzzed, old value = 0.301128
+			FUZZ LengthFactor_medium = 0.413869; // fuzzed, old value = 0.412195
+			FUZZ LengthFactor_default = 0.482683; // fuzzed, old value = 0.478946
+			FUZZ LengthValue_long = 106.597956; // fuzzed, old value = 104.576605
+			FUZZ LengthValue_medium = 82.637482; // fuzzed, old value = 83.828508
+			FUZZ SpaceMultiply = 1.469594; // fuzzed, old value = 1.433167
+			FUZZ AngleTreshold = 0.262416; // fuzzed, old value = 0.259030
 		}
 
 		NormalizeBySide(LengthValue_long, LongestSide);
@@ -103,15 +103,15 @@ namespace imago
 		}
 		else if (cluster == CLUSTER_SCANNED)
 		{
-			FUZZ AddVertexEps = 5.099192; // fuzzed, old value = 5.2
-			FUZZ MaxSymRatio = 1.122616; // fuzzed, old value = 1.117503
-			FUZZ MinSymRatio = 0.341869; // fuzzed, old value = 0.34
-			FUZZ ParLinesEps = 0.513057; // fuzzed, old value = 0.518003
-			FUZZ SymHeightErr = 27.170494; // fuzzed, old value = 27.752118
-			FUZZ CapitalHeightError = 0.839837; // fuzzed, old value = 0.85
-			FUZZ DoubleBondDist = 20; // fuzzed, old value = 20
+			FUZZ AddVertexEps = 5.052747; // fuzzed, old value = 5.099192
+			FUZZ MaxSymRatio = 1.123954; // fuzzed, old value = 1.122616
+			FUZZ MinSymRatio = 0.338931; // fuzzed, old value = 0.341869
+			FUZZ ParLinesEps = 0.523855; // fuzzed, old value = 0.513057
+			FUZZ SymHeightErr = 26.909337; // fuzzed, old value = 27.170494
+			FUZZ CapitalHeightError = 0.823201; // fuzzed, old value = 0.839837
+			FUZZ DoubleBondDist = 21; // fuzzed, old value = 20
 			FUZZ SegmentVerEps = 4; // fuzzed, old value = 4
-			FUZZ CharactersSpaceCoeff = 0.391240; // fuzzed, old value = 0.4
+			FUZZ CharactersSpaceCoeff = 0.378645; // fuzzed, old value = 0.391240
 		}
 
 		NormalizeBySide(SymHeightErr, LongestSide);
@@ -164,46 +164,46 @@ namespace imago
 		}
 		else if (cluster == CLUSTER_SCANNED)
 		{
-			FUZZ LongBond = 118; // fuzzed, old value = 118
-			FUZZ LongErr = 0.360257; // fuzzed, old value = 0.355489
-			FUZZ MediumBond = 88; // fuzzed, old value = 88
-			FUZZ MediumErr = 0.388901; // fuzzed, old value = 0.396206
-			FUZZ DefaultErr = 0.640971; // fuzzed, old value = 0.649183
-			FUZZ ParBondsEps = 0.349066; // fuzzed, old value = 0.342145
-			FUZZ DoubleRatioTresh = 7.457044; // fuzzed, old value = 7.477073
-			FUZZ DoubleCoef = 0.080466; // fuzzed, old value = 0.081729
-			FUZZ DoubleMagic1 = 0.948187; // fuzzed, old value = 0.943214
-			FUZZ DoubleMagic2 = 0.984298; // fuzzed, old value = 0.977482
-			FUZZ DoubleTreshMin = 0.101160; // fuzzed, old value = 0.100961
-			FUZZ DoubleTreshMax = 0.868968; // fuzzed, old value = 0.854722
+			FUZZ LongBond = 113; // fuzzed, old value = 118
+			FUZZ LongErr = 0.346608; // fuzzed, old value = 0.360257
+			FUZZ MediumBond = 89; // fuzzed, old value = 88
+			FUZZ MediumErr = 0.391840; // fuzzed, old value = 0.388901
+			FUZZ DefaultErr = 0.610753; // fuzzed, old value = 0.640971
+			FUZZ ParBondsEps = 0.337947; // fuzzed, old value = 0.349066
+			FUZZ DoubleRatioTresh = 7.348546; // fuzzed, old value = 7.457044
+			FUZZ DoubleCoef = 0.083989; // fuzzed, old value = 0.080466
+			FUZZ DoubleMagic1 = 0.937557; // fuzzed, old value = 0.948187
+			FUZZ DoubleMagic2 = 0.975982; // fuzzed, old value = 0.984298
+			FUZZ DoubleTreshMin = 0.103846; // fuzzed, old value = 0.101160
+			FUZZ DoubleTreshMax = 0.844539; // fuzzed, old value = 0.868968
 
-			FUZZ MaxLen1 = 164.846209; // fuzzed, old value = 165.079341
-			FUZZ MaxLen2 = 122.787381; // fuzzed, old value = 119.844128
-			FUZZ MaxLen3 = 115.223338; // fuzzed, old value = 114.410745
-			FUZZ MaxLen4 = 109.669810; // fuzzed, old value = 112.350859
-			FUZZ MaxLen5 = 85.478967; // fuzzed, old value = 85.481902
+			FUZZ MaxLen1 = 163.885566; // fuzzed, old value = 164.846209
+			FUZZ MaxLen2 = 119.655960; // fuzzed, old value = 122.787381
+			FUZZ MaxLen3 = 112.447633; // fuzzed, old value = 115.223338
+			FUZZ MaxLen4 = 114.351034; // fuzzed, old value = 109.669810
+			FUZZ MaxLen5 = 84.175796; // fuzzed, old value = 85.478967
 
-			FUZZ MinLen1 = 85.904719; // fuzzed, old value = 84.396100
-			FUZZ MinLen2 = 76.648276; // fuzzed, old value = 74.825703
+			FUZZ MinLen1 = 87.203894; // fuzzed, old value = 85.904719
+			FUZZ MinLen2 = 73.050015; // fuzzed, old value = 76.648276
 
-			FUZZ mbe1 = 0.081553; // fuzzed, old value = 0.080418
-			FUZZ mbe2 = 0.150084; // fuzzed, old value = 0.146740
-			FUZZ mbe3 = 0.207396; // fuzzed, old value = 0.203068
-			FUZZ mbe4 = 0.186034; // fuzzed, old value = 0.185673
-			FUZZ mbe5 = 0.156560; // fuzzed, old value = 0.155507
-			FUZZ mbe6 = 0.207583; // fuzzed, old value = 0.207372
-			FUZZ mbe7 = 0.403671; // fuzzed, old value = 0.395602
-			FUZZ mbe_def = 0.517421; // fuzzed, old value = 0.519484
+			FUZZ mbe1 = 0.082028; // fuzzed, old value = 0.081553
+			FUZZ mbe2 = 0.155614; // fuzzed, old value = 0.150084
+			FUZZ mbe3 = 0.198843; // fuzzed, old value = 0.207396
+			FUZZ mbe4 = 0.195177; // fuzzed, old value = 0.186034
+			FUZZ mbe5 = 0.149705; // fuzzed, old value = 0.156560
+			FUZZ mbe6 = 0.209757; // fuzzed, old value = 0.207583
+			FUZZ mbe7 = 0.420229; // fuzzed, old value = 0.403671
+			FUZZ mbe_def = 0.496928; // fuzzed, old value = 0.517421
 
-			FUZZ DoubleLeftLengthTresh = 0.327897; // fuzzed, old value = 0.320683
-			FUZZ DoubleRightLengthTresh = 0.299122; // fuzzed, old value = 0.300917
-			FUZZ TripleLeftLengthTresh = 0.261856; // fuzzed, old value = 0.257080
-			FUZZ TripleRightLengthTresh = 0.221299; // fuzzed, old value = 0.226614
-			FUZZ Case1LengthTresh = 103.451970; // fuzzed, old value = 104.968905
-			FUZZ Case1Factor = 0.446116; // fuzzed, old value = 0.445369
-			FUZZ Case2LengthTresh = 83.007771; // fuzzed, old value = 81.119412
-			FUZZ Case2Factor = 0.700996; // fuzzed, old value = 0.718709
-			FUZZ Case3Factor = 0.944560; // fuzzed, old value = 0.932437
+			FUZZ DoubleLeftLengthTresh = 0.343085; // fuzzed, old value = 0.327897
+			FUZZ DoubleRightLengthTresh = 0.291665; // fuzzed, old value = 0.299122
+			FUZZ TripleLeftLengthTresh = 0.267913; // fuzzed, old value = 0.261856
+			FUZZ TripleRightLengthTresh = 0.231103; // fuzzed, old value = 0.221299
+			FUZZ Case1LengthTresh = 106.538922; // fuzzed, old value = 103.451970
+			FUZZ Case1Factor = 0.464350; // fuzzed, old value = 0.446116
+			FUZZ Case2LengthTresh = 83.874277; // fuzzed, old value = 83.007771
+			FUZZ Case2Factor = 0.719857; // fuzzed, old value = 0.700996
+			FUZZ Case3Factor = 0.899713; // fuzzed, old value = 0.944560
 		}
 		
 		NormalizeBySide(LongBond, LongestSide);
@@ -250,32 +250,32 @@ namespace imago
 		}
 		else if (cluster == CLUSTER_SCANNED)
 		{
-			FUZZ BaseMult = 0.095763; // fuzzed, old value = 0.096231
-			FUZZ BaseSmallErr = 0.152079; // fuzzed, old value = 0.153246
-			FUZZ ShortBondLen = 21; // fuzzed, old value = 21
-			FUZZ ShortMul = 0.305612; // fuzzed, old value = 0.299155
-			FUZZ MediumBondLen = 89; // fuzzed, old value = 88
-			FUZZ MediumMul = 0.175148; // fuzzed, old value = 0.175140
-			FUZZ MediumSmallErr = 0.130098; // fuzzed, old value = 0.132227
-			FUZZ LongBondLen = 103; // fuzzed, old value = 104
-			FUZZ LongMul = 0.153756; // fuzzed, old value = 0.153505
-			FUZZ LongSmallErr = 0.063796; // fuzzed, old value = 0.062575
-			FUZZ BrokenRepairFactor = 2.876024; // fuzzed, old value = 2.862368
-			FUZZ BrokenRepairCoef1 = 0.977421; // fuzzed, old value = 0.976380
-			FUZZ BrokenRepairCoef2 = 2.688826; // fuzzed, old value = 2.623788
-			FUZZ BrokenRepairAngleEps = 0.189200; // fuzzed, old value = 0.192211
-			FUZZ DissolveMinErr = 0.175111; // fuzzed, old value = 0.178148
-			FUZZ ConnectBlockS = 10.168268; // fuzzed, old value = 9.948668
-			FUZZ ConnectFactor = 2.035299; // fuzzed, old value = 1.986648
-			FUZZ JoinVerticiesConst = 0.101178; // fuzzed, old value = 0.100288
-			FUZZ DissolveConst = 0.095184; // fuzzed, old value = 0.094904
-			FUZZ Dissolve2Const = 0.196931; // fuzzed, old value = 0.199403
-			FUZZ Join2Const = 0.324191; // fuzzed, old value = 0.330019
-			FUZZ Join3Const = 0.188224; // fuzzed, old value = 0.192238
-			FUZZ DistTreshLimFactor = 1.939525; // fuzzed, old value = 1.960246
-			FUZZ SlopeFact1 = 0.099649; // fuzzed, old value = 0.099581
-			FUZZ SlopeFact2 = 0.192488; // fuzzed, old value = 0.195806
-			FUZZ ShrinkEps = 0.125260; // fuzzed, old value = 0.127217
+			FUZZ BaseMult = 0.096645; // fuzzed, old value = 0.095763
+			FUZZ BaseSmallErr = 0.148300; // fuzzed, old value = 0.152079
+			FUZZ ShortBondLen = 22; // fuzzed, old value = 21
+			FUZZ ShortMul = 0.301830; // fuzzed, old value = 0.305612
+			FUZZ MediumBondLen = 86; // fuzzed, old value = 89
+			FUZZ MediumMul = 0.166902; // fuzzed, old value = 0.175148
+			FUZZ MediumSmallErr = 0.134690; // fuzzed, old value = 0.130098
+			FUZZ LongBondLen = 101; // fuzzed, old value = 103
+			FUZZ LongMul = 0.156848; // fuzzed, old value = 0.153756
+			FUZZ LongSmallErr = 0.061348; // fuzzed, old value = 0.063796
+			FUZZ BrokenRepairFactor = 3.014032; // fuzzed, old value = 2.876024
+			FUZZ BrokenRepairCoef1 = 1.017943; // fuzzed, old value = 0.977421
+			FUZZ BrokenRepairCoef2 = 2.682044; // fuzzed, old value = 2.688826
+			FUZZ BrokenRepairAngleEps = 0.186894; // fuzzed, old value = 0.189200
+			FUZZ DissolveMinErr = 0.173091; // fuzzed, old value = 0.175111
+			FUZZ ConnectBlockS = 9.975947; // fuzzed, old value = 10.168268
+			FUZZ ConnectFactor = 2.118554; // fuzzed, old value = 2.035299
+			FUZZ JoinVerticiesConst = 0.104625; // fuzzed, old value = 0.101178
+			FUZZ DissolveConst = 0.098007; // fuzzed, old value = 0.095184
+			FUZZ Dissolve2Const = 0.194736; // fuzzed, old value = 0.196931
+			FUZZ Join2Const = 0.327311; // fuzzed, old value = 0.324191
+			FUZZ Join3Const = 0.186985; // fuzzed, old value = 0.188224
+			FUZZ DistTreshLimFactor = 1.998246; // fuzzed, old value = 1.939525
+			FUZZ SlopeFact1 = 0.102186; // fuzzed, old value = 0.099649
+			FUZZ SlopeFact2 = 0.185034; // fuzzed, old value = 0.192488
+			FUZZ ShrinkEps = 0.128250; // fuzzed, old value = 0.125260
 		}
 		
 		NormalizeBySide(ShortBondLen, LongestSide);
@@ -333,6 +333,9 @@ namespace imago
 
 	RoutinesSettings::RoutinesSettings(int cluster, int LongestSide)
 	{
+		Contour_Eps1 = 1.130985;
+		Contour_Eps2 = 0.680156; 
+
 		if (cluster == CLUSTER_HANDWRITTING)
 		{
 			FUZZ LineThick_Grid = 10; // fuzzed, old value = 10
@@ -347,25 +350,23 @@ namespace imago
 			FUZZ Approx_Eps1 = 1.167437; // fuzzed, old value = 1.172875
 			FUZZ Approx_Eps2 = 0.888855; // fuzzed, old value = 0.888022
 			FUZZ Approx_CalcLineTresh = 0.910098; // fuzzed, old value = 0.896885
-			FUZZ Contour_Eps1 = 1.139208; // fuzzed, old value = 1.130985
-			FUZZ Contour_Eps2 = 0.664179; // fuzzed, old value = 0.680156
 		}
 		else if (cluster == CLUSTER_SCANNED)
 		{
 			FUZZ LineThick_Grid = 10; // fuzzed, old value = 10
 			FUZZ Circle_Eps = 0.000009; // fuzzed, old value = 0.000009
-			FUZZ Circle_GapMin = 0.094918; // fuzzed, old value = 0.095199
-			FUZZ Circle_GapMax = 1.001200; // fuzzed, old value = 0.991844
-			FUZZ Circle_RMax = 2.126840; // fuzzed, old value = 2.121933
-			FUZZ Circle_AvgRadius = 0.000106; // fuzzed, old value = 0.000104
-			FUZZ Circle_MaxRatio = 0.320074; // fuzzed, old value = 0.319843
-			FUZZ Algebra_IntersectionEps = 0.010090; // fuzzed, old value = 0.010301
-			FUZZ Algebra_SameLineEps = 0.209556; // fuzzed, old value = 0.212025
-			FUZZ Approx_Eps1 = 1.200332; // fuzzed, old value = 1.196108
-			FUZZ Approx_Eps2 = 0.864488; // fuzzed, old value = 0.885824
-			FUZZ Approx_CalcLineTresh = 0.895633; // fuzzed, old value = 0.894839
-			FUZZ Contour_Eps1 = 1.096938; // fuzzed, old value = 1.111403
-			FUZZ Contour_Eps2 = 0.692346; // fuzzed, old value = 0.686504
+			FUZZ Circle_GapMin = 0.095870; // fuzzed, old value = 0.094918
+			FUZZ Circle_GapMax = 1.019180; // fuzzed, old value = 1.001200
+			FUZZ Circle_RMax = 2.091001; // fuzzed, old value = 2.126840
+			FUZZ Circle_AvgRadius = 0.000103; // fuzzed, old value = 0.000106
+			FUZZ Circle_MaxRatio = 0.325535; // fuzzed, old value = 0.320074
+			FUZZ Algebra_IntersectionEps = 0.010417; // fuzzed, old value = 0.010090
+			FUZZ Algebra_SameLineEps = 0.215583; // fuzzed, old value = 0.209556
+			FUZZ Approx_Eps1 = 1.183234; // fuzzed, old value = 1.200332
+			FUZZ Approx_Eps2 = 0.870484; // fuzzed, old value = 0.864488
+			FUZZ Approx_CalcLineTresh = 0.918594; // fuzzed, old value = 0.895633
+			FUZZ Contour_Eps1 = 1.107616; // fuzzed, old value = 1.111403
+			FUZZ Contour_Eps2 = 0.707938; // fuzzed, old value = 0.686504
 		}
 	}
 
@@ -414,21 +415,21 @@ namespace imago
 		{
 			FUZZ PointsCompareDist = 3; // fuzzed, old value = 3
 			FUZZ SingleDownCompareDist = 2; // fuzzed, old value = 2
-			FUZZ SingleDownEps = 3.084293; // fuzzed, old value = 3.037281
-			FUZZ SingleDownAngleMax = 46.495272; // fuzzed, old value = 46.091739
-			FUZZ SingleDownDistancesMax = 9.807540; // fuzzed, old value = 9.960804
-			FUZZ SingleDownLengthMax = 44.286637; // fuzzed, old value = 43.239626
-			FUZZ SingleUpRatioEps = 1.759887; // fuzzed, old value = 1.802933
-			FUZZ SingleUpDefCoeff = 0.282408; // fuzzed, old value = 0.277813
-			FUZZ SingleUpIncCoeff = 0.427804; // fuzzed, old value = 0.424824
-			FUZZ SingleUpIncLengthTresh = 36.785456; // fuzzed, old value = 35.891082
-			FUZZ SingleUpInterpolateEps = 0.059811; // fuzzed, old value = 0.059528
-			FUZZ SingleUpMagicAddition = 0.219160; // fuzzed, old value = 0.222498
-			FUZZ SingleUpS2Divisor = 1.614635; // fuzzed, old value = 1.616496
-			FUZZ SingleUpMinATresh = 1.630915; // fuzzed, old value = 1.669259
-			FUZZ SingleUpSquareRatio = 0.656983; // fuzzed, old value = 0.651850
-			FUZZ SingleUpAngleTresh = 0.069971; // fuzzed, old value = 0.068571
-			FUZZ SomeTresh = 0.097744; // fuzzed, old value = 0.098846
+			FUZZ SingleDownEps = 3.091668; // fuzzed, old value = 3.084293
+			FUZZ SingleDownAngleMax = 46.643341; // fuzzed, old value = 46.495272
+			FUZZ SingleDownDistancesMax = 9.623688; // fuzzed, old value = 9.807540
+			FUZZ SingleDownLengthMax = 46.422038; // fuzzed, old value = 44.286637
+			FUZZ SingleUpRatioEps = 1.700450; // fuzzed, old value = 1.759887
+			FUZZ SingleUpDefCoeff = 0.293211; // fuzzed, old value = 0.282408
+			FUZZ SingleUpIncCoeff = 0.447362; // fuzzed, old value = 0.427804
+			FUZZ SingleUpIncLengthTresh = 36.696824; // fuzzed, old value = 36.785456
+			FUZZ SingleUpInterpolateEps = 0.061877; // fuzzed, old value = 0.059811
+			FUZZ SingleUpMagicAddition = 0.230087; // fuzzed, old value = 0.219160
+			FUZZ SingleUpS2Divisor = 1.556280; // fuzzed, old value = 1.614635
+			FUZZ SingleUpMinATresh = 1.592886; // fuzzed, old value = 1.630915
+			FUZZ SingleUpSquareRatio = 0.669836; // fuzzed, old value = 0.656983
+			FUZZ SingleUpAngleTresh = 0.067123; // fuzzed, old value = 0.069971
+			FUZZ SomeTresh = 0.102396; // fuzzed, old value = 0.097744
 		}
 
 		NormalizeBySide(SingleDownDistancesMax, LongestSide);
@@ -463,25 +464,25 @@ namespace imago
 		else if (cluster == CLUSTER_SCANNED)
 		{
 			FUZZ MaximalEndpointsUse = 7; // fuzzed, old value = 7
-			FUZZ HackFor3Use = false; // fuzzed, old value = true
+			FUZZ HackFor3Use = false; // fuzzed, old value = false
 			FUZZ ImpossibleToWriteDelta = 1; // fuzzed, old value = 1
-			FUZZ WriteProbablyImpossibleFactor = 1.040750; // fuzzed, old value = 1.064738
-			FUZZ WriteSurelyImpossibleFactor = 1.158643; // fuzzed, old value = 1.167453
-			FUZZ WriteEasyFactor = 0.951037; // fuzzed, old value = 0.930131
-			FUZZ WriteVeryEasyFactor = 0.865599; // fuzzed, old value = 0.865807
+			FUZZ WriteProbablyImpossibleFactor = 1.038928; // fuzzed, old value = 1.040750
+			FUZZ WriteSurelyImpossibleFactor = 1.174147; // fuzzed, old value = 1.158643
+			FUZZ WriteEasyFactor = 0.986541; // fuzzed, old value = 0.951037
+			FUZZ WriteVeryEasyFactor = 0.848332; // fuzzed, old value = 0.865599
 			FUZZ DefaultFourierClassesUse = 3; // fuzzed, old value = 3
-			FUZZ PossibleCharacterDistanceStrong = 2.970385; // fuzzed, old value = 2.932504
-			FUZZ PossibleCharacterDistanceWeak = 3.471436; // fuzzed, old value = 3.386928
-			FUZZ PossibleCharacterMinimalQuality = 0.101144; // fuzzed, old value = 0.102540
-			FUZZ DescriptorsOddFactorStrong = 2.562639; // fuzzed, old value = 2.524500
-			FUZZ DescriptorsEvenFactorStrong = 3.659341; // fuzzed, old value = 3.666926
-			FUZZ DescriptorsOddFactorWeak = 0.933604; // fuzzed, old value = 0.939928
-			FUZZ DescriptorsEvenFactorWeak = 0.290431; // fuzzed, old value = 0.290855
-			FUZZ HW_Line = 1.676584; // fuzzed, old value = 1.650729
-			FUZZ HW_F = 3.261839; // fuzzed, old value = 3.197663
-			FUZZ HW_Tricky = 2.668167; // fuzzed, old value = 2.665887
-			FUZZ HW_Hard = 4.394394; // fuzzed, old value = 4.318542
-			FUZZ HW_Other = 3.771726; // fuzzed, old value = 3.802253
+			FUZZ PossibleCharacterDistanceStrong = 3.111806; // fuzzed, old value = 2.970385
+			FUZZ PossibleCharacterDistanceWeak = 3.301392; // fuzzed, old value = 3.471436
+			FUZZ PossibleCharacterMinimalQuality = 0.105829; // fuzzed, old value = 0.101144
+			FUZZ DescriptorsOddFactorStrong = 2.563198; // fuzzed, old value = 2.562639
+			FUZZ DescriptorsEvenFactorStrong = 3.659045; // fuzzed, old value = 3.659341
+			FUZZ DescriptorsOddFactorWeak = 0.956191; // fuzzed, old value = 0.933604
+			FUZZ DescriptorsEvenFactorWeak = 0.292912; // fuzzed, old value = 0.290431
+			FUZZ HW_Line = 1.596290; // fuzzed, old value = 1.676584
+			FUZZ HW_F = 3.187493; // fuzzed, old value = 3.261839
+			FUZZ HW_Tricky = 2.795053; // fuzzed, old value = 2.668167
+			FUZZ HW_Hard = 4.440481; // fuzzed, old value = 4.394394
+			FUZZ HW_Other = 3.836238; // fuzzed, old value = 3.771726
 		}
 	}
 
@@ -497,10 +498,10 @@ namespace imago
 		}
 		else if (cluster == CLUSTER_SCANNED)
 		{
-			FUZZ Dissolve = 0.497649; // fuzzed, old value = 0.500003
-			FUZZ DeleteBadTriangles = 1.901966; // fuzzed, old value = 1.948795
+			FUZZ Dissolve = 0.479227; // fuzzed, old value = 0.497649
+			FUZZ DeleteBadTriangles = 1.873039; // fuzzed, old value = 1.901966
 			FUZZ WeakSegmentatorDist = 1; // fuzzed, old value = 1
-			FUZZ LineVectorizationFactor = 1.630420; // fuzzed, old value = 1.603001
+			FUZZ LineVectorizationFactor = 1.637170; // fuzzed, old value = 1.630420
 		}
 	}
 
@@ -514,9 +515,9 @@ namespace imago
 		}
 		else if (cluster == CLUSTER_SCANNED)
 		{
-			FUZZ MinimalDistTresh = 1.959499; // fuzzed, old value = 1.975386
-			FUZZ RatioSub = 0.990219; // fuzzed, old value = 0.984835
-			FUZZ RatioTresh = 0.409889; // fuzzed, old value = 0.405199
+			FUZZ MinimalDistTresh = 1.879082; // fuzzed, old value = 1.959499
+			FUZZ RatioSub = 1.006754; // fuzzed, old value = 0.990219
+			FUZZ RatioTresh = 0.428992; // fuzzed, old value = 0.409889
 		}
 	}
 
@@ -533,12 +534,12 @@ namespace imago
 		}
 		else if (cluster == CLUSTER_SCANNED)
 		{
-			FUZZ SlashLineDensity = 0.465765; // fuzzed, old value = 0.468904
-			FUZZ TestPlusDensity = 0.418756; // fuzzed, old value = 0.419729
-			FUZZ TestPlusSq = 0.418458; // fuzzed, old value = 0.411096
-			FUZZ TestMinusRatio = 0.374581; // fuzzed, old value = 0.375646
-			FUZZ TestMinusDensity = 0.624305; // fuzzed, old value = 0.627725
-			FUZZ TestMinusHeightFactor = 0.853211; // fuzzed, old value = 0.847227
+			FUZZ SlashLineDensity = 0.458063; // fuzzed, old value = 0.465765
+			FUZZ TestPlusDensity = 0.410080; // fuzzed, old value = 0.418756
+			FUZZ TestPlusSq = 0.405108; // fuzzed, old value = 0.418458
+			FUZZ TestMinusRatio = 0.364457; // fuzzed, old value = 0.374581
+			FUZZ TestMinusDensity = 0.620533; // fuzzed, old value = 0.624305
+			FUZZ TestMinusHeightFactor = 0.874957; // fuzzed, old value = 0.853211
 		}
 	}
 
@@ -574,31 +575,31 @@ namespace imago
 		}
 		else if (cluster == CLUSTER_SCANNED)
 		{
-			FUZZ hu_1_1 = 0.204871; // fuzzed, old value = 0.201145
-			FUZZ hu_1_2 = 0.080216; // fuzzed, old value = 0.081378
-			FUZZ hu_0_1 = 0.237463; // fuzzed, old value = 0.241186
-			FUZZ hu_1_3 = 0.082534; // fuzzed, old value = 0.083413
-			FUZZ hu_0_2 = 0.249719; // fuzzed, old value = 0.252930
+			FUZZ hu_1_1 = 0.201784; // fuzzed, old value = 0.204871
+			FUZZ hu_1_2 = 0.080051; // fuzzed, old value = 0.080216
+			FUZZ hu_0_1 = 0.234678; // fuzzed, old value = 0.237463
+			FUZZ hu_1_3 = 0.082361; // fuzzed, old value = 0.082534
+			FUZZ hu_0_2 = 0.242490; // fuzzed, old value = 0.249719
 			FUZZ ltFactor1 = 3; // fuzzed, old value = 3
-			FUZZ capHeightMin = 0.512089; // fuzzed, old value = 0.516019
-			FUZZ capHeightMax = 1.481603; // fuzzed, old value = 1.479097
-			FUZZ gdConst = 1.472250; // fuzzed, old value = 1.463841
-			FUZZ SurfCoef = 2.922590; // fuzzed, old value = 2.856316
-			FUZZ capHeightRatio = 0.245229; // fuzzed, old value = 0.250151
-			FUZZ capHeightRatio2 = 1.888187; // fuzzed, old value = 1.868526
-			FUZZ getRatio1 = 0.951114; // fuzzed, old value = 0.951051
-			FUZZ getRatio2 = 1.058237; // fuzzed, old value = 1.046180
-			FUZZ testSlashLine1 = 3.058478; // fuzzed, old value = 3.057179
-			FUZZ testSlashLine2 = 2.830938; // fuzzed, old value = 2.835904
-			FUZZ minDensity = 0.200432; // fuzzed, old value = 0.203868
-			FUZZ maxDensity = 0.867762; // fuzzed, old value = 0.865589
-			FUZZ extCapHeightMin = 0.300636; // fuzzed, old value = 0.294801
-			FUZZ extCapHeightMax = 2.170688; // fuzzed, old value = 2.119376
-			FUZZ extRatioMin = 0.302743; // fuzzed, old value = 0.296814
-			FUZZ extRatioMax = 1.484740; // fuzzed, old value = 1.488917
+			FUZZ capHeightMin = 0.534716; // fuzzed, old value = 0.512089
+			FUZZ capHeightMax = 1.469799; // fuzzed, old value = 1.481603
+			FUZZ gdConst = 1.526502; // fuzzed, old value = 1.472250
+			FUZZ SurfCoef = 2.982488; // fuzzed, old value = 2.922590
+			FUZZ capHeightRatio = 0.249107; // fuzzed, old value = 0.245229
+			FUZZ capHeightRatio2 = 1.962704; // fuzzed, old value = 1.888187
+			FUZZ getRatio1 = 0.993468; // fuzzed, old value = 0.951114
+			FUZZ getRatio2 = 1.097162; // fuzzed, old value = 1.058237
+			FUZZ testSlashLine1 = 3.000910; // fuzzed, old value = 3.058478
+			FUZZ testSlashLine2 = 2.842329; // fuzzed, old value = 2.830938
+			FUZZ minDensity = 0.192198; // fuzzed, old value = 0.200432
+			FUZZ maxDensity = 0.867133; // fuzzed, old value = 0.867762
+			FUZZ extCapHeightMin = 0.296736; // fuzzed, old value = 0.300636
+			FUZZ extCapHeightMax = 2.117304; // fuzzed, old value = 2.170688
+			FUZZ extRatioMin = 0.294004; // fuzzed, old value = 0.302743
+			FUZZ extRatioMax = 1.490723; // fuzzed, old value = 1.484740
 			FUZZ minApproxSegsStrong = 4; // fuzzed, old value = 4
 			FUZZ minApproxSegsWeak = 8; // fuzzed, old value = 8
-			FUZZ specialSegmentsTreat = 4;
+			FUZZ specialSegmentsTreat = 4; // fuzzed, old value = 4
 		}
 	}
 
@@ -619,16 +620,16 @@ namespace imago
 		}
 		else if (cluster == CLUSTER_SCANNED)
 		{
-			FUZZ underlinePos = 0.454582; // fuzzed, old value = 0.446929
-			FUZZ weightUnderline = 0.313585; // fuzzed, old value = 0.306985
-			FUZZ ratioBase = 0.812721; // fuzzed, old value = 0.818071
-			FUZZ ratioWeight = 0.270907; // fuzzed, old value = 0.276132
-			FUZZ adjustDec = 1.210610; // fuzzed, old value = 1.202880
-			FUZZ adjustInc = 0.815348; // fuzzed, old value = 0.819723
-			FUZZ sameLineEps = 0.128206; // fuzzed, old value = 0.131433
-			FUZZ heightRatio = 0.802991; // fuzzed, old value = 0.797775
-			FUZZ medHeightFactor = 0.490607; // fuzzed, old value = 0.496510
-			FUZZ capHeightError = 0.574141; // fuzzed, old value = 0.569408
+			FUZZ underlinePos = 0.443050; // fuzzed, old value = 0.454582
+			FUZZ weightUnderline = 0.314459; // fuzzed, old value = 0.313585
+			FUZZ ratioBase = 0.820347; // fuzzed, old value = 0.812721
+			FUZZ ratioWeight = 0.272321; // fuzzed, old value = 0.270907
+			FUZZ adjustDec = 1.155396; // fuzzed, old value = 1.210610
+			FUZZ adjustInc = 0.812229; // fuzzed, old value = 0.815348
+			FUZZ sameLineEps = 0.122416; // fuzzed, old value = 0.128206
+			FUZZ heightRatio = 0.819953; // fuzzed, old value = 0.802991
+			FUZZ medHeightFactor = 0.472250; // fuzzed, old value = 0.490607
+			FUZZ capHeightError = 0.554526; // fuzzed, old value = 0.574141
 		}
 	}
 
@@ -650,17 +651,17 @@ namespace imago
 		}
 		else if (cluster == CLUSTER_SCANNED)
 		{
-			FUZZ MaximalSymbolDistance = 2.733513; // fuzzed, old value = 2.718961
-			FUZZ TestSlashLineEps = 3.098482; // fuzzed, old value = 3.060226
-			FUZZ TestMinHeightFactor = 0.503643; // fuzzed, old value = 0.506338
-			FUZZ TestMaxHeightFactor = 1.186065; // fuzzed, old value = 1.179112
-			FUZZ RectHeightRatio = 0.502231; // fuzzed, old value = 0.493299
-			FUZZ H1SuperscriptSpace = 1.133961; // fuzzed, old value = 1.121025
-			FUZZ H2LowercaseSpace = 0.516655; // fuzzed, old value = 0.509972
-			FUZZ H3LowercaseSpace = 0.494162; // fuzzed, old value = 0.483682
-			FUZZ H4SubscriptSpace = 0.526684; // fuzzed, old value = 0.524257
-			FUZZ FillLabelFactor1 = 0.515400; // fuzzed, old value = 0.510524
-			FUZZ FillLabelFactor2 = 0.524754; // fuzzed, old value = 0.514933
+			FUZZ MaximalSymbolDistance = 2.628279; // fuzzed, old value = 2.733513
+			FUZZ TestSlashLineEps = 3.092586; // fuzzed, old value = 3.098482
+			FUZZ TestMinHeightFactor = 0.489176; // fuzzed, old value = 0.503643
+			FUZZ TestMaxHeightFactor = 1.161609; // fuzzed, old value = 1.186065
+			FUZZ RectHeightRatio = 0.498516; // fuzzed, old value = 0.502231
+			FUZZ H1SuperscriptSpace = 1.166767; // fuzzed, old value = 1.133961
+			FUZZ H2LowercaseSpace = 0.504302; // fuzzed, old value = 0.516655
+			FUZZ H3LowercaseSpace = 0.476277; // fuzzed, old value = 0.494162
+			FUZZ H4SubscriptSpace = 0.511007; // fuzzed, old value = 0.526684
+			FUZZ FillLabelFactor1 = 0.526067; // fuzzed, old value = 0.515400
+			FUZZ FillLabelFactor2 = 0.511469; // fuzzed, old value = 0.524754
 		}
 	}
 }
