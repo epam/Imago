@@ -27,6 +27,7 @@
 #include "session_manager.h"
 #include "current_session.h"
 #include "superatom_expansion.h"
+#include "constants.h"
 
 #define IMAGO_BEGIN try {                                                    
 
@@ -95,25 +96,33 @@ CEXPORT void imagoReleaseSessionId( qword id )
 }
 
 CEXPORT int imagoGetConfigsCount()
-{
-  // return RecognitionSettings::CONF_COUNT;
-	return 1;
+{  
+	return imago::CONFIG_CLUSTERS_COUNT;
 }
 
 CEXPORT int imagoSetConfigNumber( const int number )
 {
    IMAGO_BEGIN;
 
-   //getSettings().initConfig(number);
+   // TODO: more accurate
+   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   context->vars.general.IsHandwritten = (bool)number;
+   context->vars.update();
 
    IMAGO_END;
 }
 
 CEXPORT int imagoSetFilter( const char *Name )
 {
-   IMAGO_BEGIN;
+	IMAGO_BEGIN;
 
-   getSettings().set("Filter", Name);
+	// TODO: more accurate
+   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   FilterType ft = context->vars.general.DefaultFilterType;
+   for (int i = ftStd; i <= ftPass; i++)
+	   if (strcmp(Name, FilterName[i]) == 0)
+		   ft = (FilterType)i;
+	context->vars.general.DefaultFilterType = ft;
 
    IMAGO_END;
 }
@@ -122,6 +131,7 @@ CEXPORT int imagoSetBinarizationLevel( const int Level )
 {
    IMAGO_BEGIN;
 
+   // TODO: really just ignored
    getSettings().set("BinarizationLevel", Level);
 
    IMAGO_END;
@@ -130,6 +140,7 @@ CEXPORT int imagoSetBinarizationLevel( const int Level )
 CEXPORT int imagoLoadPngImageFromFile( const char *FileName )
 {
    IMAGO_BEGIN;
+
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
    ImageUtils::loadImageFromFile(context->img, FileName);
       

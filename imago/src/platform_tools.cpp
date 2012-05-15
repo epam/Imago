@@ -11,7 +11,11 @@ int platform::MKDIR(const std::string& directory)
 
 unsigned int platform::TICKS()
 {
-	return GetTickCount();
+	LARGE_INTEGER lFreq, lStart;
+	QueryPerformanceFrequency(&lFreq);
+	QueryPerformanceCounter(&lStart);
+	double msecs = ((double)lStart.QuadPart / lFreq.QuadPart * 1000.0);
+	return (int)msecs;
 }
 
 unsigned int platform::MEM_AVAIL()

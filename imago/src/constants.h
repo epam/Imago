@@ -16,6 +16,7 @@ namespace imago
 	
 	static const int CLUSTER_SCANNED = 0;
 	static const int CLUSTER_HANDWRITTING = 1;
+	static const int CONFIG_CLUSTERS_COUNT = CLUSTER_HANDWRITTING + 1;
 
 	struct GeneralSettings
 	{

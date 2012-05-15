@@ -29,8 +29,9 @@ namespace imago
 	{
 		std::string name;
 		std::string anchor;
-		size_t memory;
-		size_t time;
+		unsigned int memory;
+		unsigned int time_start;
+		unsigned int time_log_ms;
 		FunctionRecord(const std::string& n);
 		std::string getPlatformSpecificInfo();
 	};
@@ -105,6 +106,7 @@ namespace imago
 		size_t ImgIdent, CallIdent;
 		std::vector<FunctionRecord> Stack;
 
+		void appendImageInternal(const std::string& caption, const Image& img);   
 		std::string generateAnchor(const std::string& name);
 		std::string generateImageName(std::string* html_name = NULL);
 		std::string getStringPrefix(bool paragraph = false) const;

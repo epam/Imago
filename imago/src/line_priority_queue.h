@@ -4,6 +4,7 @@
 #include <queue>
 #include <vector>
 #include "rectangle.h"
+#include "log_ext.h"
 
 namespace imago
 {
@@ -58,12 +59,14 @@ namespace imago
 		  }
 	  private:
 		  bool CompareByPolyline(const SegmentIndx &lhs, const SegmentIndx &rhs) const
-		  {
+		  {			  
 			  double d1 = CompareSegmentByPoly(lhs);
 			  double d2 = CompareSegmentByPoly(rhs);
 
 			  if(d1 == imago::MAX_LINE && d2 == imago::MAX_LINE)
 			  {
+				  logEnterFunction();
+				  getLogExt().appendText("Lines not set exception");
 				  throw ImagoException("Lines not set");
 			  }
 

@@ -104,58 +104,119 @@ namespace imago
 		getLogExt().appendMat("strong", strong);
 		getLogExt().appendMat("weak",   weak);
 
-		Image bin;
-		ImageUtils::copyMatToImage(weak, bin);
+		Image* output = NULL;
+		Rectangle crop;
+		int tresholdPassSum = 0, tresholdPassCount = 0;
 
-		WeakSegmentator ws(raw.getWidth(), raw.getHeight());
-		ws.appendData(ImgAdapter(raw,bin), 1);
-
-		int borderX = raw.getWidth()  / vars.prefilterCV.BorderPartProportion + 1;
-		int borderY = raw.getHeight() / vars.prefilterCV.BorderPartProportion + 1;
-
-		Rectangle crop = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
-		bool need_crop = ws.needCrop(vars, crop, vars.prefilterCV.MaxRectangleCropLineWidth);
-
-		Image output(crop.width, crop.height);
-		output.fillWhite();
-
-		for (WeakSegmentator::SegMap::const_iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 		{
-			const Points2i& p = it->second;
+			Image bin;
+			ImageUtils::copyMatToImage(weak, bin);
+
+			WeakSegmentator ws(raw.getWidth(), raw.getHeight());
+			ws.appendData(ImgAdapter(raw,bin), 1);
+
+			int borderX = raw.getWidth()  / vars.prefilterCV.BorderPartProportion + 1;
+			int borderY = raw.getHeight() / vars.prefilterCV.BorderPartProportion + 1;
+
+			crop = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
+			ws.needCrop(vars, crop, vars.prefilterCV.MaxRectangleCropLineWidth);
+
+			output = new Image(crop.width, crop.height);
+			output->fillWhite();			
+
+			for (WeakSegmentator::SegMap::const_iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
+			{
+				const Points2i& p = it->second;
 		
-			int good = 0, bad = 0;
-			for (size_t u = 0; u < p.size(); u++)
-			{
-				if (p[u].x > borderX && p[u].y > borderY
-					&& p[u].x < raw.getWidth() - borderX && p[u].y < raw.getHeight() - borderY
-					&& strong.at<unsigned char>(p[u].y, p[u].x) == 0)
-					good++;
-				else
-					bad++;
-			}
-
-			if (vars.prefilterCV.MaxBadToGoodRatio * good > bad && good > vars.prefilterCV.MinGoodPixelsCount)
-			{
-				getLogExt().append("Segment id", it->first);
-				getLogExt().append("Good points", good);
-				getLogExt().append("Bad points", bad);
-				getLogExt().appendText("");
-
+				int good = 0, bad = 0;
 				for (size_t u = 0; u < p.size(); u++)
 				{
-					int x = p[u].x - crop.x;
-					int y = p[u].y - crop.y;
-					if (x >= 0 && y >= 0 && x < output.getWidth() && y < output.getHeight())
+					if (p[u].x > borderX && p[u].y > borderY
+						&& p[u].x < raw.getWidth() - borderX && p[u].y < raw.getHeight() - borderY
+						&& strong.at<unsigned char>(p[u].y, p[u].x) == 0)
+						good++;
+					else
+						bad++;
+				}
+
+				if (vars.prefilterCV.MaxBadToGoodRatio * good > bad && good > vars.prefilterCV.MinGoodPixelsCount)
+				{
+					getLogExt().append("Segment id", it->first);
+					getLogExt().append("Good points", good);
+					getLogExt().append("Bad points", bad);
+					getLogExt().appendText("");
+
+					for (size_t u = 0; u < p.size(); u++)
 					{
-						output.getByte(x, y) = 0;
+						int x = p[u].x - crop.x;
+						int y = p[u].y - crop.y;
+						if (x >= 0 && y >= 0 && x < output->getWidth() && y < output->getHeight())
+						{
+							tresholdPassSum += raw.getByte(x, y);
+							tresholdPassCount++;
+							output->getByte(x, y) = 0;
+						}
 					}
 				}
 			}
 		}
 
-		getLogExt().appendImage("output", output);
+		if (output)
+		{
+			getLogExt().appendImage("pre-output", *output);
 
-		raw.copy(output);
+			if (tresholdPassCount > 0)
+			{
+				// now fill inside areas
+				byte estimatedTreshold = tresholdPassSum / tresholdPassCount;
+				getLogExt().append("estimatedTreshold", (int)estimatedTreshold);
+
+				Image* tresh = new Image(crop.width, crop.height);
+				for (int y = 0; y < crop.height; y++)
+					for (int x = 0; x < crop.width; x++)
+						tresh->getByte(x, y) = (raw.getByte(x+crop.x, y+crop.y) < estimatedTreshold) ? 0 : 255;
+
+				getLogExt().appendImage("get by average treshold", *tresh);
+
+				
+				// TODO: this is only temporary 
+				// should check that tresh areas are inside output before merge pixels!
+
+				if (true)
+				{
+					// add tresh to output
+					for (int y = 0; y < crop.height; y++)
+						for (int x = 0; x < crop.width; x++)
+							if (tresh->getByte(x,y) == 0)
+							{
+								int neighbs = 0;
+								for (int dx = -1; dx <= 1; dx++)
+									for (int dy = -1; dy <= 1; dy++)
+										if (x+dx >= 0 && y+dy >= 0 &&
+											x+dx < crop.width && y+dy < crop.height)
+										{
+											if (output->getByte(x+dx,y+dy) == 0)
+												neighbs++;
+										}
+								// this is not the same as correct 'inside' check!
+								if (neighbs >= 3)
+								{
+									output->getByte(x,y) = 0;
+								}
+							}
+				}
+
+				delete tresh;
+				tresh = NULL;
+			}
+
+			getLogExt().appendImage("output", *output);
+
+			raw.copy(*output);
+
+			delete output;
+			output = NULL;
+		}
 	}
 
 }

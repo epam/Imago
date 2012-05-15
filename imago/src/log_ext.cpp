@@ -10,23 +10,27 @@ namespace imago
 	{
 		name = n;
 		anchor = n;
-		time = platform::TICKS();
+		time_start = platform::TICKS();
+		time_log_ms = 0;
 		memory = platform::MEM_AVAIL();
 	}
 
 	std::string FunctionRecord::getPlatformSpecificInfo()
 	{
 		std::string result = "";
-		char buf[64];
-		int mem_used = static_cast<int>(memory - platform::MEM_AVAIL());
-		int time_used = platform::TICKS() - time;
-		sprintf(buf, " (memory: %iKb, time: %ims)", mem_used, time_used);
+		char buf[128];
+		int mem_delta = static_cast<int>(memory - platform::MEM_AVAIL());
+		int total_time = (platform::TICKS() - time_start);
+		sprintf(buf, " (memory: %iKb, work time: %ims, log time: %ims, total time: %ims)", 
+			    mem_delta, total_time - time_log_ms, time_log_ms, total_time);
 		result = buf;
 		return result;
 	}
 	
 	///////////////////////////////////////////////////////
 
+#define LOG_TIME_START   unsigned int log_time_start = platform::TICKS() 
+#define LOG_TIME_END     for (size_t u = 0; u < Stack.size(); u++) Stack[u].time_log_ms += (platform::TICKS() - log_time_start)
 
 	log_ext::log_ext(const std::string folder)
 	{
@@ -63,13 +67,22 @@ namespace imago
 	{
 		if(!loggingEnabled()) return;
 
+		LOG_TIME_START;
 		dump(getStringPrefix() + "<b>" + filterHtml(text) + "</b>");
+		LOG_TIME_END;
 	}
 
 	void log_ext::appendImage(const std::string& caption, const Image& img)
 	{
 		if(!loggingEnabled()) return;
-      
+
+		LOG_TIME_START;
+		appendImageInternal(caption, img);
+		LOG_TIME_END;
+	}
+
+	void log_ext::appendImageInternal(const std::string& caption, const Image& img)
+	{		
 		std::string htmlName;
 		std::string imageName = generateImageName(&htmlName);
 		  
@@ -87,35 +100,42 @@ namespace imago
 	{
 		if(!loggingEnabled()) return;
       
+		LOG_TIME_START;
 		Image output(vars.general.ImageWidth, vars.general.ImageHeight);
 		output.fillWhite();
 		ImageDrawUtils::putGraph(output, g);
-		appendImage(name, output);
+		appendImageInternal(name, output);
+		LOG_TIME_END;
 	}
 
 	void log_ext::appendMat(const std::string& caption, const cv::Mat& mat)
 	{
 		if(!loggingEnabled()) return;
       
+		LOG_TIME_START;
 		Image output;
 		ImageUtils::copyMatToImage(mat, output);
-		appendImage(caption, output);
+		appendImageInternal(caption, output);
+		LOG_TIME_END;
 	}
    
 	void log_ext::appendSkeleton(const Settings& vars, const std::string& name, const Skeleton::SkeletonGraph& g)
 	{
 		if(!loggingEnabled()) return;
-      
+     
+		LOG_TIME_START;
 		Image output(vars.general.ImageWidth, vars.general.ImageHeight);
 		output.fillWhite();
 		ImageDrawUtils::putGraph(output, g);
-		appendImage(name, output);
+		appendImageInternal(name, output);
+		LOG_TIME_END;
 	}
    
 	void log_ext::appendSegment(const std::string& name, const Segment& seg)
 	{
 		if(!loggingEnabled()) return;
       
+		LOG_TIME_START;
 		Segment shifted;
 		shifted.copy(seg);
 		shifted.getX() = 0;
@@ -123,31 +143,36 @@ namespace imago
       
 		Image output(shifted.getWidth(), shifted.getHeight());
 		ImageUtils::putSegment(output, shifted, false);
-		appendImage(name, output);
+		appendImageInternal(name, output);
+		LOG_TIME_END;
 	}	  
 
 	void log_ext::appendPoints(const std::string& name, const Points2i& pts)
 	{
 		if(!loggingEnabled()) return;
 
+		LOG_TIME_START;
 		RectShapedBounding b(pts);
 		Image output(b.getBounding().width+1, b.getBounding().height+1);
 		output.fillWhite();
 		for (size_t u = 0; u < pts.size(); u++)
 			output.getByte(pts[u].x - b.getBounding().x, pts[u].y - b.getBounding().y) = 0;
-		appendImage(name, output);
+		appendImageInternal(name, output);
+		LOG_TIME_END;
 	}
 
 	void log_ext::appendSegmentWithYLine(const Settings& vars, const std::string& name, const Segment& seg, int line_y)
 	{
 		if(!loggingEnabled()) return;
 
+		LOG_TIME_START;
 		Image output(vars.general.ImageWidth, vars.general.ImageHeight);
 		output.fillWhite();
 		ImageUtils::putSegment(output, seg, false);
 		ImageDrawUtils::putLineSegment(output, Vec2i(0, line_y), Vec2i(output.getWidth(), line_y), 64);
 
-		appendImage(name, output);
+		appendImageInternal(name, output);
+		LOG_TIME_END;
 	}
 
 	void log_ext::enterFunction(const std::string& name)
