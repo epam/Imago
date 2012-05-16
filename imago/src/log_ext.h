@@ -118,9 +118,14 @@ namespace imago
 			                                                     const std::vector<t1>& row1, 
 																 const std::vector<t2>& row2)
 		{
-			std::string table = "<table style=\"display:inline;\"><thead>";
-			table +=            "<tr><th colspan=\"2\">" + filterHtml(caption) + 
-								"</th></tr></thead><tbody>";
+			std::ostringstream header;
+			header << "<table style=\"display:inline;\"><thead>";
+			header << "<tr><th colspan=\"";
+			header << std::min(row1.size(), row2.size());
+			header << "\" align=\"left\">" + filterHtml(caption);
+			header << "</th></tr></thead><tbody>";
+
+			std::string table = header.str();
 		
 			if (!row1.empty())
 			{

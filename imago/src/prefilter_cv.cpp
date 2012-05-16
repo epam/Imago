@@ -82,30 +82,29 @@ namespace imago
 
 	void prefilterCV(const Settings& vars, Image& raw)
 	{
+		static const int CV_THRESH_BINARY = 0;
+
 		logEnterFunction();
 
 		cv::Mat grayFrame;
 		ImageUtils::copyImageToMat(raw, grayFrame);
-
-		cv::Mat smoothed2x(grayFrame.rows, grayFrame.cols, CV_8U);
+		
 		cv::Mat reduced2x((grayFrame.rows+1)/2, (grayFrame.cols+1)/2, CV_8U);
 		cv::pyrDown(grayFrame, reduced2x);
-		cv::pyrUp(reduced2x, smoothed2x);
 
-		#define binarize_impl(what, output, adaptiveThresholdBlockSize, adaptiveThresholdParameter) \
-			cv::adaptiveThreshold((what), (output), 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, 0 /*CV_THRESH_BINARY*/, (adaptiveThresholdBlockSize) + (adaptiveThresholdBlockSize) % 2 + 1, (adaptiveThresholdParameter));
-	
-		cv::Mat strong, weak;
-		binarize_impl(smoothed2x, strong, vars.prefilterCV.StrongBinarizeSize, vars.prefilterCV.StrongBinarizeTresh);
-		binarize_impl(smoothed2x,  weak,  vars.prefilterCV.WeakBinarizeSize,   vars.prefilterCV.WeakBinarizeTresh);
+		cv::Mat smoothed2x(grayFrame.rows, grayFrame.cols, CV_8U);
+		cv::pyrUp(reduced2x, smoothed2x);		
 
-		#undef binarize_impl
-	
+		cv::Mat strong;
+		cv::adaptiveThreshold(smoothed2x, strong, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, (vars.prefilterCV.StrongBinarizeSize) + (vars.prefilterCV.StrongBinarizeSize) % 2 + 1, vars.prefilterCV.StrongBinarizeTresh);
 		getLogExt().appendMat("strong", strong);
+
+		cv::Mat weak;
+		cv::adaptiveThreshold(smoothed2x, weak,   255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, (vars.prefilterCV.WeakBinarizeSize)   + (vars.prefilterCV.WeakBinarizeSize) % 2 + 1,   vars.prefilterCV.WeakBinarizeTresh);	
 		getLogExt().appendMat("weak",   weak);
 
 		Image* output = NULL;
-		Rectangle crop;
+		Rectangle viewport;
 		int tresholdPassSum = 0, tresholdPassCount = 0;
 
 		{
@@ -118,10 +117,10 @@ namespace imago
 			int borderX = raw.getWidth()  / vars.prefilterCV.BorderPartProportion + 1;
 			int borderY = raw.getHeight() / vars.prefilterCV.BorderPartProportion + 1;
 
-			crop = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
-			ws.needCrop(vars, crop, vars.prefilterCV.MaxRectangleCropLineWidth);
+			viewport = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
+			ws.needCrop(vars, viewport, vars.prefilterCV.MaxRectangleCropLineWidth);
 
-			output = new Image(crop.width, crop.height);
+			output = new Image(viewport.width, viewport.height);
 			output->fillWhite();			
 
 			for (WeakSegmentator::SegMap::const_iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
@@ -141,15 +140,19 @@ namespace imago
 
 				if (vars.prefilterCV.MaxBadToGoodRatio * good > bad && good > vars.prefilterCV.MinGoodPixelsCount)
 				{
-					getLogExt().append("Segment id", it->first);
-					getLogExt().append("Good points", good);
-					getLogExt().append("Bad points", bad);
-					getLogExt().appendText("");
+					if (getLogExt().loggingEnabled())
+					{
+						std::map<std::string, int> temp;
+						temp["Segment id"] = it->first;
+						temp["Good points"] = good;
+						temp["Bad points"] = bad;
+						getLogExt().appendMap("Append segment", temp);
+					}
 
 					for (size_t u = 0; u < p.size(); u++)
 					{
-						int x = p[u].x - crop.x;
-						int y = p[u].y - crop.y;
+						int x = p[u].x - viewport.x;
+						int y = p[u].y - viewport.y;
 						if (x >= 0 && y >= 0 && x < output->getWidth() && y < output->getHeight())
 						{
 							tresholdPassSum += raw.getByte(x, y);
@@ -171,13 +174,19 @@ namespace imago
 				byte estimatedTreshold = tresholdPassSum / tresholdPassCount;
 				getLogExt().append("estimatedTreshold", (int)estimatedTreshold);
 
-				Image* tresh = new Image(crop.width, crop.height);
-				for (int y = 0; y < crop.height; y++)
-					for (int x = 0; x < crop.width; x++)
-						tresh->getByte(x, y) = (raw.getByte(x+crop.x, y+crop.y) < estimatedTreshold) ? 0 : 255;
+				Image* tresh = new Image(viewport.width, viewport.height);
+				for (int y = 0; y < viewport.height; y++)
+					for (int x = 0; x < viewport.width; x++)
+						tresh->getByte(x, y) = (raw.getByte(x+viewport.x, y+viewport.y) < estimatedTreshold) ? 0 : 255;
 
 				getLogExt().appendImage("get by average treshold", *tresh);
 
+				for (int y = 0; y < viewport.height; y++)
+					for (int x = 0; x < viewport.width; x++)
+						if (output->getByte(x, y) == 0)
+							tresh->getByte(x, y) = 255;
+
+				getLogExt().appendImage("pixels considered for addition", *tresh);
 				
 				// TODO: this is only temporary 
 				// should check that tresh areas are inside output before merge pixels!
@@ -185,15 +194,15 @@ namespace imago
 				if (true)
 				{
 					// add tresh to output
-					for (int y = 0; y < crop.height; y++)
-						for (int x = 0; x < crop.width; x++)
+					for (int y = 0; y < viewport.height; y++)
+						for (int x = 0; x < viewport.width; x++)
 							if (tresh->getByte(x,y) == 0)
 							{
 								int neighbs = 0;
 								for (int dx = -1; dx <= 1; dx++)
 									for (int dy = -1; dy <= 1; dy++)
 										if (x+dx >= 0 && y+dy >= 0 &&
-											x+dx < crop.width && y+dy < crop.height)
+											x+dx < viewport.width && y+dy < viewport.height)
 										{
 											if (output->getByte(x+dx,y+dy) == 0)
 												neighbs++;

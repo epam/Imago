@@ -294,7 +294,7 @@ namespace imago
 
    void ImageUtils::loadImageFromFile( Image &img, const char *format, ... )
    {
-      char str[MAX_LINE];
+      char str[MAX_TEXT_LINE];
       va_list args;
 
       va_start(args, format);   
@@ -324,7 +324,7 @@ namespace imago
 
    void ImageUtils::saveImageToFile( const Image &img, const char *format, ... )
    {
-      char str[MAX_LINE];
+      char str[MAX_TEXT_LINE];
       va_list args;
 
       va_start(args, format);   

@@ -18,7 +18,7 @@ namespace imago
 	std::string FunctionRecord::getPlatformSpecificInfo()
 	{
 		std::string result = "";
-		char buf[128];
+		char buf[MAX_TEXT_LINE];
 		int mem_delta = static_cast<int>(memory - platform::MEM_AVAIL());
 		int total_time = (platform::TICKS() - time_start);
 		sprintf(buf, " (memory: %iKb, work time: %ims, log time: %ims, total time: %ims)", 
@@ -183,7 +183,7 @@ namespace imago
 		fr.name = filterHtml(fr.name);
 		fr.anchor = filterHtml(generateAnchor(name));
 
-		char color[32];
+		char color[64];
 		sprintf(color, "%u, %u, %u", rand()%20 + 236, rand()%20 + 237, rand()%20 + 236);
 
 		dump(getStringPrefix(true) + "<div title=\"" + fr.name + "\" style=\"background-color: RGB(" + color + ");\" >"
@@ -205,7 +205,7 @@ namespace imago
 
 	std::string log_ext::generateAnchor(const std::string& name)
 	{
-		char buf[MAX_LINE] = {0};
+		char buf[MAX_TEXT_LINE] = {0};
 		sprintf(buf, "%s_%lu", name.c_str(), CallIdent);
 		CallIdent++;
 		return buf;
@@ -213,7 +213,7 @@ namespace imago
 
 	std::string log_ext::generateImageName(std::string* html_name )
 	{
-		char path[MAX_LINE] = {0};
+		char path[MAX_TEXT_LINE] = {0};
 
 		const std::string ImagesFolder = "htmlimgs";
 

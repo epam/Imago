@@ -21,8 +21,6 @@
 #ifndef _comdef_h
 #define _comdef_h
 
-#include "constants.h"
-
 #include "boost/graph/properties.hpp"
 namespace boost
 {
@@ -55,7 +53,7 @@ namespace imago
    const double EPS = 1e-10;
    const double SMALL_EPS = 1e-6;
    const double DIST_INF = 1e10;
-   const unsigned int MAX_LINE = MaxImageDimensions;
+   const unsigned int MAX_TEXT_LINE = 1024;
    
    const double PI = 3.14159265358979323846;
    const float  TWO_PI = 6.2831853071794f;

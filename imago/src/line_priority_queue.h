@@ -63,7 +63,7 @@ namespace imago
 			  double d1 = CompareSegmentByPoly(lhs);
 			  double d2 = CompareSegmentByPoly(rhs);
 
-			  if(d1 == imago::MAX_LINE && d2 == imago::MAX_LINE)
+			  if(d1 == imago::MaxImageDimensions && d2 == imago::MaxImageDimensions)
 			  {
 				  logEnterFunction();
 				  getLogExt().appendText("Lines not set exception");
@@ -89,7 +89,7 @@ namespace imago
 
 		  double CompareSegmentByPoly(const SegmentIndx &si) const
 		  {
-			  double retVal = imago::MAX_LINE;
+			  double retVal = imago::MaxImageDimensions;
 			  std::deque<std::pair<Vec2d, Vec2d>>::iterator it;
 
 			  for(size_t i = 0; i < _polyline.size(); i+=2)

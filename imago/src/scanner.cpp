@@ -336,7 +336,7 @@ bool Scanner::isSingleLine( Scanner &scanner )
 
 FileScanner::FileScanner( const char *format, ... ) : Scanner()
 {
-   char filename[MAX_LINE];
+   char filename[MAX_TEXT_LINE];
 
    va_list args;
 

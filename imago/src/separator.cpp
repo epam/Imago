@@ -80,9 +80,8 @@ bool Separator::_bIsTextContext(const Settings& vars, SegmentDeque &layer_symbol
 	Segment* firstNear = NULL,
 		*secNear = NULL;
 
-	// TODO: MAX_LINE here?!
-	double dist1 = imago::MAX_LINE,
-		dist2 = imago::MAX_LINE;
+	double dist1 = imago::MaxImageDimensions;
+	double dist2 = imago::MaxImageDimensions;
 
 	//find first pair of symbols closer to rec
 	BOOST_FOREACH(Segment *s, layer_symbols)

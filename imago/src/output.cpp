@@ -88,7 +88,7 @@ void Output::printf( const char* format, ... )
 
 void Output::vprintf( const char *format, va_list args )
 {
-   char str[MAX_LINE];
+   char str[MAX_TEXT_LINE];
    int n = vsnprintf(str, sizeof(str), format, args);
 
    write(str, n);
@@ -110,7 +110,7 @@ FileOutput::FileOutput()
 
 FileOutput::FileOutput( const char *format, ... )
 {
-   char filename[MAX_LINE];
+   char filename[MAX_TEXT_LINE];
 
    va_list args;
 
@@ -161,7 +161,7 @@ void FileOutput::flush()
 
 void FileOutput::reopen( const char *format, ... )
 {
-   char filename[MAX_LINE];
+   char filename[MAX_TEXT_LINE];
 
    va_list args;
 

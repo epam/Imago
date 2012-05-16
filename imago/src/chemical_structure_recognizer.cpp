@@ -149,7 +149,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 			  char res = rd.getBest(&dist);
 			  double qual = rd.getQuality();
 
-			  char filename[1024] = {0};
+			  char filename[MAX_TEXT_LINE] = {0};
 
 			  platform::MKDIR("./characters");
 
