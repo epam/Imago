@@ -122,7 +122,14 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 
 	  getLogExt().append("Symbols", layer_symbols.size());
 	  getLogExt().append("Graphics", layer_graphics.size());
-      
+
+	  if (layer_graphics.size() == 0 && layer_symbols.size() == 1)
+	  {
+		  getLogExt().appendText("HACK: No graphics detected, assume symbols are graphics");
+		  layer_graphics = layer_symbols;
+		  layer_symbols.clear();
+	  }
+
 	  if (getLogExt().loggingEnabled())
       {
          Image symbols, graphics;

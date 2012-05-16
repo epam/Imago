@@ -191,24 +191,15 @@ namespace imago
 				// TODO: this is only temporary 
 				// should check that tresh areas are inside output before merge pixels!
 
-				if (true)
+				if (false)
 				{
 					// add tresh to output
 					for (int y = 0; y < viewport.height; y++)
 						for (int x = 0; x < viewport.width; x++)
 							if (tresh->getByte(x,y) == 0)
-							{
-								int neighbs = 0;
-								for (int dx = -1; dx <= 1; dx++)
-									for (int dy = -1; dy <= 1; dy++)
-										if (x+dx >= 0 && y+dy >= 0 &&
-											x+dx < viewport.width && y+dy < viewport.height)
-										{
-											if (output->getByte(x+dx,y+dy) == 0)
-												neighbs++;
-										}
+							{								
 								// this is not the same as correct 'inside' check!
-								if (neighbs >= 3)
+								if (WeakSegmentator::getNeighbors(*output, Vec2i(x,y)).size() >= 3)
 								{
 									output->getByte(x,y) = 0;
 								}

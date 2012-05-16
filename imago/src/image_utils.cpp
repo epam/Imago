@@ -29,7 +29,7 @@
 #include "thin_filter2.h"
 #include "vec2d.h"
 #include "log_ext.h"
-
+#include "failsafe_png.h"
 
 namespace imago
 {
@@ -314,12 +314,24 @@ namespace imago
          throw FileNotFoundException(fname.c_str());
       fclose(f);
 
-      cv::Mat mat = cv::imread(fname, 0);
+      cv::Mat mat = cv::imread(fname, 0 /*grayscale*/);
 
       if (mat.empty())
-         throw ImagoException("Image file is invalid, CV returned empty mat");
-
-      copyMatToImage(mat, img);
+	  {
+		  getLogExt().appendText("CV returned empty mat");
+		  if (failsafePngLoad(fname, img))
+		  {			  
+			  getLogExt().appendText("... but failsafePngLoad helps");
+		  }
+		  else
+		  {
+			  throw ImagoException("Image file is invalid");
+		  }
+	  }
+	  else
+	  {
+		  copyMatToImage(mat, img);
+	  }
    }
 
    void ImageUtils::saveImageToFile( const Image &img, const char *format, ... )
