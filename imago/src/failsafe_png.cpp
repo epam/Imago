@@ -1,5 +1,7 @@
 #include "failsafe_png.h"
 #include <vector>
+#include <iostream>
+#include <fstream>
 #include "log_ext.h"
 
 int decodePNG(std::vector<unsigned char>& out_image, unsigned long& image_width, unsigned long& image_height, const unsigned char* in_png, size_t in_size, bool convert_to_rgba32 = true)
@@ -521,15 +523,6 @@ int decodePNG(std::vector<unsigned char>& out_image, unsigned long& image_width,
   image_width = decoder.info.width; image_height = decoder.info.height;
   return decoder.error;
 }
-
-
-
-
-
-//an example using the PNG loading function:
-
-#include <iostream>
-#include <fstream>
 
 void loadFile(std::vector<unsigned char>& buffer, const std::string& filename) //designed for loading files from hard disk in an std::vector
 {
