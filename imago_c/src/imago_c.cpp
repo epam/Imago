@@ -105,7 +105,6 @@ CEXPORT int imagoSetConfigNumber( const int number )
 {
    IMAGO_BEGIN;
 
-   // TODO: more accurate
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
    context->vars.updateCluster((ClusterType)number);
 
@@ -131,7 +130,7 @@ CEXPORT int imagoSetBinarizationLevel( const int Level )
 {
    IMAGO_BEGIN;
 
-   // TODO: really just ignored
+   // really just ignored
    getSettings().set("BinarizationLevel", Level);
 
    IMAGO_END;
@@ -150,6 +149,7 @@ CEXPORT int imagoLoadPngImageFromFile( const char *FileName )
 CEXPORT int imagoLoadJpgImageFromFile( const char *FileName )
 {
    IMAGO_BEGIN;
+
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
    ImageUtils::loadImageFromFile(context->img, FileName);
       

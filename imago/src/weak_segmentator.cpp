@@ -1,5 +1,6 @@
 #include "weak_segmentator.h"
 #include <queue>
+#include <string.h>
 #include "log_ext.h"
 #include "pixel_boundings.h"
 #include "color_channels.h"

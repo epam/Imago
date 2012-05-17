@@ -33,7 +33,7 @@ unsigned int platform::MEM_AVAIL()
 
 int platform::MKDIR(const std::string& directory)
 {
-	return mkdir(dirname.c_str(), S_IRWXU|S_IRGRP|S_IXGRP);
+	return mkdir(directory.c_str(), S_IRWXU|S_IRGRP|S_IXGRP);
 }
 
 unsigned int platform::TICKS()

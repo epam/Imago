@@ -219,11 +219,11 @@ namespace imago
 		sprintf(path, "%s/%s", Folder.c_str(), ImagesFolder.c_str());
 		if (!UseVirtualFS && platform::MKDIR(path) != 0)
 		{
-			if (errno == EEXIST)
-			{
-				// that's ok
-			}
-			else
+			//if (errno == EEXIST)
+			//{
+			//	// that's ok
+			//}
+			//else
 			{
 				// folder cannot be created, skip image generation?
 			}

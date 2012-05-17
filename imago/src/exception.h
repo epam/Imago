@@ -24,17 +24,18 @@
 #include <cstdarg>
 #include <cstdio>
 #include <exception>
+#include <stdexcept>
 #include <string>
 
 #include "comdef.h"
 
 namespace imago
 {
-	class ImagoException : public std::exception
+	class ImagoException : public std::runtime_error
 	{
 	public: 
-		ImagoException(const std::string& error) : std::exception(error.c_str()) { }
-		ImagoException(int errorCode) : std::exception(str(errorCode).c_str()) { }
+		ImagoException(const std::string& error) : std::runtime_error(error) { }
+		ImagoException(int errorCode) : std::runtime_error(str(errorCode)) { }
 		
 		std::string str(int x)
 		{

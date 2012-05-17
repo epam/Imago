@@ -2,9 +2,9 @@
 #ifndef _recognition_distance_h
 #define _recognition_distance_h
 
-
-#include <map>
 #include <vector>
+#include <string>
+#include <map>
 
 namespace imago
 {

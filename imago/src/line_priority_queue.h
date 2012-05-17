@@ -90,7 +90,7 @@ namespace imago
 		  double CompareSegmentByPoly(const SegmentIndx &si) const
 		  {
 			  double retVal = imago::MaxImageDimensions;
-			  std::deque<std::pair<Vec2d, Vec2d>>::iterator it;
+			  std::deque<std::pair<Vec2d, Vec2d> >::iterator it;
 
 			  for(size_t i = 0; i < _polyline.size(); i+=2)
 			  {

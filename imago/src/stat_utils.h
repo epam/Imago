@@ -37,7 +37,7 @@ namespace imago
          int count = std::distance(begin, end);
 
          if (count == 0)
-            throw UnderflowException();
+            throw LogicException("count == 0");
 
          typename ForwardIterator::value_type res = 0;
 
@@ -62,7 +62,7 @@ namespace imago
          int count = std::distance(begin, end);
 
          if (count == 0)
-            throw UnderflowException();
+            throw LogicException("count == 0");
 
          typename ForwardIterator::value_type res = 0;
 
@@ -89,7 +89,7 @@ namespace imago
          double sum = 0;
 
          if (count == 0)
-            throw UnderflowException();
+            throw LogicException("count == 0");
 
          typename ForwardIterator::value_type res = count;
 
@@ -162,7 +162,7 @@ namespace imago
          int count = std::distance(begin, end);
 
          if (count == 0)
-            throw UnderflowException();
+            throw LogicException("count == 0");
 
          typename ForwardIterator::value_type res = 0;
 
