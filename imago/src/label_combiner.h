@@ -20,7 +20,7 @@
 #include "superatom.h"
 #include "rectangle.h"
 #include "segment.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

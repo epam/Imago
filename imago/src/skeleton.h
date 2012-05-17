@@ -21,7 +21,7 @@
 #include "comdef.h"
 #include "bond.h"
 #include "vec2d.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {          

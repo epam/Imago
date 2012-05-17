@@ -14,9 +14,16 @@ namespace imago
 
 	static const int MaxImageDimensions = 1600;
 	
-	static const int CLUSTER_SCANNED = 0;
-	static const int CLUSTER_HANDWRITTING = 1;
-	static const int CONFIG_CLUSTERS_COUNT = CLUSTER_HANDWRITTING + 1;
+	enum ClusterType
+	{
+		ctDetermine = -1,
+		ctScanned = 0,
+		ctHandwritten = 1,
+		ctHighResolution = 2,
+		ctClustersTotalCount // should set automatically
+	};
+
+	/// ------------------ cluster-independ settings ------------------ ///
 
 	struct GeneralSettings
 	{
@@ -31,72 +38,11 @@ namespace imago
 		int ImageHeight;
 		GeneralSettings()
 		{
-			LogEnabled = LogVFSEnabled = ExtractCharactersOnly = IsHandwritten = false;
+			LogEnabled = LogVFSEnabled = ExtractCharactersOnly = false;
+			IsHandwritten = true;
 			OriginalImageWidth = OriginalImageHeight = ImageWidth = ImageHeight = 0;
 			DefaultFilterType = ftCV;
 		}
-	};
-
-	struct EstimationSettings
-	{
-		double CapitalHeight, CapitalHeightError;
-		double LineThickness, AvgBondLength;
-		double AddVertexEps, ParLinesEps;
-		double MaxSymRatio, MinSymRatio, SymHeightErr;
-		double CharactersSpaceCoeff;
-		int DoubleBondDist;
-		int SegmentVerEps;
-		EstimationSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
-	};
-
-	struct MoleculeSettings
-	{
-		double LengthFactor_long, LengthFactor_medium, LengthFactor_default; 
-		double LengthValue_long, LengthValue_medium; 
-		double SpaceMultiply, AngleTreshold;
-		MoleculeSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
-	};
-
-	struct MainSettings
-	{
-		int DissolvingsFactor, WarningsRecalcTreshold;
-		MainSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
-	};
-
-	struct MultipleBondSettings
-	{
-		double LongBond, LongErr;
-		double MediumBond, MediumErr, DefaultErr;
-		double ParBondsEps;
-		double DoubleRatioTresh, DoubleCoef;
-		double DoubleMagic1, DoubleMagic2;
-		double DoubleTreshMin, DoubleTreshMax;
-		double MaxLen1, MaxLen2, MaxLen3, MaxLen4, MaxLen5, MinLen1, MinLen2;
-		double mbe1, mbe2, mbe3, mbe4, mbe5, mbe6, mbe7, mbe_def;
-		double DoubleLeftLengthTresh, DoubleRightLengthTresh;
-		double TripleLeftLengthTresh, TripleRightLengthTresh;
-		double Case1LengthTresh, Case2LengthTresh;
-		double Case1Factor, Case2Factor, Case3Factor;
-		MultipleBondSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
-	};
-
-	struct SkeletonSettings
-	{
-		double ShortBondLen, MediumBondLen, LongBondLen;
-		double ShortMul, MediumMul, LongMul, BaseMult;
-		//double MultiBondErr; // unused
-		double MediumSmallErr, LongSmallErr, BaseSmallErr;
-		double BrokenRepairCoef1, BrokenRepairCoef2;
-		double BrokenRepairFactor, BrokenRepairAngleEps;
-		double DissolveMinErr;
-		double ConnectBlockS, ConnectFactor;
-		double JoinVerticiesConst;
-		double DissolveConst, Dissolve2Const;
-		double Join2Const, Join3Const;
-		double DistTreshLimFactor;
-		double SlopeFact1, SlopeFact2;
-		double ShrinkEps;
-		SkeletonSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
 
 	struct PrefilterCVSettings
@@ -143,6 +89,64 @@ namespace imago
 		PrefilterSettings();
 	};
 
+	/// ------------------ cluster-depending settings ------------------ ///
+
+	struct EstimationSettings
+	{
+		double CapitalHeight, CapitalHeightError;
+		double LineThickness, AvgBondLength;
+		double AddVertexEps, ParLinesEps;
+		double MaxSymRatio, MinSymRatio, SymHeightErr;
+		double CharactersSpaceCoeff;
+		int DoubleBondDist;
+		int SegmentVerEps;
+	};
+
+	struct MoleculeSettings
+	{
+		double LengthFactor_long, LengthFactor_medium, LengthFactor_default; 
+		double LengthValue_long, LengthValue_medium; 
+		double SpaceMultiply, AngleTreshold;
+	};
+
+	struct MainSettings
+	{
+		int DissolvingsFactor, WarningsRecalcTreshold;
+	};
+
+	struct MultipleBondSettings
+	{
+		double LongBond, LongErr;
+		double MediumBond, MediumErr, DefaultErr;
+		double ParBondsEps;
+		double DoubleRatioTresh, DoubleCoef;
+		double DoubleMagic1, DoubleMagic2;
+		double DoubleTreshMin, DoubleTreshMax;
+		double MaxLen1, MaxLen2, MaxLen3, MaxLen4, MaxLen5, MinLen1, MinLen2;
+		double mbe1, mbe2, mbe3, mbe4, mbe5, mbe6, mbe7, mbe_def;
+		double DoubleLeftLengthTresh, DoubleRightLengthTresh;
+		double TripleLeftLengthTresh, TripleRightLengthTresh;
+		double Case1LengthTresh, Case2LengthTresh;
+		double Case1Factor, Case2Factor, Case3Factor;
+	};
+
+	struct SkeletonSettings
+	{
+		double ShortBondLen, MediumBondLen, LongBondLen;
+		double ShortMul, MediumMul, LongMul, BaseMult;
+		double MediumSmallErr, LongSmallErr, BaseSmallErr;
+		double BrokenRepairCoef1, BrokenRepairCoef2;
+		double BrokenRepairFactor, BrokenRepairAngleEps;
+		double DissolveMinErr;
+		double ConnectBlockS, ConnectFactor;
+		double JoinVerticiesConst;
+		double DissolveConst, Dissolve2Const;
+		double Join2Const, Join3Const;
+		double DistTreshLimFactor;
+		double SlopeFact1, SlopeFact2;
+		double ShrinkEps;
+	};
+
 	struct RoutinesSettings
 	{
 		int LineThick_Grid;
@@ -152,14 +156,12 @@ namespace imago
 		double Approx_Eps1, Approx_Eps2;
 		double Approx_CalcLineTresh;
 		double Contour_Eps1, Contour_Eps2;
-		RoutinesSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
 
 	struct WeakSegmentatorSettings
 	{
 		double RectangularCropAreaTreshold, RectangularCropFitTreshold;
-		double RefineWidth, MinDistanceDraw, SubpixelDraw;
-		WeakSegmentatorSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
+		double RefineWidth, MinDistanceDraw, SubpixelDraw;		
 	};
 
 	struct WedgeBondExtractorSettings
@@ -173,7 +175,6 @@ namespace imago
 		double SingleUpS2Divisor, SingleUpMinATresh;
 		double SingleUpSquareRatio, SingleUpAngleTresh;
 		double SomeTresh;
-		WedgeBondExtractorSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
 
 	struct CharactersRecognitionSettings
@@ -188,7 +189,6 @@ namespace imago
 		double DescriptorsOddFactorStrong, DescriptorsEvenFactorStrong;
 		double DescriptorsOddFactorWeak, DescriptorsEvenFactorWeak;
 		double HW_Line, HW_F, HW_Tricky, HW_Hard, HW_Other;
-		CharactersRecognitionSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
 
 	struct ChemicalStructureRecognizerSettings
@@ -198,7 +198,6 @@ namespace imago
 		double DeleteBadTriangles;
 		int WeakSegmentatorDist;
 		double LineVectorizationFactor;
-		ChemicalStructureRecognizerSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
 
 	struct GraphExtractorSettings
@@ -206,7 +205,6 @@ namespace imago
 		double MinimalDistTresh;
 		double RatioSub;
 		double RatioTresh;
-		GraphExtractorSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
 
 	struct ImageUtilsSettings
@@ -214,7 +212,6 @@ namespace imago
 		double SlashLineDensity;
 		double TestPlusDensity, TestPlusSq;
 		double TestMinusRatio, TestMinusDensity, TestMinusHeightFactor;
-		ImageUtilsSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
 
 	struct SeparatorSettings
@@ -231,7 +228,6 @@ namespace imago
 		double extRatioMin, extRatioMax;
 		int minApproxSegsStrong, minApproxSegsWeak;
 		int specialSegmentsTreat;
-		SeparatorSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
 
 	struct LabelLogicSettings
@@ -241,7 +237,6 @@ namespace imago
 		double adjustDec, adjustInc;
 		double sameLineEps, heightRatio;
 		double medHeightFactor, capHeightError;
-		LabelLogicSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
 
 	struct LabelCombinerSettings
@@ -253,25 +248,27 @@ namespace imago
 		double H1SuperscriptSpace, H2LowercaseSpace;
 		double H3LowercaseSpace, H4SubscriptSpace;
 		double FillLabelFactor1, FillLabelFactor2;
-		LabelCombinerSettings(int cluster = CLUSTER_SCANNED, int LongestSide = 0);
 	};
 
 	struct Settings
 	{
-		GeneralSettings general;
-		
-		// should be called after general settings filled
-		void update();
+		Settings(); // default constructor
 
-		// other settings
+		GeneralSettings general;
+
+		PrefilterCVSettings prefilterCV;
+		AdaptiveFilterSettings adaptive;
+		PrefilterSettings prefilter;
+
+		// should be called after general settings filled
+		void updateCluster(ClusterType ct = ctDetermine);
+
+		// other settings, should be updated
 		MoleculeSettings molecule;
 		EstimationSettings estimation;
 		MainSettings main;
 		MultipleBondSettings mbond;
 		SkeletonSettings skeleton;
-		PrefilterCVSettings prefilterCV;
-		AdaptiveFilterSettings adaptive;
-		PrefilterSettings prefilter;
 		RoutinesSettings routines;
 		WeakSegmentatorSettings weak_seg;
 		WedgeBondExtractorSettings wbe;

@@ -10,7 +10,7 @@
 #include "stl_fwd.h"
 #include "recognition_distance.h"
 #include "segment_tools.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

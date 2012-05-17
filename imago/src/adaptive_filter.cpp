@@ -4,7 +4,7 @@
 #include "thin_filter2.h"
 #include "generic_histogram.h"
 #include "weak_segmentator.h"
-#include "prefilter.h"
+#include "prefilter.h" // line thickness estimation
 #include "prefilter_cv.h"
 #include "segment_tools.h"
 
@@ -195,7 +195,7 @@ namespace imago
 
 		Image bitmask;
 		bitmask.copy(raw);
-		prefilterCV(vars, bitmask);
+		prefilter_cv::prefilterCV(vars, bitmask);
 
 		getLogExt().appendImage("raw", raw);		
 		getLogExt().appendImage("binarized", bitmask);
@@ -256,11 +256,6 @@ namespace imago
 		getLogExt().append("winSize", winSize);
 		getLogExt().append("inkTresh", inkTresh);
 		getLogExt().append("refineTresh", refineTresh);
-
-		PrefilterParams p;
-		p.logSteps = false;
-		p.binarizeImage = false;
-		p.strongThresh = true;
 
 		for (int h = 0; h < output.getHeight() && h < height(); h++)
 			for (int w = 0; w < output.getWidth() && w < width(); w++)

@@ -17,10 +17,10 @@
 #include "thin_filter2.h"
 #include "image_utils.h"
 #include "log_ext.h"
-#include "prefilter.h"
 #include "recognition_tree.h"
 #include "character_endpoints.h"
-#include "constants.h"
+#include "prefilter.h" // line thickness estimation, isCircle
+#include "settings.h"
 
 using namespace imago;
 const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&";

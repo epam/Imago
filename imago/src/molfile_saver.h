@@ -16,7 +16,7 @@
 #define _molfile_saver_h
 
 #include <cstdio>
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

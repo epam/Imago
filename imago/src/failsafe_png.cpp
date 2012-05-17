@@ -544,23 +544,16 @@ void loadFile(std::vector<unsigned char>& buffer, const std::string& filename) /
 
 namespace imago
 {
-	bool failsafePngLoad(const std::string& fname, Image& img)
+	bool failsafePngLoadBuffer(const unsigned char* buffer, size_t buf_size, Image& img)
 	{
 		logEnterFunction();
 
-		std::vector<unsigned char> buffer, image;
-		loadFile(buffer, fname.c_str());
-
-		if (buffer.empty())
-		{
-			getLogExt().appendText("File buffer is NULL, exit");
-			return false;
-		}
+		std::vector<unsigned char> image;
 
 		unsigned long width, height;
 		try
 		{
-			int error = decodePNG(image, width, height, &buffer[0], buffer.size());
+			int error = decodePNG(image, width, height, buffer, buf_size);
 			getLogExt().append("Image load error code", error);
 		}
 		catch (std::exception &e)
@@ -592,5 +585,21 @@ namespace imago
 
 		getLogExt().appendText("Image recovery load done");
 		return true;
+	}
+
+	bool failsafePngLoadFile(const std::string& fname, Image& img)
+	{
+		logEnterFunction();
+
+		std::vector<unsigned char> buffer;
+		loadFile(buffer, fname.c_str());
+
+		if (buffer.empty())
+		{
+			getLogExt().appendText("File buffer is NULL, exit");
+			return false;
+		}
+
+		return failsafePngLoadBuffer(&buffer[0], buffer.size(), img);
 	}
 }

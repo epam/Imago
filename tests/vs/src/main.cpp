@@ -3,8 +3,8 @@
 #include "comdef.h"
 #include "chemical_structure_recognizer.h"
 #include "image_utils.h"
-#include "prefilter.h"
 #include "superatom_expansion.h"
+#include "prefilter_cv.h"
 #include "output.h"
 #include "molecule.h"
 
@@ -24,7 +24,7 @@ int main(int argc, char **argv)
       
 	  Settings vars;
 
-      prefilterImage(vars, img, csr.getCharacterRecognizer());
+      prefilterEntrypoint(vars, img);
       Molecule mol;
 
       csr.image2mol(vars, img, mol);

@@ -29,7 +29,7 @@
 #include "skeleton.h"
 #include "vec2d.h"
 #include "wedge_bond_extractor.h"
-#include "constants.h"
+#include "settings.h"
 
 using namespace imago;
 

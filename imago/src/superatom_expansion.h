@@ -2,7 +2,7 @@
 #define _superatom_expansion_h
 
 #include <string>
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

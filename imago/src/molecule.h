@@ -20,7 +20,7 @@
 #include "comdef.h"
 #include "skeleton.h"
 #include "label_combiner.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

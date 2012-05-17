@@ -4,13 +4,11 @@
 #include "chemical_structure_recognizer.h"
 #include "molfile_saver.h"
 #include "log_ext.h"
-#include "prefilter.h"
 #include "molecule.h"
 #include "prefilter_cv.h"
-#include "adaptive_filter.h"
 #include "superatom_expansion.h"
 #include "output.h"
-#include "constants.h"
+#include "settings.h"
 
 #ifdef _WIN32
 #include "dirent.h"
@@ -49,20 +47,7 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src)
 		imago::Image img;
 		img.copy(src);
 
-		if (vars.general.DefaultFilterType == imago::ftAdaptive)
-		{
-			imago::AdaptiveFilter::process(vars, img);
-		}
-			
-		if (vars.general.DefaultFilterType == imago::ftCV)
-		{
-			prefilterCV(vars, img);
-		}
-			
-		if (vars.general.DefaultFilterType == imago::ftStd)
-		{
-			prefilterImage(vars, img, _csr.getCharacterRecognizer());
-		}
+		imago::prefilterEntrypoint(vars, img);
 
 		_csr.image2mol(vars, img, mol);
 		result.molecule = imago::expandSuperatoms(vars, mol);
@@ -82,7 +67,7 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src)
 }
 
 
-int performFileAction(imago::Settings& vars, const std::string& imageName)
+int performFileAction(imago::Settings& vars, const std::string& imageName, imago::FilterType defaultFilter)
 {
 	int result = 0; // ok mark
 	imago::VirtualFS vfs;
@@ -98,52 +83,37 @@ int performFileAction(imago::Settings& vars, const std::string& imageName)
 
 	try
 	{
-		imago::Image src_img;	  
+		imago::Image image;	  
 
 		if (vars.general.LogVFSEnabled)
 		{
 			imago::getLogExt().SetVirtualFS(vfs);
 		}
 
-		imago::ImageUtils::loadImageFromFile(src_img, imageName.c_str());
+		imago::ImageUtils::loadImageFromFile(image, imageName.c_str());
 
-		resampleImage(src_img);
+		vars.general.DefaultFilterType = defaultFilter;
 
 		if (vars.general.ExtractCharactersOnly)
 		{
-			if (!isBinarized(vars, src_img))
-			{
-				prefilterCV(vars, src_img);
-			}
-			
+			imago::prefilterEntrypoint(vars, image);
 			imago::ChemicalStructureRecognizer _csr;
-			_csr.extractCharacters(vars, src_img);
+			_csr.extractCharacters(vars, image);
 		}
 		else
 		{
-			RecognitionResult result;
+			RecognitionResult result = recognizeImage(vars, image);
 
-			if (isBinarized(vars, src_img))
+			if (vars.general.DefaultFilterType == imago::ftCV)
 			{
-				vars.general.IsHandwritten = false;
-
-				vars.general.DefaultFilterType = imago::ftPass;
-				result = recognizeImage(vars, src_img);
-			}
-			else
-			{
-				vars.general.IsHandwritten = true;
-
-				vars.general.DefaultFilterType = imago::ftCV;
-				result = recognizeImage(vars, src_img);
 				if (result.exceptions)
 				{
 					vars.general.DefaultFilterType = imago::ftStd;
-					result = recognizeImage(vars, src_img);
+					result = recognizeImage(vars, image);
 					if (result.exceptions)
 					{
 						vars.general.DefaultFilterType = imago::ftAdaptive;
-						result = recognizeImage(vars, src_img);
+						result = recognizeImage(vars, image);
 						if (result.exceptions)
 						{
 							throw std::exception("Recognition fails.");
@@ -153,7 +123,7 @@ int performFileAction(imago::Settings& vars, const std::string& imageName)
 				else if (result.warnings > vars.main.WarningsRecalcTreshold)
 				{
 					vars.general.DefaultFilterType = imago::ftStd;
-					RecognitionResult r2 = recognizeImage(vars, src_img);
+					RecognitionResult r2 = recognizeImage(vars, image);
 					if (!r2.exceptions && r2.warnings < result.warnings)
 						result = r2;
 				}
@@ -212,6 +182,7 @@ int main(int argc, char **argv)
 	std::string dir = "";
 
 	imago::Settings vars;
+	imago::FilterType filter = imago::ftCV;
 
 	bool next_arg_dir = false;
 
@@ -225,11 +196,13 @@ int main(int argc, char **argv)
 			vars.general.LogVFSEnabled = true;
 
 		else if (param == "-adaptive")
-			vars.general.DefaultFilterType = imago::ftAdaptive;
+			filter = imago::ftAdaptive;
 		else if (param == "-cv")
-			vars.general.DefaultFilterType = imago::ftCV;
+			filter = imago::ftCV;
 		else if (param == "-std")
-			vars.general.DefaultFilterType = imago::ftStd;
+			filter = imago::ftStd;
+		else if (param == "-pass")
+			filter = imago::ftPass;
 
 		else if (param == "-dir")
 			next_arg_dir = true;
@@ -266,13 +239,13 @@ int main(int argc, char **argv)
 			if (!files[u].empty() && !(files[u][0] == '.'))
 			{
 				std::string fullpath = dir + "/" + files[u];
-				performFileAction(vars, fullpath);	
+				performFileAction(vars, fullpath, filter);	
 			}
 		}
 	}
 	else if (!image.empty())
 	{
-		return performFileAction(vars, image);	
+		return performFileAction(vars, image, filter);	
 	}
 	
 	return 0;

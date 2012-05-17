@@ -7,7 +7,7 @@
 #include "basic_2d_storage.h"
 #include "rectangle.h"
 #include "stl_fwd.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

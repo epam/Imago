@@ -319,7 +319,7 @@ namespace imago
       if (mat.empty())
 	  {
 		  getLogExt().appendText("CV returned empty mat");
-		  if (failsafePngLoad(fname, img))
+		  if (failsafePngLoadFile(fname, img))
 		  {			  
 			  getLogExt().appendText("... but failsafePngLoad helps");
 		  }

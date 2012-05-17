@@ -16,7 +16,7 @@
 #define _multiple_bond_checker_h
 
 #include "skeleton.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

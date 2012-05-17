@@ -18,7 +18,7 @@
 #include "vec2d.h"
 #include "segment.h"
 #include "stl_fwd.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

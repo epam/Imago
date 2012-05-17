@@ -1,7 +1,7 @@
 #pragma once
 #include <vector>
 #include <string>
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

@@ -17,7 +17,7 @@
 
 #include "boost/tuple/tuple.hpp"
 #include "skeleton.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

@@ -39,8 +39,8 @@
 #include "log_ext.h"
 #include "label_logic.h"
 #include "approximator.h"
-#include "prefilter.h"
 #include "prefilter_cv.h"
+#include "prefilter.h" // line thickness estimation
 #include "pixel_boundings.h"
 #include "weak_segmentator.h"
 #include "platform_tools.h"
@@ -68,28 +68,23 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
       
       Image &_img = _origImage;
 
-	  vars.general.OriginalImageWidth = _img.getWidth();
-	  vars.general.OriginalImageHeight = _img.getHeight();
-
       _img.crop();
+	  vars.general.ImageWidth = _img.getWidth();
+	  vars.general.ImageHeight = _img.getHeight();
 
       if (!_img.isInit())
       {
-         throw ImagoException("Empty image, nothing to recognize");
+		  throw ImagoException("Empty image, nothing to recognize");
       }
-
-	  vars.general.ImageWidth = _img.getWidth();
-	  vars.general.ImageHeight = _img.getHeight();
-	  vars.update();
 
 	  vars.estimation.LineThickness = estimateLineThickness(_img, vars.routines.LineThick_Grid);
 	  
 	  getLogExt().appendImage("Cropped image", _img);
 
-	  ////////////-----------------------
+	  // extract segments using WeakSegmentator
 	  WeakSegmentator ws(_img.getWidth(), _img.getHeight());
-	  //ws.ConnectMode = true;
-	  ws.appendData(ImgAdapter(_img, _img), vars.csr.WeakSegmentatorDist);
+	  // ws.ConnectMode = true;
+	  ws.appendData(prefilter_cv::ImgAdapter(_img, _img), vars.csr.WeakSegmentatorDist);
 	  for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 	  {
 		  const Points2i& pts = it->second;
@@ -103,7 +98,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 			s->getByte(pts[u].x - b.getBounding().x, pts[u].y - b.getBounding().y) = 0;
 		  segments.push_back(s);
 	  }
-	  ///////////------------------------
+	  // ------------------------
 
       if (segments.size() == 0)
       {

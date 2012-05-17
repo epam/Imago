@@ -1,5 +1,5 @@
 #include "pixel_boundings.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

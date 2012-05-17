@@ -18,7 +18,7 @@
 #include "boost/graph/graph_traits.hpp"
 #include "boost/tuple/tuple.hpp"
 #include "skeleton.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

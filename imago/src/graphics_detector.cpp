@@ -31,9 +31,9 @@
 #include "fourier_descriptors.h"
 #include "log_ext.h"
 #include "output.h"
-#include "prefilter.h"
 #include "weak_segmentator.h"
-#include "constants.h"
+#include "prefilter.h" // isCircle
+#include "settings.h"
 
 using namespace imago;
 

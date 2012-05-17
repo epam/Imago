@@ -1,6 +1,5 @@
 #include "log_ext.h"
 #include "output.h"
-#include "prefilter.h"
 #include "pixel_boundings.h"
 #include "platform_tools.h"
 

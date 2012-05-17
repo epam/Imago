@@ -17,7 +17,7 @@
 #include <cstdio>
 #include "triple_bond_maker.h"
 #include "algebra.h"
-#include "constants.h"
+#include "settings.h"
 
 using namespace imago;
 

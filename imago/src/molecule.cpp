@@ -21,7 +21,7 @@
 #include "exception.h"
 #include "segment.h"
 #include "log_ext.h"
-#include "constants.h"
+#include "settings.h"
 
 using namespace imago;
 

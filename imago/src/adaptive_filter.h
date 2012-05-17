@@ -5,7 +5,7 @@
 #include "basic_2d_storage.h"
 #include "pixel_boundings.h"
 #include "weak_segmentator.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

@@ -27,7 +27,7 @@
 #include "multiple_bond_checker.h"
 #include "image_draw_utils.h"
 #include "image_utils.h"
-#include "constants.h"
+#include "settings.h"
 
 using namespace imago;
 

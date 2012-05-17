@@ -24,7 +24,7 @@
 #include "output.h"
 #include "skeleton.h"
 #include "superatom.h"
-#include "constants.h"
+#include "settings.h"
 
 using namespace imago;
 

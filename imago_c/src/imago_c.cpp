@@ -27,7 +27,8 @@
 #include "session_manager.h"
 #include "current_session.h"
 #include "superatom_expansion.h"
-#include "constants.h"
+#include "settings.h"
+#include "failsafe_png.h"
 
 #define IMAGO_BEGIN try {                                                    
 
@@ -45,7 +46,7 @@
 
 namespace imago
 {
-   void prefilterImage( Settings& vars, Image &image, const CharacterRecognizer &cr );
+   void prefilterEntrypoint(Settings& vars, Image& raw);
 }
 
 using namespace imago;
@@ -97,7 +98,7 @@ CEXPORT void imagoReleaseSessionId( qword id )
 
 CEXPORT int imagoGetConfigsCount()
 {  
-	return imago::CONFIG_CLUSTERS_COUNT;
+	return imago::ctClustersTotalCount;
 }
 
 CEXPORT int imagoSetConfigNumber( const int number )
@@ -106,8 +107,7 @@ CEXPORT int imagoSetConfigNumber( const int number )
 
    // TODO: more accurate
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
-   context->vars.general.IsHandwritten = (bool)number;
-   context->vars.update();
+   context->vars.updateCluster((ClusterType)number);
 
    IMAGO_END;
 }
@@ -159,10 +159,10 @@ CEXPORT int imagoLoadJpgImageFromFile( const char *FileName )
 CEXPORT int imagoFilterImage()
 {
    IMAGO_BEGIN;
+   
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
-   Image &img = context->img;
+   prefilterEntrypoint(context->vars, context->img);
 
-   prefilterImage(context->vars, img, getRecognizer().getCharacterRecognizer());
    IMAGO_END;
 }
 
@@ -170,15 +170,9 @@ CEXPORT int imagoLoadPngImageFromBuffer( const char *buf, const int buf_size )
 {
    IMAGO_BEGIN;
    
-   //TODO:
-   /*
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
-   std::string in_buf(buf, buf_size);
-   BufferScanner scan(in_buf);
-
-   PngLoader loader(scan);
-   loader.loadImage(context->img);
-   */
+   const unsigned char* buf_uc = (const unsigned char*)buf;
+   failsafePngLoadBuffer(buf_uc, buf_size, context->img);
 
    IMAGO_END;
 }
@@ -266,11 +260,11 @@ CEXPORT int imagoSaveMolToFile( const char *FileName )
    IMAGO_BEGIN;
 
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
-   FileOutput fout(FileName);
-
-   fout.writeString(context->molfile);
-   //MolfileSaver saver(fout);
-   //saver.saveMolecule(context->mol);
+   
+   {
+	   FileOutput fout(FileName);
+	   fout.writeString(context->molfile);
+   }
 
    IMAGO_END;
 }

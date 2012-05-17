@@ -18,7 +18,7 @@
 #include "image.h"
 #include "character_recognizer.h"
 #include "stl_fwd.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

@@ -14,7 +14,7 @@
 #include "image_utils.h"
 #include "image_draw_utils.h"
 #include "virtual_fs.h"
-#include "constants.h"
+#include "settings.h"
 
 #define logEnterFunction imago::log_ext_service::LogEnterFunction _entry(__FUNCTION__, imago::getLogExt()); _entry._logEnterFunction
 

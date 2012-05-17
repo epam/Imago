@@ -20,7 +20,7 @@
 #include <vector>
 #include "rectangle.h"
 #include "algebra.h"
-#include "constants.h"
+#include "settings.h"
 #include "line_priority_queue.h"
 
 namespace imago

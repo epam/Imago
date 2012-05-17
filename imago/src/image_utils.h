@@ -16,7 +16,7 @@
 #define _image_utils_h
 
 #include <vector>
-#include "constants.h"
+#include "settings.h"
 
 namespace cv 
 {

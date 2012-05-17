@@ -17,7 +17,7 @@
 
 #include "superatom.h"
 #include "character_recognizer.h"
-#include "constants.h"
+#include "settings.h"
 
 namespace imago
 {

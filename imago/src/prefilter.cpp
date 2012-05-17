@@ -519,6 +519,21 @@ int greyThresh(const Settings& vars, cv::Mat mat, bool strong)
 }
 
 
+   struct PrefilterParams
+   {
+	   bool logSteps;
+	   bool adaptiveThresh;
+	   bool strongThresh;
+	   bool reduceImage;
+	   bool binarizeImage;
+	   PrefilterParams()
+	   {
+		   logSteps = reduceImage = binarizeImage = true;
+		   adaptiveThresh = strongThresh = false;
+	   }
+   };
+
+
 void prefilterKernel(const Settings& vars, const Image &raw, Image &image, const PrefilterParams& p)
 {
 	logEnterFunction();
@@ -733,7 +748,7 @@ bool SegCompare (Segment *i, Segment *j)
 	return (area1 < area2); 
 }
 
-void prefilterImage(Settings& vars, Image &image, const CharacterRecognizer &cr )
+void prefilterStd(Settings& vars, Image &image )
 {
 	logEnterFunction();
 
