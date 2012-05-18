@@ -65,7 +65,7 @@ imago::ComplexContour calc_shape_contours(const fs::path &p)
 	return cc;
 }
 
-int getAngleDirection(imago::ComplexNumber vec)
+int getAngleDirection2(imago::ComplexNumber vec)
 {
 	double pi_8 = imago::PI_4 / 2.0;
 	double angle = vec.getAngle();
@@ -236,7 +236,7 @@ int main(int argc, char **argv)
 		   {
 			   imago::ComplexNumber cc = contour.getContour(i);
 			   
-			   int binD = getAngleDirection(cc);
+			   int binD = getAngleDirection2(cc);
 			   vecDir[binD]++;
 			   int binS = ((int)(cc.getRadius() * 10)) % 10;
 			   vecSize[binS]++;

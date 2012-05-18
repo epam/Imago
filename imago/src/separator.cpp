@@ -42,6 +42,7 @@
 #include "graph_extractor.h"
 #include "stat_utils.h"
 #include "algebra.h"
+#include "probability_separator.h"
 
 using namespace imago;
 
@@ -603,6 +604,7 @@ void Separator::SeparateStuckedSymbols(SegmentDeque &layer_symbols, SegmentDeque
 				} 
 				 				
 
+
 				 if(mark == SEP_SYMBOL)
 				 {
 					 
@@ -756,7 +758,9 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 			 delete thinseg;
 		 }
 
+			
 
+			
 				if (mark != SEP_SYMBOL && 
 					s->getHeight() > 0.3 * cap_height && 
 					s->getHeight() < 2.0 * cap_height &&
@@ -772,6 +776,22 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 						mark = SEP_SYMBOL;
 					}			
 				}				
+
+			double bond_prob, sym_prob;
+			double aprior = 0.5;
+
+			if(mark == SEP_SYMBOL)
+				aprior = 0.8;
+			else
+				aprior = 0.2;
+			ProbabilitySeparator::CalculateProbabilities(*s, sym_prob, bond_prob, aprior, 1.0 - aprior);
+			if(bond_prob > sym_prob)
+				mark = SEP_BOND;
+			else
+				mark = SEP_SYMBOL;
+
+			getLogExt().append("Probabilistic estimation", mark);	
+
 
          switch (mark)
          {

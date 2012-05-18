@@ -29,8 +29,11 @@ namespace imago{
 	class ProbabilitySeparator
 	{
 	public:
-		static void CalculateProbabilities(Segment seg, double& char_probability, double& bond_probability, 
+		static void CalculateProbabilities(Image& seg, double& char_probability, double& bond_probability, 
 			double char_apriory = 0.5, double bond_apriory = 0.5);
+
+	private:
+		static int getAngleDirection(ComplexNumber vec);
 	};
 }
 

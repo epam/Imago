@@ -25,42 +25,45 @@ double jointPG[8][10] = {
 };
 
 
-int getAngleDirection(imago::ComplexNumber vec)
+int ProbabilitySeparator::getAngleDirection(ComplexNumber vec)
 {
 	double pi_8 = imago::PI_4 / 2.0;
 	double angle = vec.getAngle();
-		if(angle < 0)
-			angle  += 2 * imago::PI;
+	int retVal = 0;
+	if(angle < 0)
+		angle  += 2 * imago::PI;
 		
-		if(angle < pi_8 || angle >= 15.0 * pi_8)
-			return 0;//"E";
+	if(angle < pi_8 || angle >= 15.0 * pi_8)
+		retVal =  0;//"E";
+	else
+		if(angle >= pi_8 && angle < 3.0 * pi_8)
+			retVal =  1;// "NE";
 		else
-			if(angle >= pi_8 && angle < 3.0 * pi_8)
-				return 1;// "NE";
+			if(angle >= 3.0 * pi_8 && angle < pi_8 * 5.0)
+				retVal =  2; // "N";
 			else
-				if(angle >= 3.0 * pi_8 && angle < pi_8 * 5.0)
-					return 2; // "N";
+				if(angle >= pi_8 * 5.0 && angle < pi_8 * 7.0)
+					retVal =  3; // "NW";
 				else
-					if(angle >= pi_8 * 5.0 && angle < pi_8 * 7.0)
-						return 3; // "NW";
-					else
-						if(angle >= pi_8 * 7.0 && angle < pi_8 * 9.0)
-							return 4; // "W";
+					if(angle >= pi_8 * 7.0 && angle < pi_8 * 9.0)
+						retVal =  4; // "W";
 		
-		if(angle >= 9.0 * pi_8 && angle < 11.0 * pi_8)
-				return 5; // "SW";
+	if(angle >= 9.0 * pi_8 && angle < 11.0 * pi_8)
+			retVal =  5; // "SW";
+		else
+			if(angle >= 11.0 * pi_8 && angle < pi_8 * 13.0)
+				retVal =  6; // "S";
 			else
-				if(angle >= 11.0 * pi_8 && angle < pi_8 * 13.0)
-					return 6; // "S";
-				else
-					if(angle >= pi_8 * 13.0 && angle < pi_8 * 15.0)
-						return 7; // "SE";
-
+				if(angle >= pi_8 * 13.0 && angle < pi_8 * 15.0)
+					retVal =  7; // "SE";
+	return retVal;
 }
 
-void ProbabilitySeparator::CalculateProbabilities(Segment seg, double& char_probability, double& bond_probability, 
+void ProbabilitySeparator::CalculateProbabilities(Image& seg, double& char_probability, double& bond_probability, 
 			double char_apriory, double bond_apriory)
 {
+	/*Image img(seg.getWidth(), seg.getHeight());
+	seg.extract(0, 0, img.getWidth(), img.getHeight(), img);*/
 	ComplexContour contour  = ComplexContour::RetrieveContour(seg);
 	contour.Normalize();
 
