@@ -690,7 +690,7 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 			}			
 		}				
 
-		if (true) // use probablistic method
+		if (vars.general.UseProbablistics) // use probablistic method
 		{
 			if(mark < 2)
 				votes[mark]++;

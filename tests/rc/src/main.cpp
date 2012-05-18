@@ -169,11 +169,12 @@ int main(int argc, char **argv)
 {
 	if (argc <= 1)
 	{
-		printf("Usage: %s [-log] [-logvfs] [-characters] [-dir dir_name] image_path \n", argv[0]);
+		printf("Usage: %s [-log] [-logvfs] [-characters] [-dir dir_name] [-pr] image_path \n", argv[0]);
 		printf("  -log: enables debug log output to ./log.html \n");
 		printf("  -logvfs: stores log in single encoded file ./log_vfs.txt \n");
 		printf("  -characters: extracts only characters from image(s) and store in ./characters/ \n");
 		printf("  -dir dir_name: process every image from dir dir_name \n");
+		printf("  -pr: use probablistic separator \n");
 		printf("  image_path: full path to image to recognize (may be omitted if -dir specified) \n");
 		return 0;
 	}
@@ -203,6 +204,9 @@ int main(int argc, char **argv)
 			filter = imago::ftStd;
 		else if (param == "-pass")
 			filter = imago::ftPass;
+
+		else if (param == "-pr" || param == "-probablistic")
+			vars.general.UseProbablistics = true;
 
 		else if (param == "-dir")
 			next_arg_dir = true;

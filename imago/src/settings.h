@@ -32,6 +32,7 @@ namespace imago
 		bool LogVFSEnabled;
 		bool ExtractCharactersOnly;
 		bool IsHandwritten;
+		bool UseProbablistics;
 		int OriginalImageWidth;
 		int OriginalImageHeight;
 		int ImageWidth;
@@ -40,6 +41,7 @@ namespace imago
 		{
 			LogEnabled = LogVFSEnabled = ExtractCharactersOnly = false;
 			IsHandwritten = true;
+			UseProbablistics = false;
 			OriginalImageWidth = OriginalImageHeight = ImageWidth = ImageHeight = 0;
 			DefaultFilterType = ftCV;
 		}
