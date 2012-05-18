@@ -87,6 +87,8 @@ namespace imago
 	  int getWarningsCount() const { return _warnings; }
 	  int getDissolvingsCount() const { return _dissolvings; }
 
+	  void _joinVertices(double eps);
+
    protected:
 
       SkeletonGraph _g;
@@ -100,7 +102,7 @@ namespace imago
       void _reconnectBonds( Vertex from, Vertex to );
 	  bool _checkMidBonds( Vertex from, Vertex to );
 	  void _reconnectBondsRWT( Vertex from, Vertex to, BondType new_t);
-      void _joinVertices(double eps);
+      
       void _repairBroken();
 
       double _multiBondErr; //TODO: add to RecognitionSettings?

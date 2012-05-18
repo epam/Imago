@@ -238,6 +238,7 @@ namespace imago
 
 		  Rectangle _rec;
 	  };
+
    };
 }
 
