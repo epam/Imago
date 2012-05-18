@@ -704,7 +704,12 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 		  double hu[7];
 		_getHuMomentsC(temp, hu);
 
+		int votes[2] = {0, 0};
+
 		mark = HuClassifier(hu);		
+
+		if(mark < 2)
+			votes[mark]++;
 
 		if(mark == SEP_SYMBOL && 
 			(!(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= cap_height)
@@ -756,6 +761,8 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 			 else
 				mark = SEP_BOND;
 			 delete thinseg;
+			 if(mark < 2)
+				votes[mark]++;
 		 }
 
 			
@@ -774,8 +781,12 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 					{
 						getLogExt().appendText("Segment moved to layer_symbols");
 						mark = SEP_SYMBOL;
-					}			
+					}	
+
+					if(mark < 2)
+						votes[mark]++;
 				}				
+
 
 			double bond_prob, sym_prob;
 			double aprior = 0.5;
@@ -783,7 +794,8 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 			if(mark == SEP_SYMBOL)
 				aprior = 0.8;
 			else
-				aprior = 0.2;
+				if(mark == SEP_BOND)
+					aprior = 0.2;
 			ProbabilitySeparator::CalculateProbabilities(*s, sym_prob, bond_prob, aprior, 1.0 - aprior);
 			if(bond_prob > sym_prob)
 				mark = SEP_BOND;
@@ -792,6 +804,14 @@ void Separator::firstSeparation( SegmentDeque &layer_symbols,
 
 			getLogExt().append("Probabilistic estimation", mark);	
 
+			if(mark < 2)
+				votes[mark]++;
+
+			if(votes[0] > votes[1])
+				mark = SEP_BOND;
+			else
+				if(votes[1] > votes[0])
+					mark = SEP_SYMBOL;
 
          switch (mark)
          {
