@@ -231,12 +231,15 @@ void cvRetrieveContour(Image& img, Points2d &lines, int eps)
 	std::vector<cv::Point> newcont;
     std::vector<cv::Vec4i> hierarchy;
 	cv::findContours(mat, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_TC89_KCOS);
-	cv::Mat m(contours[0]);
-	cv::approxPolyDP(contours[0], newcont, eps, false);
-	
-	for(size_t i = 0;i < newcont.size(); i++)
+	if (!contours.empty())
 	{
-		lines.push_back(Vec2d(newcont[i].x, newcont[i].y));
+		cv::Mat m(contours[0]);
+		cv::approxPolyDP(contours[0], newcont, eps, false);
+	
+		for(size_t i = 0;i < newcont.size(); i++)
+		{
+			lines.push_back(Vec2d(newcont[i].x, newcont[i].y));
+		}
 	}
 }
 
@@ -273,6 +276,10 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 	   }
 
 	   graph.addBond(lastPoint, lines[0]);
+	}
+	else
+	{
+		throw LogicException("No contours");
 	}
 
 	graph._joinVertices(0.01);

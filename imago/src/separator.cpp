@@ -621,9 +621,6 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 
 		mark = HuClassifier(vars, hu);
 
-		if(mark < 2)
-			votes[mark]++;
-
 		if(mark == SEP_SYMBOL && 
 			(!(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= cap_height)
 			|| s->getHeight() < vars.separator.capHeightRatio *cap_height)
@@ -674,8 +671,6 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 			 else
 				mark = SEP_BOND;
 			 delete thinseg;
-			 if(mark < 2)
-				votes[mark]++;
 		 }
 
 
@@ -692,37 +687,47 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 			{
 				getLogExt().appendText("Segment moved to layer_symbols");
 				mark = SEP_SYMBOL;
-
-				if(mark < 2)
-					votes[mark]++;
 			}			
 		}				
 
+		if (true) // use probablistic method
+		{
+			if(mark < 2)
+				votes[mark]++;
 
-		double bond_prob, sym_prob;
-		double aprior = 0.5;
+			double bond_prob, sym_prob;
+			double aprior = 0.5;
 
-		if(mark == SEP_SYMBOL)
-			aprior = 0.8;
-		else
-			if(mark == SEP_BOND)
-				aprior = 0.2;
-		ProbabilitySeparator::CalculateProbabilities(vars, *s, sym_prob, bond_prob, aprior, 1.0 - aprior);
-		if(bond_prob > sym_prob)
-			mark = SEP_BOND;
-		else
-			mark = SEP_SYMBOL;
+			if(mark == SEP_SYMBOL)
+				aprior = 0.8;
+			else
+				if(mark == SEP_BOND)
+					aprior = 0.2;
 
-		getLogExt().append("Probabilistic estimation", mark);	
+			try
+			{
+				ProbabilitySeparator::CalculateProbabilities(vars, *s, sym_prob, bond_prob, aprior, 1.0 - aprior);
+				if(bond_prob > sym_prob)
+					mark = SEP_BOND;
+				else
+					mark = SEP_SYMBOL;
 
-		if(mark < 2)
-			votes[mark]++;
+				getLogExt().append("Probabilistic estimation", mark);	
 
-		if(votes[0] > votes[1])
-			mark = SEP_BOND;
-		else
-			if(votes[1] > votes[0])
-				mark = SEP_SYMBOL;
+				if(mark < 2)
+				votes[mark]++;
+
+				if(votes[0] > votes[1])
+					mark = SEP_BOND;
+				else
+					if(votes[1] > votes[0])
+						mark = SEP_SYMBOL;
+			}
+			catch (LogicException &e)
+			{
+				getLogExt().append("CalculateProbabilities exception", e.what());
+			}
+		}
 
          switch (mark)
          {
