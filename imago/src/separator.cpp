@@ -42,6 +42,7 @@
 #include "algebra.h"
 #include "character_recognizer.h"
 #include "molecule.h"
+#include "probability_separator.h"
 
 using namespace imago;
 
@@ -616,7 +617,12 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 		  double hu[7];
 		_getHuMomentsC(temp, hu);
 
-		mark = HuClassifier(vars, hu);		
+		int votes[2] = {0, 0};
+
+		mark = HuClassifier(vars, hu);
+
+		if(mark < 2)
+			votes[mark]++;
 
 		if(mark == SEP_SYMBOL && 
 			(!(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= cap_height)
@@ -668,24 +674,55 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 			 else
 				mark = SEP_BOND;
 			 delete thinseg;
+			 if(mark < 2)
+				votes[mark]++;
 		 }
 
 
-				if (mark != SEP_SYMBOL && 
-					s->getHeight() > vars.separator.extCapHeightMin * cap_height && 
-					s->getHeight() < vars.separator.extCapHeightMax * cap_height &&
-					s->getWidth() / s->getHeight() > vars.separator.extRatioMin && 
-					s->getWidth() / s->getHeight() < vars.separator.extRatioMax )
-				{
-					int segs = _getApproximationSegmentsCount(vars, s) - 1;
-					getLogExt().append("Approx segs", segs);
-					if (segs > vars.separator.minApproxSegsStrong && isPossibleCharacter(vars, *s) ||
-						segs > vars.separator.minApproxSegsWeak && isPossibleCharacter(vars, *s, true))
-					{
-						getLogExt().appendText("Segment moved to layer_symbols");
-						mark = SEP_SYMBOL;
-					}			
-				}				
+		if (mark != SEP_SYMBOL && 
+			s->getHeight() > vars.separator.extCapHeightMin * cap_height && 
+			s->getHeight() < vars.separator.extCapHeightMax * cap_height &&
+			s->getWidth() / s->getHeight() > vars.separator.extRatioMin && 
+			s->getWidth() / s->getHeight() < vars.separator.extRatioMax )
+		{
+			int segs = _getApproximationSegmentsCount(vars, s) - 1;
+			getLogExt().append("Approx segs", segs);
+			if (segs > vars.separator.minApproxSegsStrong && isPossibleCharacter(vars, *s) ||
+				segs > vars.separator.minApproxSegsWeak && isPossibleCharacter(vars, *s, true))
+			{
+				getLogExt().appendText("Segment moved to layer_symbols");
+				mark = SEP_SYMBOL;
+
+				if(mark < 2)
+					votes[mark]++;
+			}			
+		}				
+
+
+		double bond_prob, sym_prob;
+		double aprior = 0.5;
+
+		if(mark == SEP_SYMBOL)
+			aprior = 0.8;
+		else
+			if(mark == SEP_BOND)
+				aprior = 0.2;
+		ProbabilitySeparator::CalculateProbabilities(vars, *s, sym_prob, bond_prob, aprior, 1.0 - aprior);
+		if(bond_prob > sym_prob)
+			mark = SEP_BOND;
+		else
+			mark = SEP_SYMBOL;
+
+		getLogExt().append("Probabilistic estimation", mark);	
+
+		if(mark < 2)
+			votes[mark]++;
+
+		if(votes[0] > votes[1])
+			mark = SEP_BOND;
+		else
+			if(votes[1] > votes[0])
+				mark = SEP_SYMBOL;
 
          switch (mark)
          {
