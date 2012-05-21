@@ -31,26 +31,32 @@ namespace imago
    public:
       LabelLogic( const CharacterRecognizer &cr );
       ~LabelLogic();
-
-      void setSuperatom( Superatom *satom );
-      void process(const Settings& vars, Segment *seg, int line_y );
-	  void process_ext(const Settings& vars, Segment *seg, int line_y );
-
+            
       void recognizeLabel(const Settings& vars, Label &label );
 
+   protected:
+
+	  void process(const Settings& vars, Segment *seg, int line_y );
+	  void process_ext(const Settings& vars, Segment *seg, int line_y );
+
    private:
+
+	  void setSuperatom( Superatom *satom );
+
       HWCharacterRecognizer _hwcr;
       const CharacterRecognizer &_cr;
       Superatom *_satom;
       Atom *_cur_atom;
       bool flushed, was_super, was_charge, was_letter;
       LabelLogic( LabelLogic & );
+
 	  void _addAtom();
 	  void _fixupSingleAtom();
       void _predict(const Settings& vars,  const Segment *seg, std::string &letters );
-      void _postProcess();
-	  void _eraseHydrogen(Label& label);
-	  bool _fixupTrickySubst(char sym);
+      
+	  void _postProcessLabel(Label& label);
+
+	  bool _multiLetterSubst(char sym);
    };
 }
 

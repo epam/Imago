@@ -121,12 +121,6 @@ void updateSettingsScanned(Settings &s)
 	FUZZ s.routines.Contour_Eps1 = 1.058759; // fuzzed, old value = 1.107616
 	FUZZ s.routines.Contour_Eps2 = 0.677484; // fuzzed, old value = 0.707938
 
-	FUZZ s.weak_seg.SubpixelDraw = 0.524678; // fuzzed, old value = 0.5
-	FUZZ s.weak_seg.RectangularCropAreaTreshold = 0.289043; // fuzzed, old value = 0.292500
-	FUZZ s.weak_seg.RectangularCropFitTreshold = 1.037117; // fuzzed, old value = 1.074478
-	FUZZ s.weak_seg.RefineWidth = 0.828440; // fuzzed, old value = 0.845834
-	FUZZ s.weak_seg.MinDistanceDraw = 1.272875; // fuzzed, old value = 1.308223
-
 	FUZZ s.wbe.PointsCompareDist = 3; // fuzzed, old value = 3
 	FUZZ s.wbe.SingleDownCompareDist = 2; // fuzzed, old value = 2
 	FUZZ s.wbe.SingleDownEps = 3.109147; // fuzzed, old value = 3.091668

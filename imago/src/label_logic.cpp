@@ -21,6 +21,7 @@
 #include "label_combiner.h"
 #include "image_utils.h"
 #include "log_ext.h"
+#include "chemical_validity.h"
 
 using namespace imago;
 
@@ -201,7 +202,7 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 	if (CharacterRecognizer::upper.find(ch) != std::string::npos) // it also includes 'tricky' symbols
 	{
 		_addAtom();
-		if (!_fixupTrickySubst(ch))
+		if (!_multiLetterSubst(ch))
 		{
 			_cur_atom->label_first = ch;
 		}
@@ -253,7 +254,7 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 
 void LabelLogic::_fixupSingleAtom()
 {
-   
+   // TODO: remove
 
 	// TODO: move these hacks to postprocess where the next atoms are already recognized
 	/*
@@ -293,7 +294,7 @@ void LabelLogic::_addAtom()
 	_cur_atom = &_satom->atoms[_satom->atoms.size() - 1];
 }
 
-bool LabelLogic::_fixupTrickySubst(char sym)
+bool LabelLogic::_multiLetterSubst(char sym)
 {
 	switch(sym)
 	{
@@ -462,7 +463,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 		  {
 			 if (!flushed)
 			 {
-				_postProcess();
+				//_postProcess();
             
 				if (was_super && !was_charge)
 				{
@@ -480,12 +481,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 
 			 //TODO: Lowercase letter can be that height too!
 
-			 if (_fixupTrickySubst(sym))
-			 {
-				 getLogExt().appendText("_fixupTrickySubst done");
-				 // anything already done in _fixupTrickySubst
-			 }
-			 else
+			 if (!_multiLetterSubst(sym))
 			 {
 				_cur_atom->label_first = sym;
 				was_letter = 1;
@@ -524,7 +520,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
          was_super = 1;
          if (was_charge)
          {
-            _postProcess();
+            //_postProcess();
 
             _addAtom();
 
@@ -605,40 +601,67 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
    }
 }
 
-void LabelLogic::_postProcess()
+void LabelLogic::_postProcessLabel(Label& label)
 {
-	_fixupSingleAtom();
+	logEnterFunction();
 
-   if (_cur_atom->label_first == 0)
-   {
-      _cur_atom->label_first = '?';
-      _cur_atom->label_second = 0;
-   }
+	Superatom &sa = label.satom;
 
-   if (!was_charge && _cur_atom->charge != 0)
-      _cur_atom->charge = 0;   
+	std::string molecule = "";
+	for (size_t i = 0; i < sa.atoms.size(); i++)
+	{
+		if (sa.atoms[i].label_first != 0) 
+			molecule.push_back(sa.atoms[i].label_first);
+		if (sa.atoms[i].label_second != 0) 
+			molecule.push_back(sa.atoms[i].label_second);
+	};
+
+	ChemicalValidity cv;
+	double pr = cv.getLabelProbability(molecule);
+	getLogExt().append("Molecule", molecule);
+	getLogExt().append("probability", pr);
+	if (pr < EPS)
+	{
+		getLogExt().appendText("Got wrong label!");		
+
+		std::vector<std::string> alt = cv.getAlternatives(molecule);
+		if (!alt.empty()) // at least one alternative is better
+		{
+			// currently we have nothing left to lose; so forget about charges and isotopes.
+			sa.atoms.clear();
+
+			std::string update = alt[0];
+			getLogExt().append("Used as alternative", update);
+
+			for (size_t i = 0; i < update.length(); i++)
+			{
+				Atom a;
+				a.label_first = update[i];
+				// TODO: refactor this
+				if (i+1 < update.length() && CharacterRecognizer::lower.find(update[i+1]) != std::string::npos)
+				{
+					a.label_second = update[i+1];
+					i++;
+				}
+				sa.atoms.push_back(a);
+			}
+		}
+	}
+
+	if (sa.atoms.size() == 2)
+	{
+		for (size_t i = 0; i < 2; i++)
+		{
+			if (sa.atoms[i].label_first == 'H' && sa.atoms[i].label_second == 0 &&
+				sa.atoms[i].charge == 0 && sa.atoms[i].isotope == 0)
+			{
+				sa.atoms.erase(sa.atoms.begin() + i);
+				break;
+			}
+		}
+	}
 }
 
-
-void LabelLogic::_eraseHydrogen(Label& label)
-{
-	//Came here from Molecule::recognizeLabels
-   Superatom &sa = label.satom;
-   if (sa.atoms.size() == 2)
-   {
-      if (sa.atoms[0].label_first == 'H' && sa.atoms[0].label_second == 0 &&
-          sa.atoms[0].charge == 0 && sa.atoms[0].isotope == 0)
-      {
-         sa.atoms.erase(sa.atoms.begin());
-      }
-      else if (sa.atoms[1].label_first == 'H' &&
-               sa.atoms[1].label_second == 0 &&
-               sa.atoms[1].charge == 0 && sa.atoms[1].isotope == 0)
-      {
-         sa.atoms.erase(sa.atoms.end() - 1);
-      }
-   }
-}
 
 void LabelLogic::recognizeLabel(const Settings& vars, Label& label )
 {
@@ -673,14 +696,10 @@ void LabelLogic::recognizeLabel(const Settings& vars, Label& label )
 		  }
 		  catch(ImagoException &e)
 		  {
-				getLogExt().append("Exception", e.what());
-				_postProcess();
+			  getLogExt().append("Exception", e.what());
 		  }
-      }
-      
+      }      
    }
 
-   _postProcess();   
-
-   _eraseHydrogen(label);
+   _postProcessLabel(label);
 }

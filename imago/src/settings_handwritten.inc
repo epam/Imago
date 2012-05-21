@@ -119,12 +119,6 @@ void updateSettingsHandwritten(Settings &s)
 	FUZZ s.routines.Approx_Eps2 = 0.902789; // fuzzed, old value = 0.888855
 	FUZZ s.routines.Approx_CalcLineTresh = 0.866157; // fuzzed, old value = 0.910098
 
-	FUZZ s.weak_seg.SubpixelDraw = 0.501652; // fuzzed, old value = 0.5
-	FUZZ s.weak_seg.RectangularCropAreaTreshold = 0.294521; // fuzzed, old value = 0.300326
-	FUZZ s.weak_seg.RectangularCropFitTreshold = 1.033818; // fuzzed, old value = 1.067597
-	FUZZ s.weak_seg.RefineWidth = 0.908987; // fuzzed, old value = 0.867841
-	FUZZ s.weak_seg.MinDistanceDraw = 1.419009; // fuzzed, old value = 1.378518
-
 	FUZZ s.wbe.PointsCompareDist = 3; // fuzzed, old value = 3
 	FUZZ s.wbe.SingleDownCompareDist = 2; // fuzzed, old value = 2
 	FUZZ s.wbe.SingleDownEps = 3.038015; // fuzzed, old value = 2.967701

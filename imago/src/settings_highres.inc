@@ -119,12 +119,6 @@ void updateSettingsHighResolution(Settings &s)
 	FUZZ s.routines.Approx_Eps2 = 0.891238; // fuzzed, old value = 0.888855
 	FUZZ s.routines.Approx_CalcLineTresh = 0.910738; // fuzzed, old value = 0.910098
 
-	FUZZ s.weak_seg.SubpixelDraw = 0.489145; // fuzzed, old value = 0.5
-	FUZZ s.weak_seg.RectangularCropAreaTreshold = 0.310550; // fuzzed, old value = 0.300326
-	FUZZ s.weak_seg.RectangularCropFitTreshold = 1.111199; // fuzzed, old value = 1.067597
-	FUZZ s.weak_seg.RefineWidth = 0.893432; // fuzzed, old value = 0.867841
-	FUZZ s.weak_seg.MinDistanceDraw = 1.368604; // fuzzed, old value = 1.378518
-
 	FUZZ s.wbe.PointsCompareDist = 3; // fuzzed, old value = 3
 	FUZZ s.wbe.SingleDownCompareDist = 2; // fuzzed, old value = 2
 	FUZZ s.wbe.SingleDownEps = 2.965677; // fuzzed, old value = 2.967701

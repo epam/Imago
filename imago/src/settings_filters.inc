@@ -7,7 +7,7 @@
 		FUZZ MinGoodPixelsCount = 18; // fuzzed, old value = 18
 		FUZZ MaxBadToGoodRatio = 8; // fuzzed, old value = 8
 		FUZZ BorderPartProportion = 39; // fuzzed, old value = 38
-		FUZZ MaxRectangleCropLineWidth = 11; // fuzzed, old value = 11
+		FUZZ MaxRectangleCropLineWidth = 18; // fuzzed, old value = 11
 		FUZZ StrongBinarizeSize = 4; // fuzzed, old value = 4
 		FUZZ StrongBinarizeTresh = 1.417548; // fuzzed, old value = 1.354787
 		FUZZ WeakBinarizeSize = 7; // fuzzed, old value = 7
@@ -47,6 +47,15 @@
 		FUZZ MaxLSSplah = 2.777939; // fuzzed, old value = 2.813795
 		FUZZ MagicCoeff = 8.505134; // fuzzed, old value = 8.509614
 		FUZZ SAreaTresh = 0.305171; // fuzzed, old value = 0.302347
+	}
+
+	WeakSegmentatorSettings::WeakSegmentatorSettings()
+	{
+		SubpixelDraw = 0.5;
+		RectangularCropAreaTreshold = 0.3;
+		RectangularCropFitTreshold = 0.9;
+		RefineWidth = 0.8;
+		MinDistanceDraw = 1.2;
 	}
 
 // end of prefilters settings

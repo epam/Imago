@@ -91,6 +91,13 @@ namespace imago
 		PrefilterSettings();
 	};
 
+	struct WeakSegmentatorSettings
+	{
+		double RectangularCropAreaTreshold, RectangularCropFitTreshold;
+		double RefineWidth, MinDistanceDraw, SubpixelDraw;
+		WeakSegmentatorSettings();
+	};
+
 	/// ------------------ cluster-depending settings ------------------ ///
 
 	struct EstimationSettings
@@ -158,12 +165,6 @@ namespace imago
 		double Approx_Eps1, Approx_Eps2;
 		double Approx_CalcLineTresh;
 		double Contour_Eps1, Contour_Eps2;
-	};
-
-	struct WeakSegmentatorSettings
-	{
-		double RectangularCropAreaTreshold, RectangularCropFitTreshold;
-		double RefineWidth, MinDistanceDraw, SubpixelDraw;		
 	};
 
 	struct WedgeBondExtractorSettings
