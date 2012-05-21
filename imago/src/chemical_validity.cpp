@@ -43,6 +43,8 @@ namespace imago
 				result *= 0.4;
 			else if (a[u] == 'I' && b[u] == 'H')
 				result *= 0.4;
+			else if (a[u] == 'L' && b[u] == 'H')
+				result *= 0.4;
 			else if (a[u] == 'M' && b[u] == 'H')
 				result *= 0.4;
 			else if (a[u] == 'Y' && b[u] == 'H')
@@ -98,6 +100,9 @@ namespace imago
 
 		boost::replace_all(result1, "HH", "H");
 		boost::replace_all(result1, "CC", "C");
+		boost::replace_all(result1, "II", "H");
+		boost::replace_all(result1, "OO", "O");
+		boost::replace_all(result1, "BN", "N");
 
 		result.push_back(result1);
 		return result;
