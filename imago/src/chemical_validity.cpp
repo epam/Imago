@@ -29,12 +29,16 @@ namespace imago
 			// TODO: ...
 			if (a[u] == b[u])
 				;
+			else if (toupper(a[u]) == b[u] || tolower(a[u]) == b[u])
+				result *= 0.95;
 			else if (a[u] == 'G' && b[u] == 'C')
-				result *= 0.8;
+				result *= 0.6;
 			else if (a[u] == 'N' && b[u] == 'H')
 				result *= 0.6;
+			else if (a[u] == 'e' && b[u] == 'l')
+				result *= 0.6;
 			else if (a[u] == 'H' && b[u] == 'N')
-				result *= 0.5;
+				result *= 0.6;
 			else if (a[u] == 'P' && b[u] == 'H')
 				result *= 0.4;
 			else if (a[u] == 'I' && b[u] == 'H')
@@ -128,6 +132,7 @@ namespace imago
 	ChemicalValidity::ChemicalValidity()
 	{
 		elements.push_back(ElementEntry("CH",  1.0));
+		elements.push_back(ElementEntry("OH",  1.0));
 
 		elements.push_back(ElementEntry("H",  1.0));
 		elements.push_back(ElementEntry("C",  1.0));
@@ -150,7 +155,10 @@ namespace imago
 		elements.push_back(ElementEntry("TfO",   0.7));
 		elements.push_back(ElementEntry("Ph",    0.7));
 		elements.push_back(ElementEntry("AcO",   0.7));
+		elements.push_back(ElementEntry("oAc",   0.7));
+		elements.push_back(ElementEntry("OAc",   0.7));
 		elements.push_back(ElementEntry("NHBoc", 0.7));
+		elements.push_back(ElementEntry("NHBOC", 0.7));
 
 		elements.push_back(ElementEntry("Be", 0.6));
 		elements.push_back(ElementEntry("B",  0.6));		
