@@ -179,6 +179,19 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 
 			  ImageUtils::saveImageToFile(*s, filename);
 		  }
+
+		  BOOST_FOREACH( Segment *s, layer_graphics )
+		  {
+
+			  char filename[MAX_TEXT_LINE] = {0};
+
+			  platform::MKDIR("./graphics");
+			  
+			  sprintf(filename, "./graphics/d%4.2f_q%4.2f.png", s->density(), s->getRatio());
+			  
+			  ImageUtils::saveImageToFile(*s, filename);
+		  }
+
 		  return;
 	  }
 
