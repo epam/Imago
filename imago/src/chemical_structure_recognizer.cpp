@@ -157,6 +157,12 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 
 			  if (dist > vars.characters.PossibleCharacterDistanceWeak)
 			  {
+				  int digits = (int)std::log10(dist);
+				  if(digits > 10)
+					  dist /= std::pow(10.0, digits - 10);
+				  // in case res == 0 is true filename does not get the name of the file and exception is thrown
+				  if(res == 0)
+					  res = '0';
 				  platform::MKDIR("./characters/bad");
 				  sprintf(filename, "./characters/bad/%c_d%4.2f_q%4.2f.png", res, dist, qual);
 			  }
