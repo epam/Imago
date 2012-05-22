@@ -232,6 +232,8 @@ void cvRetrieveContour(Image& img, Points2d &lines, int eps)
 	std::vector<cv::Point> newcont;
     std::vector<cv::Vec4i> hierarchy;
 	cv::findContours(mat, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_TC89_KCOS);
+	if(contours.size() == 0)
+		return;
 	cv::Mat m(contours[0]);
 	cv::approxPolyDP(contours[0], newcont, eps, false);
 	
@@ -257,6 +259,8 @@ ComplexContour ComplexContour::RetrieveContour(Image& seg)
 	int eps = lnThickness / 2 > 2 ? lnThickness / 2 : 2;
 	//gd.detect(seg, lines);
 	cvRetrieveContour(seg, lines, eps);
+	if(lines.size() == 0)
+		return ComplexContour();
 
 	Skeleton graph;
 	Vec2d lastPoint;
