@@ -216,6 +216,16 @@ int main(int argc, char **argv)
 	   {0, 0, 0, 0, 0, 0, 0, 0, 0 , 0},
 	   {0, 0, 0, 0, 0, 0, 0, 0, 0 , 0} };
 
+	   int angleChange[8][8] = {	
+		   {0, 0, 0, 0, 0, 0, 0, 0},
+		   {0, 0, 0, 0, 0, 0, 0, 0},
+		   {0, 0, 0, 0, 0, 0, 0, 0},
+		   {0, 0, 0, 0, 0, 0, 0, 0},
+		   {0, 0, 0, 0, 0, 0, 0, 0},
+		   {0, 0, 0, 0, 0, 0, 0, 0},
+		   {0, 0, 0, 0, 0, 0, 0, 0},
+		   {0, 0, 0, 0, 0, 0, 0, 0} };
+
 	   BOOST_FOREACH(fs::path p, files)
 	   {
 
@@ -241,6 +251,10 @@ int main(int argc, char **argv)
 			   int binS = ((int)(cc.getRadius() * 10)) % 10;
 			   vecSize[binS]++;
 			   jointSizeDir[binD][binS]++;
+
+			   int binD2 = getAngleDirection2(contour.getContour(i+1));
+
+			   angleChange[binD][binD2]++;
 		   }
 
 		  std::copy(dc.begin(), dc.end(), ostream_iterator<double>(*scontours_out , " "));
