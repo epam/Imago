@@ -58,6 +58,13 @@ namespace imago
 		double StrongBinarizeTresh;
 		int WeakBinarizeSize;
 		double WeakBinarizeTresh;
+		
+		bool UseTresholdPixelsAddition;
+		double AdditionPercentage;
+		int MinGoodPixelsCount2;
+		int MaxBadToGoodRatio2;
+		double MaxFillRatio;
+
 		PrefilterCVSettings();
 	};
 

@@ -12,6 +12,12 @@
 		FUZZ StrongBinarizeTresh = 1.408390; // fuzzed, old value = 1.417548
 		FUZZ WeakBinarizeSize = 7; // fuzzed, old value = 7
 		FUZZ WeakBinarizeTresh = 1.082436; // fuzzed, old value = 1.090537
+
+		FUZZ UseTresholdPixelsAddition = true;
+		FUZZ AdditionPercentage = 0.05;
+		FUZZ MinGoodPixelsCount2 = 20;
+		FUZZ MaxBadToGoodRatio2 = 7;
+		FUZZ MaxFillRatio = 1.25;
 	}
 
 	AdaptiveFilterSettings::AdaptiveFilterSettings()
@@ -25,7 +31,7 @@
 		FUZZ InterpolationLevel = 2; // fuzzed, old value = 2
 		FUZZ MaxRefineIterations = 2; // fuzzed, old value = 2
 		FUZZ MaxDiffIterations = 4; // fuzzed, old value = 4
-		FUZZ WindowSizeFactor = 2; // fuzzed, old value = 2
+		FUZZ WindowSizeFactor = 2; // fuzzed, old value = 2		
 	}
 
 	PrefilterSettings::PrefilterSettings()

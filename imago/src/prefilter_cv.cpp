@@ -146,15 +146,15 @@ namespace imago
 			Rectangle viewport;
 			int tresholdPassSum = 0, tresholdPassCount = 0;
 
+			int borderX = raw.getWidth()  / vars.prefilterCV.BorderPartProportion + 1;
+			int borderY = raw.getHeight() / vars.prefilterCV.BorderPartProportion + 1;
+
 			{
 				Image bin;
 				ImageUtils::copyMatToImage(weak, bin);
 
 				WeakSegmentator ws(raw.getWidth(), raw.getHeight());
-				ws.appendData(ImgAdapter(raw,bin), 1);
-
-				int borderX = raw.getWidth()  / vars.prefilterCV.BorderPartProportion + 1;
-				int borderY = raw.getHeight() / vars.prefilterCV.BorderPartProportion + 1;
+				ws.appendData(ImgAdapter(raw,bin), 1);				
 
 				viewport = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
 				ws.needCrop(vars, viewport, vars.prefilterCV.MaxRectangleCropLineWidth);
@@ -207,42 +207,83 @@ namespace imago
 			{
 				getLogExt().appendImage("pre-output", *output);
 
-				if (tresholdPassCount > 0)
+				if (tresholdPassCount > 0 && vars.prefilterCV.UseTresholdPixelsAddition)
 				{
+					// second pass; now against the source image
+
+					double average_fill_output = 0.0;
+					for (int x = 0; x < output->getWidth(); x++)
+						for (int y = 0; y < output->getHeight(); y++)
+							if (output->getByte(x,y) == 0)
+								average_fill_output += 1;
+					average_fill_output /= (output->getWidth()*output->getHeight());
+
 					// now fill inside areas
-					byte estimatedTreshold = tresholdPassSum / tresholdPassCount;
+					double tr = (double)tresholdPassSum / tresholdPassCount;
+					byte estimatedTreshold = round(tr + vars.prefilterCV.AdditionPercentage * tr);
 					getLogExt().append("estimatedTreshold", (int)estimatedTreshold);
 
-					Image* tresh = new Image(viewport.width, viewport.height);
-					for (int y = 0; y < viewport.height; y++)
-						for (int x = 0; x < viewport.width; x++)
-							tresh->getByte(x, y) = (raw.getByte(x+viewport.x, y+viewport.y) < estimatedTreshold) ? 0 : 255;
+					Image* tresh = new Image(raw.getWidth(), raw.getHeight());
+					for (int y = 0; y < raw.getHeight(); y++)
+						for (int x = 0; x < raw.getWidth(); x++)							
+							tresh->getByte(x, y) = (raw.getByte(x, y) < estimatedTreshold) ? 0 : 255;
 
-					getLogExt().appendImage("get by average treshold", *tresh);
+					WeakSegmentator ws(raw.getWidth(), raw.getHeight());
+					ws.appendData(ImgAdapter(raw,*tresh), 2);
+					
+					tresh->fillWhite();
 
-					for (int y = 0; y < viewport.height; y++)
-						for (int x = 0; x < viewport.width; x++)
-							if (output->getByte(x, y) == 0)
-								tresh->getByte(x, y) = 255;
-
-					getLogExt().appendImage("pixels considered for addition", *tresh);
-				
-					// TODO: this is only temporary 
-					// should check that tresh areas are inside output before merge pixels!
-
-					if (false)
+					for (WeakSegmentator::SegMap::const_iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 					{
+						const Points2i& p = it->second;
+		
+						int good = 0, bad = 0;
+						for (size_t u = 0; u < p.size(); u++)
+						{
+							if (p[u].x > borderX && p[u].y > borderY
+								&& p[u].x < raw.getWidth() - borderX && p[u].y < raw.getHeight() - borderY
+								&& output->getByte(p[u].x, p[u].y) == 0)
+								good++;
+							else
+								bad++;
+						}
+
+						if (vars.prefilterCV.MaxBadToGoodRatio2 * good > bad && good > vars.prefilterCV.MinGoodPixelsCount2)
+						{							
+							for (size_t u = 0; u < p.size(); u++)
+							{
+								int x = p[u].x - viewport.x;
+								int y = p[u].y - viewport.y;
+								if (x >= 0 && y >= 0 && x < output->getWidth() && y < output->getHeight())
+								{
+									tresh->getByte(x, y) = 0;
+								}
+							}
+						}
+					}
+
+					getLogExt().appendImage("segments get by average treshold", *tresh);
+
+					double average_fill_tresh = 0.0;
+					for (int x = 0; x < tresh->getWidth(); x++)
+						for (int y = 0; y < tresh->getHeight(); y++)
+							if (tresh->getByte(x,y) == 0)
+								average_fill_tresh += 1;
+					average_fill_tresh /= (tresh->getWidth() * tresh->getHeight());
+					
+					getLogExt().append("average fill output", average_fill_output);
+					getLogExt().append("average fill tresh", average_fill_tresh);
+
+					double ratio = average_fill_tresh / average_fill_output;
+					getLogExt().append("ratio", ratio);
+
+					if (ratio < vars.prefilterCV.MaxFillRatio)
+					{			
 						// add tresh to output
 						for (int y = 0; y < viewport.height; y++)
 							for (int x = 0; x < viewport.width; x++)
-								if (tresh->getByte(x,y) == 0)
-								{								
-									// this is not the same as correct 'inside' check!
-									if (WeakSegmentator::getNeighbors(*output, Vec2i(x,y)).size() >= 3)
-									{
-										output->getByte(x,y) = 0;
-									}
-								}
+								if (tresh->getByte(viewport.x + x, viewport.y + y) == 0)
+									output->getByte(x,y) = 0;
 					}
 
 					delete tresh;
