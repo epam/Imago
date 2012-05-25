@@ -471,85 +471,75 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 			int mark;
 			
 			//	classify object
-				
-				getLogExt().appendSegment("segment", *s);
+			int votes[2] = {0, 0};
+			getLogExt().appendSegment("segment", *s);
 
-				double hu[7];
+			double hu[7];
 			
-				_getHuMomentsC(*s, hu);
+			_getHuMomentsC(*s, hu);
 
-				mark = HuClassifier(vars, hu);
-				getLogExt().append("mark", mark);
+			mark = HuClassifier(vars, hu);
+			getLogExt().append("mark", mark);
+
+			if(mark < 2)
+				votes[mark]++;
+
+			double surf_coeff = vars.separator.SurfCoef;
+
+			if(extracted.getHeight() < vars.separator.capHeightRatio *cap_height || (symbRects[i].height * symbRects[i].width > surf_coeff * cap_height * cap_height))
+			{
+			mark = SEP_SUSPICIOUS;
+			getLogExt().appendText("mark -> SEP_SUSPICIOUS");
+			}
+
+			mark = (mark == SEP_SUSPICIOUS)  && isTextContext ? SEP_SYMBOL : mark;
+			
+			if(mark < 2)
+				votes[mark]++;
 
 
-
-				double surf_coeff = vars.separator.SurfCoef;
-
-				 if(extracted.getHeight() < vars.separator.capHeightRatio *cap_height || (symbRects[i].height * symbRects[i].width > surf_coeff * cap_height * cap_height))
-				 {
-					mark = SEP_SUSPICIOUS;
-					getLogExt().appendText("mark -> SEP_SUSPICIOUS");
-				 }
-
-				 mark = (mark == SEP_SUSPICIOUS)  && isTextContext ? SEP_SYMBOL : mark;
-				 
-				 /*if (mark == SEP_SUSPICIOUS)
-				 {
-					 if (isPossibleCharacter(*s))
-					 {
-						 mark = SEP_SYMBOL;
-						 getLogExt().appendText("mark -> SEP_SYMBOL");
-					 }
-				 }*/
-		
-				/*if (rs["DebugSession"])
-				{
-					Image test(timg.getWidth(), timg.getHeight());
-
-					test.fillWhite();
-
-					imago::ImageUtils::putSegment(test, *s);
-					ImageUtils::saveImageToFile(test, "output/tmp.png");
-				}*/				
-
-				if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
-				{
+			if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
+			{
 				
-				 if (s->getHeight() >= cap_height - sym_height_err && 
-					 s->getHeight() <= cap_height + sym_height_err &&
-					 s->getHeight() <= cap_height * 2 &&
-					 s->getWidth() <= vars.separator.capHeightRatio2 * cap_height) 
-				 {
-					 if (s->getRatio() > vars.separator.getRatio1 && s->getRatio() < vars.separator.getRatio2)
+				if (s->getHeight() >= cap_height - sym_height_err && 
+					s->getHeight() <= cap_height + sym_height_err &&
+					s->getHeight() <= cap_height * 2 &&
+					s->getWidth() <= vars.separator.capHeightRatio2 * cap_height) 
+				{
+					if (s->getRatio() > vars.separator.getRatio1 && s->getRatio() < vars.separator.getRatio2)
+				{
+					if (_analyzeSpecialSegment(vars, s))
 					{
-					   if (_analyzeSpecialSegment(vars, s))
-					   {
-						  mark = SEP_BOND;//layer_graphics.push_back(s);
-						  continue;
-					   }
+						mark = SEP_BOND;//layer_graphics.push_back(s);
+						continue;
 					}
-					if (s->getRatio() > adequate_ratio_max)
-						if (ImageUtils::testSlashLine(vars, *s, 0, vars.separator.testSlashLine1))
-						  mark = SEP_BOND;
-					   else
-						  mark = (LineCount[i] != 4) ? SEP_SYMBOL : SEP_BOND;
+				}
+				if (s->getRatio() > adequate_ratio_max)
+					if (ImageUtils::testSlashLine(vars, *s, 0, vars.separator.testSlashLine1))
+						mark = SEP_BOND;
 					else
-					   if (s->getRatio() < adequate_ratio_min)
-						  if (_testDoubleBondV(vars, *s))
-							 mark = SEP_BOND;
-						  else
-							 mark = SEP_SUSPICIOUS;
-					   else
-						  if (ImageUtils::testSlashLine(vars, *s, 0, vars.separator.testSlashLine2))
-							 mark = SEP_BOND;
-						  else 
-							 mark = SEP_SUSPICIOUS;
-				 }
-				 else
-					mark = SEP_BOND;
-				} 
-				 				
+						mark = (LineCount[i] != 4) ? SEP_SYMBOL : SEP_BOND;
+				else
+					if (s->getRatio() < adequate_ratio_min)
+						if (_testDoubleBondV(vars, *s))
+							mark = SEP_BOND;
+						else
+							mark = SEP_SUSPICIOUS;
+					else
+						if (ImageUtils::testSlashLine(vars, *s, 0, vars.separator.testSlashLine2))
+							mark = SEP_BOND;
+						else 
+							mark = SEP_SUSPICIOUS;
+				}
+				else
+				mark = SEP_BOND;
+			} 
 
+			if(mark < 2)
+				votes[mark]++;
+
+				 				
+				mark = PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND);
 				 if(mark == SEP_SYMBOL)
 				 {
 					 imago::ImageUtils::cutSegment(timg, *s, false, 255);
@@ -567,6 +557,48 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 			Segmentator::segmentate(timg, layer_graphics);
 		}
 	
+}
+
+int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark)
+{
+	int retVal = mark;
+	double bond_prob, sym_prob;
+	double aprior = 0.5;
+
+	if(mark == SEP_SYMBOL)
+		aprior = 0.8;
+	else
+	{
+		double maxEdge = seg->getHeight() > seg ->getWidth() ? seg->getHeight() : seg->getWidth();
+		double surfaceRatio =  maxEdge / vars.estimation.CapitalHeight;
+
+		if(surfaceRatio < 0.25)
+			surfaceRatio = 1.0 / surfaceRatio;
+				
+		aprior = 1.0 - 1.0 / 
+			( 1 + std::exp( - ( surfaceRatio - 1 ) ) );
+	}
+
+	try
+	{
+		ProbabilitySeparator::CalculateProbabilities(vars, *seg, sym_prob, bond_prob, aprior, 1.0 - aprior);
+		if(bond_prob > sym_prob)
+			retVal = SEP_BOND;
+		else
+			retVal = SEP_SYMBOL;
+
+		getLogExt().append("Graphic probability ", bond_prob);
+		getLogExt().append("Character probability ", sym_prob);
+
+		getLogExt().append("Probabilistic estimation", mark);	
+
+	}
+	catch (LogicException &e)
+	{
+		getLogExt().append("CalculateProbabilities exception", e.what());
+	}
+
+	return retVal;
 }
 
 void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
@@ -621,6 +653,10 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 
 		mark = HuClassifier(vars, hu);
 
+		if(mark < 2)
+			votes[mark]++;
+
+
 		if(mark == SEP_SYMBOL && 
 			(!(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= cap_height)
 			|| s->getHeight() < vars.separator.capHeightRatio *cap_height)
@@ -673,6 +709,8 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 			 delete thinseg;
 		 }
 
+		 if(mark < 2)
+			votes[mark]++;
 
 		if (mark != SEP_SYMBOL && 
 			s->getHeight() > vars.separator.extCapHeightMin * cap_height && 
@@ -687,47 +725,12 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 			{
 				getLogExt().appendText("Segment moved to layer_symbols");
 				mark = SEP_SYMBOL;
+				votes[SEP_SYMBOL]++;
 			}			
 		}				
 
-		if (vars.general.UseProbablistics) // use probablistic method
-		{
-			if(mark < 2)
-				votes[mark]++;
-
-			double bond_prob, sym_prob;
-			double aprior = 0.5;
-
-			if(mark == SEP_SYMBOL)
-				aprior = 0.8;
-			else
-				if(mark == SEP_BOND)
-					aprior = 0.2;
-
-			try
-			{
-				ProbabilitySeparator::CalculateProbabilities(vars, *s, sym_prob, bond_prob, aprior, 1.0 - aprior);
-				if(bond_prob > sym_prob)
-					mark = SEP_BOND;
-				else
-					mark = SEP_SYMBOL;
-
-				getLogExt().append("Probabilistic estimation", mark);	
-
-				if(mark < 2)
-				votes[mark]++;
-
-				if(votes[0] > votes[1])
-					mark = SEP_BOND;
-				else
-					if(votes[1] > votes[0])
-						mark = SEP_SYMBOL;
-			}
-			catch (LogicException &e)
-			{
-				getLogExt().append("CalculateProbabilities exception", e.what());
-			}
-		}
+		if (vars.general.UseProbablistics) // use probablistic method			
+			mark = PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND);
 
          switch (mark)
          {
@@ -737,22 +740,9 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
          case SEP_SYMBOL:
             layer_symbols.push_back(s);
             break;
-         case SEP_SPECIAL:
-            //if (_analyzeSpecialSegment(s, layer_graphics, layer_symbols))
-               layer_graphics.push_back(s);
-            //else
-            //   layer_symbols.push_back(s);
-
-            /*if ((s)->getDensity() < susp_seg_density)
-               layer_graphics.push_back(s);
-            else
-               layer_symbols.push_back(s);*/
-            break;
-         case SEP_SUSPICIOUS:
-            layer_graphics.push_back(s);//layer_suspicious.push_back(s);
+		 default:
+			 layer_graphics.push_back(s);
          }
-
-		 
       }
    }
 
