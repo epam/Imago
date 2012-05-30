@@ -3,6 +3,8 @@ void updateSettingsHandwritten(Settings &s)
 {
 	FUZZ s.general.UseProbablistics = false; // fuzzed, old value = true
 
+	FUZZ s.separator.extRatioMax = 1.2;
+
 	FUZZ s.molecule.LengthFactor_long = 0.306684; // fuzzed, old value = 0.304494
 	FUZZ s.molecule.LengthFactor_medium = 0.407360; // fuzzed, old value = 0.412981
 	FUZZ s.molecule.LengthFactor_default = 0.482723; // fuzzed, old value = 0.469229

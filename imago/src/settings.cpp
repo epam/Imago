@@ -26,7 +26,7 @@ namespace imago
 		{
 			if (general.IsHandwritten)
 			{
-				if (longestSide > MaxImageDimensions * 3 / 4) // TODO
+				if (longestSide > prefilterCV.HighResPassBound * MaxImageDimensions)
 					ct = ctHighResolution;
 				else
 					ct = ctHandwritten;

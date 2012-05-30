@@ -64,6 +64,7 @@ namespace imago
 		int MinGoodPixelsCount2;
 		int MaxBadToGoodRatio2;
 		double MaxFillRatio;
+		double HighResPassBound;
 
 		PrefilterCVSettings();
 	};
@@ -236,6 +237,7 @@ namespace imago
 		double minDensity, maxDensity;
 		double extCapHeightMin, extCapHeightMax;
 		double extRatioMin, extRatioMax;
+		double ext2charRatio;
 		int minApproxSegsStrong, minApproxSegsWeak;
 		int specialSegmentsTreat;
 	};

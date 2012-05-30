@@ -724,7 +724,7 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 
 			bool two_chars_probably = 
 				wh > vars.separator.extRatioMax &&
-				wh < 2.0 * vars.separator.extRatioMax;
+				wh < vars.separator.ext2charRatio * vars.separator.extRatioMax;
 		
 		if(s->getHeight() > vars.separator.extCapHeightMin * cap_height && 
 			s->getHeight() < vars.separator.extCapHeightMax * cap_height &&

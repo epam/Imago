@@ -18,6 +18,8 @@
 		FUZZ MinGoodPixelsCount2 = 20; // fuzzed, old value = 20
 		FUZZ MaxBadToGoodRatio2 = 7; // fuzzed, old value = 7
 		FUZZ MaxFillRatio = 1.269597; // fuzzed, old value = 1.271983
+
+		FUZZ HighResPassBound = 0.75;
 	}
 
 	AdaptiveFilterSettings::AdaptiveFilterSettings()
