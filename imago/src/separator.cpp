@@ -663,8 +663,9 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 			)
 			mark = SEP_SUSPICIOUS;
 		
-		getLogExt().append("mark", mark);
-
+		int mark1 = mark;
+		getLogExt().append("mark1", mark1);
+		
 		 if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
 		 {
 			 ThinFilter2 tfilt(temp);
@@ -712,22 +713,43 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 		 if(mark < 2)
 			votes[mark]++;
 
-		if (mark != SEP_SYMBOL && 
-			s->getHeight() > vars.separator.extCapHeightMin * cap_height && 
+		 getLogExt().append("mark", mark);
+
+		if (mark1 != SEP_SYMBOL)
+		{		
+			getLogExt().append("cap_height", cap_height);
+			getLogExt().append("Height", s->getHeight());
+			double wh = (double)s->getWidth() / (double)s->getHeight();
+			getLogExt().append("Width/height", wh);
+
+			bool two_chars_probably = 
+				wh > vars.separator.extRatioMax &&
+				wh < 2.0 * vars.separator.extRatioMax;
+		
+		if(s->getHeight() > vars.separator.extCapHeightMin * cap_height && 
 			s->getHeight() < vars.separator.extCapHeightMax * cap_height &&
-			s->getWidth() / s->getHeight() > vars.separator.extRatioMin && 
-			s->getWidth() / s->getHeight() < vars.separator.extRatioMax )
+			                       wh > vars.separator.extRatioMin && 
+			(two_chars_probably || wh < vars.separator.extRatioMax) )
 		{
 			int segs = _getApproximationSegmentsCount(vars, s) - 1;
 			getLogExt().append("Approx segs", segs);
-			if (segs > vars.separator.minApproxSegsStrong && isPossibleCharacter(vars, *s) ||
-				segs > vars.separator.minApproxSegsWeak && isPossibleCharacter(vars, *s, true))
+			char ch;
+			if (segs > vars.separator.minApproxSegsStrong && isPossibleCharacter(vars, *s, false, &ch) ||
+				segs > vars.separator.minApproxSegsWeak   && isPossibleCharacter(vars, *s, true,  &ch) )
 			{
-				getLogExt().appendText("Segment moved to layer_symbols");
-				mark = SEP_SYMBOL;
-				votes[SEP_SYMBOL]++;
+				if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
+				{
+					getLogExt().append("Segment passed as 2-chars, but recognized as", ch);
+				}
+				else
+				{
+					getLogExt().appendText("Segment moved to layer_symbols");
+					mark = SEP_SYMBOL;
+					votes[SEP_SYMBOL]++;
+				}
 			}			
-		}				
+		}	
+		}
 
 		if (vars.general.UseProbablistics) // use probablistic method			
 			mark = PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND);

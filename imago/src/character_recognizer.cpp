@@ -23,14 +23,14 @@
 #include "settings.h"
 
 using namespace imago;
-const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&";
+const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&#";
 const std::string CharacterRecognizer::lower = "abcdefghijklmnopqrstuvwxyz";
 const std::string CharacterRecognizer::digits = "0123456789";
 const std::string CharacterRecognizer::charges = "+-";
 const std::string CharacterRecognizer::all = CharacterRecognizer::upper + CharacterRecognizer::lower + CharacterRecognizer::digits + CharacterRecognizer::charges;
 const std::string CharacterRecognizer::like_bonds = "l1iI";
 
-double imago::getDistanceCapital(const Settings& vars, const Segment& seg)
+/*double imago::getDistanceCapital(const Settings& vars, const Segment& seg)
 {
 	CharacterRecognizer temp(vars.characters.DefaultFourierClassesUse);
 	RecognitionDistance rd = temp.recognize_all(vars, seg, CharacterRecognizer::all, false);
@@ -41,14 +41,16 @@ double imago::getDistanceCapital(const Settings& vars, const Segment& seg)
 		return best_dist;
 	}
 	return DBL_MAX;
-}
+}*/
 
-bool imago::isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp)
+bool imago::isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp, char* result)
 {
 	CharacterRecognizer temp(vars.characters.DefaultFourierClassesUse);
 	RecognitionDistance rd = temp.recognize_all(vars, seg, CharacterRecognizer::all, false);
 	double best_dist;
 	char ch = rd.getBest(&best_dist);
+	if (result)
+		*result = ch;
 	if (std::find(CharacterRecognizer::like_bonds.begin(), CharacterRecognizer::like_bonds.end(), ch) != CharacterRecognizer::like_bonds.end())
 		return false;
 	if (best_dist < vars.characters.PossibleCharacterDistanceStrong && 

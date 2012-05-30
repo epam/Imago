@@ -16,8 +16,8 @@ namespace imago
 {
    class Segment;
 
-   bool isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp = false);
-   double getDistanceCapital(const Settings& vars, const Segment& seg);
+   bool isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp = false, char* result = NULL);
+   //double getDistanceCapital(const Settings& vars, const Segment& seg);
 	
    class CharacterRecognizer: CharacterRecognizerData
    {
