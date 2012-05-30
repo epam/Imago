@@ -3,7 +3,7 @@ void updateSettingsScanned(Settings &s)
 {
 	FUZZ s.general.UseProbablistics = false; // fuzzed, old value = false
 
-	FUZZ s.separator.extRatioMax = 1.8;
+	FUZZ s.separator.extRatioMax = 2.0;
 
 	FUZZ s.molecule.LengthFactor_long = 0.326257; // fuzzed, old value = 0.321022
 	FUZZ s.molecule.LengthFactor_medium = 0.407261; // fuzzed, old value = 0.420107
