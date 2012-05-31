@@ -1032,6 +1032,7 @@ bool Separator::_testDoubleBondV(const Settings& vars, Segment &segment )
    segment_tmp.getY() = 0;
    segment_tmp.getX() = segment.getX();
    tmp.init(_img.getWidth(), segment.getHeight());
+   tmp.fillWhite();
 
    {
       int x, y, rows = tmp.getHeight(), cols = tmp.getWidth(),
