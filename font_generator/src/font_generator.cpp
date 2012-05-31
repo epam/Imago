@@ -241,7 +241,7 @@ int main(int argc, char **argv)
 			   dc.push_back(cc.getImaginary());
 		   }
 
-		   contour.Normalize();
+		   contour.NormalizeByPerimeter();
 		   for(int i = 0; i <  contour.Size(); i++)
 		   {
 			   imago::ComplexNumber cc = contour.getContour(i);
