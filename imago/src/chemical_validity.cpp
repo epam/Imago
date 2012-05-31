@@ -173,6 +173,7 @@ namespace imago
 		elements.push_back(ElementEntry("Si", 0.6));		
 		elements.push_back(ElementEntry("Ar", 0.6));		
 		elements.push_back(ElementEntry("Ti", 0.6));
+		elements.push_back(ElementEntry("Br", 0.6));
 		
 		elements.push_back(ElementEntry("Sc", 0.1));		
 		elements.push_back(ElementEntry("V",  0.1));
@@ -185,8 +186,7 @@ namespace imago
 		elements.push_back(ElementEntry("Ga", 0.1));
 		elements.push_back(ElementEntry("Ge", 0.1));
 		elements.push_back(ElementEntry("As", 0.1));
-		elements.push_back(ElementEntry("Se", 0.1));
-		elements.push_back(ElementEntry("Br", 0.1));
+		elements.push_back(ElementEntry("Se", 0.1));		
 		elements.push_back(ElementEntry("Kr", 0.1));
 		elements.push_back(ElementEntry("Ag", 0.1));
 		elements.push_back(ElementEntry("Cd", 0.1));
