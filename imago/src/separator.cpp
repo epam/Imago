@@ -1039,7 +1039,8 @@ bool Separator::_testDoubleBondV(const Settings& vars, Segment &segment )
 
       for (y = 0; y < rows; y++)
          for (x = 0; x < cols; x++)
-            tmp.getByte(x, y) = _img.getByte(x, y + y0);
+			 if (y + y0 < _img.getHeight())
+				tmp.getByte(x, y) = _img.getByte(x, y + y0);
    }
 
    ImageUtils::putSegment(tmp, segment_tmp, false);
