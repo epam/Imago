@@ -194,7 +194,7 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 	}
 
 	getLogExt().appendMap("Current distance map", pr);
-	getLogExt().append("Ranged best candidates", pr.getRangedBest());
+	//getLogExt().append("Ranged best candidates", pr.getRangedBest());
 	getLogExt().append("Quality", pr.getQuality());
 
 

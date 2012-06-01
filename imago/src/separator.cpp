@@ -503,7 +503,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 				
 				if (s->getHeight() >= cap_height - sym_height_err && 
 					s->getHeight() <= cap_height + sym_height_err &&
-					s->getHeight() <= cap_height * 2 &&
+					s->getHeight() <= cap_height * 2 && // TODO
 					s->getWidth() <= vars.separator.capHeightRatio2 * cap_height) 
 				{
 					if (s->getRatio() > vars.separator.getRatio1 && s->getRatio() < vars.separator.getRatio2)

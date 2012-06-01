@@ -933,6 +933,8 @@ void prefilterStd(Settings& vars, Image &image )
 // NOTE: the input image must be thinned
 bool isCircle (const Settings& vars, Image &seg)
 {
+	logEnterFunction();
+
    int w = seg.getWidth();
    int h = seg.getHeight();
    int i, j;
@@ -993,34 +995,21 @@ bool isCircle (const Settings& vars, Image &seg)
       float r2 = fabs(points[i + 1].radius);
       float gapr = 1.f;
 
-	  if (r1 > r2 && r2 > vars.routines.Circle_Eps)
+	  if (r1 > r2 && r2 > EPS)
          gapr = r1 / r2;
-      else if (r2 < r1 && r1 > vars.routines.Circle_Eps)
+      else if (r2 < r1 && r1 > EPS)
          gapr = r2 / r1;
 
-	  if (gap < vars.routines.Circle_GapMin && gapr > vars.routines.Circle_RMax)
+	  if (gapr > vars.routines.Circle_GapRadiusMax)
       {
-         #ifdef DEBUG
-         printf("large radios gap: %3f -> %3f at %3f\n", r1, r2, points[i].ang);
-         #endif
+		  getLogExt().append("Radius gap", gapr);
          delete[] points;
          return false;
       }
 
-	  if (gap > vars.routines.Circle_GapMax)
+      if (gap > vars.routines.Circle_GapAngleMax && gap < 2 * PI - vars.routines.Circle_GapAngleMax)
       {
-         #ifdef DEBUG
-         printf("large gap: %3f at %3f\n", gap, points[i].ang);
-         #endif
-         delete[] points;
-         return false;
-      }
-	  // TODO: constants here
-      if (gap > PI / 8 && (points[i].ang < PI / 8 || points[i].ang > 7 * PI / 4))
-      {
-         #ifdef DEBUG
-         printf("C-like gap: %3f at %3f\n", gap, points[i].ang);
-         #endif
+		  getLogExt().append("C-like gap", gap);
          delete[] points;
          return false;
       }
@@ -1028,11 +1017,9 @@ bool isCircle (const Settings& vars, Image &seg)
 
    avg_radius /= npoints;
 
-   if (avg_radius < vars.routines.Circle_AvgRadius)
+   if (avg_radius < vars.routines.Circle_MinRadius)
    {
-      #ifdef DEBUG
-      printf("degenerate\n");
-      #endif
+	   getLogExt().append("Degenerated circle", avg_radius);
       delete[] points;
       return false;
    }
@@ -1050,8 +1037,11 @@ bool isCircle (const Settings& vars, Image &seg)
           avg_radius, sqrt(disp), ratio);
    #endif
 
+   getLogExt().append("avg_radius", avg_radius);
+   getLogExt().append("Ratio", ratio);
+
    delete[] points;
-   if (ratio > vars.routines.Circle_MaxRatio)
+   if (ratio > vars.routines.Circle_MaxDeviation)
       return false; // not a circle
    return true;
 }

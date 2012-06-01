@@ -73,7 +73,7 @@ namespace imago
 
       //Helpful functions
       void invert();
-      void crop();
+      void crop(int left = -1, int top = -1, int right = -1, int bottom = -1);
       void splitVert( int x, Image &left, Image &right ) const;
       void extract( int x1, int y1, int x2, int y2, Image &res );
       double density() const;

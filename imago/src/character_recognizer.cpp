@@ -145,59 +145,105 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
 {
    logEnterFunction();
 
+   // TODO: cache should not be static
+   // TODO: cache should be auto-cleanable
+   // TODO: check hash function correctness
+   static std::map<__int64, RecognitionDistance> _cacheClean, _cacheAdjusted;
+   __int64 segHash = 0, shift = 0;
+   
+   // hash against the source candidates
+   for (size_t i = 0; i < candidates.size(); i++)
+	   segHash ^= (candidates[i] << (i % (64-8)));
+   
+   // hash against the source pixels
+   for (int y = 0; y < seg.getHeight(); y++)
+   {
+	   for (int x = 0; x < seg.getWidth(); x++)
+		   if (seg.getByte(x,y) == 0) // ink
+		   {
+			   shift = (shift << 1) + x * 3 + y * 7;
+			   segHash ^= shift;
+		   }
+   }
+		   
    getLogExt().appendSegment("Source segment", seg);
    getLogExt().append("Candidates", candidates);
 
-	seg.initFeatures(vars, _count);
-	RecognitionDistance rec = recognize(vars, seg.getFeatures(), candidates, true);
-
-	getLogExt().appendMap("Distance map for source", rec);
+   RecognitionDistance rec;
+   getLogExt().append("Segment hash", segHash);
+   
+   if (_cacheClean.find(segHash) != _cacheClean.end())
+   {
+	   rec = _cacheClean[segHash];
+	   getLogExt().appendText("Used cache: clean");
+   }
+   else
+   {
+	   seg.initFeatures(vars, _count);
+	   rec = recognize(vars, seg.getFeatures(), candidates, true);
+	   _cacheClean[segHash] = rec;
+	   getLogExt().appendMap("Distance map for source", rec);
+	   getLogExt().appendText("Filled cache: clean");
+   }
 
 	if (can_adjust)
 	{
-		Points2i endpoints = SegmentTools::getEndpoints(seg);
-
-		SegmentTools::logEndpoints(seg, endpoints);
-
-		std::string probably, surely;
-		static EndpointsData endpointsHandler;
-
-		if ((int)endpoints.size() <= vars.characters.MaximalEndpointsUse)
+		if (_cacheAdjusted.find(segHash) != _cacheAdjusted.end())
 		{
-			endpointsHandler.getImpossibleToWrite(vars, endpoints.size(), probably, surely);
-			rec.adjust(vars.characters.WriteProbablyImpossibleFactor, probably);
-			rec.adjust(vars.characters.WriteSurelyImpossibleFactor, surely);
+			rec = _cacheAdjusted[segHash];
+			getLogExt().appendText("Used cache: adjusted");
 		}
-	
-		// easy-to-write adjust
-		switch(endpoints.size())
+		else
 		{
-		case 0:
-			rec.adjust(vars.characters.WriteVeryEasyFactor, "0oO");
-			break;
-		case 1:
-			rec.adjust(vars.characters.WriteEasyFactor, "Ppe");
-			break;
-		case 2:
-			rec.adjust(vars.characters.WriteEasyFactor, "ILNSsZz");
-			break;
-		case 3:
-			rec.adjust(vars.characters.WriteVeryEasyFactor, "3");
-			rec.adjust(vars.characters.WriteEasyFactor, "F");
-			break;
-		case 4:
-			rec.adjust(vars.characters.WriteEasyFactor, "fHK");
-			break;
-		case 6:
-			rec.adjust(vars.characters.WriteEasyFactor, "^");
-			break;
-		};
+			Points2i endpoints = SegmentTools::getEndpoints(seg);
 
-	   getLogExt().appendMap("Adjusted (result) distance map", rec);
+			SegmentTools::logEndpoints(seg, endpoints);
+
+			std::string probably, surely;
+			static EndpointsData endpointsHandler;
+
+			if ((int)endpoints.size() <= vars.characters.MaximalEndpointsUse)
+			{
+				endpointsHandler.getImpossibleToWrite(vars, endpoints.size(), probably, surely);
+				rec.adjust(vars.characters.WriteProbablyImpossibleFactor, probably);
+				rec.adjust(vars.characters.WriteSurelyImpossibleFactor, surely);
+			}
+	
+			// easy-to-write adjust
+			switch(endpoints.size())
+			{
+			case 0:
+				rec.adjust(vars.characters.WriteVeryEasyFactor, "0oO");
+				break;
+			case 1:
+				rec.adjust(vars.characters.WriteEasyFactor, "Ppe");
+				break;
+			case 2:
+				rec.adjust(vars.characters.WriteEasyFactor, "ILNSsZz");
+				break;
+			case 3:
+				rec.adjust(vars.characters.WriteVeryEasyFactor, "3");
+				rec.adjust(vars.characters.WriteEasyFactor, "F");
+				break;
+			case 4:
+				rec.adjust(vars.characters.WriteEasyFactor, "fHK");
+				break;
+			case 6:
+				rec.adjust(vars.characters.WriteEasyFactor, "^");
+				break;
+			};
+
+		   getLogExt().appendMap("Adjusted (result) distance map", rec);
+		   _cacheAdjusted[segHash] = rec;
+		   getLogExt().appendText("Filled cache: adjusted");
+		}
 	}
 
-   getLogExt().append("Result candidates", rec.getBest());
-   getLogExt().append("Recognition quality", rec.getQuality());
+	if (false && getLogExt().loggingEnabled())
+	{
+		getLogExt().append("Result candidates", rec.getBest());
+		getLogExt().append("Recognition quality", rec.getQuality());
+	}
 
    return rec;
 }

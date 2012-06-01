@@ -146,35 +146,34 @@ void Image::invert()
 /** 
  * @brief Crops image
  */
-void Image::crop()
+void Image::crop(int l, int t, int r, int b)
 {
-   int l, r, b, t;
    int i, j;
 
    byte *data = _data;
    int w = _width;
    int h = _height;
    
-   t = l = r = b = -1;
+   if (l == -1 || r == -1 || t == -1 || b == -1)
+   {
+	   for (i = 0; i < w * h && t == -1; i++)
+		  if (data[i] != 255)
+			 t = i / w;
 
-   for (i = 0; i < w * h && t == -1; i++)
-      if (data[i] != 255)
-         t = i / w;
+	   for (i = h * w - 1; i >= 0 && b == -1; i--)
+		  if (data[i] != 255)
+			 b = i / w;
 
-   for (i = h * w - 1; i >= 0 && b == -1; i--)
-      if (data[i] != 255)
-         b = i / w;
+	   for (i = 0; i < w && l == -1; i++)
+		  for (j = 0; j < h && l == -1; j++)
+			 if(data[j * w + i] != 255)
+				l = i;
 
-   for (i = 0; i < w && l == -1; i++)
-      for (j = 0; j < h && l == -1; j++)
-         if(data[j * w + i] != 255)
-            l = i;
-
-   for (i = w - 1; i >= 0 && r == -1; i--)
-      for (j = 0; j < h && r == -1; j++)
-         if(data[j * w + i] != 255)
-            r = i;
-
+	   for (i = w - 1; i >= 0 && r == -1; i--)
+		  for (j = 0; j < h && r == -1; j++)
+			 if(data[j * w + i] != 255)
+				r = i;
+   }
 
    
    if (t + b + l + r == -4)

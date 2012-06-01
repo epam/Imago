@@ -242,16 +242,32 @@ void GraphicsDetector::extractRingsCenters(const Settings& vars, SegmentDeque &s
             bool valid = true;
             double r = ((*it)->getWidth() + (*it)->getHeight()) / 4;
             Vec2d center = tmp.getCenter();
-            BOOST_FOREACH(Segment *s, segments)
+			for (SegmentDeque::iterator s_it = segments.begin(); s_it != segments.end(); s_it++)
+            //BOOST_FOREACH(Segment *s, segments)
             {
+				Segment* s = *s_it;
+				getLogExt().enterFunction("extractRingsCenters internal");
+				getLogExt().appendSegment("s", *s);
                double d = Vec2d::distance(center, s->getCenter());
+			   getLogExt().append("center.x", center.x);
+			   getLogExt().append("center.y", center.y);
+			   getLogExt().append("s->getCenter().x", s->getCenter().x);
+			   getLogExt().append("s->getCenter().y", s->getCenter().y);
 			   getLogExt().append("R", r);
 			   getLogExt().append("D", d);
-               if (d < r)
+               if (it != s_it && d < r)
                {
-                  valid = false;
-                  break;
+				   getLogExt().appendText("d < r");
+				   valid = false;                  
                }
+			   else
+			   {
+				   getLogExt().appendText("d >= r");
+				   //valid = true;
+			   }
+			   getLogExt().leaveFunction();
+			   if (!valid)
+				   break;
             }
 			getLogExt().append("valid", (int)valid);
 

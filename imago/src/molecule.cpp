@@ -272,6 +272,9 @@ void Molecule::aromatize( Points2d &aromatic_centers )
       }
 
       Vertex cur_vertex = begin_vertex, prev_vertex = (Vertex)0, next_vertex = (Vertex)0;
+
+	  if (cur_vertex == NULL)
+		  return; // TODO: throw & handle exception
    
       std::vector<Edge> aromatized_bonds;
 

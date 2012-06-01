@@ -110,6 +110,21 @@ namespace imago
 							if (image.getByte(x, y) != 255)
 								image.getByte(x, y) = 0;
 				}
+
+				// this code allows to crop image in rectangular border
+				// useful only for 1 image from Image2Structure set
+				// but works quite fast.
+				{
+					WeakSegmentator ws(image.getWidth(), image.getHeight());
+					ws.appendData(ImgAdapter(image,image), 1);
+
+					Rectangle viewport;
+					if (ws.needCrop(vars, viewport, 2 /*vars.prefilterCV.MaxRectangleCropLineWidth*/)) // TODO
+					{
+						image.crop(viewport.x1(), viewport.y1(), viewport.x2(), viewport.y2());
+					}
+				}
+
 				return true;
 			}
 			else
@@ -154,7 +169,7 @@ namespace imago
 				ImageUtils::copyMatToImage(weak, bin);
 
 				WeakSegmentator ws(raw.getWidth(), raw.getHeight());
-				ws.appendData(ImgAdapter(raw,bin), 1);				
+				ws.appendData(ImgAdapter(raw,bin), 1);
 
 				viewport = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
 				ws.needCrop(vars, viewport, vars.prefilterCV.MaxRectangleCropLineWidth);

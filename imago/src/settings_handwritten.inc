@@ -111,12 +111,12 @@ void updateSettingsHandwritten(Settings &s)
 	s.routines.Contour_Eps1 = 1.130985;
 	s.routines.Contour_Eps2 = 0.680156; 
 	FUZZ s.routines.LineThick_Grid = 10; // fuzzed, old value = 10
-	FUZZ s.routines.Circle_Eps = 0.000009; // fuzzed, old value = 0.000009
-	FUZZ s.routines.Circle_GapMin = 0.094056; // fuzzed, old value = 0.095043
-	FUZZ s.routines.Circle_GapMax = 0.910988; // fuzzed, old value = 0.904809
-	FUZZ s.routines.Circle_RMax = 1.960016; // fuzzed, old value = 1.954556
-	FUZZ s.routines.Circle_AvgRadius = 0.000108; // fuzzed, old value = 0.000108
-	FUZZ s.routines.Circle_MaxRatio = 0.343295; // fuzzed, old value = 0.340664
+
+	FUZZ s.routines.Circle_GapRadiusMax = 1.1;
+	FUZZ s.routines.Circle_GapAngleMax = 0.4;
+	FUZZ s.routines.Circle_MinRadius = 10.0;
+	FUZZ s.routines.Circle_MaxDeviation = 0.1;
+
 	FUZZ s.routines.Algebra_IntersectionEps = 0.010698; // fuzzed, old value = 0.010788
 	FUZZ s.routines.Algebra_SameLineEps = 0.206971; // fuzzed, old value = 0.212704
 	FUZZ s.routines.Approx_Eps1 = 1.149482; // fuzzed, old value = 1.141590

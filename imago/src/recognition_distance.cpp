@@ -35,22 +35,23 @@ namespace imago
 	}
 
 	double RecognitionDistance::getQuality() const
-	{
-		double result = 0.0;
+	{		
+		double min1 = 999.0, min2 = 1000.0;
 	
-		PrVec temp;
-		fillVector(temp);
-
-		if (!temp.empty())
+		for (RecognitionDistance::const_iterator it = this->begin(); it != this->end(); it++)
 		{
-			// TODO: really need only 2 max elements that can be done O(n)
-			std::sort(temp.begin(), temp.end(), sortCompareFunction);
-
-			result = 1.0; // ? temp[0].second;
-
-			if (temp.size() > 1)
-				result = temp[1].second - temp[0].second;
+			if (it->second < min1)
+			{
+				min2 = min1;
+				min1 = it->second;
+			}
+			else if (it->second < min2)
+				min2 = it->second;
 		}
+
+		double result = min2 - min1;
+		if (result > 1.0)
+			result = 1.0;
 
 		return result;
 	}
