@@ -561,6 +561,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 
 int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark)
 {
+	logEnterFunction();
 	int retVal = mark;
 	double bond_prob, sym_prob;
 	double aprior = 0.5;
@@ -586,11 +587,11 @@ int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark)
 			retVal = SEP_BOND;
 		else
 			retVal = SEP_SYMBOL;
-
+		
 		getLogExt().append("Graphic probability ", bond_prob);
 		getLogExt().append("Character probability ", sym_prob);
 
-		getLogExt().append("Probabilistic estimation", mark);	
+		getLogExt().append("Probabilistic estimation", retVal);	
 
 	}
 	catch (LogicException &e)
@@ -752,7 +753,9 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 		}
 
 		if (vars.general.UseProbablistics) // use probablistic method			
-			mark = PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND);
+			votes[PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND)]++;
+
+		mark = votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND;
 
          switch (mark)
          {
