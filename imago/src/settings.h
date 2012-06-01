@@ -262,6 +262,15 @@ namespace imago
 		double FillLabelFactor1, FillLabelFactor2;
 	};
 
+	struct ProbabilitySettings
+	{
+		double DefaultApriority;
+		double ApriorProb4SymbolCase;
+		double MinRatio2ConsiderGrPr;
+		double LogisticScale;
+		double LogisticLocation;
+	};
+
 	struct Settings
 	{
 		Settings(); // default constructor
@@ -291,5 +300,6 @@ namespace imago
 		SeparatorSettings separator;
 		LabelLogicSettings labels;
 		LabelCombinerSettings lcomb;
+		ProbabilitySettings p_estimator;
 	};
 }

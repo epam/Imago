@@ -229,5 +229,12 @@ void updateSettingsHandwritten(Settings &s)
 	FUZZ s.lcomb.H4SubscriptSpace = 0.515064; // fuzzed, old value = 0.523707
 	FUZZ s.lcomb.FillLabelFactor1 = 0.502598; // fuzzed, old value = 0.492685
 	FUZZ s.lcomb.FillLabelFactor2 = 0.493979; // fuzzed, old value = 0.482821
+
+	FUZZ s.p_estimator.DefaultApriority = 0.5;
+	FUZZ s.p_estimator.ApriorProb4SymbolCase = 0.8;
+	FUZZ s.p_estimator.MinRatio2ConsiderGrPr = 0.25;
+	FUZZ s.p_estimator.LogisticScale = 1.0;
+	FUZZ s.p_estimator.LogisticLocation = 1.0;
+
 }
 

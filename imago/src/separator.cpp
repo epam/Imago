@@ -564,20 +564,20 @@ int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark)
 	logEnterFunction();
 	int retVal = mark;
 	double bond_prob, sym_prob;
-	double aprior = 0.5;
+	double aprior = vars.p_estimator.DefaultApriority; //0.5
 
 	if(mark == SEP_SYMBOL)
-		aprior = 0.8;
+		aprior = vars.p_estimator.ApriorProb4SymbolCase;// 0.8;
 	else
 	{
 		double maxEdge = seg->getHeight() > seg ->getWidth() ? seg->getHeight() : seg->getWidth();
 		double surfaceRatio =  maxEdge / vars.estimation.CapitalHeight;
 
-		if(surfaceRatio < 0.25)
+		if(surfaceRatio < vars.p_estimator.MinRatio2ConsiderGrPr) //0.25)
 			surfaceRatio = 1.0 / surfaceRatio;
 				
 		aprior = 1.0 - 1.0 / 
-			( 1 + std::exp( - ( surfaceRatio - 1 ) ) );
+			( 1 + std::exp( - ( surfaceRatio - vars.p_estimator.LogisticLocation )/vars.p_estimator.LogisticScale ) );
 	}
 
 	try
