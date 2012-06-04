@@ -1,6 +1,6 @@
 @echo -------------------Updating variables-------------------
 
-set FUZZ_LEVEL_FILTERS=0.06
+set FUZZ_LEVEL_FILTERS=0.01
 set FUZZ_LEVEL_OTHER=0.1
 set PYTHON_DIR=C:\Python27
 set CPP_COMPILER="C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe"
