@@ -44,6 +44,10 @@ namespace imago
    private:
       CharacterRecognizer _cr;
       Image _origImage;
+
+	  void removeMoleculeCaptions(const Settings& vars, Image& img, SegmentDeque& layer_symbols, SegmentDeque& layer_graphics);
+	  void segmentate(const Settings& vars, Image& img, SegmentDeque& segments);
+	  void storeSegments(const Settings& vars, SegmentDeque& layer_symbols, SegmentDeque& layer_graphics);
       
       ChemicalStructureRecognizer( const ChemicalStructureRecognizer &csr );
    };

@@ -47,246 +47,333 @@
 
 using namespace imago;
 
-ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr(3) // TODO
+ChemicalStructureRecognizer::ChemicalStructureRecognizer() 
+	: _cr(3) // TODO
 {
 }
 
 ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname )
-   : _cr(3, fontname)
+   : _cr(3, fontname) // TODO
 {
+}
+
+void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, Image& img, SegmentDeque& symbols, SegmentDeque& graphics)
+{
+	logEnterFunction();
+	getLogExt().append("Symbols height", vars.estimation.CapitalHeight);
+	getLogExt().append("Symbols height max", vars.separator.capHeightMax);
+	getLogExt().appendImage("img", img);
+	
+	const int min_cap_chars = 3; // TODO
+	double minWidth = min_cap_chars * (vars.estimation.MinSymRatio + vars.estimation.MaxSymRatio) / 2.0 * vars.estimation.CapitalHeight;
+	double maxHeight = (1.25 * vars.estimation.CapitalHeight) * vars.separator.capHeightMax; // TODO
+	double minHeight = vars.estimation.CapitalHeight * vars.estimation.CapitalHeightError;
+	double centerShiftMax = 5.0;
+	int borderDistance = round(vars.estimation.CapitalHeight);
+	getLogExt().append("minWidth", minWidth);
+	getLogExt().append("maxHeight", maxHeight);
+	getLogExt().append("minHeight", minHeight);
+	getLogExt().append("borderDistance", borderDistance);
+
+	Rectangle badBounding(0, 0, 0, 0);
+
+	WeakSegmentator ws(img.getWidth(), img.getHeight());
+	ws.appendData(prefilter_cv::ImgAdapter(img, img), round(vars.estimation.CapitalHeight));
+	for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
+	{
+		RectShapedBounding b(it->second);		
+		//getLogExt().appendPoints("segment", it->second);
+		getLogExt().append("width", b.getBounding().width);
+		getLogExt().append("height", b.getBounding().height);
+		if (b.getBounding().height <= maxHeight &&
+			b.getBounding().height >= minHeight &&
+			b.getBounding().width  >= minWidth &&
+			  (b.getBounding().y1() < borderDistance || 
+			   b.getBounding().y2() >= img.getHeight() - borderDistance)
+			  && 
+			  (b.getBounding().x1() < borderDistance ||
+			   b.getBounding().x2() >= img.getWidth() - borderDistance ||
+			   absolute((b.getBounding().x1() + b.getBounding().x2()) / 2.0 - img.getWidth() / 2.0) <= centerShiftMax * borderDistance
+			  )
+		    )
+		{
+			getLogExt().appendPoints("possibly caption", it->second);
+			if (b.getBounding().width > badBounding.width)
+			{
+				badBounding = b.getBounding();
+			}
+		}
+	}
+
+	if (badBounding.width > 0 && badBounding.height > 0)
+	{
+		getLogExt().appendText("Caption bounding is found, filtering segments");
+
+		for (SegmentDeque::iterator it = symbols.begin(); it != symbols.end(); )
+			if ((*it)->getX() >= badBounding.x1() - 1 && 
+				(*it)->getX() + (*it)->getWidth() <= badBounding.x2() + 2 &&
+				(*it)->getY() >= badBounding.y1() - 1 && 
+				(*it)->getY() + (*it)->getHeight() <= badBounding.y2() + 2)
+			{
+				delete *it;
+				it = symbols.erase(it);
+			}
+			else
+				it++;
+
+		for (SegmentDeque::iterator it = graphics.begin(); it != graphics.end(); )
+			if ((*it)->getX() >= badBounding.x1() - 1 && 
+				(*it)->getX() + (*it)->getWidth() <= badBounding.x2() + 2 &&
+				(*it)->getY() >= badBounding.y1() - 1 && 
+				(*it)->getY() + (*it)->getHeight() <= badBounding.y2() + 2)
+			{
+				delete *it;
+				it = graphics.erase(it);
+			}
+			else
+				it++;
+	}
+}
+
+void ChemicalStructureRecognizer::segmentate(const Settings& vars, Image& img, SegmentDeque& segments)
+{
+	logEnterFunction();
+
+	// extract segments using WeakSegmentator
+	WeakSegmentator ws(img.getWidth(), img.getHeight());
+	// ws.ConnectMode = true;
+	ws.appendData(prefilter_cv::ImgAdapter(img, img), vars.csr.WeakSegmentatorDist);
+	for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
+	{
+		const Points2i& pts = it->second;
+		RectShapedBounding b(pts);
+		Segment *s = new Segment();
+		s->init(b.getBounding().width+1, b.getBounding().height+1);
+		s->fillWhite();
+		s->getX() = b.getBounding().x;
+		s->getY() = b.getBounding().y;
+		for (size_t u = 0; u < pts.size(); u++)
+		s->getByte(pts[u].x - b.getBounding().x, pts[u].y - b.getBounding().y) = 0;
+		segments.push_back(s);
+	}	
+}
+
+void ChemicalStructureRecognizer::storeSegments(const Settings& vars, SegmentDeque& layer_symbols, SegmentDeque& layer_graphics)
+{
+	BOOST_FOREACH( Segment *s, layer_symbols )
+	{
+		RecognitionDistance rd = getCharacterRecognizer().recognize_all(vars, *s, CharacterRecognizer::all, true);
+		double dist = 0.0;
+		char res = rd.getBest(&dist);
+		double qual = rd.getQuality();
+
+		char filename[MAX_TEXT_LINE] = {0};
+
+		platform::MKDIR("./characters");
+
+		if (dist > vars.characters.PossibleCharacterDistanceWeak)
+		{
+			int digits = (int)std::log10(dist);
+			if(digits > 10)
+				dist /= std::pow(10.0, digits - 10);
+			// in case res == 0 is true filename does not get the name of the file and exception is thrown
+			if(res == 0)
+				res = '0';
+			platform::MKDIR("./characters/bad");
+			sprintf(filename, "./characters/bad/%c_d%4.2f_q%4.2f.png", res, dist, qual);
+		}
+		else if (qual < vars.characters.PossibleCharacterMinimalQuality)
+		{
+			platform::MKDIR("./characters/similar");
+			sprintf(filename, "./characters/similar/%c_d%4.2f_q%4.2f.png", res, dist, qual);
+		}
+		else
+		{
+			platform::MKDIR("./characters/good");
+			sprintf(filename, "./characters/good/%c_d%4.2f_q%4.2f.png", res, dist, qual);
+		}
+
+		ImageUtils::saveImageToFile(*s, filename);
+	}
+
+	BOOST_FOREACH( Segment *s, layer_graphics )
+	{
+		char filename[MAX_TEXT_LINE] = {0};
+		platform::MKDIR("./graphics");			  
+		sprintf(filename, "./graphics/d%4.2f_q%4.2f.png", s->density(), s->getRatio());			  
+		ImageUtils::saveImageToFile(*s, filename);
+	}
 }
 
 void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol) 
 {
 	logEnterFunction();
 
-   try
-   {
-      mol.clear();
-
-      SegmentDeque layer_symbols, layer_graphics, segments;
-      
-      Image &_img = _origImage;
-
-      _img.crop();
-	  vars.general.ImageWidth = _img.getWidth();
-	  vars.general.ImageHeight = _img.getHeight();
-
-      if (!_img.isInit())
-      {
-		  throw ImagoException("Empty image, nothing to recognize");
-      }
-
-	  vars.estimation.LineThickness = estimateLineThickness(_img, vars.routines.LineThick_Grid);
-	  
-	  getLogExt().appendImage("Cropped image", _img);
-
-	  // extract segments using WeakSegmentator
-	  WeakSegmentator ws(_img.getWidth(), _img.getHeight());
-	  // ws.ConnectMode = true;
-	  ws.appendData(prefilter_cv::ImgAdapter(_img, _img), vars.csr.WeakSegmentatorDist);
-	  for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
-	  {
-		  const Points2i& pts = it->second;
-		  RectShapedBounding b(pts);
-		  Segment *s = new Segment();
-		  s->init(b.getBounding().width+1, b.getBounding().height+1);
-		  s->fillWhite();
-		  s->getX() = b.getBounding().x;
-		  s->getY() = b.getBounding().y;
-		  for (size_t u = 0; u < pts.size(); u++)
-			s->getByte(pts[u].x - b.getBounding().x, pts[u].y - b.getBounding().y) = 0;
-		  segments.push_back(s);
-	  }
-	  // ------------------------
-
-      if (segments.size() == 0)
-      {
-         throw ImagoException("Empty image, nothing to recognize");
-      }
-
-      WedgeBondExtractor wbe(segments, _img);
-      {
-         int sdb_count = wbe.singleDownFetch(vars, mol);
-		 getLogExt().append("Single-down bonds found", sdb_count);
-      }
-	  
-      Separator sep(segments, _img);
-
-      sep.firstSeparation(vars, layer_symbols, layer_graphics);
-
-	  getLogExt().append("Symbols", layer_symbols.size());
-	  getLogExt().append("Graphics", layer_graphics.size());
-
-
-	  if (layer_graphics.size() == 0 && layer_symbols.size() == 1)
-	  {
-		  getLogExt().appendText("HACK: No graphics detected, assume symbols are graphics");
-		  layer_graphics = layer_symbols;
-		  layer_symbols.clear();
-	  }
-
-	  if (getLogExt().loggingEnabled())
-      {
-         Image symbols, graphics;
-
-         symbols.emptyCopy(_img);
-         graphics.emptyCopy(_img);
-
-         BOOST_FOREACH( Segment *s, layer_symbols )
-            ImageUtils::putSegment(symbols, *s, true);
-
-         BOOST_FOREACH( Segment *s, layer_graphics )
-            ImageUtils::putSegment(graphics, *s, true);
-
-		 getLogExt().appendImage("Letters", symbols);
-		 getLogExt().appendImage("Graphics", graphics);
-      }
-
-	  if (vars.general.ExtractCharactersOnly)
-	  {
-		  BOOST_FOREACH( Segment *s, layer_symbols )
-		  {
-			  RecognitionDistance rd = getCharacterRecognizer().recognize_all(vars, *s, CharacterRecognizer::all, true);
-			  double dist = 0.0;
-			  char res = rd.getBest(&dist);
-			  double qual = rd.getQuality();
-
-			  char filename[MAX_TEXT_LINE] = {0};
-
-			  platform::MKDIR("./characters");
-
-			  if (dist > vars.characters.PossibleCharacterDistanceWeak)
-			  {
-				  int digits = (int)std::log10(dist);
-				  if(digits > 10)
-					  dist /= std::pow(10.0, digits - 10);
-				  // in case res == 0 is true filename does not get the name of the file and exception is thrown
-				  if(res == 0)
-					  res = '0';
-				  platform::MKDIR("./characters/bad");
-				  sprintf(filename, "./characters/bad/%c_d%4.2f_q%4.2f.png", res, dist, qual);
-			  }
-			  else if (qual < vars.characters.PossibleCharacterMinimalQuality)
-			  {
-				  platform::MKDIR("./characters/similar");
-				  sprintf(filename, "./characters/similar/%c_d%4.2f_q%4.2f.png", res, dist, qual);
-			  }
-			  else
-			  {
-				  platform::MKDIR("./characters/good");
-				  sprintf(filename, "./characters/good/%c_d%4.2f_q%4.2f.png", res, dist, qual);
-			  }
-
-			  ImageUtils::saveImageToFile(*s, filename);
-		  }
-
-		  BOOST_FOREACH( Segment *s, layer_graphics )
-		  {
-
-			  char filename[MAX_TEXT_LINE] = {0};
-
-			  platform::MKDIR("./graphics");
-			  
-			  sprintf(filename, "./graphics/d%4.2f_q%4.2f.png", s->density(), s->getRatio());
-			  
-			  ImageUtils::saveImageToFile(*s, filename);
-		  }
-
-		  return;
-	  }
-
-
-      if (!layer_symbols.empty())
-      {
-         LabelCombiner lc(vars, layer_symbols, layer_graphics, _cr);
-
-		 if (vars.estimation.CapitalHeight > 0.0)
-            lc.extractLabels(mol.getLabels());
-
-		 if (getLogExt().loggingEnabled())
-         {
-            Image symbols;
-            symbols.emptyCopy(_img);
-            BOOST_FOREACH( Segment *s, layer_symbols )
-               ImageUtils::putSegment(symbols, *s, true);
-            getLogExt().appendImage("Symbols with layer_symbols added", symbols);
-         }
-
-		 getLogExt().append("Found superatoms", mol.getLabels().size());
-      }
-      else
-      {
-		  getLogExt().appendText("No symbols found");
-      }
-
-      Points2d ringCenters;
-
-	getLogExt().appendText("Before line vectorization");
-
-	if (vars.csr.UseSimpleApproximator)
+	try
 	{
-		SimpleApproximator sApprox;
-		GraphicsDetector gd(&sApprox, 0.3); // no one cares
-		gd.extractRingsCenters(vars, layer_graphics, ringCenters);
-		GraphExtractor::extract(vars, gd, layer_graphics, mol);
-	}
-	else
-	{
-		double lnThickness = vars.estimation.LineThickness;
-		getLogExt().append("Line Thickness", lnThickness);
-		CvApproximator cvApprox;
-		GraphicsDetector gd(&cvApprox, lnThickness * vars.csr.LineVectorizationFactor);
-		gd.extractRingsCenters(vars, layer_graphics, ringCenters);
-		GraphExtractor::extract(vars, gd, layer_graphics, mol);
-	}		  
+		mol.clear();
 
-      wbe.singleUpFetch(vars, mol);
-
-	  while (mol._dissolveShortEdges(vars.csr.Dissolve, true));
-
-	  mol.deleteBadTriangles(vars.csr.DeleteBadTriangles);
+		SegmentDeque layer_symbols, layer_graphics, segments;
       
-      if (!layer_symbols.empty())
-      {         
-		 LabelLogic ll(_cr);
-         std::deque<Label> unmapped_labels;
+		Image &_img = _origImage;
+
+		_img.crop();
+		vars.general.ImageWidth = _img.getWidth();
+		vars.general.ImageHeight = _img.getHeight();
+
+		if (!_img.isInit())
+		{
+			throw ImagoException("Empty image, nothing to recognize");
+		}
+
+		vars.estimation.LineThickness = estimateLineThickness(_img, vars.routines.LineThick_Grid);
+	  
+		getLogExt().appendImage("Cropped image", _img);		
+
+		segmentate(vars, _img, segments);
+
+		if (segments.size() == 0)
+		{
+			throw ImagoException("Empty image, nothing to recognize");
+		}
+
+		WedgeBondExtractor wbe(segments, _img);
+		{
+			int sdb_count = wbe.singleDownFetch(vars, mol);
+			getLogExt().append("Single-down bonds found", sdb_count);
+		}
+	  
+		Separator sep(segments, _img);
+
+		sep.firstSeparation(vars, layer_symbols, layer_graphics);
+
+		getLogExt().append("Symbols", layer_symbols.size());
+		getLogExt().append("Graphics", layer_graphics.size());
+
+		if (!vars.general.IsHandwritten)
+		{
+			removeMoleculeCaptions(vars, _img, layer_symbols, layer_graphics);
+		}
+
+		if (layer_graphics.size() == 0 && layer_symbols.size() == 1)
+		{
+			getLogExt().appendText("HACK: No graphics detected, assume symbols are graphics");
+			layer_graphics = layer_symbols;
+			layer_symbols.clear();
+		}
+
+		if (getLogExt().loggingEnabled())
+		{
+			Image symbols, graphics;
+
+			symbols.emptyCopy(_img);
+			graphics.emptyCopy(_img);
+
+			BOOST_FOREACH( Segment *s, layer_symbols )
+			ImageUtils::putSegment(symbols, *s, true);
+
+			BOOST_FOREACH( Segment *s, layer_graphics )
+			ImageUtils::putSegment(graphics, *s, true);
+
+			getLogExt().appendImage("Letters", symbols);
+			getLogExt().appendImage("Graphics", graphics);
+		}
+
+		if (vars.general.ExtractCharactersOnly)
+		{
+			storeSegments(vars, layer_symbols, layer_graphics);
+			return;
+		}
+
+		if (!layer_symbols.empty())
+		{
+			LabelCombiner lc(vars, layer_symbols, layer_graphics, _cr);
+
+			if (vars.estimation.CapitalHeight > 0.0)
+			lc.extractLabels(mol.getLabels());
+
+			if (getLogExt().loggingEnabled())
+			{
+				Image symbols;
+				symbols.emptyCopy(_img);
+				BOOST_FOREACH( Segment *s, layer_symbols )
+				ImageUtils::putSegment(symbols, *s, true);
+				getLogExt().appendImage("Symbols with layer_symbols added", symbols);
+			}
+
+			getLogExt().append("Found superatoms", mol.getLabels().size());
+		}
+		else
+		{
+			getLogExt().appendText("No symbols found");
+		}
+
+		Points2d ringCenters;
+
+		getLogExt().appendText("Before line vectorization");
+
+		if (vars.csr.UseSimpleApproximator)
+		{
+			SimpleApproximator sApprox;
+			GraphicsDetector gd(&sApprox, 0.3); // no one cares
+			gd.extractRingsCenters(vars, layer_graphics, ringCenters);
+			GraphExtractor::extract(vars, gd, layer_graphics, mol);
+		}
+		else
+		{
+			double lnThickness = vars.estimation.LineThickness;
+			getLogExt().append("Line Thickness", lnThickness);
+			CvApproximator cvApprox;
+			GraphicsDetector gd(&cvApprox, lnThickness * vars.csr.LineVectorizationFactor);
+			gd.extractRingsCenters(vars, layer_graphics, ringCenters);
+			GraphExtractor::extract(vars, gd, layer_graphics, mol);
+		}		  
+
+		wbe.singleUpFetch(vars, mol);
+
+		while (mol._dissolveShortEdges(vars.csr.Dissolve, true));
+
+		mol.deleteBadTriangles(vars.csr.DeleteBadTriangles);
+      
+		if (!layer_symbols.empty())
+		{         
+			LabelLogic ll(_cr);
+			std::deque<Label> unmapped_labels;
                  
-         BOOST_FOREACH(Label &l, mol.getLabels())
-            ll.recognizeLabel(vars, l);
+			BOOST_FOREACH(Label &l, mol.getLabels())
+			ll.recognizeLabel(vars, l);
          
-		 getLogExt().appendText("Label recognizing");
+			getLogExt().appendText("Label recognizing");
          
-         mol.mapLabels(vars, unmapped_labels);
+			mol.mapLabels(vars, unmapped_labels);
 
-         GraphicsDetector().analyzeUnmappedLabels(unmapped_labels, ringCenters);
-		 getLogExt().append("Found rings", ringCenters.size());
-      }
-	  else
-	  {
-		  getLogExt().appendText("Layer_symbols is empty!");
-	  }
+			GraphicsDetector().analyzeUnmappedLabels(unmapped_labels, ringCenters);
+			getLogExt().append("Found rings", ringCenters.size());
+		}
+		else
+		{
+			getLogExt().appendText("Layer_symbols is empty!");
+		}
 
-      mol.aromatize(ringCenters);
-	  //mol._connectBridgedBonds();
+		mol.aromatize(ringCenters);
+		//mol._connectBridgedBonds();
 
-      wbe.fixStereoCenters(mol);      
+		wbe.fixStereoCenters(mol);      
 
-      BOOST_FOREACH( Segment *s, layer_symbols )
-         delete s;
-      BOOST_FOREACH( Segment *s, layer_graphics )
-         delete s;
+		BOOST_FOREACH( Segment *s, layer_symbols )
+			delete s;
+		BOOST_FOREACH( Segment *s, layer_graphics )
+			delete s;
 
-      layer_symbols.clear();
-      layer_graphics.clear();
+		layer_symbols.clear();
+		layer_graphics.clear();
 
-	  getLogExt().appendText("Recognition finished");
-   }
-   catch (ImagoException&)
-   {
-      throw;
-   }
-
+		getLogExt().appendText("Recognition finished");
+	}
+	catch (ImagoException&)
+	{
+		throw;
+	}
 }
 
 void ChemicalStructureRecognizer::image2mol(Settings& vars, Image &img, Molecule &mol )
