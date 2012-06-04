@@ -113,6 +113,8 @@ if(IRECO)
 else()
 	#No need for this now
 	add_subdirectory(font_generator)
+	add_subdirectory(tools/constfuzzer)
+	add_subdirectory(tools/timelimit)
 	add_subdirectory(imago_c)
 	add_subdirectory(alter-ego)
 	add_subdirectory(tests/vs)
