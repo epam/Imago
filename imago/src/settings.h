@@ -245,6 +245,7 @@ namespace imago
 		double ext2charRatio;
 		int minApproxSegsStrong, minApproxSegsWeak;
 		int specialSegmentsTreat;
+		bool UseVoteArray;
 	};
 
 	struct LabelLogicSettings

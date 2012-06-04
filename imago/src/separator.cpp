@@ -488,8 +488,8 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 
 			if(extracted.getHeight() < vars.separator.capHeightRatio *cap_height || (symbRects[i].height * symbRects[i].width > surf_coeff * cap_height * cap_height))
 			{
-			mark = SEP_SUSPICIOUS;
-			getLogExt().appendText("mark -> SEP_SUSPICIOUS");
+				mark = SEP_SUSPICIOUS;
+				getLogExt().appendText("mark -> SEP_SUSPICIOUS");
 			}
 
 			mark = (mark == SEP_SUSPICIOUS)  && isTextContext ? SEP_SYMBOL : mark;
@@ -727,35 +727,40 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 				wh > vars.separator.extRatioMax &&
 				wh < vars.separator.ext2charRatio * vars.separator.extRatioMax;
 		
-		if(s->getHeight() > vars.separator.extCapHeightMin * cap_height && 
-			s->getHeight() < vars.separator.extCapHeightMax * cap_height &&
-			                       wh > vars.separator.extRatioMin && 
-			(two_chars_probably || wh < vars.separator.extRatioMax) )
-		{
-			int segs = _getApproximationSegmentsCount(vars, s) - 1;
-			getLogExt().append("Approx segs", segs);
-			char ch;
-			if (segs > vars.separator.minApproxSegsStrong && isPossibleCharacter(vars, *s, false, &ch) ||
-				segs > vars.separator.minApproxSegsWeak   && isPossibleCharacter(vars, *s, true,  &ch) )
+			if (s->getHeight() > vars.separator.extCapHeightMin * cap_height && 
+				s->getHeight() < vars.separator.extCapHeightMax * cap_height &&
+									   wh > vars.separator.extRatioMin && 
+				(two_chars_probably || wh < vars.separator.extRatioMax) )
 			{
-				if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
+				int segs = _getApproximationSegmentsCount(vars, s) - 1;
+				getLogExt().append("Approx segs", segs);
+				char ch;
+				if (segs > vars.separator.minApproxSegsStrong && isPossibleCharacter(vars, *s, false, &ch) ||
+					segs > vars.separator.minApproxSegsWeak   && isPossibleCharacter(vars, *s, true,  &ch) )
 				{
-					getLogExt().append("Segment passed as 2-chars, but recognized as", ch);
-				}
-				else
-				{
-					getLogExt().appendText("Segment moved to layer_symbols");
-					mark = SEP_SYMBOL;
-					votes[SEP_SYMBOL]++;
-				}
-			}			
-		}	
+					if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
+					{
+						getLogExt().append("Segment passed as 2-chars, but recognized as", ch);
+					}
+					else
+					{
+						getLogExt().appendText("Segment moved to layer_symbols");
+						mark = SEP_SYMBOL;
+						votes[SEP_SYMBOL]++;
+					}
+				}			
+			}	
 		}
 
 		if (vars.general.UseProbablistics) // use probablistic method			
-			votes[PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND)]++;
+		{
+			votes[PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND)]++;			
+		}
 
-		mark = votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND;
+		if (vars.separator.UseVoteArray)
+		{
+			mark = votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND;
+		}
 
          switch (mark)
          {

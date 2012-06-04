@@ -114,7 +114,7 @@ void updateSettingsHighResolution(Settings &s)
 
 	FUZZ s.routines.Circle_GapRadiusMax = 1.25;
 	FUZZ s.routines.Circle_GapAngleMax = 0.5;
-	FUZZ s.routines.Circle_MinRadius = 16.0;
+	FUZZ s.routines.Circle_MinRadius = 10.0;
 	FUZZ s.routines.Circle_MaxDeviation = 0.2;
 	FUZZ s.routines.Circle_AsCharFactor = 1.4;
 
@@ -207,6 +207,7 @@ void updateSettingsHighResolution(Settings &s)
 	FUZZ s.separator.minApproxSegsStrong = 4; // fuzzed, old value = 4
 	FUZZ s.separator.minApproxSegsWeak = 8; // fuzzed, old value = 8
 	FUZZ s.separator.specialSegmentsTreat = 4; // fuzzed, old value = 4
+	FUZZ s.separator.UseVoteArray = true;
 
 	FUZZ s.labels.underlinePos = 0.505753; // fuzzed, old value = 0.493972
 	FUZZ s.labels.weightUnderline = 0.299877; // fuzzed, old value = 0.294700
