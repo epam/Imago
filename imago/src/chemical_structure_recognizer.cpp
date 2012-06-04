@@ -61,6 +61,14 @@ void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 {
 	logEnterFunction();
 	getLogExt().append("Symbols height", vars.estimation.CapitalHeight);
+
+	if (vars.estimation.CapitalHeight < 5 || vars.estimation.CapitalHeight > 40) // TODO
+	{
+		getLogExt().appendText("Unappropriate symbols height");
+		return;
+	}
+
+
 	getLogExt().append("Symbols height max", vars.separator.capHeightMax);
 	getLogExt().appendImage("img", img);
 	
@@ -74,8 +82,6 @@ void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 	getLogExt().append("maxHeight", maxHeight);
 	getLogExt().append("minHeight", minHeight);
 	getLogExt().append("borderDistance", borderDistance);
-
-	Rectangle badBounding(0, 0, 0, 0);
 
 	WeakSegmentator ws(img.getWidth(), img.getHeight());
 	ws.appendData(prefilter_cv::ImgAdapter(img, img), round(vars.estimation.CapitalHeight));
@@ -98,40 +104,62 @@ void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 		    )
 		{
 			getLogExt().appendPoints("possibly caption", it->second);
-			if (b.getBounding().width > badBounding.width)
+			
 			{
-				badBounding = b.getBounding();
+				Rectangle badBounding = b.getBounding();
+
+				getLogExt().appendText("Caption bounding is found, filtering segments");
+
+				std::vector<Segment*> bad_symbols;
+				std::vector<Segment*> bad_graphics;
+
+				for (SegmentDeque::iterator it = symbols.begin(); it != symbols.end(); it++)
+					if ((*it)->getX() >= badBounding.x1() - 1 && 
+						(*it)->getX() < badBounding.x2() &&
+						(*it)->getY() >= badBounding.y1() - 2 && 
+						(*it)->getY() + (*it)->getHeight() <= badBounding.y2() + 2)
+					{
+						bad_symbols.push_back(*it);
+					}
+			
+
+				for (SegmentDeque::iterator it = graphics.begin(); it != graphics.end(); it++)
+					if ((*it)->getX() >= badBounding.x1() - 1 && 
+						(*it)->getX() < badBounding.x2() &&
+						(*it)->getY() >= badBounding.y1() - 2 && 
+						(*it)->getY() + (*it)->getHeight() <= badBounding.y2() + 2)
+					{
+						bad_graphics.push_back(*it);
+					}
+			
+				if (bad_symbols.size() > bad_graphics.size())
+				{
+					getLogExt().append("Erasing symbols", bad_symbols.size());
+					for (SegmentDeque::iterator it = symbols.begin(); it != symbols.end(); )
+					{
+						if (std::find(bad_symbols.begin(), bad_symbols.end(), *it) != bad_symbols.end())
+						{
+							delete *it;
+							it = symbols.erase(it);
+						}
+						else
+							it++;
+					}
+
+					getLogExt().append("Erasing graphics", bad_graphics.size());
+					for (SegmentDeque::iterator it = graphics.begin(); it != graphics.end(); )
+					{
+						if (std::find(bad_graphics.begin(), bad_graphics.end(), *it) != bad_graphics.end())
+						{
+							delete *it;
+							it = graphics.erase(it);
+						}
+						else
+							it++;
+					}
+				}
 			}
 		}
-	}
-
-	if (badBounding.width > 0 && badBounding.height > 0)
-	{
-		getLogExt().appendText("Caption bounding is found, filtering segments");
-
-		for (SegmentDeque::iterator it = symbols.begin(); it != symbols.end(); )
-			if ((*it)->getX() >= badBounding.x1() - 1 && 
-				(*it)->getX() + (*it)->getWidth() <= badBounding.x2() + 2 &&
-				(*it)->getY() >= badBounding.y1() - 1 && 
-				(*it)->getY() + (*it)->getHeight() <= badBounding.y2() + 2)
-			{
-				delete *it;
-				it = symbols.erase(it);
-			}
-			else
-				it++;
-
-		for (SegmentDeque::iterator it = graphics.begin(); it != graphics.end(); )
-			if ((*it)->getX() >= badBounding.x1() - 1 && 
-				(*it)->getX() + (*it)->getWidth() <= badBounding.x2() + 2 &&
-				(*it)->getY() >= badBounding.y1() - 1 && 
-				(*it)->getY() + (*it)->getHeight() <= badBounding.y2() + 2)
-			{
-				delete *it;
-				it = graphics.erase(it);
-			}
-			else
-				it++;
 	}
 }
 
