@@ -931,7 +931,7 @@ void prefilterStd(Settings& vars, Image &image )
 }
 	
 // NOTE: the input image must be thinned
-bool isCircle (const Settings& vars, Image &seg)
+bool isCircle (const Settings& vars, Image &seg, bool asChar)
 {
 	logEnterFunction();
 
@@ -1000,14 +1000,16 @@ bool isCircle (const Settings& vars, Image &seg)
       else if (r2 < r1 && r1 > EPS)
          gapr = r2 / r1;
 
-	  if (gapr > vars.routines.Circle_GapRadiusMax)
+	  double c = asChar ? 1.4 : 1.0;
+
+	  if (gapr > vars.routines.Circle_GapRadiusMax * c)
       {
 		  getLogExt().append("Radius gap", gapr);
          delete[] points;
          return false;
       }
 
-      if (gap > vars.routines.Circle_GapAngleMax && gap < 2 * PI - vars.routines.Circle_GapAngleMax)
+      if (gap > vars.routines.Circle_GapAngleMax * c && gap < 2 * PI - vars.routines.Circle_GapAngleMax * c)
       {
 		  getLogExt().append("C-like gap", gap);
          delete[] points;

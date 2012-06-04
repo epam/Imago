@@ -459,7 +459,7 @@ int HWCharacterRecognizer::recognize (const Settings& vars, Segment &seg)
    printf(" (%d ic)", features.inner_contours_count);
 #endif
    
-   if (isCircle(vars, thinseg))
+   if (isCircle(vars, thinseg, true))
    {
 #ifdef DEBUG
       printf(" circle ");
