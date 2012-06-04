@@ -127,6 +127,15 @@ void ComplexContour::Normalize()
 		Scale(1.0/max);
 }
 
+void ComplexContour::NormalizeByPerimeter()
+{
+	double perimeter = 0;
+	for(size_t i = 0; i < _contours.size(); i++)
+		perimeter += _contours[i].getRadius();
+	if(perimeter > 0)
+		Scale(1.0 / perimeter);
+}
+
 double ComplexContour::getNorm()
 {
 	double result = 0.;

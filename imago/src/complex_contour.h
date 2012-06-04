@@ -39,14 +39,6 @@ namespace imago{
 
 		~ComplexContour(void);
 		
-		/*  LineContour(std::deque<SegmentIndx> segs)
-		  {
-			  BOOST_FOREACH(SegmentIndx seg, segs)
-			  {
-				  _contours.push_back(ComplexNumber(seg));
-			  }
-		  }*/
-
 		  ComplexNumber& getContour(int shift);
 
 		  double DiffR2(ComplexContour lc);
@@ -64,6 +56,8 @@ namespace imago{
 		  void Scale(double scale);
 
 		  void Normalize();
+
+		  void NormalizeByPerimeter();
 
 		  double getNorm();
 
