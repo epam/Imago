@@ -172,6 +172,7 @@ namespace imago
 		double Circle_GapAngleMax;
 		double Circle_MinRadius; 
 		double Circle_MaxDeviation;
+		double Circle_AsCharFactor;
 		
 		double Algebra_IntersectionEps, Algebra_SameLineEps;
 		double Approx_Eps1, Approx_Eps2;

@@ -1000,7 +1000,7 @@ bool isCircle (const Settings& vars, Image &seg, bool asChar)
       else if (r2 < r1 && r1 > EPS)
          gapr = r2 / r1;
 
-	  double c = asChar ? 1.4 : 1.0;
+	  double c = asChar ? vars.routines.Circle_AsCharFactor : 1.0;
 
 	  if (gapr > vars.routines.Circle_GapRadiusMax * c)
       {

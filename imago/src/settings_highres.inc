@@ -116,6 +116,7 @@ void updateSettingsHighResolution(Settings &s)
 	FUZZ s.routines.Circle_GapAngleMax = 0.5;
 	FUZZ s.routines.Circle_MinRadius = 16.0;
 	FUZZ s.routines.Circle_MaxDeviation = 0.2;
+	FUZZ s.routines.Circle_AsCharFactor = 1.4;
 
 	FUZZ s.routines.Algebra_IntersectionEps = 0.010292; // fuzzed, old value = 0.010378
 	FUZZ s.routines.Algebra_SameLineEps = 0.201977; // fuzzed, old value = 0.207572
