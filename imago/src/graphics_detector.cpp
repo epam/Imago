@@ -226,66 +226,90 @@ void GraphicsDetector::extractRingsCenters(const Settings& vars, SegmentDeque &s
 {
 	logEnterFunction();
 
-   for (SegmentDeque::iterator it = segments.begin(); it != segments.end();)
-   {      
-	   if (absolute((*it)->getRatio() - vars.graph.RatioSub) < vars.graph.RatioTresh)
-      {
-         Segment tmp;
+	for (SegmentDeque::iterator it = segments.begin(); it != segments.end();)
+	{      
+		if (absolute((*it)->getRatio() - vars.graph.RatioSub) < vars.graph.RatioTresh)
+		{
+			Segment tmp;
 
-         tmp.copy(**it);
-         ThinFilter2(tmp).apply();
+			tmp.copy(**it);
+			ThinFilter2(tmp).apply();
 
-		 getLogExt().appendSegment("Ring?", tmp);
+			getLogExt().appendSegment("Ring?", tmp);
          
-         if (isCircle(vars, tmp))
-         {
-            bool valid = true;
-            double r = ((*it)->getWidth() + (*it)->getHeight()) / 4;
-            Vec2d center = tmp.getCenter();
-			for (SegmentDeque::iterator s_it = segments.begin(); s_it != segments.end(); s_it++)
-            //BOOST_FOREACH(Segment *s, segments)
-            {
-				Segment* s = *s_it;
-				getLogExt().enterFunction("extractRingsCenters internal");
-				getLogExt().appendSegment("s", *s);
-               double d = Vec2d::distance(center, s->getCenter());
-			   getLogExt().append("center.x", center.x);
-			   getLogExt().append("center.y", center.y);
-			   getLogExt().append("s->getCenter().x", s->getCenter().x);
-			   getLogExt().append("s->getCenter().y", s->getCenter().y);
-			   getLogExt().append("R", r);
-			   getLogExt().append("D", d);
-               if (it != s_it && d < r)
-               {
-				   getLogExt().appendText("d < r");
-				   valid = false;                  
-               }
-			   else
-			   {
-				   getLogExt().appendText("d >= r");
-				   //valid = true;
-			   }
-			   getLogExt().leaveFunction();
-			   if (!valid)
-				   break;
-            }
-			getLogExt().append("valid", (int)valid);
+			double radius;
+			if (isCircle(vars, tmp, radius))
+			{
+				bool valid = true;
 
-            if (!valid)
-            {
-               ++it;
-               continue;
-            }
+				if (radius < vars.estimation.CapitalHeight)
+				{
+					getLogExt().append("Radius too small", radius);
+					valid = false;
+				}
+				else
+				{	
+					// check circle is inside convex and nothing is inside circle
 
-            ring_centers.push_back(tmp.getCenter());
-            delete *it;
-            it = segments.erase(it);
-            continue;
-         }
-      }
-      ++it;
-   }
+					Image others(vars.general.ImageWidth, vars.general.ImageHeight);
+					others.fillWhite();
 
+					for (SegmentDeque::iterator it2 = segments.begin(); it2 != segments.end(); it2++)
+						if (it != it2)
+							ImageUtils::putSegment(others, *(*it2), true);
+					
+					getLogExt().appendImage("Others", others);
+
+					int center_x = (*it)->getX() + (*it)->getWidth() / 2;
+					int center_y = (*it)->getY() + (*it)->getHeight() / 2;
+
+					int intersections_outside = 0;
+					int intersections_inside = 0;
+
+					for (int angle = 0; angle < 360; angle++)
+					{
+						double dx = cos(2.0 * PI * angle / 360.0);
+						double dy = sin(2.0 * PI * angle / 360.0);
+						for (int r = 0; r < 2.0 * radius; r++) // TODO
+						{
+							int x = round(center_x + dx * r);
+							int y = round(center_y + dy * r);
+							if (x >= 0 && y >= 0 && x < others.getWidth() && y < others.getHeight())
+							{
+								if (others.getByte(x,y) == 0)
+								{
+									if (r < radius)
+										intersections_inside++;
+									else
+										intersections_outside++;
+									break;
+								}
+							}
+						}
+					}
+
+					getLogExt().append("Intersections inside", intersections_inside);
+					getLogExt().append("Intersections outside", intersections_outside);
+					
+					valid = intersections_outside > 270;
+				}
+
+				getLogExt().append("valid", valid);
+
+				if (!valid)
+				{
+					++it;
+					continue;
+				}
+
+				ring_centers.push_back(tmp.getCenter());
+				delete *it;
+				it = segments.erase(it);
+				continue;
+			} // if isCircle
+		} // if ratio...
+		++it;
+	} // for
 }
 
 

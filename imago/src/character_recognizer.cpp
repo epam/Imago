@@ -459,12 +459,11 @@ int HWCharacterRecognizer::recognize (const Settings& vars, Segment &seg)
    printf(" (%d ic)", features.inner_contours_count);
 #endif
    
-   if (isCircle(vars, thinseg, true))
+   double radius;
+   if (isCircle(vars, thinseg, radius, true))
    {
-#ifdef DEBUG
-      printf(" circle ");
-#endif
-      return 'O';
+	   if (radius < vars.estimation.CapitalHeight * vars.separator.capHeightMax)
+		   return 'O';
    }
 
  

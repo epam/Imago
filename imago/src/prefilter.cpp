@@ -930,8 +930,7 @@ void prefilterStd(Settings& vars, Image &image )
 
 }
 	
-// NOTE: the input image must be thinned
-bool isCircle (const Settings& vars, Image &seg, bool asChar)
+bool isCircle (const Settings& vars, Image &seg, double &radius, bool asChar)
 {
 	logEnterFunction();
 
@@ -1040,6 +1039,7 @@ bool isCircle (const Settings& vars, Image &seg, bool asChar)
    #endif
 
    getLogExt().append("avg_radius", avg_radius);
+   radius = avg_radius;
    getLogExt().append("Ratio", ratio);
 
    delete[] points;
