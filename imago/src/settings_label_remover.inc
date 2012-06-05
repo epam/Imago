@@ -1,11 +1,11 @@
 
 LabelRemoverSettings::LabelRemoverSettings()
 {
-	MinCapitalHeight = 5;
-	MaxCapitalHeight = 30;
-	MinLabelChars = 3;
-	HeightFactor = 1.25;
-	CenterShiftMax = 5.0;
-	PixGapX = 1;
-	PixGapY = 2;
+	FUZZ MinCapitalHeight = 5;
+	FUZZ MaxCapitalHeight = 30;
+	FUZZ MinLabelChars = 3;
+	FUZZ HeightFactor = 1.25;
+	FUZZ CenterShiftMax = 5.0;
+	FUZZ PixGapX = 1;
+	FUZZ PixGapY = 2;
 }
