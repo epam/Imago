@@ -119,7 +119,7 @@ namespace imago
 					ws.appendData(ImgAdapter(image,image), 1);
 
 					Rectangle viewport;
-					if (ws.needCrop(vars, viewport, 2 /*vars.prefilterCV.MaxRectangleCropLineWidth*/)) // TODO
+					if (ws.needCrop(vars, viewport, vars.prefilterCV.MaxRectangleCropLineWidthAlreadyBinarized))
 					{
 						image.crop(viewport.x1(), viewport.y1(), viewport.x2(), viewport.y2());
 					}

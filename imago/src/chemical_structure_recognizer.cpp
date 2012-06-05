@@ -62,7 +62,8 @@ void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 	logEnterFunction();
 	getLogExt().append("Symbols height", vars.estimation.CapitalHeight);
 
-	if (vars.estimation.CapitalHeight < 5 || vars.estimation.CapitalHeight > 40) // TODO
+	if (vars.estimation.CapitalHeight < vars.lab_remover.MinCapitalHeight || 
+		vars.estimation.CapitalHeight > vars.lab_remover.MaxCapitalHeight)
 	{
 		getLogExt().appendText("Unappropriate symbols height");
 		return;
@@ -72,11 +73,11 @@ void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 	getLogExt().append("Symbols height max", vars.separator.capHeightMax);
 	getLogExt().appendImage("img", img);
 	
-	const int min_cap_chars = 3; // TODO
+	const int min_cap_chars = vars.lab_remover.MinLabelChars;
 	double minWidth = min_cap_chars * (vars.estimation.MinSymRatio + vars.estimation.MaxSymRatio) / 2.0 * vars.estimation.CapitalHeight;
-	double maxHeight = (1.25 * vars.estimation.CapitalHeight) * vars.separator.capHeightMax; // TODO
+	double maxHeight = (vars.lab_remover.HeightFactor * vars.estimation.CapitalHeight) * vars.separator.capHeightMax;
 	double minHeight = vars.estimation.CapitalHeight * vars.estimation.CapitalHeightError;
-	double centerShiftMax = 5.0;
+	double centerShiftMax = vars.lab_remover.CenterShiftMax;
 	int borderDistance = round(vars.estimation.CapitalHeight);
 	getLogExt().append("minWidth", minWidth);
 	getLogExt().append("maxHeight", maxHeight);
@@ -114,20 +115,20 @@ void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 				std::vector<Segment*> bad_graphics;
 
 				for (SegmentDeque::iterator it = symbols.begin(); it != symbols.end(); it++)
-					if ((*it)->getX() >= badBounding.x1() - 1 && 
+					if ((*it)->getX() >= badBounding.x1() - vars.lab_remover.PixGapX && 
 						(*it)->getX() < badBounding.x2() &&
-						(*it)->getY() >= badBounding.y1() - 2 && 
-						(*it)->getY() + (*it)->getHeight() <= badBounding.y2() + 2)
+						(*it)->getY() >= badBounding.y1() - vars.lab_remover.PixGapY && 
+						(*it)->getY() + (*it)->getHeight() <= badBounding.y2() + vars.lab_remover.PixGapY)
 					{
 						bad_symbols.push_back(*it);
 					}
 			
 
 				for (SegmentDeque::iterator it = graphics.begin(); it != graphics.end(); it++)
-					if ((*it)->getX() >= badBounding.x1() - 1 && 
+					if ((*it)->getX() >= badBounding.x1() - vars.lab_remover.PixGapX && 
 						(*it)->getX() < badBounding.x2() &&
-						(*it)->getY() >= badBounding.y1() - 2 && 
-						(*it)->getY() + (*it)->getHeight() <= badBounding.y2() + 2)
+						(*it)->getY() >= badBounding.y1() - vars.lab_remover.PixGapY && 
+						(*it)->getY() + (*it)->getHeight() <= badBounding.y2() + vars.lab_remover.PixGapY)
 					{
 						bad_graphics.push_back(*it);
 					}

@@ -30,6 +30,7 @@ void updateSettingsHighResolution(Settings &s)
 	FUZZ s.estimation.DoubleBondDist = 21; // fuzzed, old value = 21
 	FUZZ s.estimation.SegmentVerEps = 4; // fuzzed, old value = 4
 	FUZZ s.estimation.CharactersSpaceCoeff = 0.535984; // fuzzed, old value = 0.545024
+	FUSS s.estimation.MaxSymbolHeightPercentsOfImage = 0.2;
 	//NormalizeBySide(SymHeightErr, LongestSide);
 
 	FUZZ s.mbond.LongBond = 123; // fuzzed, old value = 124

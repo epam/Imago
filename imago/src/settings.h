@@ -54,18 +54,17 @@ namespace imago
 		int MaxBadToGoodRatio;
 		int BorderPartProportion;
 		int MaxRectangleCropLineWidth;
+		int MaxRectangleCropLineWidthAlreadyBinarized;
 		int StrongBinarizeSize;
 		double StrongBinarizeTresh;
 		int WeakBinarizeSize;
 		double WeakBinarizeTresh;
-		
 		bool UseTresholdPixelsAddition;
 		double AdditionPercentage;
 		int MinGoodPixelsCount2;
 		int MaxBadToGoodRatio2;
 		double MaxFillRatio;
 		double HighResPassBound;
-
 		PrefilterCVSettings();
 	};
 
@@ -106,6 +105,16 @@ namespace imago
 		WeakSegmentatorSettings();
 	};
 
+	struct LabelRemoverSettings
+	{
+		int MinCapitalHeight, MaxCapitalHeight;
+		int MinLabelChars;
+		double HeightFactor;
+		double CenterShiftMax;
+		int PixGapX, PixGapY;
+		LabelRemoverSettings();
+	};
+
 	/// ------------------ cluster-depending settings ------------------ ///
 
 	struct EstimationSettings
@@ -117,6 +126,7 @@ namespace imago
 		double CharactersSpaceCoeff;
 		int DoubleBondDist;
 		int SegmentVerEps;
+		double MaxSymbolHeightPercentsOfImage;
 	};
 
 	struct MoleculeSettings
@@ -307,5 +317,6 @@ namespace imago
 		LabelLogicSettings labels;
 		LabelCombinerSettings lcomb;
 		ProbabilitySettings p_estimator;
+		LabelRemoverSettings lab_remover;
 	};
 }

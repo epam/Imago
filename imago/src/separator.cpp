@@ -971,6 +971,13 @@ int Separator::_estimateCapHeight(const Settings& vars)
 
    getLogExt().append("Return", cap_height);
 
+   double cap_height_limit = std::max(vars.general.ImageWidth, vars.general.ImageHeight) * vars.estimation.MaxSymbolHeightPercentsOfImage;
+   if (cap_height > cap_height_limit)
+   {
+	   cap_height = cap_height_limit;
+	   getLogExt().append("Limited to", cap_height);
+   }
+
    return cap_height;
 }
 

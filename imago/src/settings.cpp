@@ -9,6 +9,7 @@ namespace imago
 	#include "settings_scanned.inc"
 	#include "settings_handwritten.inc"
 	#include "settings_highres.inc"
+	#include "settings_label_remover.inc"
 }
 
 namespace imago

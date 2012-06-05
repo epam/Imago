@@ -8,6 +8,7 @@
 		FUZZ MaxBadToGoodRatio = 8; // fuzzed, old value = 8
 		FUZZ BorderPartProportion = 41; // fuzzed, old value = 40
 		FUZZ MaxRectangleCropLineWidth = 18; // fuzzed, old value = 18
+		FUZZ MaxRectangleCropLineWidthAlreadyBinarized = 2;
 		FUZZ StrongBinarizeSize = 4; // fuzzed, old value = 4
 		FUZZ StrongBinarizeTresh = 1.450192; // fuzzed, old value = 1.476136
 		FUZZ WeakBinarizeSize = 7; // fuzzed, old value = 7
