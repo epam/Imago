@@ -71,7 +71,7 @@ namespace imago
 	  
 	  int HuClassifier(const Settings& vars, double hu[7]);
 
-	  int PredictGroup(const Settings& vars, Segment *seg, int mark);
+	  int PredictGroup(const Settings& vars, Segment *seg, int mark, SegmentDeque &layer_symbols = SegmentDeque());
 
    };
 }

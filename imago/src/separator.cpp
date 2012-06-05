@@ -539,7 +539,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 				votes[mark]++;
 
 				 				
-				mark = PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND);
+				mark = PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND, layer_symbols);
 				 if(mark == SEP_SYMBOL)
 				 {
 					 imago::ImageUtils::cutSegment(timg, *s, false, 255);
@@ -559,19 +559,31 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 	
 }
 
-int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark)
+int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark,  SegmentDeque &layer_symbols)
 {
 	logEnterFunction();
 	int retVal = mark;
 	double bond_prob, sym_prob;
 	double aprior = vars.p_estimator.DefaultApriority; //0.5
 
+	double capital_height = 0;
+	if( layer_symbols.size() > 0 )
+	{
+		BOOST_FOREACH(Segment *s, layer_symbols)
+			capital_height += s->getHeight();
+
+		capital_height /= layer_symbols.size();
+	}
+	else
+		capital_height =  vars.estimation.CapitalHeight;
+
+
 	if(mark == SEP_SYMBOL)
 		aprior = vars.p_estimator.ApriorProb4SymbolCase;// 0.8;
 	else
 	{
 		double maxEdge = seg->getHeight() > seg ->getWidth() ? seg->getHeight() : seg->getWidth();
-		double surfaceRatio =  maxEdge / vars.estimation.CapitalHeight;
+		double surfaceRatio =  maxEdge / capital_height;
 
 		if(surfaceRatio < vars.p_estimator.MinRatio2ConsiderGrPr) //0.25)
 			surfaceRatio = 1.0 / surfaceRatio;
