@@ -74,8 +74,8 @@ double distanceSet(const Points2i& a, const Points2i& b, bool fast = false)
 	int step_y = 1;
 	if (fast)
 	{
-		if (a.size() > 100) step_x = a.size() / 100;
-		if (b.size() > 100) step_y = b.size() / 100;
+		if (a.size() > 1000) step_x = a.size() / 1000;
+		if (b.size() > 1000) step_y = b.size() / 1000;
 	}
 	for (size_t x = 0; x < a.size(); x += step_x)
 	{
