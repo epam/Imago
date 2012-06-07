@@ -131,7 +131,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 	
 	double line_thick = vars.estimation.LineThickness;
     CvApproximator cvApprox;
-	imago::Skeleton graph;
+	//imago::Skeleton graph;
     GraphicsDetector gd(&cvApprox, line_thick * vars.separator.gdConst);
 
 	Image timg(_img.getWidth(), _img.getHeight());

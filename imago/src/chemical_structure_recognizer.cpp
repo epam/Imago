@@ -57,8 +57,18 @@ ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname )
 {
 }
 
-void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, Image& img, SegmentDeque& symbols, SegmentDeque& graphics)
+double maxHeightHelper(const Settings& vars, int lines)
 {
+	double maxHeight = (vars.lab_remover.HeightFactor * vars.estimation.CapitalHeight 
+		                    + (lines - 1) * vars.estimation.CapitalHeight
+						) * vars.separator.capHeightMax;
+	return maxHeight;
+}
+
+bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, Image& img, SegmentDeque& symbols, SegmentDeque& graphics)
+{
+	bool result = false;
+
 	logEnterFunction();
 	getLogExt().append("Symbols height", vars.estimation.CapitalHeight);
 
@@ -66,17 +76,16 @@ void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 		vars.estimation.CapitalHeight > vars.lab_remover.MaxCapitalHeight)
 	{
 		getLogExt().appendText("Unappropriate symbols height");
-		return;
+		return result;
 	}
-
 
 	getLogExt().append("Symbols height max", vars.separator.capHeightMax);
 	getLogExt().appendImage("img", img);
 	
 	const int min_cap_chars = vars.lab_remover.MinLabelChars;
 	double minWidth = min_cap_chars * (vars.estimation.MinSymRatio + vars.estimation.MaxSymRatio) / 2.0 * vars.estimation.CapitalHeight;
-	const int max_h_lines = 4; // TODO
-	double maxHeight = (vars.lab_remover.HeightFactor * vars.estimation.CapitalHeight + max_h_lines * vars.estimation.CapitalHeight) * vars.separator.capHeightMax;
+	const int max_h_lines = 5; // TODO
+	double maxHeight = maxHeightHelper(vars, max_h_lines);
 	double minHeight = vars.estimation.CapitalHeight * vars.estimation.CapitalHeightError;
 	double centerShiftMax = vars.lab_remover.CenterShiftMax;
 	int borderDistance = round(vars.estimation.CapitalHeight);
@@ -87,6 +96,13 @@ void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 
 	WeakSegmentator ws(img.getWidth(), img.getHeight());
 	ws.appendData(prefilter_cv::ImgAdapter(img, img), round(vars.estimation.CapitalHeight));
+
+	if (ws.SegmentPoints.size() < 2)
+	{
+		getLogExt().appendText("Only one segment, ignoring");
+		return result;
+	}
+
 	for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 	{
 		RectShapedBounding b(it->second);		
@@ -143,6 +159,7 @@ void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 						{
 							delete *it;
 							it = symbols.erase(it);
+							result = true;
 						}
 						else
 							it++;
@@ -155,14 +172,23 @@ void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 						{
 							delete *it;
 							it = graphics.erase(it);
+							result = true;
 						}
 						else
 							it++;
 					}
-				}
-			}
-		}
-	}
+
+					getLogExt().appendText("Clearing the image");
+					for (int x = badBounding.x1(); x < badBounding.x2() && x < img.getWidth(); x++)
+						for (int y = badBounding.y1(); y < badBounding.y2() && y < img.getHeight(); y++)
+							img.getByte(x,y) = 255;
+
+				} // if letters>graphics
+			} // locals
+		} // if bounding passes size constraints
+	} // for
+
+	return result;
 }
 
 void ChemicalStructureRecognizer::segmentate(const Settings& vars, Image& img, SegmentDeque& segments)
@@ -242,8 +268,6 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 	try
 	{
 		mol.clear();
-
-		SegmentDeque layer_symbols, layer_graphics, segments;
       
 		Image &_img = _origImage;
 
@@ -260,6 +284,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 	  
 		getLogExt().appendImage("Cropped image", _img);		
 
+		SegmentDeque segments;
 		segmentate(vars, _img, segments);
 
 		if (segments.size() == 0)
@@ -275,6 +300,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 	  
 		Separator sep(segments, _img);
 
+		SegmentDeque layer_symbols, layer_graphics;
 		sep.firstSeparation(vars, layer_symbols, layer_graphics);
 
 		getLogExt().append("Symbols", layer_symbols.size());
@@ -282,7 +308,9 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 
 		if (!vars.general.IsHandwritten)
 		{
-			removeMoleculeCaptions(vars, _img, layer_symbols, layer_graphics);
+			if (removeMoleculeCaptions(vars, _img, layer_symbols, layer_graphics))
+			{
+			}
 		}
 
 		if (layer_graphics.size() == 0 && layer_symbols.size() == 1)
