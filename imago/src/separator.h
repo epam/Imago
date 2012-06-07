@@ -22,6 +22,7 @@
 #include "algebra.h"
 #include "settings.h"
 #include "line_priority_queue.h"
+#include "character_recognizer.h"
 
 namespace imago
 {
@@ -34,7 +35,7 @@ namespace imago
 
       Separator( SegmentDeque &segs, const Image &img );
 
-      void firstSeparation(Settings& vars, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics );
+	  void firstSeparation(Settings& vars, CharacterRecognizer &rec, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics );
 
 	  void SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics );
 

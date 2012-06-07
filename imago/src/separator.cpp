@@ -614,7 +614,7 @@ int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark,  Segme
 	return retVal;
 }
 
-void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
+void Separator::firstSeparation(Settings& vars, CharacterRecognizer &rec, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
 {
 	logEnterFunction();
 
@@ -749,7 +749,7 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 				bool matches = false;
 				bool strict = false;				
 
-				if (isPossibleCharacter(vars, *s, false, &ch))
+				if (rec.isPossibleCharacter(vars, *s, false, &ch))
 				{
 					if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
 					{
@@ -761,7 +761,7 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 						strict = true;
 					}
 				}
-				else if (isPossibleCharacter(vars, *s, true, &ch))
+				else if (rec.isPossibleCharacter(vars, *s, true, &ch))
 				{
 					if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
 					{

@@ -318,7 +318,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 		Separator sep(segments, _img);
 
 		SegmentDeque layer_symbols, layer_graphics;
-		sep.firstSeparation(vars, layer_symbols, layer_graphics);
+		sep.firstSeparation(vars, _cr, layer_symbols, layer_graphics);
 
 		getLogExt().append("Symbols", layer_symbols.size());
 		getLogExt().append("Graphics", layer_graphics.size());

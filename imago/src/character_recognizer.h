@@ -14,14 +14,13 @@
 
 namespace imago
 {
-   class Segment;
-
-   bool isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp = false, char* result = NULL);
-   //double getDistanceCapital(const Settings& vars, const Segment& seg);
+   class Segment;   
 	
    class CharacterRecognizer: CharacterRecognizerData
    {
    public:
+	  bool isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp = false, char* result = NULL);  
+
       CharacterRecognizer( int k );
       CharacterRecognizer( int k, const std::string &filename );
 
@@ -53,35 +52,6 @@ namespace imago
                                          const std::vector<double> &d2 );      
       int _k;
    };
-
-   class HWCharacterRecognizer
-   {
-   public:
-      SymbolFeatures features_h1;
-      SymbolFeatures features_h2; 
-      SymbolFeatures features_h3;
-      SymbolFeatures features_h4;
-      SymbolFeatures features_h5;
-      SymbolFeatures features_h6;
-      SymbolFeatures features_h7;
-      SymbolFeatures features_h8;
-      SymbolFeatures features_h9;
-      SymbolFeatures features_h10;
-      SymbolFeatures features_h11;
-            
-      SymbolFeatures features_n1;
-      SymbolFeatures features_n2;
-      SymbolFeatures features_n3;
-      SymbolFeatures features_n4;
-      SymbolFeatures features_n5;
-      SymbolFeatures features_n6;
-      HWCharacterRecognizer ( const CharacterRecognizer &cr );
-
-      int recognize (const Settings& vars, Segment &seg);
-   protected:
-      const CharacterRecognizer &_cr;
-      void _readFile(const char *filename, SymbolFeatures &features);
-};
 
 }
 

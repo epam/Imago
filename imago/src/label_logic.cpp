@@ -25,7 +25,7 @@
 
 using namespace imago;
 
-LabelLogic::LabelLogic( const CharacterRecognizer &cr ) : _cr(cr), _hwcr(cr), _satom(NULL), _cur_atom(NULL)
+LabelLogic::LabelLogic( const CharacterRecognizer &cr ) : _cr(cr), _satom(NULL), _cur_atom(NULL)
 {
    flushed = was_charge = was_letter = was_super = 0;
 }
@@ -340,7 +340,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 
    bool capital = false;
    int digit_small = -1;
-   char hwc = _hwcr.recognize(vars, *seg);
+   char hwc = _cr.recognize_all(vars, *seg).getBest();
 
    bool plus = ImageUtils::testPlus(vars, *seg);
 

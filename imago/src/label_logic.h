@@ -43,7 +43,6 @@ namespace imago
 
 	  void setSuperatom( Superatom *satom );
 
-      HWCharacterRecognizer _hwcr;
       const CharacterRecognizer &_cr;
       Superatom *_satom;
       Atom *_cur_atom;
