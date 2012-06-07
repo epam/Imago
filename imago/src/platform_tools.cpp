@@ -15,7 +15,8 @@ unsigned int platform::TICKS()
 	QueryPerformanceFrequency(&lFreq);
 	QueryPerformanceCounter(&lStart);
 	double msecs = ((double)lStart.QuadPart / lFreq.QuadPart * 1000.0);
-	return (int)msecs;
+	__int64 ticks = (__int64)msecs;
+	return ticks;
 }
 
 unsigned int platform::MEM_AVAIL()
