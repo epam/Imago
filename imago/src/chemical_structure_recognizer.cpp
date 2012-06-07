@@ -279,6 +279,9 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 {
 	logEnterFunction();
 
+	bool captions_removed = false;
+	restart:
+
 	try
 	{
 		mol.clear();
@@ -320,10 +323,15 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 		getLogExt().append("Symbols", layer_symbols.size());
 		getLogExt().append("Graphics", layer_graphics.size());
 
-		if (!vars.general.IsHandwritten)
+		if (!vars.general.IsHandwritten && !captions_removed)
 		{
 			if (removeMoleculeCaptions(vars, _img, layer_symbols, layer_graphics))
 			{
+				captions_removed = true;
+				// TODO: this is completely performance waste! 
+				// ...but quite easily than trying to filter skeleton
+				getLogExt().appendText("Restart!!!");
+				goto restart;
 			}
 		}
 
@@ -413,7 +421,9 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 			std::deque<Label> unmapped_labels;
                  
 			BOOST_FOREACH(Label &l, mol.getLabels())
-			ll.recognizeLabel(vars, l);
+			{
+				ll.recognizeLabel(vars, l);
+			}
          
 			getLogExt().appendText("Label recognizing");
          

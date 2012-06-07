@@ -120,7 +120,7 @@ void LabelLogic::_predict(const Settings& vars, const Segment *seg, std::string 
       if (_cur_atom->label_first == '?')
 	  {
 		  getLogExt().appendText("All small letters branch");
-         letters = comb[27]; //All small letters
+         letters = comb[27]; //All small letters // TODO
 	  }
 
       else if(_cur_atom->label_first >= 'A' && _cur_atom->label_first <= 'Z') //just for sure 
@@ -255,15 +255,6 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 void LabelLogic::_fixupSingleAtom()
 {
    // TODO: remove
-
-	// TODO: move these hacks to postprocess where the next atoms are already recognized
-	/*
-	if (_cur_atom && _cur_atom->label_first == 'A' && _cur_atom->label_second == 0)
-	{
-		getLogExt().appendText("Hack: A -> H");
-		_cur_atom->label_first = 'H';
-	}*/
-
 	if (_cur_atom && _cur_atom->label_first == 'Q' && _cur_atom->label_second == 0)
 	{
 		getLogExt().appendText("Hack: Q -> C");
@@ -273,8 +264,7 @@ void LabelLogic::_fixupSingleAtom()
 	{
 		getLogExt().appendText("Hack: X -> H");
 		_cur_atom->label_first = 'H';
-	}
-	
+	}	
    
 	if (_cur_atom && _cur_atom->label_first == 'C' && _cur_atom->label_second == 'e')
 	{
@@ -630,6 +620,7 @@ void LabelLogic::_postProcessLabel(Label& label)
 	ChemicalValidity cv;
 	double pr = cv.getLabelProbability(molecule);
 	getLogExt().append("Molecule", molecule);
+
 	getLogExt().append("probability", pr);
 	if (pr < EPS)
 	{
@@ -670,6 +661,13 @@ void LabelLogic::_postProcessLabel(Label& label)
 				break;
 			}
 		}
+	}
+
+	if (_cur_atom && _cur_atom->label_first == 0)
+	{
+		// TODO: then it's not a label!
+		// HACK
+		_cur_atom->label_first = 'H';
 	}
 }
 
