@@ -108,9 +108,10 @@ namespace imago
 	struct LabelRemoverSettings
 	{
 		int MinCapitalHeight, MaxCapitalHeight;
-		int MinLabelChars;
+		int MinLabelChars, MaxLabelLines;
 		double HeightFactor;
 		double CenterShiftMax;
+		double MinimalDensity;
 		int PixGapX, PixGapY;
 		LabelRemoverSettings();
 	};

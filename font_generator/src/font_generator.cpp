@@ -99,7 +99,8 @@ int main(int argc, char **argv)
       chars += c;
    for (char c = '0'; c <= '9'; ++c)
       chars += c;
-   chars += "$%^&#+-";
+
+   chars += "$%^&#+-="; // tricky
 
    ofstream out(output);
    std::auto_ptr<ofstream> contours_out;

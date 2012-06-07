@@ -23,12 +23,13 @@
 #include "settings.h"
 
 using namespace imago;
-const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&#";
+//const std::string CharacterRecognizer::unusual = "$%^&#+-=";
+const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&#=";
 const std::string CharacterRecognizer::lower = "abcdefghijklmnopqrstuvwxyz";
 const std::string CharacterRecognizer::digits = "0123456789";
 const std::string CharacterRecognizer::charges = "+-";
 const std::string CharacterRecognizer::all = CharacterRecognizer::upper + CharacterRecognizer::lower + CharacterRecognizer::digits + CharacterRecognizer::charges;
-const std::string CharacterRecognizer::like_bonds = "l1iI";
+const std::string CharacterRecognizer::like_bonds = "lL1iIVv";
 
 /*double imago::getDistanceCapital(const Settings& vars, const Segment& seg)
 {

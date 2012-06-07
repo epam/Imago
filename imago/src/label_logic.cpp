@@ -75,7 +75,7 @@ const static char *comb[28] = //"Constants", not config but name ?
 /*X*/   "e",
 /*Y*/   "b",
 /*Z*/   "nr",
-		"ABCEFGHIKLMNOPQRSTUVWYZX$%^&#", //XD //K removed in "handwriting"
+		"ABCEFGHIKLMNOPQRSTUVWYZX$%^&#=", //XD //K removed in "handwriting"
         "abcdeghiklmnoprstuyz",
 };
 
@@ -324,6 +324,10 @@ bool LabelLogic::_multiLetterSubst(char sym)
 		_addAtom();
 		_cur_atom->label_first = 'H';
 		_cur_atom->count = 2;
+		was_letter = 0;
+		return true;
+	case '=':
+		// special chars to ignore
 		was_letter = 0;
 		return true;
 	}
