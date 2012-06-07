@@ -52,7 +52,13 @@ bool imago::isPossibleCharacter(const Settings& vars, const Segment& seg, bool l
 	if (result)
 		*result = ch;
 	if (std::find(CharacterRecognizer::like_bonds.begin(), CharacterRecognizer::like_bonds.end(), ch) != CharacterRecognizer::like_bonds.end())
-		return false;
+	{
+		Points2i endpoints = SegmentTools::getEndpoints(seg);
+		if (endpoints.size() < 4) // TODO
+		{
+			return false;
+		}
+	}
 	if (best_dist < vars.characters.PossibleCharacterDistanceStrong && 
 		rd.getQuality() > vars.characters.PossibleCharacterMinimalQuality) 
 		return true;
@@ -181,6 +187,27 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
    {
 	   seg.initFeatures(vars, _count);
 	   rec = recognize(vars, seg.getFeatures(), candidates, true);
+
+	   double radius;
+	   Segment thinseg;
+	   thinseg.copy(seg);
+	   ThinFilter2 tf(thinseg);
+	   tf.apply();
+	   if (isCircle(vars, thinseg, radius, true))
+	   {
+		   if (radius < vars.estimation.CapitalHeight * vars.separator.capHeightMax)
+		   {
+			   double v = (vars.characters.PossibleCharacterDistanceWeak + vars.characters.PossibleCharacterDistanceStrong) / 2.0;
+			   // the small-O has very low probability, so ignore it
+			   if (rec.find('O') == rec.end())
+				   rec['O'] = v;
+			   else if (rec['O'] > v)
+				   rec['O'] = v;
+			   getLogExt().appendText("Updated distance for O");
+		   }
+	   }
+
+
 	   _cacheClean[segHash] = rec;
 	   getLogExt().appendMap("Distance map for source", rec);
 	   getLogExt().appendText("Filled cache: clean");

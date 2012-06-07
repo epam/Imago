@@ -75,7 +75,8 @@ void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 	
 	const int min_cap_chars = vars.lab_remover.MinLabelChars;
 	double minWidth = min_cap_chars * (vars.estimation.MinSymRatio + vars.estimation.MaxSymRatio) / 2.0 * vars.estimation.CapitalHeight;
-	double maxHeight = (vars.lab_remover.HeightFactor * vars.estimation.CapitalHeight) * vars.separator.capHeightMax;
+	const int max_h_lines = 4; // TODO
+	double maxHeight = (vars.lab_remover.HeightFactor * vars.estimation.CapitalHeight + max_h_lines * vars.estimation.CapitalHeight) * vars.separator.capHeightMax;
 	double minHeight = vars.estimation.CapitalHeight * vars.estimation.CapitalHeightError;
 	double centerShiftMax = vars.lab_remover.CenterShiftMax;
 	int borderDistance = round(vars.estimation.CapitalHeight);
@@ -89,7 +90,7 @@ void ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 	for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 	{
 		RectShapedBounding b(it->second);		
-		//getLogExt().appendPoints("segment", it->second);
+		getLogExt().appendPoints("segment", it->second);
 		getLogExt().append("width", b.getBounding().width);
 		getLogExt().append("height", b.getBounding().height);
 		if (b.getBounding().height <= maxHeight &&

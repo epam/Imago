@@ -109,8 +109,6 @@ void updateSettingsHighResolution(Settings &s)
 	//NormalizeBySide(MediumBondLen, LongestSide);
 	//NormalizeBySide(LongBondLen, LongestSide);
 
-	s.routines.Contour_Eps1 = 1.130985;
-	s.routines.Contour_Eps2 = 0.680156; 
 	FUZZ s.routines.LineThick_Grid = 10; // fuzzed, old value = 10
 
 	FUZZ s.routines.Circle_GapRadiusMax = 1.25;

@@ -164,7 +164,11 @@ namespace imago
 		elements.push_back(ElementEntry("OAc",   0.7));
 		elements.push_back(ElementEntry("NHBoc", 0.7));
 		elements.push_back(ElementEntry("NHBOC", 0.7));
+		elements.push_back(ElementEntry("OMe",   0.7));
 
+		elements.push_back(ElementEntry("Me", 0.2));
+		elements.push_back(ElementEntry("I", 0.1));
+		
 		elements.push_back(ElementEntry("Be", 0.6));
 		elements.push_back(ElementEntry("B",  0.6));		
 		elements.push_back(ElementEntry("Ne", 0.6));		

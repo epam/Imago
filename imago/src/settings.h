@@ -188,6 +188,13 @@ namespace imago
 		double Approx_Eps1, Approx_Eps2;
 		double Approx_CalcLineTresh;
 		double Contour_Eps1, Contour_Eps2;
+
+		RoutinesSettings()
+		{
+			Contour_Eps1 = 1.130985;
+			Contour_Eps2 = 0.680156;
+			// others are filled from *.inc
+		}
 	};
 
 	struct WedgeBondExtractorSettings
