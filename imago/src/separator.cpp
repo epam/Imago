@@ -743,20 +743,44 @@ void Separator::firstSeparation(Settings& vars, SegmentDeque &layer_symbols, Seg
 				s->getHeight() < vars.separator.extCapHeightMax * cap_height &&
 									   wh > vars.separator.extRatioMin && 
 				(two_chars_probably || wh < vars.separator.extRatioMax) )
-			{
-				int segs = _getApproximationSegmentsCount(vars, s) - 1;
-				getLogExt().append("Approx segs", segs);
+			{				
 				char ch;
-				if (segs > vars.separator.minApproxSegsStrong && isPossibleCharacter(vars, *s, false, &ch) ||
-					segs > vars.separator.minApproxSegsWeak   && isPossibleCharacter(vars, *s, true,  &ch) )
+
+				bool matches = false;
+				bool strict = false;				
+
+				if (isPossibleCharacter(vars, *s, false, &ch))
 				{
 					if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
 					{
-						getLogExt().append("Segment passed as 2-chars, but recognized as", ch);
+						getLogExt().append("[strict] Segment passed as 2-chars, but recognized as", ch);
 					}
 					else
 					{
-						getLogExt().appendText("Segment moved to layer_symbols");
+						matches = true;
+						strict = true;
+					}
+				}
+				else if (isPossibleCharacter(vars, *s, true, &ch))
+				{
+					if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
+					{
+						getLogExt().append("[loose] Segment passed as 2-chars, but recognized as", ch);
+					}
+					else
+					{
+						matches = true;
+						strict = false;
+					}
+				}
+
+				if (matches)
+				{
+					int segs = _getApproximationSegmentsCount(vars, s) - 1;
+					getLogExt().append("Approx segs", segs);
+					if (segs > (strict ? vars.separator.minApproxSegsStrong : vars.separator.minApproxSegsWeak))
+					{
+						getLogExt().appendText("Segment marked as symbol");
 						mark = SEP_SYMBOL;
 						votes[SEP_SYMBOL]++;
 					}

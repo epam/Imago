@@ -126,9 +126,9 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 				Rectangle badBounding = b.getBounding();
 				double value = 0.0;
 				int count = 0;
-				for (int x = badBounding.x1(); x < badBounding.x2() && x < img.getWidth(); x++)
+				for (int x = badBounding.x1(); x <= badBounding.x2() && x < img.getWidth(); x++)
 				{
-					for (int y = badBounding.y1(); y < badBounding.y2() && y < img.getHeight(); y++)
+					for (int y = badBounding.y1(); y <= badBounding.y2() && y < img.getHeight(); y++)
 					{
 						if (img.getByte(x, y) == 0)
 							value += 1.0;
@@ -193,8 +193,8 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 						}
 
 						getLogExt().appendText("Clearing the image");
-						for (int x = badBounding.x1(); x < badBounding.x2() && x < img.getWidth(); x++)
-							for (int y = badBounding.y1(); y < badBounding.y2() && y < img.getHeight(); y++)
+						for (int x = badBounding.x1(); x <= badBounding.x2() && x < img.getWidth(); x++)
+							for (int y = badBounding.y1(); y <= badBounding.y2() && y < img.getHeight(); y++)
 								img.getByte(x,y) = 255;
 					} // if letters>graphics
 				} // if density
@@ -279,15 +279,15 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 {
 	logEnterFunction();
 
+	Image &_img = _origImage;
+
 	bool captions_removed = false;
 	restart:
 
 	try
 	{
 		mol.clear();
-      
-		Image &_img = _origImage;
-
+     		
 		_img.crop();
 		vars.general.ImageWidth = _img.getWidth();
 		vars.general.ImageHeight = _img.getHeight();
