@@ -65,30 +65,6 @@ double maxHeightHelper(const Settings& vars, int lines)
 	return maxHeight;
 }
 
-
-// TODO: move to some better place
-double distanceSet(const Points2i& a, const Points2i& b, bool fast = false)
-{
-	double result = DBL_MAX;
-	int step_x = 1;
-	int step_y = 1;
-	if (fast)
-	{
-		if (a.size() > 1000) step_x = a.size() / 1000;
-		if (b.size() > 1000) step_y = b.size() / 1000;
-	}
-	for (size_t x = 0; x < a.size(); x += step_x)
-	{
-		for (size_t y = 0; y < b.size(); y += step_y)
-		{
-			double temp = Vec2d::distance(a[x], b[y]);
-			if (temp < result)
-				result = temp;
-		}
-	}
-	return result;
-}
-
 bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, Image& img, SegmentDeque& symbols, SegmentDeque& graphics)
 {
 	bool result = false;
@@ -117,63 +93,16 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 	getLogExt().append("minHeight", minHeight);
 	getLogExt().append("borderDistance", borderDistance);
 
-	double dist_thresh = vars.estimation.CapitalHeight;
+	WeakSegmentator ws(img.getWidth(), img.getHeight());
+	ws.appendData(prefilter_cv::ImgAdapter(img, img), round(vars.estimation.CapitalHeight));
 
-	WeakSegmentator::SegMap merged;
-	{
-		WeakSegmentator ws(img.getWidth(), img.getHeight());
-		ws.appendData(prefilter_cv::ImgAdapter(img, img), 2); // TODO (but no big meaning)
-
-		try
-		{			
-			std::map<int, bool> used;
-	
-			for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
-			{
-				used[it->first] = false;
-			}
-			
-
-				for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
-				{
-					if (used[it->first]) 
-						continue;
-
-					merged[it->first].insert(merged[it->first].end(), it->second.begin(), it->second.end());
-					used[it->first] = true;
-
-					restart_int:
-					for (WeakSegmentator::SegMap::iterator t = ws.SegmentPoints.begin(); t != ws.SegmentPoints.end(); t++)
-					{
-						if (used[t->first]) 
-							continue;
-
-						if (distanceSet(merged[it->first], t->second, true) < dist_thresh)
-						{
-							merged[it->first].insert(merged[it->first].end(), t->second.begin(), t->second.end());
-							used[t->first] = true;
-							goto restart_int;
-						}
-					}					
-				}
-
-		}
-		catch(std::exception &e)
-		{
-			getLogExt().append("exception", e.what());
-			return false;
-		}
-	}
-
-	getLogExt().append("Merged segments", merged.size());
-
-	if (merged.size() < 2)
+	if (ws.SegmentPoints.size() < 2)
 	{
 		getLogExt().appendText("Only one segment, ignoring");
 		return result;
 	}
 
-	for (WeakSegmentator::SegMap::iterator it = merged.begin(); it != merged.end(); it++)
+	for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 	{
 		RectShapedBounding b(it->second);		
 		getLogExt().appendPoints("segment", it->second);
