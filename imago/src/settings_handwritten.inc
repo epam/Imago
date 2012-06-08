@@ -158,13 +158,8 @@ void updateSettingsHandwritten(Settings &s)
 	FUZZ s.characters.DescriptorsEvenFactorStrong = 3.769212; // fuzzed, old value = 3.736050
 	FUZZ s.characters.DescriptorsOddFactorWeak = 0.931412; // fuzzed, old value = 0.930491
 	FUZZ s.characters.DescriptorsEvenFactorWeak = 0.302461; // fuzzed, old value = 0.305480
-	FUZZ s.characters.HW_Line = 1.721978; // fuzzed, old value = 1.687232
-	FUZZ s.characters.HW_F = 3.226847; // fuzzed, old value = 3.283401
-	FUZZ s.characters.HW_Tricky = 2.612951; // fuzzed, old value = 2.603006
-	FUZZ s.characters.HW_Hard = 4.218492; // fuzzed, old value = 4.292818
-	FUZZ s.characters.HW_Other = 3.911752; // fuzzed, old value = 3.928408
 
-	s.csr.UseSimpleApproximator = false;
+	s.csr.UseDPApproximator = false;
 	FUZZ s.csr.Dissolve = 0.482964; // fuzzed, old value = 0.497646
 	FUZZ s.csr.DeleteBadTriangles = 2.124101; // fuzzed, old value = 2.071333
 	FUZZ s.csr.WeakSegmentatorDist = 1; // fuzzed, old value = 1
@@ -219,15 +214,9 @@ void updateSettingsHandwritten(Settings &s)
 	FUZZ s.labels.medHeightFactor = 0.481943; // fuzzed, old value = 0.479269
 	FUZZ s.labels.capHeightError = 0.503494; // fuzzed, old value = 0.514391
 
-	FUZZ s.lcomb.MaximalSymbolDistance = 2.636896; // fuzzed, old value = 2.625318
-	FUZZ s.lcomb.TestSlashLineEps = 3.053863; // fuzzed, old value = 3.117265
-	FUZZ s.lcomb.TestMinHeightFactor = 0.470017; // fuzzed, old value = 0.459007
-	FUZZ s.lcomb.TestMaxHeightFactor = 1.132022; // fuzzed, old value = 1.140889
-	FUZZ s.lcomb.RectHeightRatio = 0.524815; // fuzzed, old value = 0.514783
-	FUZZ s.lcomb.H1SuperscriptSpace = 1.141495; // fuzzed, old value = 1.135982
-	FUZZ s.lcomb.H2LowercaseSpace = 0.502550; // fuzzed, old value = 0.508634
-	FUZZ s.lcomb.H3LowercaseSpace = 0.510556; // fuzzed, old value = 0.506255
-	FUZZ s.lcomb.H4SubscriptSpace = 0.515064; // fuzzed, old value = 0.523707
+	FUZZ s.lcomb.MaximalSymbolRecognitionDistance = 2.636896; // fuzzed, old value = 2.625318
+	FUZZ s.lcomb.MaximalDistanceFactor = 0.7;
+	FUZZ s.lcomb.MaximalYDistanceFactor = 0.3;
 	FUZZ s.lcomb.FillLabelFactor1 = 0.502598; // fuzzed, old value = 0.492685
 	FUZZ s.lcomb.FillLabelFactor2 = 0.493979; // fuzzed, old value = 0.482821
 
@@ -236,6 +225,5 @@ void updateSettingsHandwritten(Settings &s)
 	FUZZ s.p_estimator.MinRatio2ConsiderGrPr = 0.25;
 	FUZZ s.p_estimator.LogisticScale = 1.0;
 	FUZZ s.p_estimator.LogisticLocation = 1.0;
-
 }
 

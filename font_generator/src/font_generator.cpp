@@ -23,6 +23,7 @@
 #include "image_utils.h"
 #include "contour_extractor.h"
 #include "stl_fwd.h"
+#include "prefilter_cv.h"
 
 using std::string;
 using std::cout;
@@ -32,13 +33,25 @@ using std::ostream_iterator;
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
+void prefilter(imago::Segment& img)
+{
+	for (int x = 0; x < img.getWidth(); x++)
+		for (int y = 0; y < img.getHeight(); y++)
+			if (img.getByte(x,y) < 190) // TODO!!!!!!
+				img.getByte(x,y) = 0;
+			else
+				img.getByte(x,y) = 255;
+}
+
 imago::SymbolFeatures calc_features(const fs::path &p, int count) 
 {
    imago::Segment img;
    imago::ImageUtils::loadImageFromFile(img, "%s", p.string().c_str());
+   prefilter(img);
+   
+   imago::Settings vars;
+   img.initFeatures(vars, count);
 
-   imago::Settings local; // TODO
-   img.initFeatures(local, count);
    return img.getFeatures();
 }
 
@@ -46,10 +59,11 @@ imago::Points2i calc_contours(const fs::path &p)
 {
    imago::Segment img;
    imago::ImageUtils::loadImageFromFile(img, "%s", p.string().c_str());
-
+   prefilter(img);
+   
+   imago::Settings vars;
    imago::Points2i contour;
-   imago::Settings local; // TODO
-   imago::ContourExtractor().getApproxContour(local, img, contour);
+   imago::ContourExtractor().getApproxContour(vars, img, contour);
    return contour;
 }
 

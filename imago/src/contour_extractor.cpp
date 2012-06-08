@@ -4,7 +4,6 @@
 
 #include "contour_extractor.h"
 #include "image.h"
-#include "binarizer.h"
 #include "vec2d.h"
 #include "exception.h"
 #include "algebra.h"
@@ -23,7 +22,6 @@ namespace imago
    {
       Image img;
       img.copy(image);
-	  Binarizer::apply(img, 190); // TODO: is it required?
 
       int w = img.getWidth(), h = img.getHeight(),
           k = (h + 1) * (w + 1), begin = 0, x, y, i;

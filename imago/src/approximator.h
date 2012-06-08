@@ -27,20 +27,6 @@ namespace imago
        virtual void apply(const Settings& vars, double eps, const Points2d &input, Points2d &output ) const = 0;
    };
 
-   class SimpleApproximator: public BaseApproximator
-   {
-   public:
-      void apply(const Settings& vars, double eps, const Points2d &input, Points2d &output ) const;
-   private:
-      struct _Line
-      {
-         double a, b, c;
-      };
-      void _calc_line(const Settings& vars, const Points2d &input, int begin, int end, _Line &res ) const;
-      void _prepare(const Settings& vars, const Points2d &poly, IntVector &sample ) const;
-   };
-
-
    class CvApproximator: public BaseApproximator
    {
    public:

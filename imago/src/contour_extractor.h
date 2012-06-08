@@ -19,9 +19,8 @@ namespace imago
       void getRawContour( const Image &i, Points2i &contour );
       void getApproxContour(const Settings& vars,  const Image &i, Points2i &contour );
 
-      //TODO: move it to private and eventually remove
-      void _approximize(const Settings& vars,  Points2i &contour );
    private:
+	   void _approximize(const Settings& vars,  Points2i &contour );
    };
 }
 

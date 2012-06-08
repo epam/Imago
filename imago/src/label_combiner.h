@@ -70,7 +70,6 @@ namespace imago
       const CharacterRecognizer &_cr;
 
       std::deque<Label> _labels;
-      void _fetchSymbols(const Settings& vars,  SegmentDeque &layer );
       void _locateLabels(const Settings& vars);
       void _fillLabelInfo(const Settings& vars, Label &l );
       static bool _segmentsComparator( const Segment* const &a,

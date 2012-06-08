@@ -23,6 +23,40 @@ namespace imago
 		return result;
 	}
 
+	double SegmentTools::getRealDistance(const Segment& seg1, const Segment& seg2, int type)
+	{
+		// not so fast, TODO: optimize
+		Points2i p1 = getAllFilled(seg1);
+		Points2i p2 = getAllFilled(seg2);
+		double result = DBL_MAX;
+		for (size_t u1 = 0; u1 < p1.size(); u1++)
+			for (size_t u2 = 0; u2 < p2.size(); u2++)
+			{
+				int x1 = p1[u1].x + seg1.getX();
+				int y1 = p1[u1].y + seg1.getY();
+				int x2 = p2[u2].x + seg2.getX();
+				int y2 = p2[u2].y + seg2.getY();
+				double d = DBL_MAX;
+
+				if (type == 1)
+				{
+					d = absolute(x1 - x2);
+				}
+				else if (type == 2)
+				{
+					d = absolute(y1 - y2);
+				}
+				else if (type == 0)
+				{
+					d = Vec2i::distance(Vec2i(x1,y1), Vec2i(x2,y2));
+				}
+
+				if (d < result)
+					result = d;
+			}
+		return result;
+	}
+
 	int SegmentTools::getRealHeight(const Segment& seg)
 	{
 		int min_y = INT_MAX;

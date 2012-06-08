@@ -19,12 +19,33 @@
 #include "boost/graph/adjacency_list.hpp"
 
 #include "comdef.h"
-#include "bond.h"
 #include "vec2d.h"
 #include "settings.h"
 
 namespace imago
 {          
+   enum BondType
+   {
+      SINGLE = 1,
+      DOUBLE,
+      TRIPLE,
+      AROMATIC,
+      SINGLE_UP,
+      SINGLE_DOWN,
+      UNKNOWN
+   };
+
+   struct Bond
+   {
+      double length, k;
+      BondType type;
+
+      Bond() {};
+
+      Bond( double _length, double _k, BondType _type ) : length(_length),
+         k(_k), type(_type) {};
+   };
+
    class Skeleton
    {
    public: 

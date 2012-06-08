@@ -37,14 +37,7 @@ namespace imago
 		int OriginalImageHeight;
 		int ImageWidth;
 		int ImageHeight;
-		GeneralSettings()
-		{
-			LogEnabled = LogVFSEnabled = ExtractCharactersOnly = false;
-			IsHandwritten = true;
-			UseProbablistics = false;
-			OriginalImageWidth = OriginalImageHeight = ImageWidth = ImageHeight = 0;
-			DefaultFilterType = ftCV;
-		}
+		GeneralSettings();
 	};
 
 	struct PrefilterCVSettings
@@ -188,6 +181,7 @@ namespace imago
 		double Algebra_IntersectionEps, Algebra_SameLineEps;
 		double Approx_Eps1, Approx_Eps2;
 		double Approx_CalcLineTresh;
+
 		double Contour_Eps1, Contour_Eps2;
 
 		RoutinesSettings()
@@ -222,12 +216,11 @@ namespace imago
 		double PossibleCharacterMinimalQuality;
 		double DescriptorsOddFactorStrong, DescriptorsEvenFactorStrong;
 		double DescriptorsOddFactorWeak, DescriptorsEvenFactorWeak;
-		double HW_Line, HW_F, HW_Tricky, HW_Hard, HW_Other;
 	};
 
 	struct ChemicalStructureRecognizerSettings
 	{
-		bool UseSimpleApproximator;
+		bool UseDPApproximator;
 		double Dissolve;
 		double DeleteBadTriangles;
 		int WeakSegmentatorDist;
@@ -277,13 +270,9 @@ namespace imago
 
 	struct LabelCombinerSettings
 	{
-		double MaximalSymbolDistance;
-		double TestSlashLineEps;
-		double TestMinHeightFactor, TestMaxHeightFactor;
-		double RectHeightRatio;
-		double H1SuperscriptSpace, H2LowercaseSpace;
-		double H3LowercaseSpace, H4SubscriptSpace;
+		double MaximalSymbolRecognitionDistance;
 		double FillLabelFactor1, FillLabelFactor2;
+		double MaximalDistanceFactor, MaximalYDistanceFactor;
 	};
 
 	struct ProbabilitySettings

@@ -116,7 +116,6 @@ void updateSettingsScanned(Settings &s)
 	FUZZ s.routines.Circle_MinRadius = 6.771566; // fuzzed, old value = 6.900335
 	FUZZ s.routines.Circle_MaxDeviation = 0.010555; // fuzzed, old value = 0.010575
 	FUZZ s.routines.Circle_AsCharFactor = 1.084621; // fuzzed, old value = 1.077311
-
 	FUZZ s.routines.Algebra_IntersectionEps = 0.011577; // fuzzed, old value = 0.011465
 	FUZZ s.routines.Algebra_SameLineEps = 0.229190; // fuzzed, old value = 0.224437
 	FUZZ s.routines.Approx_Eps1 = 1.116990; // fuzzed, old value = 1.141541
@@ -160,13 +159,8 @@ void updateSettingsScanned(Settings &s)
 	FUZZ s.characters.DescriptorsEvenFactorStrong = 3.802056; // fuzzed, old value = 3.801960
 	FUZZ s.characters.DescriptorsOddFactorWeak = 1.002519; // fuzzed, old value = 0.978328
 	FUZZ s.characters.DescriptorsEvenFactorWeak = 0.284260; // fuzzed, old value = 0.288967
-	FUZZ s.characters.HW_Line = 1.566174; // fuzzed, old value = 1.538010
-	FUZZ s.characters.HW_F = 3.510578; // fuzzed, old value = 3.433685
-	FUZZ s.characters.HW_Tricky = 3.038015; // fuzzed, old value = 3.087902
-	FUZZ s.characters.HW_Hard = 4.286724; // fuzzed, old value = 4.238485
-	FUZZ s.characters.HW_Other = 3.623028; // fuzzed, old value = 3.554941
-
-	s.csr.UseSimpleApproximator = false;
+	
+	s.csr.UseDPApproximator = false;
 	FUZZ s.csr.Dissolve = 0.524853; // fuzzed, old value = 0.513776
 	FUZZ s.csr.DeleteBadTriangles = 2.030885; // fuzzed, old value = 1.987894
 	FUZZ s.csr.WeakSegmentatorDist = 1; // fuzzed, old value = 1
@@ -221,15 +215,9 @@ void updateSettingsScanned(Settings &s)
 	FUZZ s.labels.medHeightFactor = 0.534892; // fuzzed, old value = 0.536691
 	FUZZ s.labels.capHeightError = 0.484007; // fuzzed, old value = 0.494046
 
-	FUZZ s.lcomb.MaximalSymbolDistance = 2.750317; // fuzzed, old value = 2.802787
-	FUZZ s.lcomb.TestSlashLineEps = 3.601734; // fuzzed, old value = 3.522082
-	FUZZ s.lcomb.TestMinHeightFactor = 0.582599; // fuzzed, old value = 0.588148
-	FUZZ s.lcomb.TestMaxHeightFactor = 1.104559; // fuzzed, old value = 1.110332
-	FUZZ s.lcomb.RectHeightRatio = 0.471060; // fuzzed, old value = 0.480207
-	FUZZ s.lcomb.H1SuperscriptSpace = 1.046869; // fuzzed, old value = 1.066519
-	FUZZ s.lcomb.H2LowercaseSpace = 0.446648; // fuzzed, old value = 0.441986
-	FUZZ s.lcomb.H3LowercaseSpace = 0.443243; // fuzzed, old value = 0.451438
-	FUZZ s.lcomb.H4SubscriptSpace = 0.505836; // fuzzed, old value = 0.497856
+	FUZZ s.lcomb.MaximalSymbolRecognitionDistance = 2.750317; // fuzzed, old value = 2.802787
+	FUZZ s.lcomb.MaximalDistanceFactor = 0.65;
+	FUZZ s.lcomb.MaximalYDistanceFactor = 0.25;
 	FUZZ s.lcomb.FillLabelFactor1 = 0.481139; // fuzzed, old value = 0.492940
 	FUZZ s.lcomb.FillLabelFactor2 = 0.562802; // fuzzed, old value = 0.555682
 

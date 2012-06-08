@@ -27,13 +27,8 @@ namespace imago
    class FourierDescriptors
    {
    public:
-      //TODO: change Segment to Contour
-      static void calculate( const Settings& vars, const Image *seg, int count,
-                             std::vector<double> &descriptors );
-      
-      static void calculate( const Points2i &contour, int count,
-                             std::vector<double> &descriptor );
-
+      static void calculate( const Settings& vars, const Image *seg, int count, std::vector<double> &descriptors );      
+      static void calculate( const Points2i &contour, int count, std::vector<double> &descriptor );
    };
 }
 

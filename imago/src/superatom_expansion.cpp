@@ -67,6 +67,11 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       abbrs.push_back(Abbreviation("CN", "*C#N").onright("CN").onleft("NC"));
       abbrs.push_back(Abbreviation("NCO", "*N=C=O").onright("NCO").onleft("OCN"));
       abbrs.push_back(Abbreviation("OCH3", "CO[*]").onright("OCH3").onleft("OCH3"));
+
+	  //abbrs.push_back(Abbreviation("SO2", "S(O)=O*").onright("SO2").onleft("HO2S")); // temp
+	  //abbrs.push_back(Abbreviation("COOCH3", "OC*(=O)").onright("COOCH3").onleft("CH3COO")); // temp
+	  //abbrs.push_back(Abbreviation("CH2CH", "*CC").onright("CH2CH").onleft("CHCH2")); // temp
+
       abbrs.push_back(Abbreviation("SO3H", "OS(*)(=O)=O").onright("SO3H").onleft("HO3S"));
       abbrs.push_back(Abbreviation("SO2H", "OS(*)=O").onright("SO2H").onleft("HO2S"));
       abbrs.push_back(Abbreviation("PO3H2", "OP(O)(*)=O").onright("PO3H2").onleft("H2O3P"));
@@ -78,7 +83,7 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       abbrs.push_back(Abbreviation("NHBoc", "CC(C)(C)OC(=O)N*").onright("NHBoc").onleft("BocHN"));
 
       // This should not be [O-][N+](*)=O by request
-      abbrs.push_back(Abbreviation("NO2", "*N(=O)=O").onright("NO2").onleft("O2N"));
+      abbrs.push_back(Abbreviation("NO2", "*N(=O)=O").onright("NO2").onleft("O2N"));	  
 
       init = true;
    }

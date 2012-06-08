@@ -9,7 +9,6 @@
 #include "output.h"
 #include "convolver.h"
 #include "image_utils.h"
-#include "binarizer.h"
 #include "stat_utils.h"
 #include "thin_filter2.h"
 #include "segment.h"

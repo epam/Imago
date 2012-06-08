@@ -19,7 +19,6 @@
 
 #include <boost/foreach.hpp>
 
-#include "binarizer.h"
 #include "chemical_structure_recognizer.h"
 #include "graph_extractor.h"
 #include "graphics_detector.h"
@@ -392,22 +391,20 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 
 		getLogExt().appendText("Before line vectorization");
 
-		if (vars.csr.UseSimpleApproximator)
 		{
-			SimpleApproximator sApprox;
-			GraphicsDetector gd(&sApprox, 0.3); // no one cares
+			BaseApproximator* approximator = NULL;
+
+			if (vars.csr.UseDPApproximator)
+				approximator = new DPApproximator();
+			else
+				approximator = new CvApproximator();
+
+			GraphicsDetector gd(approximator, vars.estimation.LineThickness * vars.csr.LineVectorizationFactor);
 			gd.extractRingsCenters(vars, layer_graphics, ringCenters);
 			GraphExtractor::extract(vars, gd, layer_graphics, mol);
+
+			delete approximator;
 		}
-		else
-		{
-			double lnThickness = vars.estimation.LineThickness;
-			getLogExt().append("Line Thickness", lnThickness);
-			CvApproximator cvApprox;
-			GraphicsDetector gd(&cvApprox, lnThickness * vars.csr.LineVectorizationFactor);
-			gd.extractRingsCenters(vars, layer_graphics, ringCenters);
-			GraphExtractor::extract(vars, gd, layer_graphics, mol);
-		}		  
 
 		wbe.singleUpFetch(vars, mol);
 

@@ -20,7 +20,6 @@
 #include "exception.h"
 #include "fourier_descriptors.h"
 #include "image.h"
-#include "binarizer.h"
 #include "output.h"
 #include "image_utils.h"
 #include "algebra.h"

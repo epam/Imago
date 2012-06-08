@@ -23,8 +23,13 @@ namespace imago
 	   };
 
 		static Points2i getAllFilled(const Segment& seg);
+
+		// type = 0, euclidian distance, type: = 1 by X, type = 2: by Y
+		static double getRealDistance(const Segment& seg1, const Segment& seg2, int type = 0);
+
 		static int getRealHeight(const Segment& seg);
 		static double getPercentageUnderLine(const Segment& seg, int line_y);
+
 		static Points2i getInRange(const Image& seg, Vec2i pos, int range);
 		
 		static Points2i getEndpoints(const Segment& seg);

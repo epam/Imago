@@ -24,6 +24,7 @@
 #include "character_recognizer.h"
 #include "rng_builder.h"
 #include "segments_graph.h"
+#include "segment_tools.h"
 #include "image_utils.h"
 #include "image_draw_utils.h"
 #include "output.h"
@@ -84,7 +85,7 @@ int LabelCombiner::_findCapitalHeight(const Settings& vars)
 			 cap_height = seg_height;
 		} 
 		else if (d < min_d && seg_height > cap_height 
-			     && (d < vars.lcomb.MaximalSymbolDistance && c != 'O') )
+			     && (d < vars.lcomb.MaximalSymbolRecognitionDistance && c != 'O') )
 		{
 			min_d = d;
 			cap_height = seg_height;
@@ -99,82 +100,6 @@ int LabelCombiner::_findCapitalHeight(const Settings& vars)
    getLogExt().append("Capital height", cap_height);
 
    return cap_height;
-}
-
-void LabelCombiner::_fetchSymbols(const Settings& vars,  SegmentDeque &layer )
-{
-	logEnterFunction();
-
-   SegmentDeque::iterator cur_s, next_s;
-   SegmentDeque::iterator cur_l;
-   int count = 0;
-   for (cur_s = layer.begin(); cur_s != layer.end(); cur_s = next_s)
-   {
-      next_s = cur_s + 1;
-
-	  getLogExt().appendSegment("Work segment", **cur_s);
-
-	  if ((*cur_s)->getHeight() > (int)(vars.estimation.CapitalHeight + vars.estimation.SymHeightErr))
-         continue;
-
-      int angle;
-      ImageUtils::testVertHorLine(vars, **cur_s, angle);
-
-      Rectangle seg_rect = (*cur_s)->getRectangle();
-      double r = (*cur_s)->getRatio();
-
-      if (angle != -1)
-      {
-		  bool minus = ImageUtils::testMinus(vars, **cur_s, (int)vars.estimation.CapitalHeight);
-         bool plus = ImageUtils::testPlus(vars, **cur_s);
-
-         if (minus)
-			 getLogExt().appendText("Minus detected");
-
-         if (plus)
-			 getLogExt().appendText("Plus detected");
-
-         if (!plus && !minus)
-         {
-			 if (ImageUtils::testSlashLine(vars, **cur_s, 0, vars.lcomb.TestSlashLineEps)) // TODO
-               continue;   
-			 if (seg_rect.height < vars.lcomb.TestMinHeightFactor * vars.estimation.CapitalHeight 
-				 || seg_rect.height > vars.lcomb.TestMaxHeightFactor * vars.estimation.CapitalHeight 
-				 || r > vars.estimation.MaxSymRatio|| r < vars.estimation.MinSymRatio)
-               continue;
-         }
-      }
-
-      for (cur_l = _symbols_layer.begin(); cur_l != _symbols_layer.end(); ++cur_l)
-      {
-         //if (Vec2d::distance2rect(center, cur_l->x, cur_l->y, cur_l->width,
-         //                         cur_l->height) < _space)
-         Rectangle rect = (*cur_l)->getRectangle();
-		 if (Rectangle::distance(seg_rect, rect) > vars.estimation.CharactersSpaceCoeff * vars.estimation.CapitalHeight)
-            continue;
-
-		 int h1 = (int)absolute(rect.y - seg_rect.y 
-			                    - vars.lcomb.RectHeightRatio * seg_rect.height); 
-         int h2 = (int)absolute(rect.y + vars.lcomb.RectHeightRatio * rect.height - seg_rect.y);
-         int h3 = (int)absolute(rect.y + rect.height - seg_rect.y -
-                                seg_rect.height);
-         int h4 = (int)absolute(rect.y + rect.height - seg_rect.y -
-                                vars.lcomb.RectHeightRatio * seg_rect.height);
-
-		 double space = vars.estimation.CharactersSpaceCoeff * vars.estimation.CapitalHeight;
-
-		 if (h1 > vars.lcomb.H1SuperscriptSpace * space  &&
-			 (h2 > vars.lcomb.H2LowercaseSpace * space || h3 > vars.lcomb.H3LowercaseSpace * space) &&
-			 h4 > vars.lcomb.H4SubscriptSpace * space)
-            continue;
-         
-         _symbols_layer.push_back(*cur_s);
-         std::swap(*(layer.begin() + (count++)), *cur_s); //Do i need next?
-         break;
-      }
-   }
-   layer.erase(layer.begin(), layer.begin() + count);
-
 }
 
 void LabelCombiner::extractLabels( std::deque<Label> &labels )
@@ -197,6 +122,8 @@ void LabelCombiner::_locateLabels(const Settings& vars)
    SegmentsGraph::edge_iterator ei, ei_end, next;
    boost::tie(ei, ei_end) = boost::edges(seg_graph);
 
+   double distance_constraint = vars.estimation.CapitalHeight * vars.lcomb.MaximalDistanceFactor;
+   double distance_constraint_y = vars.estimation.CapitalHeight * vars.lcomb.MaximalYDistanceFactor;
 
    boost::property_map<segments_graph::SegmentsGraph, boost::vertex_seg_ptr_t>::
 	   type img_ptrs = boost::get(boost::vertex_seg_ptr, seg_graph);
@@ -204,42 +131,12 @@ void LabelCombiner::_locateLabels(const Settings& vars)
    
    for (next = ei; ei != ei_end; ei = next)
    {
-      Vec2d b_pos = positions[boost::source(*ei, seg_graph)],
-            e_pos = positions[boost::target(*ei, seg_graph)];
-	  Vec2d dif; 
-	  dif.diff(e_pos, b_pos);
-	  dif = dif.getNormalized();
-	  double sign_x = dif.x>0 ? 1:-1;
-	  double sign_y = dif.y>0 ? 1:-1;
-
 	  Segment *s_b = boost::get(img_ptrs, boost::vertex(boost::source(*ei, seg_graph), seg_graph));
 	  Segment *s_e = boost::get(img_ptrs, boost::vertex(boost::target(*ei, seg_graph), seg_graph));
       
-	  double width_b = s_b->getWidth();
-	  double width_e = s_e->getWidth();
-	  double width = (width_b+2*width_e)/3;
-	  double height = std::min(s_b->getHeight(), s_e->getHeight());
-
-	  double x_b = width_b * sign_x / 2.0 + b_pos.x; 
-	  double x_e = -width_e * sign_x / 2.0  + e_pos.x; 
-
-	  double y_b = s_b->getHeight() * sign_y / 2.0  + b_pos.y;
-	  double y_e = -s_e->getHeight() * sign_y / 2.0  + e_pos.y;
-		
-	  if((s_b->getCenter().y < s_e->getCenter().y && s_e->getCenter().y > y_b - height/2 && s_e->getCenter().y < y_b + height/2) ||
-		  (s_e->getCenter().y < s_b->getCenter().y && s_b->getCenter().y > y_e - height/2 && s_b->getCenter().y < y_e + height/2))//(height > 3*_cap_height/4)
-		  height =std::max(s_b->getHeight(), s_e->getHeight());
-	  else
-		  height /= 2.0;
-      //double length = Vec2d::distance(b_pos, e_pos);
       ++next;
-      //TODO: Find an appropriate length!
-	  // TODO!
-	  if ((fabs(y_e - y_b) < width && fabs((double)(s_b->getCenter().x - s_e->getCenter().x)) < width/2) || 
-		  (fabs(x_e - x_b) < width && fabs((double)(s_b->getCenter().y - s_e->getCenter().y)) < height))
-          //(fabs(k) > _parLinesEps && fabs(fabs(k) - PI) > _parLinesEps &&
-          // fabs(k - PI_2) > _parLinesEps &&
-          // fabs(fabs(k - PI_2) - PI) > _parLinesEps))
+	  if (SegmentTools::getRealDistance(*s_b,*s_e, 0) < distance_constraint &&
+		  SegmentTools::getRealDistance(*s_b,*s_e, 2) < distance_constraint_y )
 		  continue;
 	  else
          boost::remove_edge(*ei, seg_graph);
@@ -272,6 +169,8 @@ void LabelCombiner::_locateLabels(const Settings& vars)
 
 void LabelCombiner::_fillLabelInfo(const Settings& vars, Label &l )
 {
+	logEnterFunction();
+
    std::vector<Segment*> &symbols = l.symbols;
    int size = symbols.size();
    std::sort(symbols.begin(), symbols.end(), _segmentsComparator);
