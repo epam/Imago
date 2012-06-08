@@ -35,7 +35,7 @@ int wmain(int argc, wchar_t* argv[])
 		std::wstring source = argv[1];
 		std::wstring output = argv[2];
 		std::wstring range = L"0.5";
-		bool strict_mode = false;
+		bool strict_mode = false;		
 		if (argc > 3)
 			range = argv[3];
 		if (argc > 4)
@@ -46,6 +46,7 @@ int wmain(int argc, wchar_t* argv[])
 		}
 		double range_d = _wtof(range.c_str());
 		wprintf(L"Fuzzing %s to %s with range=%f\n", source.c_str(), output.c_str(), range_d);
+		bool copy_only_mode = range_d < 0.0001;
 		FILE* s = _wfopen(source.c_str(), L"r");
 		if (s == NULL)
 		{
@@ -87,8 +88,12 @@ int wmain(int argc, wchar_t* argv[])
 			}
 			// items should be like
 			// const,int,data,=,value,something
-
-			if (strict_mode)
+			
+			if (copy_only_mode)
+			{
+				// just pass
+			}
+			else if (strict_mode)
 			{
 				if (items.size() > 3 && items[0] == L"FUZZ")
 				{
