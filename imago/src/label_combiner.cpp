@@ -33,17 +33,21 @@
 using namespace imago;
 
 LabelCombiner::LabelCombiner(Settings& vars, SegmentDeque &symbols_layer, SegmentDeque &other_layer, const CharacterRecognizer &cr ) :
-   _symbols_layer(symbols_layer), _cr(cr)
+   _symbols_layer(symbols_layer), _cr(cr), _graphic_layer(other_layer)
    
 {
-	vars.estimation.CapitalHeight = _findCapitalHeight(vars);
+	do
+	{
+		vars.estimation.CapitalHeight = _findCapitalHeight(vars);
 
-	if (vars.estimation.CapitalHeight > 0.0)
-   {
-      _locateLabels(vars);
-      BOOST_FOREACH(Label &l, _labels)
-         _fillLabelInfo(vars, l);
-   }
+		if (vars.estimation.CapitalHeight > 0.0)
+		{
+			_labels.clear();
+			_locateLabels(vars);
+			BOOST_FOREACH(Label &l, _labels)
+				_fillLabelInfo(vars, l);
+		}
+	}while(needsProcessing(vars));
 }
 
 
@@ -52,13 +56,21 @@ int LabelCombiner::_findCapitalHeight(const Settings& vars)
 	logEnterFunction();
 
    //TODO: If it belongs here then rewrite
-   int mean_height = 0, seg_height, cap_height = -1;
+   int mean_height = 0, seg_height, cap_height = -1, n=0;
+   double sigma = 0, delta = 0, mean=0;
    BOOST_FOREACH(Segment *seg, _symbols_layer)
    {
 	   getLogExt().append("Height", seg->getHeight());
 	   mean_height += seg->getHeight();
+
+	   delta = seg->getHeight() - mean;
+	   n++;
+	   mean += delta/n;
+	   sigma += delta*(seg->getHeight() - mean);
    }
-   mean_height /= _symbols_layer.size();
+   sigma /= (n-1);
+   sigma = sqrt(sigma);
+   mean_height = mean; //_symbols_layer.size();
    getLogExt().append("Mean height", mean_height);
 
    double d = DBL_MAX, min_d = DBL_MAX;
@@ -79,7 +91,7 @@ int LabelCombiner::_findCapitalHeight(const Settings& vars)
 		seg_height = seg->getHeight();
 		getLogExt().append("Segment height", seg_height);
       
-		if (d < min_d && seg_height >= mean_height)
+		if (d < min_d && seg_height >= (mean_height - sigma))
 		{
 			 min_d = d;
 			 cap_height = seg_height;
@@ -270,4 +282,78 @@ bool LabelCombiner::_segmentsCompareX( const Segment* const &a,
 
 LabelCombiner::~LabelCombiner()
 {
+}
+
+
+bool LabelCombiner::needsProcessing(Settings& vars)
+{
+	bool retVal = false;
+	SegmentDeque sym_segment2graphics;
+
+	double capHeight = 0;
+	for(int i = 0; i < _symbols_layer.size(); i++)
+		capHeight += _symbols_layer[i]->getHeight();
+	capHeight /= _symbols_layer.size();
+
+	double cap_height_limit = capHeight * vars.separator.capHeightMax;
+
+	// find sym that is graphic
+	BOOST_FOREACH(Label l, _labels)
+	{
+		if(l.symbols.size() > 1)
+		{
+			BOOST_FOREACH(Segment *s, l.symbols)
+			{
+				if(s->getHeight() > cap_height_limit)
+				{
+					_graphic_layer.push_back(s);
+					sym_segment2graphics.push_back(s);
+					retVal = true;
+				}
+			}
+		}
+	
+	}
+
+	//remove symbols
+	SegmentDeque::iterator it;
+	std::vector<SegmentDeque::iterator> its;
+	BOOST_FOREACH(Segment* s, sym_segment2graphics)
+	{
+		for(it = _symbols_layer.begin(); it != _symbols_layer.end(); it++)
+			if((*it) == s)
+				its.push_back(it);
+	}
+	for(int i = 0; i < its.size(); i++)
+		_symbols_layer.erase(its[i]);
+
+	if(retVal)
+		return retVal;
+
+	// check if bonds are inside labels
+	BOOST_FOREACH(Label l, _labels)
+	{
+		BOOST_FOREACH(Segment *s, _graphic_layer)
+		{
+			if(l.rect.x < s->getRectangle().x && (l.rect.x + l.rect.width) > s->getRectangle().x 
+				&& l.rect.y < (s->getRectangle().y + s->getRectangle().width/2) && (l.rect.y + l.rect.height) > (s->getRectangle().y + s->getRectangle().width/2) &&
+				s->getRectangle().height < cap_height_limit ) 
+			{
+				sym_segment2graphics.push_back(s);
+				_symbols_layer.push_back(s);
+				retVal = true;
+			}
+		}
+	}
+
+	BOOST_FOREACH(Segment* s, sym_segment2graphics)
+	{
+		for(it = _graphic_layer.begin(); it != _graphic_layer.end(); it++)
+			if((*it) == s)
+				its.push_back(it);
+	}
+	for(int i = 0; i < its.size(); i++)
+		_graphic_layer.erase(its[i]);
+
+	return retVal;
 }
