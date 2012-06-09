@@ -71,6 +71,7 @@ namespace imago
       SegmentDeque &_symbols_layer;
 	  SegmentDeque &_graphic_layer;
       const CharacterRecognizer &_cr;
+	  double _capHeightStandardDeviation;
 
       std::deque<Label> _labels;
       void _locateLabels(const Settings& vars);

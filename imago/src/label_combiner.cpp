@@ -47,7 +47,8 @@ LabelCombiner::LabelCombiner(Settings& vars, SegmentDeque &symbols_layer, Segmen
 			BOOST_FOREACH(Label &l, _labels)
 				_fillLabelInfo(vars, l);
 		}
-	}while(needsProcessing(vars));
+		//Temporary switched off
+	}while(0)//(needsProcessing(vars));
 }
 
 
@@ -68,8 +69,8 @@ int LabelCombiner::_findCapitalHeight(const Settings& vars)
 	   mean += delta/n;
 	   sigma += delta*(seg->getHeight() - mean);
    }
-   sigma /= (n-1);
-   sigma = sqrt(sigma);
+   sigma = n > 1 ? sigma / (n-1) : 1;
+   _capHeightStandardDeviation = sqrt(sigma);
    mean_height = mean; //_symbols_layer.size();
    getLogExt().append("Mean height", mean_height);
 
@@ -290,12 +291,7 @@ bool LabelCombiner::needsProcessing(Settings& vars)
 	bool retVal = false;
 	SegmentDeque sym_segment2graphics;
 
-	double capHeight = 0;
-	for(int i = 0; i < _symbols_layer.size(); i++)
-		capHeight += _symbols_layer[i]->getHeight();
-	capHeight /= _symbols_layer.size();
-
-	double cap_height_limit = capHeight * vars.separator.capHeightMax;
+	double cap_height_limit = vars.estimation.CapitalHeight + _capHeightStandardDeviation;
 
 	// find sym that is graphic
 	BOOST_FOREACH(Label l, _labels)
@@ -322,10 +318,13 @@ bool LabelCombiner::needsProcessing(Settings& vars)
 	{
 		for(it = _symbols_layer.begin(); it != _symbols_layer.end(); it++)
 			if((*it) == s)
+			{
 				its.push_back(it);
+				break;
+			}
+			_symbols_layer.erase(its[0]);
+			its.clear();
 	}
-	for(int i = 0; i < its.size(); i++)
-		_symbols_layer.erase(its[i]);
 
 	if(retVal)
 		return retVal;
@@ -350,10 +349,12 @@ bool LabelCombiner::needsProcessing(Settings& vars)
 	{
 		for(it = _graphic_layer.begin(); it != _graphic_layer.end(); it++)
 			if((*it) == s)
+			{
 				its.push_back(it);
+				break;
+			}
+		_graphic_layer.erase(its[0]);
+		its.clear();
 	}
-	for(int i = 0; i < its.size(); i++)
-		_graphic_layer.erase(its[i]);
-
 	return retVal;
 }
