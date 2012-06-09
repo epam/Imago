@@ -1,7 +1,7 @@
 
 void updateSettingsScanned(Settings &s)
 {
-	FUZZ s.general.UseProbablistics = false; // fuzzed, old value = false
+	s.general.UseProbablistics = false; 
 
 	FUZZ s.separator.ext2charRatio = 1.767319; // fuzzed, old value = 1.771798
 
@@ -144,8 +144,8 @@ void updateSettingsScanned(Settings &s)
 	//NormalizeBySide(SingleDownDistancesMax, LongestSide);
 	//NormalizeBySide(SingleUpIncLengthTresh, LongestSide);
 
-	FUZZ s.characters.MaximalEndpointsUse = 7; // fuzzed, old value = 7
-	FUZZ s.characters.HackFor3Use = false; // fuzzed, old value = false
+	s.characters.HackFor3Use = false;
+	FUZZ s.characters.MaximalEndpointsUse = 7; // fuzzed, old value = 7	
 	FUZZ s.characters.ImpossibleToWriteDelta = 1; // fuzzed, old value = 1
 	FUZZ s.characters.WriteProbablyImpossibleFactor = 1.006098; // fuzzed, old value = 0.985291
 	FUZZ s.characters.WriteSurelyImpossibleFactor = 1.077772; // fuzzed, old value = 1.098267

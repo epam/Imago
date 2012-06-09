@@ -14,7 +14,7 @@
 		FUZZ WeakBinarizeSize = 7; // fuzzed, old value = 7
 		FUZZ WeakBinarizeTresh = 1.033653; // fuzzed, old value = 1.035869
 
-		FUZZ UseTresholdPixelsAddition = false; // fuzzed, old value = false
+		UseTresholdPixelsAddition = false;
 		FUZZ AdditionPercentage = 0.051748; // fuzzed, old value = 0.051913
 		FUZZ MinGoodPixelsCount2 = 20; // fuzzed, old value = 20
 		FUZZ MaxBadToGoodRatio2 = 7; // fuzzed, old value = 7
