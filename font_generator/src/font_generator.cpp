@@ -37,7 +37,7 @@ void prefilter(imago::Segment& img)
 {
 	for (int x = 0; x < img.getWidth(); x++)
 		for (int y = 0; y < img.getHeight(); y++)
-			if (img.getByte(x,y) < 64) // TODO!!!!!!
+			if (img.getByte(x,y) < 190) // TODO!!!!!!
 				img.getByte(x,y) = 0;
 			else
 				img.getByte(x,y) = 255;

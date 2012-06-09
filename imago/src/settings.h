@@ -171,7 +171,7 @@ namespace imago
 	struct RoutinesSettings
 	{
 		int LineThick_Grid;
-
+		
 		double Circle_GapRadiusMax;
 		double Circle_GapAngleMax;
 		double Circle_MinRadius; 

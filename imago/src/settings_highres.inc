@@ -143,8 +143,8 @@ void updateSettingsHighResolution(Settings &s)
 	//NormalizeBySide(SingleDownDistancesMax, LongestSide);
 	//NormalizeBySide(SingleUpIncLengthTresh, LongestSide);
 
-	FUZZ s.characters.MaximalEndpointsUse = 7; // fuzzed, old value = 7
 	s.characters.HackFor3Use = true; 
+	FUZZ s.characters.MaximalEndpointsUse = 7; // fuzzed, old value = 7	
 	FUZZ s.characters.ImpossibleToWriteDelta = 1; // fuzzed, old value = 1
 	FUZZ s.characters.WriteProbablyImpossibleFactor = 1.018301; // fuzzed, old value = 1.037340
 	FUZZ s.characters.WriteSurelyImpossibleFactor = 1.194095; // fuzzed, old value = 1.182250
