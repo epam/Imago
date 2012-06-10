@@ -139,6 +139,7 @@ namespace imago
 	  bool _isEqualDirection( const Edge &first, const Edge &second ) const;
       bool _isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex &b2,const Vertex &e2)  const;
 	  bool _isSegmentIntersectedByEdge(const Settings& vars, Vec2d &b, Vec2d &e, std::deque<Edge> edges);
+	  void _processInlineDoubleBond(const Settings& vars);
 
 	  void _connectBridgedBonds(const Settings& vars);
 	  

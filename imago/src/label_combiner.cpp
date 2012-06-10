@@ -48,7 +48,7 @@ LabelCombiner::LabelCombiner(Settings& vars, SegmentDeque &symbols_layer, Segmen
 				_fillLabelInfo(vars, l);
 		}
 		//Temporary switched off
-	}while(0)//(needsProcessing(vars));
+	}while(0);//(needsProcessing(vars));
 }
 
 
@@ -71,7 +71,7 @@ int LabelCombiner::_findCapitalHeight(const Settings& vars)
    }
    sigma = n > 1 ? sigma / (n-1) : 1;
    _capHeightStandardDeviation = sqrt(sigma);
-   mean_height = mean; //_symbols_layer.size();
+   mean_height = (int)mean; //_symbols_layer.size();
    getLogExt().append("Mean height", mean_height);
 
    double d = DBL_MAX, min_d = DBL_MAX;

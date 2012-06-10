@@ -761,6 +761,73 @@ void Skeleton::_findMultiple(const Settings& vars)
       types = boost::get(boost::edge_type, _g);
    } while (false);
    //} while (toProcess.size() != 0);
+   _processInlineDoubleBond(vars);
+}
+
+void Skeleton::_processInlineDoubleBond(const Settings& vars)
+{
+	std::vector<Edge> toProcess, singles;
+	std::vector<Edge>::iterator it, foundIt;
+	BGL_FORALL_EDGES(j, _g, SkeletonGraph)
+	{
+		if(getBondType(j) == SINGLE)
+			singles.push_back(j);
+		if(getBondType(j) == DOUBLE)
+			toProcess.push_back(j);
+	}
+
+
+	for(size_t i = 0;i < toProcess.size();i++)
+	{
+		bool foundInlineEdge = false;
+		Vertex p1, p2, p3, p4;
+		Vec2d p1b, p1e, p2b, p2e;
+
+		for(it = singles.begin(); it != singles.end(); it++)
+		{
+			Vec2d midOfSingle;
+
+			p1= getBondBegin(toProcess[i]);
+			p2= getBondEnd(toProcess[i]);
+			p3= getBondBegin((*it));
+			p4= getBondEnd((*it));
+
+			p1b = getVertexPos(p1);
+			p1e = getVertexPos(p2);
+			p2b = getVertexPos(p3);
+			p2e = getVertexPos(p4);
+
+			midOfSingle.middle(p2b, p2e);
+
+			if(Algebra::SegmentsOnSameLine(vars, p1b, p1e, p2b, p2e) && 
+				(Vec2d::distance(midOfSingle, p1b) + Vec2d::distance(midOfSingle, p1e)) < Vec2d::distance(p2b, p2e))
+			{
+				foundIt = it;
+				foundInlineEdge = true;
+				break;
+			}
+		}
+		if(foundInlineEdge)
+		{
+			removeBond(*foundIt);
+			singles.erase(foundIt);
+
+			if(Vec2d::distance(p1b, p2b) < Vec2d::distance(p1b, p2e))
+			{
+				addBond(p1, p3);
+				addBond(p2, p4);
+			}
+			else
+			{
+				addBond(p1, p4);
+				addBond(p2, p3);
+			}
+			
+			setBondType(toProcess[i], TRIPLE);
+		}
+
+
+	}
 }
 
 void Skeleton::_reconnectBonds( Vertex from, Vertex to )
