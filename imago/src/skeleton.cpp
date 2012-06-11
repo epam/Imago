@@ -768,6 +768,16 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
 {
 	std::vector<Edge> toProcess, singles;
 	std::vector<Edge>::iterator it, foundIt;
+
+	double toSmallErr;
+   if (_avg_bond_length > vars.skeleton.LongBondLen)
+	   toSmallErr = vars.skeleton.LongSmallErr;
+   else if (_avg_bond_length > vars.skeleton.MediumBondLen)
+	   toSmallErr = vars.skeleton.MediumSmallErr;
+   else
+	   toSmallErr = vars.skeleton.BaseSmallErr;
+   toSmallErr *= _avg_bond_length;
+
 	BGL_FORALL_EDGES(j, _g, SkeletonGraph)
 	{
 		if(getBondType(j) == SINGLE)
@@ -814,13 +824,19 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
 
 			if(Vec2d::distance(p1b, p2b) < Vec2d::distance(p1b, p2e))
 			{
-				addBond(p1, p3);
-				addBond(p2, p4);
+				if(Vec2d::distance(p1b, p2b) > toSmallErr)
+					addBond(p1, p3);
+				
+				if(Vec2d::distance(p1e, p2e) > toSmallErr)
+					addBond(p2, p4);
+				
 			}
 			else
 			{
-				addBond(p1, p4);
-				addBond(p2, p3);
+				if(Vec2d::distance(p1b, p2e) > toSmallErr)
+					addBond(p1, p4);
+				if(Vec2d::distance(p1e, p2b) > toSmallErr)
+					addBond(p2, p3);
 			}
 			
 			setBondType(toProcess[i], TRIPLE);
