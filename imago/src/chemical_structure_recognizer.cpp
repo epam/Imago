@@ -369,7 +369,8 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 			LabelCombiner lc(vars, layer_symbols, layer_graphics, _cr);
 
 			if (vars.estimation.CapitalHeight > 0.0)
-			lc.extractLabels(mol.getLabels());
+				lc.extractLabels(mol.getLabels());
+			
 
 			if (getLogExt().loggingEnabled())
 			{

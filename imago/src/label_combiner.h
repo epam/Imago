@@ -65,9 +65,13 @@ namespace imago
       
 	  void extractLabels( std::deque<Label> &labels );
 
+	  
+
    private:
       SegmentDeque &_symbols_layer;
+	  SegmentDeque &_graphic_layer;
       const CharacterRecognizer &_cr;
+	  double _capHeightStandardDeviation;
 
       std::deque<Label> _labels;
       void _locateLabels(const Settings& vars);
@@ -79,6 +83,7 @@ namespace imago
                                      const Segment* const &b );
 
       int _findCapitalHeight(const Settings& vars);
+	  bool needsProcessing(Settings& vars);
    };
 }
 #endif /* _label_combiner_h */
