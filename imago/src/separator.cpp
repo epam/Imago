@@ -599,7 +599,8 @@ int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark,  Segme
 			retVal = SEP_BOND;
 		else
 			retVal = SEP_SYMBOL;
-		
+		seg->setSymbolProbability(sym_prob);
+
 		getLogExt().append("Graphic probability ", bond_prob);
 		getLogExt().append("Character probability ", sym_prob);
 
@@ -838,6 +839,8 @@ void Separator::firstSeparation(Settings& vars, CharacterRecognizer &rec, Segmen
 				}			
 			}	
 		}
+
+		s->setSymbolProbability(mark < 2 ? (double)mark : 0.0);
 
 		if (vars.general.UseProbablistics) // use probablistic method			
 		{

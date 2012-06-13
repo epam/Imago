@@ -63,11 +63,17 @@ namespace imago
       SymbolFeatures &getFeatures();
       void initFeatures( const Settings& vars, int descriptorsCount ) const;      
 
+	  void setSymbolProbability(double prob);
+	  double getSymbolProbability() const;
+
+      ~Segment();
+
    private:
       int _x, _y;
       double _ratio;
       double _density;
       mutable SymbolFeatures _features;
+	  double _symbolProbability;
    };
 }
 

@@ -30,6 +30,7 @@ using namespace imago;
 Segment::Segment()
 {
    _density = _ratio = -1;
+   _density = _ratio = _symbolProbability = -1;
    _x = _y = 0;
 }
 
@@ -245,4 +246,14 @@ void Segment::rotate90()
 Segment::~Segment()
 {
 
+}
+
+double Segment::getSymbolProbability() const
+{
+	return _symbolProbability;
+}
+
+void Segment::setSymbolProbability(double prob)
+{
+	_symbolProbability = prob;
 }

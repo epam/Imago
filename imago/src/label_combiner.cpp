@@ -48,7 +48,7 @@ LabelCombiner::LabelCombiner(Settings& vars, SegmentDeque &symbols_layer, Segmen
 				_fillLabelInfo(vars, l);
 		}
 		//Temporary switched off
-	}while(0);//(needsProcessing(vars));
+	}while(needsProcessing(vars));
 }
 
 
@@ -300,7 +300,8 @@ bool LabelCombiner::needsProcessing(Settings& vars)
 		{
 			BOOST_FOREACH(Segment *s, l.symbols)
 			{
-				if(s->getHeight() > cap_height_limit)
+				if(s->getHeight() > cap_height_limit &&
+					s->getSymbolProbability() < 0.6)
 				{
 					_graphic_layer.push_back(s);
 					sym_segment2graphics.push_back(s);
@@ -326,7 +327,7 @@ bool LabelCombiner::needsProcessing(Settings& vars)
 			its.clear();
 	}
 
-	if(retVal)
+	//if(retVal)
 		return retVal;
 
 	// check if bonds are inside labels
@@ -336,7 +337,8 @@ bool LabelCombiner::needsProcessing(Settings& vars)
 		{
 			if(l.rect.x < s->getRectangle().x && (l.rect.x + l.rect.width) > s->getRectangle().x 
 				&& l.rect.y < (s->getRectangle().y + s->getRectangle().width/2) && (l.rect.y + l.rect.height) > (s->getRectangle().y + s->getRectangle().width/2) &&
-				s->getRectangle().height < cap_height_limit ) 
+				s->getRectangle().height < cap_height_limit && 
+				s->getRatio() < 0.5) 
 			{
 				sym_segment2graphics.push_back(s);
 				_symbols_layer.push_back(s);
