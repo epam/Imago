@@ -2,20 +2,42 @@
 <head>
  <STYLE type="text/css">
    .correct {background-color: #AAFFAA }
+   .almostcorrect {background-color: #BBFFCC }
    .improvement {background-color: #CCCCFF }
    .newregression {background-color: #FFAAAA }
    .regression {background-color: #FFDDDD }
    .same {background-color: #EEEEEE }
-	.level0 {text-indent:0em}
-	.level1 {text-indent:2em}
-	.level2 {text-indent:4em}
-	.level3 {text-indent:6em}
-	.group {font-weight:bold;}
-	.better {}
-	.stat {background-color: #eef; color: #222;}
+   .level0 {text-indent:0em}
+   .level1 {text-indent:2em}
+   .level2 {text-indent:4em}
+   .level3 {text-indent:6em}
+   .group {font-weight:bold;}
+   .better {}
+   .stat {background-color: #eef; color: #222;}
+   
+   .rowsame {}
+   .rowalmostcorrect {}
+   .rowcorrect { }
  </STYLE>
+ 
+<script src="jquery.min.js"></script>
+<script type="text/javascript">
+	function updateVisible()
+	{
+		$('.rowsame').css('display', $('input[name=hideSame]').is(':checked') ? 'none' : '');
+		$('.rowalmostcorrect').css('display', $('input[name=hideAlmostCorrect]').is(':checked') ? 'none' : '');
+		$('.rowcorrect').css('display', $('input[name=hideCorrect]').is(':checked') ? 'none' : '');
+	}
+</script>
+ 
 </head>
 <body>
+
+<form name="visual">
+ <input type="checkbox" name="hideSame" onclick="updateVisible()">Hide same</input>
+ <input type="checkbox" name="hideAlmostCorrect" onclick="updateVisible()">Hide almost correct</input>
+ <input type="checkbox" name="hideCorrect" onclick="updateVisible()">Hide correct</input>
+</form>
 
 SCORES
 
@@ -27,8 +49,12 @@ SCORES
   <th>meaning</th>
 </tr>
 <tr>
-  <td class="correct">99</td>
-  <td>[almost] correct</td>
+  <td class="correct">100</td>
+  <td>correct</td>
+</tr>
+<tr>
+  <td class="almostcorrect">95</td>
+  <td>almost correct</td>
 </tr>
 <tr>
   <td class="improvement">70</td>

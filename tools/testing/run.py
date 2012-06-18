@@ -3,6 +3,7 @@ import subprocess
 import shutil
 import time
 import StringIO
+import collections
 
 from indigo.indigo_renderer import *
 from indigo.indigo import *
@@ -64,10 +65,14 @@ class ItemVersion:
         f.close()
         
     def getTime(self):
-        f = open(self.getTimeFile())
-        value = f.read()
-        f.close()
-        return float(value)
+        try:
+            f = open(self.getTimeFile())
+            value = f.read()
+            f.close()
+            return float(value)
+        except ValueError,e:
+            print "error",e,"in getTime()"
+            return 666.0
         
     def exists (self):
         return os.path.exists(self.getMolFile())
@@ -109,21 +114,16 @@ class Item:
         full_version = os.path.join("versions", version)
         abs_version = os.path.abspath(full_version)
         abs_img = os.path.abspath(os.path.join(self.dirname, self.photo))
-        tl_exe = os.path.abspath("TimeLimit.exe")
         
         os.chdir(tmp_dir)
         if os.path.exists("molecule.mol"):
             os.remove("molecule.mol")
         time_before = time.clock()
-        ret = subprocess.call([tl_exe, "30", abs_version, abs_img]) 
+        ret = subprocess.call([abs_version, abs_img]) 
         time_after = time.clock()
         
         os.chdir("..")
-        time_val = time_after - time_before
-        item_version.setTime(time_val)
-        if time_val > 16.0:
-            print 'timelimit exceeded'
-            raise
+        item_version.setTime(time_after - time_before)
         
         if ret != 0:
             item_version.setFailed()
@@ -171,11 +171,13 @@ class VersionScore:
         self.time_sum = 0
         self.count = 0
         self.good_count = 0
+        self.almost_good_count = 0
     def add (self, other):
         self.score_sum += other.score_sum
         self.time_sum += other.time_sum
         self.count += other.count
         self.good_count += other.good_count
+        self.almost_good_count += other.almost_good_count
 
 class VersionsScore:
     def __init__ (self):
@@ -191,8 +193,67 @@ class VersionsScore:
     
 # generate report
 report_data = StringIO.StringIO()
+same_rows = []
+correct_rows = []
+almostcorrect_rows = []
   
+def getAtomCounters (m):
+    atoms = collections.Counter()
+    for a in m.iterateAtoms():
+        if a.isPseudoatom() or a.isRSite():
+            atom = a.symbol()
+        else:
+            atom = (a.symbol(), a.isotope(), a.charge(), a.radicalElectrons())
+        atoms[atom] += 1
+    return atoms
+        
+def getBondCounters (m):
+    bonds = collections.Counter()
+    for b in m.iterateBonds():
+        bsteteo = b.bondStereo()
+        if bsteteo == Indigo.CIS or bsteteo == Indigo.TRANS:
+            bsteteo = 0 # CIS-TRANS is dependent on the atom ordering
+        bond = (b.bondOrder(), bsteteo)
+        bonds[bond] += 1
+    return bonds
+
+def getCountersSim (c1, c2):
+    common = c1 & c2
+    all = c1 | c2
+    
+    ncommon = sum(common.values()) 
+    nall = sum(all.values()) 
+    
+    if nall == 0:
+        return 1
+        
+    return float(ncommon)/nall
+
 def measureSimilarity (m1, m2):
+    if not m1 or not m2:
+        return None
+
+    #print(getAtomCounters(m1))
+    #print(getAtomCounters(m2))
+    #print(getBondCounters(m1))
+    #print(getBondCounters(m2))
+    
+    # Get the number of different atoms and bonds
+    c1 = getAtomCounters(m1) + getBondCounters(m1)
+    c2 = getAtomCounters(m2) + getBondCounters(m2)
+    sim = getCountersSim(c1, c2)
+    
+    #print(sim)
+    
+    # If there are a lot of mistakes that it is not such important
+    sim = sim * sim
+    
+    if sim > 0.9999999:
+        # Check graph structure
+        return measureSimilarity2(m1, m2)
+    return sim * 100
+
+def measureSimilarity2 (m1, m2):
     if not m1 or not m2:
         return None
         
@@ -231,9 +292,12 @@ def getExperimentClass (sim, sim_values, scores):
             cls = "regression"
         if sim_value < sim_values[-1] - 10:
             cls = "newregression"
-    if sim_value > 94.5:
+    if sim_value > 99.999:
         cls = "correct"
         scores.good_count += 1
+    elif sim_value > 94.5:
+        cls = "almostcorrect"
+        scores.almost_good_count += 1
     if cls == "" and len(sim_values) > 0:
         if sim_value > sim_values[-1] + 15:
             cls = "improvement"
@@ -246,11 +310,13 @@ def getExperimentClass (sim, sim_values, scores):
     scores.count += 1
         
     return cls
-    
+  
+row_index = 1  
   
 def generateGroupReport (g, level):
     if level >= 0:
         report_data.write("<tr><td class='level%d group'>%s</td></tr>\n" % (level, g.name))
+    
     # process all subgroups
     stat = VersionsScore()
     for subgroup in g.subgroups:
@@ -258,8 +324,8 @@ def generateGroupReport (g, level):
         stat.add(subdata)
      
     for item in g.items:
-        report_data.write("<tr><td class='level%d'><a href='%s'>%s</a></td>\n" % 
-            (level + 1, item.getImageFileName(), item.photo))
+        rowHTML = ""
+            
         ref_mol = None
         if item.reference:
             try:
@@ -269,21 +335,21 @@ def generateGroupReport (g, level):
                 
         prev_molecule = None
         sim_values = []
+        
         for version in versions:
             print("*****")
             print("* Version: " + version)
             print("* Image: " + item.getImageFileName())
             item_version = item.versions[version]
             
-            time_val = item_version.getTime()
-            stat[version].time_sum += time_val
+            stat[version].time_sum += item_version.getTime()
             
             item_mol = None
+            cur_molecule = ""
             try:
                 item_mol = indigo.loadMoleculeFromFile(item_version.getMolFile())
                 cur_molecule = item_mol.molfile()
             except IndigoException:
-                cur_molecule = ""
                 pass
             sim = measureSimilarity(ref_mol, item_mol)
             print(sim)
@@ -294,9 +360,11 @@ def generateGroupReport (g, level):
                 sim_value = "?"
             
             cls = getExperimentClass(sim, sim_values, stat[version])
-            
+                 
+            last_row_same = False
             if cls == "" and prev_molecule == cur_molecule:
                 cls = "same"
+                last_row_same = True
             
             prev_molecule = cur_molecule
             
@@ -309,8 +377,27 @@ def generateGroupReport (g, level):
             if cls != "":
                 cls_expr = "class='%s'" % (cls)
                 
-            report_data.write("<td %s>%s</td>\n" % (cls_expr, text))
-            
+            rowHTML += "<td %s>%s</td>\n" % (cls_expr, text)
+        
+        # Set row class based on the last column
+        global row_index
+        rowid = 'row%03d' % (row_index)
+        row_index += 1
+        
+        rowclass = ""
+        if last_row_same:
+            same_rows.append(rowid)
+            rowclass += " rowsame"
+        if "correct" in cls.split():
+            correct_rows.append(rowid)
+            rowclass += " rowcorrect"
+        if "almostcorrect" in cls.split():
+            almostcorrect_rows.append(rowid)
+            rowclass += " rowalmostcorrect"
+        
+        report_data.write("<tr id='%s' class='%s'><td class='level%d'><a href='%s'>%s</a></td>\n" % 
+            (rowid, rowclass, level + 1, item.getImageFileName(), item.photo))
+        report_data.write(rowHTML)
         report_data.write("</tr>\n")
     # print statistics
     report_data.write("<tr><td class='level%d stat'>avg. score</td>\n" % (level + 1))
@@ -333,15 +420,21 @@ def generateGroupReport (g, level):
         
         report_data.write("<td class='stat'>%s</td>\n" % (avg_time))
     report_data.write("</tr>\n")
-    report_data.write("<tr><td class='level%d stat'># correct</td>\n" % (level + 1))
+    report_data.write("<tr><td class='level%d stat'># [almost] correct out of %d</td>\n" % (level + 1, version_stat.count))
+    for version in versions:
+        version_stat = stat[version]
+        report_data.write("<td class='stat'>%d</td>\n" % (version_stat.almost_good_count + version_stat.good_count))
+    report_data.write("</tr>\n")
+    
+    report_data.write("<tr><td class='level%d stat'># correct out of %d</td>\n" % (level + 1, version_stat.count))
     for version in versions:
         version_stat = stat[version]
         report_data.write("<td class='stat'>%d</td>\n" % (version_stat.good_count))
     report_data.write("</tr>\n")
-
+    
     if level == -1:
         open("score.txt", "w").write("%s" % (avg_score))
-    
+
     return stat
     
     
