@@ -169,6 +169,8 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 						for (int x = badBounding.x1(); x <= badBounding.x2() && x < img.getWidth(); x++)
 							for (int y = badBounding.y1(); y <= badBounding.y2() && y < img.getHeight(); y++)
 								img.getByte(x,y) = 255;
+
+						result = true;
 					} // if letters>graphics
 
 				} // if density
