@@ -30,6 +30,7 @@ using namespace imago;
 Segment::Segment()
 {
    _density = _ratio = -1;
+   _x = _y = 0;
 }
 
 void Segment::copy( const Segment &s, bool copy_all )
@@ -40,6 +41,10 @@ void Segment::copy( const Segment &s, bool copy_all )
 		_x = s._x;
 		_y = s._y;
 		_features = s._features;
+	}
+	else
+	{
+		_x = _y = 0;		
 	}
 }
 

@@ -29,6 +29,18 @@ namespace imago
    public:
       Segment();
 
+	  Segment( int width, int height, int x, int y ) : Image(width, height)
+	  {
+		  _x = x; _y = y;
+	  }
+
+	  Segment( const Segment &other)
+	  {
+		  copy(other);
+	  }
+
+	  virtual ~Segment();
+
       void copy( const Segment &s, bool copy_all = true );	  
 
       int getX() const;
@@ -49,9 +61,7 @@ namespace imago
 
       SymbolFeatures &getFeatures() const;
       SymbolFeatures &getFeatures();
-      void initFeatures( const Settings& vars, int descriptorsCount ) const;
-
-      ~Segment();
+      void initFeatures( const Settings& vars, int descriptorsCount ) const;      
 
    private:
       int _x, _y;

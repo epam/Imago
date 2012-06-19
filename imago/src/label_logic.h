@@ -35,14 +35,10 @@ namespace imago
       void recognizeLabel(const Settings& vars, Label &label );
 
    protected:
-
 	  void process(const Settings& vars, Segment *seg, int line_y );
 	  void process_ext(const Settings& vars, Segment *seg, int line_y );
 
-   private:
-
-	  void setSuperatom( Superatom *satom );
-
+   private:	  
       const CharacterRecognizer &_cr;
       Superatom *_satom;
       Atom *_cur_atom;
@@ -50,11 +46,9 @@ namespace imago
       LabelLogic( LabelLogic & );
 
 	  void _addAtom();
-	  void _fixupSingleAtom();
-      void _predict(const Settings& vars,  const Segment *seg, std::string &letters );
-      
+	  void setSuperatom( Superatom *satom );
+      void _predict(const Settings& vars,  const Segment *seg, std::string &letters );      
 	  void _postProcessLabel(Label& label);
-
 	  bool _multiLetterSubst(char sym);
    };
 }

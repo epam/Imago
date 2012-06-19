@@ -36,8 +36,15 @@ namespace imago
 
       //Constructors & destructor
       Image();
+
       Image( int width, int height );
-      ~Image();
+
+	  Image( const Image &other)
+	  {
+		  copy(other);
+	  }
+
+      virtual ~Image();
 
       //init\de-init
       void init( int width, int height );
@@ -81,12 +88,11 @@ namespace imago
 
       void rotate90( bool cw = true );
       void rotate180();
-
+	 
    protected:
       int _width, _height;
 
-   private:
-      Image( const Image & );
+   private:      
       byte *_data;
       
    };

@@ -165,37 +165,12 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 			
 					if (bad_symbols.size() > bad_graphics.size())
 					{
-						getLogExt().append("Erasing symbols", bad_symbols.size());
-						for (SegmentDeque::iterator it = symbols.begin(); it != symbols.end(); )
-						{
-							if (std::find(bad_symbols.begin(), bad_symbols.end(), *it) != bad_symbols.end())
-							{
-								delete *it;
-								it = symbols.erase(it);
-								result = true;
-							}
-							else
-								it++;
-						}
-
-						getLogExt().append("Erasing graphics", bad_graphics.size());
-						for (SegmentDeque::iterator it = graphics.begin(); it != graphics.end(); )
-						{
-							if (std::find(bad_graphics.begin(), bad_graphics.end(), *it) != bad_graphics.end())
-							{
-								delete *it;
-								it = graphics.erase(it);
-								result = true;
-							}
-							else
-								it++;
-						}
-
 						getLogExt().appendText("Clearing the image");
 						for (int x = badBounding.x1(); x <= badBounding.x2() && x < img.getWidth(); x++)
 							for (int y = badBounding.y1(); y <= badBounding.y2() && y < img.getHeight(); y++)
 								img.getByte(x,y) = 255;
 					} // if letters>graphics
+
 				} // if density
 			} // locals
 		} // if bounding passes size constraints
@@ -222,7 +197,7 @@ void ChemicalStructureRecognizer::segmentate(const Settings& vars, Image& img, S
 		s->getX() = b.getBounding().x;
 		s->getY() = b.getBounding().y;
 		for (size_t u = 0; u < pts.size(); u++)
-		s->getByte(pts[u].x - b.getBounding().x, pts[u].y - b.getBounding().y) = 0;
+			s->getByte(pts[u].x - b.getBounding().x, pts[u].y - b.getBounding().y) = 0;
 		segments.push_back(s);
 	}	
 }
@@ -349,10 +324,17 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 			graphics.emptyCopy(_img);
 
 			BOOST_FOREACH( Segment *s, layer_symbols )
-			ImageUtils::putSegment(symbols, *s, true);
+			{
+				getLogExt().append("draw symbol", (void*)s);
+				getLogExt().append("data ptr", (void*)s->getData());
+				ImageUtils::putSegment(symbols, *s, true);
+			}
 
 			BOOST_FOREACH( Segment *s, layer_graphics )
-			ImageUtils::putSegment(graphics, *s, true);
+			{
+				getLogExt().append("draw graphics", (void*)s);
+				ImageUtils::putSegment(graphics, *s, true);
+			}
 
 			getLogExt().appendImage("Letters", symbols);
 			getLogExt().appendImage("Graphics", graphics);

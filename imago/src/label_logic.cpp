@@ -50,7 +50,7 @@ void LabelLogic::setSuperatom( Superatom *satom )
 const static char *comb[28] = //"Constants", not config but name ?
 {
 /*A*/   "lcmsur",//tgl
-/*B*/   "aehkrnz", //i
+/*B*/   "aehkrnzou", //i
 /*C*/   "aoldrsef",
 /*D*/   "by",
 /*E*/   "turs",
@@ -66,7 +66,7 @@ const static char *comb[28] = //"Constants", not config but name ?
 /*O*/   "sc",
 /*P*/   "hdtormu",
 /*Q*/   "",
-/*R*/   "bhuena",
+/*R*/   "bhuena1236", // R-groups too
 /*S*/   "iecbnrg",
 /*T*/   "filaechmb",
 /*U*/   "",
@@ -252,33 +252,10 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 	}
 }
 
-void LabelLogic::_fixupSingleAtom()
-{
-   // TODO: remove
-	if (_cur_atom && _cur_atom->label_first == 'Q' && _cur_atom->label_second == 0)
-	{
-		getLogExt().appendText("Hack: Q -> C");
-		_cur_atom->label_first = 'C';
-	}
-	if (_cur_atom && _cur_atom->label_first == 'X' && _cur_atom->label_second == 0)
-	{
-		getLogExt().appendText("Hack: X -> H");
-		_cur_atom->label_first = 'H';
-	}	
-   
-	if (_cur_atom && _cur_atom->label_first == 'C' && _cur_atom->label_second == 'e')
-	{
-		getLogExt().appendText("Hack: Ce -> Cl");
-		_cur_atom->label_second = 'l';
-	}
-}
-
 void LabelLogic::_addAtom()
 {
 	if (_cur_atom && _cur_atom->label_first == 0 && _cur_atom->label_second == 0)
 		return;
-
-	_fixupSingleAtom();	
 
 	_satom->atoms.resize(_satom->atoms.size() + 1);
 	_cur_atom = &_satom->atoms[_satom->atoms.size() - 1];

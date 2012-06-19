@@ -616,12 +616,10 @@ int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark,  Segme
 
 void Separator::firstSeparation(Settings& vars, CharacterRecognizer &rec, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
 {
-	logEnterFunction();
+   logEnterFunction();
 
    int cap_height;
    IntVector suspicious_segments;
-   //RecognitionSettings &rs = getSettings();
-   SegmentDeque layer_suspicious;
 
    if (_segs.size() == 0)
    {
@@ -649,22 +647,22 @@ void Separator::firstSeparation(Settings& vars, CharacterRecognizer &rec, Segmen
       IntVector seg_marks, suspicious_segments;
 
       /* Classification procedure */
-      BOOST_FOREACH( Segment *s, _segs )
+	  for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
       {
-         int mark;
+        Segment* s = *it;
 
-		 getLogExt().appendSegment("Segment", *s);
+		getLogExt().appendSegment("Segment", *s);
 
-		 //thin segment
-		 Image temp;
-		 s->extract(0, 0, s->getWidth(), s->getHeight(), temp);
+		//thin segment
+		Image temp;
+		s->extract(0, 0, s->getWidth(), s->getHeight(), temp);
 		 
-		  double hu[7];
+		double hu[7];
 		_getHuMomentsC(temp, hu);
 
 		int votes[2] = {0, 0};
 
-		mark = HuClassifier(vars, hu);
+		int mark = HuClassifier(vars, hu);
 
 		if(mark < 2)
 			votes[mark]++;
@@ -773,6 +771,53 @@ void Separator::firstSeparation(Settings& vars, CharacterRecognizer &rec, Segmen
 						strict = false;
 					}
 				}
+				else if (two_chars_probably)
+				{
+					// calculate split					
+					int mid = s->getWidth() / 2;
+					int gap = mid / 2;
+					int best_x = -1;
+					int best_intersect = s->getHeight();
+					for (int xv = 0; xv < gap; xv++)
+					{
+						for (int xs = -1; xs <= 1; xs += 2)
+						{
+							int x = mid + xv * xs;
+							int y_intersect = 0;
+							for (int y = 0; y < s->getHeight(); y++)
+							{
+								if (s->getByte(x, y) == 0)
+									y_intersect++;
+							}
+							if (y_intersect < best_intersect)
+							{
+								best_intersect = y_intersect;
+								best_x = x;
+							}
+						}
+					}
+					if (best_x > 0)
+					{
+						Segment* s1 = new Segment();
+						Segment* s2 = new Segment();
+						s->splitVert(best_x, *s1, *s2);
+						
+						getLogExt().appendSegment("Split: S1", *s1);
+						getLogExt().appendSegment("Split: S2", *s2);
+
+						if (rec.isPossibleCharacter(vars, *s1, true, &ch) &&
+							rec.isPossibleCharacter(vars, *s2, true, &ch))
+						{
+							getLogExt().appendText("Both are passed");
+							layer_symbols.push_back(new Segment(*s1));
+							s->copy(*s2);
+							matches = strict = true;
+						}
+						
+						delete s1;
+						delete s2;						
+					}
+				}
 
 				if (matches)
 				{
@@ -812,19 +857,9 @@ void Separator::firstSeparation(Settings& vars, CharacterRecognizer &rec, Segmen
       }
    }
 
-   BOOST_FOREACH( Segment *s, layer_suspicious )
-   {
-      //TODO: Handwriting
-     // if (!_isSuspiciousSymbol(s, layer_symbols, cap_height))
-         layer_graphics.push_back(s);
-      //else
-        // layer_symbols.push_back(s);
-   }
-
    SeparateStuckedSymbols(vars, layer_symbols, layer_graphics);
 
    std::sort(layer_symbols.begin(), layer_symbols.end(), _segmentsComparator);
-
 }
 
 bool Separator::_analyzeSpecialSegment(const Settings& vars, Segment *cur_seg)
