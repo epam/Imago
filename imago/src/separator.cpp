@@ -808,10 +808,16 @@ void Separator::firstSeparation(Settings& vars, CharacterRecognizer &rec, Segmen
 						if (rec.isPossibleCharacter(vars, *s1, true, &ch) &&
 							rec.isPossibleCharacter(vars, *s2, true, &ch))
 						{
-							getLogExt().appendText("Both are passed");
-							layer_symbols.push_back(new Segment(*s1));
-							s->copy(*s2);
-							matches = strict = true;
+							getLogExt().appendText("Both are symbols");
+							int segs = _getApproximationSegmentsCount(vars, s) - 1;
+							getLogExt().append("Approx segs", segs);
+							if (segs > vars.separator.minApproxSegsWeak)
+							{							
+								getLogExt().appendText("Segments criteria passed");
+								layer_symbols.push_back(s1);
+								layer_symbols.push_back(s2);
+								continue;
+							}
 						}
 						
 						delete s1;
