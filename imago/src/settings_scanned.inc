@@ -1,7 +1,8 @@
 
 void updateSettingsScanned(Settings &s)
 {
-	s.general.UseProbablistics = false; 
+	s.general.UseProbablistics = false;
+	s.p_estimator.UsePerimeterNormalization = true; 
 
 	FUZZ s.separator.ext2charRatio = 1.805172; // fuzzed, old value = 1.742155
 

@@ -282,6 +282,7 @@ namespace imago
 		double MinRatio2ConsiderGrPr;
 		double LogisticScale;
 		double LogisticLocation;
+		bool   UsePerimeterNormalization;
 	};
 
 	struct Settings

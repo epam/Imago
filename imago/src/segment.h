@@ -66,7 +66,7 @@ namespace imago
 	  void setSymbolProbability(double prob);
 	  double getSymbolProbability() const;
 
-      ~Segment();
+  
 
    private:
       int _x, _y;
