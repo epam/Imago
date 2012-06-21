@@ -317,7 +317,10 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 
    bool capital = false;
    int digit_small = -1;
-   char hwc = _cr.recognize_all(vars, *seg).getBest();
+   RecognitionDistance rd = _cr.recognize_all(vars, *seg);
+   char hwc = rd.getBest();
+   if (hwc == 'X' && rd.getQuality() < 0.3) // TODO: hack
+	   hwc = 'H';
 
    bool plus = ImageUtils::testPlus(vars, *seg);
 
@@ -413,7 +416,14 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
       else
       {
 		  //  ------------------------------ evil hack section ------------------------------
-		  if (sym == 'I' && _cur_atom->label_first == 'I')
+		  if (sym > '0' && sym <= '9' && _cur_atom->label_first == 'R')
+		  {
+			  getLogExt().appendText("Hack works! R-group");
+			  _cur_atom->charge = sym - '0';
+			  was_charge = 1;
+			  was_letter = 0;
+		  }		  
+		  else if (sym == 'I' && _cur_atom->label_first == 'I')
 		  {
 			  // HACK! II -> O
 			  getLogExt().appendText("Hack works! II -> O");
@@ -479,15 +489,17 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
           bottom <= (line_y + sameLineEps * vars.estimation.CapitalHeight) &&
           (digit_small == -1 || digit_small == 1))
       {
+		  getLogExt().appendText("small");
          if (was_letter)
          {
+			 getLogExt().append("letters", letters);
             _predict(vars, seg, letters);
             if (seg->getFeatures().recognizable)
 			{
                _cur_atom->label_second = _cr.recognize(vars, *seg, letters);
 			}
-            else
-               _cur_atom->label_second = '?';
+            /*else
+               _cur_atom->label_second = '?';*/
          }
          else
             throw LabelException("Unexpected symbol position (small instead of capital)");
@@ -495,6 +507,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
       //superscript
       else if (med < line_y - vars.labels.medHeightFactor * vars.estimation.CapitalHeight && digit_small == 0)
       {
+		  getLogExt().appendText("superscript");
          was_super = 1;
          if (was_charge)
          {
@@ -508,6 +521,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
          //Isotope
          if (_cur_atom->label_first == 0)
          {
+			 getLogExt().appendText("isotope");
             if (seg->getFeatures().recognizable)
                index_val = _cr.recognize(vars, *seg, CharacterRecognizer::digits) - '0';
             else
@@ -517,6 +531,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
          //Charge of current atom plus sign of charge
          else
          {
+			 getLogExt().appendText("normal");
             char tmp;
             //Checking if current segment is + or -
             if (plus) //ImageUtils::testPlus(*seg))
@@ -561,18 +576,36 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
       //subscript
 	  else if (med > line_y - vars.labels.medHeightFactor * vars.estimation.CapitalHeight)
       {
-         //If subscript will appear before any letter, do some BADABUM
+		  getLogExt().appendText("subscript2");
+		  //If subscript will appear before any letter, do some BADABUM
          if (_cur_atom->label_first == 0)
             throw LabelException("Unexpected symbol position (subscript instaed of capital)");
 
          if (seg->getFeatures().recognizable)
+		 {
             index_val = _cr.recognize(vars, *seg, CharacterRecognizer::digits) - '0';
+			getLogExt().append("Index val", index_val);
+		 }
          else
+		 {
             index_val = 0;
-         _cur_atom->count = _cur_atom->count * 10 + index_val;
+			getLogExt().append("not recognizable", index_val);
+		 }
+
+		 if (_cur_atom->label_first == 'R')
+		 {			 
+			 _cur_atom->charge = _cur_atom->charge * 10 + index_val;
+			 getLogExt().append("R-group", _cur_atom->charge);
+		 }
+		 else
+		 {			 
+			_cur_atom->count = _cur_atom->count * 10 + index_val;
+			getLogExt().append("Count", _cur_atom->count);
+		 }
       }
       else
       {
+		  getLogExt().appendText("undefined");
          throw LabelException("Unexpected symbol position (else)");
       }
       was_letter = 0;
@@ -592,6 +625,11 @@ void LabelLogic::_postProcessLabel(Label& label)
 			molecule.push_back(sa.atoms[i].label_first);
 		if (sa.atoms[i].label_second != 0) 
 			molecule.push_back(sa.atoms[i].label_second);
+		if (sa.atoms[i].label_first == 'R' && sa.atoms[i].label_second == 0)
+		{
+			if (sa.atoms[i].charge != 0)
+				molecule.push_back('0' + sa.atoms[i].charge);
+		}
 	};
 
 	ChemicalValidity cv;

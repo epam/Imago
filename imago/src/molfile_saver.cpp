@@ -111,6 +111,13 @@ void MolfileSaver::_writeCtab(const Settings& vars)
             label[0] = satom->atoms[0].label_first;
             label[1] = satom->atoms[0].label_second;
             _out.printf("%s", label);
+			printf("Label: %s\n", label);
+			// HACK
+			 if (satom->atoms[0].label_first == 'R' && satom->atoms[0].label_second == 0 && satom->atoms[0].charge != 0)
+               {
+				   printf("R-group: %i\n", satom->atoms[0].charge);
+                  _out.printf("%d", satom->atoms[0].charge);
+               }
          }
          else
          {
