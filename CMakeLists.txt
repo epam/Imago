@@ -114,6 +114,7 @@ else()
 	#No need for this now
 	add_subdirectory(font_generator)
 	add_subdirectory(tools/constfuzzer)
+	add_subdirectory(tools/calculate_probability_matrices)
 	add_subdirectory(tools/timelimit)
 	add_subdirectory(imago_c)
 	add_subdirectory(alter-ego)
