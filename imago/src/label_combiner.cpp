@@ -296,7 +296,7 @@ bool LabelCombiner::needsProcessing(Settings& vars)
 	// find sym that is graphic
 	BOOST_FOREACH(Label l, _labels)
 	{
-		if(l.symbols.size() > 1)
+		//if(l.symbols.size() > 1)
 		{
 			BOOST_FOREACH(Segment *s, l.symbols)
 			{
@@ -327,7 +327,7 @@ bool LabelCombiner::needsProcessing(Settings& vars)
 			its.clear();
 	}
 
-	//if(retVal)
+	if(retVal)
 		return retVal;
 
 	// check if bonds are inside labels
