@@ -254,6 +254,7 @@ namespace imago
 		double extCapHeightMin, extCapHeightMax;
 		double extRatioMin, extRatioMax;
 		double ext2charRatio;
+		double SymProbabilityThresh;
 		int minApproxSegsStrong, minApproxSegsWeak;
 		int specialSegmentsTreat;
 		bool UseVoteArray;

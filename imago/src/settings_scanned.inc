@@ -5,6 +5,7 @@ void updateSettingsScanned(Settings &s)
 	s.p_estimator.UsePerimeterNormalization = true; 
 
 	FUZZ s.separator.ext2charRatio = 1.805172; // fuzzed, old value = 1.742155
+	FUZZ s.separator.SymProbabilityThresh = 0.56;
 
 	FUZZ s.molecule.LengthFactor_long = 0.345425; // fuzzed, old value = 0.344624
 	FUZZ s.molecule.LengthFactor_medium = 0.404470; // fuzzed, old value = 0.386117

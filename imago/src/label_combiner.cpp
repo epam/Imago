@@ -301,7 +301,7 @@ bool LabelCombiner::needsProcessing(Settings& vars)
 			BOOST_FOREACH(Segment *s, l.symbols)
 			{
 				if(s->getHeight() > cap_height_limit &&
-					s->getSymbolProbability() < 0.6)
+					s->getSymbolProbability() < vars.separator.SymProbabilityThresh)
 				{
 					_graphic_layer.push_back(s);
 					sym_segment2graphics.push_back(s);
