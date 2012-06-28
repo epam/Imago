@@ -822,7 +822,7 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
 			removeBond(*foundIt);
 			singles.erase(foundIt);
 
-			if(Vec2d::distance(p1b, p2b) < Vec2d::distance(p1b, p2e))
+			if(Vec2d::distance(p1b, p2b) < Vec2d::distance(p1e, p2b))
 			{
 				if(Vec2d::distance(p1b, p2b) > toSmallErr)
 					addBond(p1, p3);
