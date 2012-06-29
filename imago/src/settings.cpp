@@ -29,6 +29,35 @@ namespace imago
 		updateCluster(ctHandwritten);
 	}
 
+	imago::RoutinesSettings::RoutinesSettings()
+	{
+		Contour_Eps1 = 1.130985;
+		Contour_Eps2 = 0.680156;
+		// others are filled from *.inc
+	}
+
+
+	imago::CharactersRecognitionSettings::CharactersRecognitionSettings()
+	{
+		PCacheClean    = new RecognitionDistanceCacheType();
+		PCacheAdjusted = new RecognitionDistanceCacheType();
+	}
+
+	imago::CharactersRecognitionSettings::~CharactersRecognitionSettings()
+	{
+		if (PCacheClean)
+		{
+			delete PCacheClean;
+			PCacheClean = NULL;
+		}
+
+		if (PCacheAdjusted)
+		{
+			delete PCacheAdjusted;
+			PCacheAdjusted = NULL;
+		}
+	}
+
 	void imago::Settings::updateCluster(ClusterType ct)
 	{
 		int longestSide = std::max(general.OriginalImageWidth, general.OriginalImageHeight);

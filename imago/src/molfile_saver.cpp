@@ -25,6 +25,7 @@
 #include "skeleton.h"
 #include "superatom.h"
 #include "settings.h"
+#include "log_ext.h"
 
 using namespace imago;
 
@@ -60,6 +61,8 @@ void MolfileSaver::_writeHeader()
 
 void MolfileSaver::_writeCtab(const Settings& vars)
 {
+	logEnterFunction();
+
    //const Array< Pair<int> > &_vert2labels = _mol->_vert2labels;
 
    //Array<int> mapping(graph.vertexCapacity());
@@ -111,11 +114,13 @@ void MolfileSaver::_writeCtab(const Settings& vars)
             label[0] = satom->atoms[0].label_first;
             label[1] = satom->atoms[0].label_second;
             _out.printf("%s", label);
-			printf("Label: %s\n", label);
+			
+			getLogExt().append("Label", label);
+			
 			// HACK
 			 if (satom->atoms[0].label_first == 'R' && satom->atoms[0].label_second == 0 && satom->atoms[0].charge != 0)
                {
-				   printf("R-group: %i\n", satom->atoms[0].charge);
+				   getLogExt().append("R-group (type)", satom->atoms[0].charge);
                   _out.printf("%d", satom->atoms[0].charge);
                }
          }

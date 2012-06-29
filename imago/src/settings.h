@@ -1,5 +1,7 @@
 #pragma once
 
+#include "recognition_distance.h"
+
 namespace imago
 {
 	enum FilterType
@@ -184,12 +186,7 @@ namespace imago
 
 		double Contour_Eps1, Contour_Eps2;
 
-		RoutinesSettings()
-		{
-			Contour_Eps1 = 1.130985;
-			Contour_Eps2 = 0.680156;
-			// others are filled from *.inc
-		}
+		RoutinesSettings();
 	};
 
 	struct WedgeBondExtractorSettings
@@ -216,6 +213,12 @@ namespace imago
 		double PossibleCharacterMinimalQuality;
 		double DescriptorsOddFactorStrong, DescriptorsEvenFactorStrong;
 		double DescriptorsOddFactorWeak, DescriptorsEvenFactorWeak;
+
+		RecognitionDistanceCacheType* PCacheClean;   
+		RecognitionDistanceCacheType* PCacheAdjusted;
+
+		CharactersRecognitionSettings();
+		virtual ~CharactersRecognitionSettings();
 	};
 
 	struct ChemicalStructureRecognizerSettings

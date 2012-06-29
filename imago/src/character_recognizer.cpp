@@ -143,10 +143,6 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
 {
    logEnterFunction();
 
-   // TODO: cache should not be static
-   // TODO: cache should be auto-cleanable
-   // TODO: check hash function correctness
-   static std::map<__int64, RecognitionDistance> _cacheClean, _cacheAdjusted;
    __int64 segHash = 0, shift = 0;
    
    // hash against the source candidates
@@ -170,9 +166,10 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
    RecognitionDistance rec;
    getLogExt().append("Segment hash", segHash);
    
-   if (_cacheClean.find(segHash) != _cacheClean.end())
+   if (vars.characters.PCacheClean &&
+	   vars.characters.PCacheClean->find(segHash) != vars.characters.PCacheClean->end())
    {
-	   rec = _cacheClean[segHash];
+	   rec = (*vars.characters.PCacheClean)[segHash];
 	   getLogExt().appendText("Used cache: clean");
    }
    else
@@ -198,17 +195,22 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
 			   getLogExt().appendText("Updated distance for O");
 		   }
 	   }
-
-	   _cacheClean[segHash] = rec;
+	   
 	   getLogExt().appendMap("Distance map for source", rec);
-	   getLogExt().appendText("Filled cache: clean");
+
+	   if (vars.characters.PCacheClean)
+	   {
+		   (*vars.characters.PCacheClean)[segHash] = rec;
+		   getLogExt().appendText("Filled cache: clean");
+	   }
    }
 
 	if (can_adjust)
 	{
-		if (_cacheAdjusted.find(segHash) != _cacheAdjusted.end())
+		if (vars.characters.PCacheAdjusted &&
+			vars.characters.PCacheAdjusted->find(segHash) != vars.characters.PCacheAdjusted->end())
 		{
-			rec = _cacheAdjusted[segHash];
+			rec = (*vars.characters.PCacheAdjusted)[segHash];
 			getLogExt().appendText("Used cache: adjusted");
 		}
 		else
@@ -252,8 +254,12 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
 			};
 
 		   getLogExt().appendMap("Adjusted (result) distance map", rec);
-		   _cacheAdjusted[segHash] = rec;
-		   getLogExt().appendText("Filled cache: adjusted");
+
+		   if (vars.characters.PCacheAdjusted)
+		   {
+			   (*vars.characters.PCacheAdjusted)[segHash] = rec;
+			   getLogExt().appendText("Filled cache: adjusted");
+		   }
 		}
 	}
 

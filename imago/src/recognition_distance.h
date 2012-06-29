@@ -38,6 +38,8 @@ namespace imago
 		  /// multiply distance for specified sym_set by factor
 		  void adjust(double factor, const std::string& sym_set);
 	  };
+
+	typedef std::map<__int64, RecognitionDistance> RecognitionDistanceCacheType;
 }
 
 #endif // _recognition_distance_h
