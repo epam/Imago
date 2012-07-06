@@ -669,12 +669,13 @@ void LabelLogic::_postProcessLabel(Label& label)
 		}
 	}
 
+	/*
 	if (_cur_atom && _cur_atom->getLabelFirst() == 0)
 	{
 		// TODO: then it's not a label!
 		// HACK
 		_cur_atom->setLabel("H");
-	}
+	}*/
 }
 
 
