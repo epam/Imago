@@ -160,6 +160,8 @@ void updateSettingsHandwritten(Settings &s)
 	FUZZ s.characters.DescriptorsEvenFactorStrong = 3.783638; // fuzzed, old value = 3.774555
 	FUZZ s.characters.DescriptorsOddFactorWeak = 0.955165; // fuzzed, old value = 0.935876
 	FUZZ s.characters.DescriptorsEvenFactorWeak = 0.313682; // fuzzed, old value = 0.316648
+	FUZZ s.characters.X_Quality = 0.3;
+	FUZZ s.characters.MinEndpointsPossible = 4;
 
 	s.csr.UseDPApproximator = false;
 	FUZZ s.csr.Dissolve = 0.474843; // fuzzed, old value = 0.478222

@@ -44,7 +44,7 @@ bool imago::CharacterRecognizer::isPossibleCharacter(const Settings& vars, const
 	if (std::find(CharacterRecognizer::like_bonds.begin(), CharacterRecognizer::like_bonds.end(), ch) != CharacterRecognizer::like_bonds.end())
 	{
 		Points2i endpoints = SegmentTools::getEndpoints(seg);
-		if (endpoints.size() < 4) // TODO
+		if ((int)endpoints.size() < vars.characters.MinEndpointsPossible)
 		{
 			return false;
 		}

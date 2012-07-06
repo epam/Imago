@@ -213,6 +213,8 @@ namespace imago
 		double PossibleCharacterMinimalQuality;
 		double DescriptorsOddFactorStrong, DescriptorsEvenFactorStrong;
 		double DescriptorsOddFactorWeak, DescriptorsEvenFactorWeak;
+		double X_Quality;
+		int MinEndpointsPossible;
 
 		RecognitionDistanceCacheType* PCacheClean;   
 		RecognitionDistanceCacheType* PCacheAdjusted;

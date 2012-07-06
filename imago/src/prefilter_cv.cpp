@@ -114,7 +114,7 @@ namespace imago
 				// this code allows to crop image in rectangular border
 				// useful only for 1 image from Image2Structure set
 				// but works quite fast.
-				if (image.getWidth() > 300 && image.getHeight() > 300) // TODO
+				if (image.getWidth() > vars.prefilter.ReduceImageDim && image.getHeight() > vars.prefilter.ReduceImageDim)
 				{
 					WeakSegmentator ws(image.getWidth(), image.getHeight());
 					ws.appendData(ImgAdapter(image,image), 1);

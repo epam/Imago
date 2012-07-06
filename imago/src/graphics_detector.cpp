@@ -269,7 +269,7 @@ void GraphicsDetector::extractRingsCenters(const Settings& vars, SegmentDeque &s
 					{
 						double dx = cos(2.0 * PI * angle / 360.0);
 						double dy = sin(2.0 * PI * angle / 360.0);
-						for (int r = 0; r < 2.0 * radius; r++) // TODO
+						for (int r = 0; r < 2.0 * radius; r++) 
 						{
 							int x = round(center_x + dx * r);
 							int y = round(center_y + dy * r);

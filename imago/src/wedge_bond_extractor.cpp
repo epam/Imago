@@ -38,7 +38,8 @@ WedgeBondExtractor::WedgeBondExtractor( SegmentDeque &segs, Image &img ) : _segs
 }
 
 
-static int __PointsCompareDist = 3; // TODO: workaround (but this variable should not change after initializtion)
+// WORKAROUND: but this variable should not change after initializtion
+static int __PointsCompareDist = 3; 
 
 bool WedgeBondExtractor::_pointsCompare(const SegCenter &c, const SegCenter &d )
 {

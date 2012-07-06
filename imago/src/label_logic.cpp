@@ -318,7 +318,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
    int digit_small = -1;
    RecognitionDistance rd = _cr.recognize_all(vars, *seg);
    char hwc = rd.getBest();
-   if (hwc == 'X' && rd.getQuality() < 0.3) // TODO: hack
+   if (hwc == 'X' && rd.getQuality() < vars.characters.X_Quality) // HACK
 	   hwc = 'H';
 
    bool plus = ImageUtils::testPlus(vars, *seg);

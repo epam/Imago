@@ -1,7 +1,7 @@
 @echo -------------------Updating variables-------------------
 
 set FUZZ_LEVEL_FILTERS=0.0
-set FUZZ_LEVEL_LABREM=0.2
+set FUZZ_LEVEL_LABREM=0.1
 set FUZZ_LEVEL_OTHER=0.1
 set PYTHON_DIR=C:\Python27
 set CPP_COMPILER="C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe"
@@ -123,7 +123,7 @@ copy %TIMELIMIT% ".\TimeLimit.exe" >>..\..\_fuzzing-logs\log-copy.txt
 @del score.txt >>..\..\_fuzzing-logs\log-del.txt 2>NUL
 
 @echo Iteration %ITER% >>..\..\_fuzzing-logs\log-py.txt
-%TIMELIMIT% 1800 %PYTHON_EXE% run.py >>..\..\_fuzzing-logs\log-py.txt
+%TIMELIMIT% 3600 %PYTHON_EXE% run.py >>..\..\_fuzzing-logs\log-py.txt
 @IF %ERRORLEVEL% NEQ 0 GOTO FAIL
 
 @set SCORE=0

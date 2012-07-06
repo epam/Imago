@@ -114,15 +114,22 @@ class Item:
         full_version = os.path.join("versions", version)
         abs_version = os.path.abspath(full_version)
         abs_img = os.path.abspath(os.path.join(self.dirname, self.photo))
+        tl_exe = os.path.abspath("TimeLimit.exe")
         
         os.chdir(tmp_dir)
         if os.path.exists("molecule.mol"):
             os.remove("molecule.mol")
         time_before = time.clock()
-        ret = subprocess.call([abs_version, abs_img]) 
+        ret = subprocess.call([tl_exe, "32", abs_version, abs_img]) 
         time_after = time.clock()
         
         os.chdir("..")
+        time_val = time_after - time_before
+        item_version.setTime(time_val)
+        if time_val > 31.0:
+            item_version.setFailed()
+            return
+        
         item_version.setTime(time_after - time_before)
         
         if ret != 0:
