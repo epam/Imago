@@ -111,14 +111,14 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 
          if (satom->atoms.size() == 1)
          {
-            label[0] = satom->atoms[0].label_first;
-            label[1] = satom->atoms[0].label_second;
+			 label[0] = satom->atoms[0].getLabelFirst();
+			 label[1] = satom->atoms[0].getLabelSecond();
             _out.printf("%s", label);
 			
 			getLogExt().append("Label", label);
 			
 			// HACK
-			 if (satom->atoms[0].label_first == 'R' && satom->atoms[0].label_second == 0 && satom->atoms[0].charge != 0)
+			if (satom->atoms[0].getLabelFirst() == 'R' && satom->atoms[0].getLabelSecond() == 0 && satom->atoms[0].charge != 0)
                {
 				   getLogExt().append("R-group (type)", satom->atoms[0].charge);
                   _out.printf("%d", satom->atoms[0].charge);
@@ -140,14 +140,14 @@ void MolfileSaver::_writeCtab(const Settings& vars)
    //                  }
                   _out.printf("\\S%d", atom.isotope);
                }
-               label[0] = atom.label_first;
-               label[1] = atom.label_second;
+			   label[0] = atom.getLabelFirst();
+			   label[1] = atom.getLabelSecond();
                _out.printf("%s", label);
                if (atom.count > 1)
                {
                   _out.printf("%d", atom.count);
                }
-               if (atom.label_first == 'R' && atom.label_second == 0 && atom.charge != 0)
+			   if (atom.getLabelFirst() == 'R' && atom.getLabelSecond() == 0 && atom.charge != 0)
                {
                   _out.printf("\\S%d", atom.charge);
                }
@@ -182,7 +182,7 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 
          if (satom->atoms.size() == 1)
          {
-            if (satom->atoms[0].charge != 0 && satom->atoms[0].label_first != 'R')
+			 if (satom->atoms[0].charge != 0 && satom->atoms[0].getLabelFirst() != 'R')
                _out.printf(" CHG=%d", satom->atoms[0].charge);
             if (satom->atoms[0].isotope > 0)
                _out.printf(" MASS=%d", satom->atoms[0].isotope);

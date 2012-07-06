@@ -87,25 +87,25 @@ void LabelLogic::_predict(const Settings& vars, const Segment *seg, std::string 
 
    letters = comb[26]; //All capital letters
    
-   if (_cur_atom->label_first == 0)
+   if (_cur_atom->getLabelFirst() == 0)
    {
 	   getLogExt().appendText("No label_first, exit");
        return;
    }
 
-   if (_cur_atom->label_second == 0)
+   if (_cur_atom->getLabelSecond() == 0)
    {
-      if (_cur_atom->label_first == 'C')
+	   if (_cur_atom->getLabelFirst() == 'C')
 	  {
 		  getLogExt().appendText("label_first is C branch");
          letters.erase(letters.begin() + 7); //cuz of D
 	  }
-      if (_cur_atom->label_first == 'E')
+	   if (_cur_atom->getLabelFirst() == 'E')
 	  {
 		  getLogExt().appendText("label_first is E branch");
          letters.erase(letters.begin() + 8);
 	  }
-      if (_cur_atom->label_first == 'A')
+	   if (_cur_atom->getLabelFirst() == 'A')
 	  {
 		  getLogExt().appendText("label_first is A branch");
          letters.erase(letters.begin() + 7); //cuz of Al
@@ -117,15 +117,15 @@ void LabelLogic::_predict(const Settings& vars, const Segment *seg, std::string 
          letters.clear();
 	  }
 
-      if (_cur_atom->label_first == '?')
+	  if (_cur_atom->getLabelFirst() == '?')
 	  {
 		  getLogExt().appendText("All small letters branch");
          letters = comb[27]; //All small letters // TODO
 	  }
 
-      else if(_cur_atom->label_first >= 'A' && _cur_atom->label_first <= 'Z') //just for sure 
-         for (size_t i = 0; i < strlen(comb[_cur_atom->label_first - 'A']); i++)
-            letters.push_back(comb[_cur_atom->label_first - 'A'][i]);
+	  else if(_cur_atom->getLabelFirst() >= 'A' && _cur_atom->getLabelFirst() <= 'Z') //just for sure 
+		  for (size_t i = 0; i < strlen(comb[_cur_atom->getLabelFirst() - 'A']); i++)
+			  letters.push_back(comb[_cur_atom->getLabelFirst() - 'A'][i]);
    }
 
    getLogExt().append("Letters", letters);
@@ -166,17 +166,17 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 	}
 
 	{ // adjust using chemical structure logic
-		if (_cur_atom->label_first != 0 && _cur_atom->label_second == 0)
+		if (_cur_atom->getLabelFirst() != 0 && _cur_atom->getLabelSecond() == 0)
 		{
 			// can be a capital or digit or small
-			int idx = _cur_atom->label_first - 'A';
+			int idx = _cur_atom->getLabelFirst() - 'A';
 			if (idx >= 0 && idx < 26)
 			{
 				// decrease probability of unallowed characters
 				pr.adjust(vars.labels.adjustDec, substract(CharacterRecognizer::lower, comb[idx]));		
 			}
 		} 
-		else if (_cur_atom->label_first == 0)
+		else if (_cur_atom->getLabelFirst() == 0)
 		{
 			// should be a capital letter, increase probability of allowed characters
 			pr.adjust(vars.labels.adjustInc, substract(CharacterRecognizer::upper, "XJUVWQ"));
@@ -204,19 +204,19 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 		_addAtom();
 		if (!_multiLetterSubst(ch))
 		{
-			_cur_atom->label_first = ch;
+			_cur_atom->addLabel(pr); // = ch;
 		}
 		was_letter = true;
 	} 
 	else if (CharacterRecognizer::lower.find(ch) != std::string::npos)
 	{		
-		if (_cur_atom->label_second != 0)
+		if (_cur_atom->getLabelSecond() != 0)
 		{
 			getLogExt().appendText("Small letter comes after another small, fixup & retry");
 			pr.adjust(vars.labels.adjustDec, CharacterRecognizer::lower);
 			goto retry;
 		}
-		else if (_cur_atom->label_first == 0)
+		else if (_cur_atom->getLabelFirst() == 0)
 		{
 			getLogExt().appendText("Small specified for non-set captial, fixup & retry");
 			pr.adjust(vars.labels.adjustDec, CharacterRecognizer::lower);
@@ -224,7 +224,7 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 		}
 		else
 		{
-			_cur_atom->label_second = ch;
+			_cur_atom->addLabel(pr); // = ch;
 		}
 	}
 	else if (CharacterRecognizer::digits.find(ch) != std::string::npos)
@@ -235,7 +235,7 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 			pr.adjust(vars.labels.adjustDec, CharacterRecognizer::digits);
 			goto retry;
 		}
-		else if (_cur_atom->label_first == 0)
+		else if (_cur_atom->getLabelFirst() == 0)
 		{
 			getLogExt().appendText("Count specified for non-set atom, fixup & retry");
 			pr.adjust(vars.labels.adjustDec, CharacterRecognizer::digits);
@@ -254,7 +254,7 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 
 void LabelLogic::_addAtom()
 {
-	if (_cur_atom && _cur_atom->label_first == 0 && _cur_atom->label_second == 0)
+	if (_cur_atom && _cur_atom->getLabelFirst() == 0 && _cur_atom->getLabelSecond() == 0)
 		return;
 
 	_satom->atoms.resize(_satom->atoms.size() + 1);
@@ -266,30 +266,29 @@ bool LabelLogic::_multiLetterSubst(char sym)
 	switch(sym)
 	{
 	case '$':
-		_cur_atom->label_first = 'C';
-		_cur_atom->label_second = 'l';
+		_cur_atom->setLabel("Cl");
 		was_letter = 0;
 		return true;
 	case '%':
-		_cur_atom->label_first = 'H';
+		_cur_atom->setLabel("H");
 		_cur_atom->count = 2;
 		was_letter = 0;
 		return true;
 	case '^':
-		_cur_atom->label_first = 'H';
+		_cur_atom->setLabel("H");
 		_cur_atom->count = 3;
 		was_letter = 0;
 		return true;
 	case '&':
-		_cur_atom->label_first = 'O';
+		_cur_atom->setLabel("O");
 		_addAtom();
-		_cur_atom->label_first = 'C';
+		_cur_atom->setLabel("C");
 		was_letter = 0;
 		return true;
 	case '#':
-		_cur_atom->label_first = 'N';
+		_cur_atom->setLabel("N");
 		_addAtom();
-		_cur_atom->label_first = 'H';
+		_cur_atom->setLabel("H");
 		_cur_atom->count = 2;
 		was_letter = 0;
 		return true;
@@ -408,7 +407,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
       {
          if (was_letter)
          {
-            _cur_atom->label_second = sym;
+			 _cur_atom->addLabel(sym); // TODO: probability table too
          }
          else
             throw LabelException("Unexpected symbol position");
@@ -416,36 +415,28 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
       else
       {
 		  //  ------------------------------ evil hack section ------------------------------
-		  if (sym > '0' && sym <= '9' && _cur_atom->label_first == 'R')
+		  if (sym > '0' && sym <= '9' && _cur_atom->getLabelFirst() == 'R')
 		  {
 			  getLogExt().appendText("Hack works! R-group");
 			  _cur_atom->charge = sym - '0';
 			  was_charge = 1;
 			  was_letter = 0;
 		  }		  
-		  else if (sym == 'I' && _cur_atom->label_first == 'I')
+		  else if (sym == 'I' && _cur_atom->getLabelFirst() == 'I')
 		  {
 			  // HACK! II -> O
 			  getLogExt().appendText("Hack works! II -> O");
-			  _cur_atom->label_first = 'O';
+			  _cur_atom->setLabel("O"); // TODO: probability table too
 			  was_letter = 1;
 		  }
-		  else if (sym == 'O' && _cur_atom->label_first == 'T')
+		  else if (sym == 'O' && _cur_atom->getLabelFirst() == 'T')
 		  {
 			  // HACK! OTO -> OTF
 			  getLogExt().appendText("Hack works! OTO -> OTF");
 			  _addAtom();
-			  _cur_atom->label_first = 'F';
+			  _cur_atom->setLabel("F"); // TODO: probability table too
 			  was_letter = 1;
-		  }
-		  else if (sym == 'C' && _cur_atom->label_first == 'C')
-		  {
-			  // HACK! CC -> Cl
-			  getLogExt().appendText("Hack works! CC -> Cl");
-			  _addAtom();
-			  _cur_atom->label_first = 'l';
-			  was_letter = 1;
-		  }
+		  }		  
 		  // ------------------------------ ------------------------------
 		  else
 		  {
@@ -471,8 +462,8 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 
 			 if (!_multiLetterSubst(sym))
 			 {
-				_cur_atom->label_first = sym;
-				was_letter = 1;
+				 _cur_atom->addLabel(sym); // TODO: probability table too
+			     was_letter = 1;
 			 }
 			 was_charge = 0;
 			 was_super = 0;
@@ -496,7 +487,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
             _predict(vars, seg, letters);
             if (seg->getFeatures().recognizable)
 			{
-               _cur_atom->label_second = _cr.recognize(vars, *seg, letters);
+				_cur_atom->addLabel(_cr.recognize_all(vars, *seg, letters));
 			}
             /*else
                _cur_atom->label_second = '?';*/
@@ -519,7 +510,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
             flushed = 1;
          }
          //Isotope
-         if (_cur_atom->label_first == 0)
+		 if (_cur_atom->getLabelFirst() == 0)
          {
 			 getLogExt().appendText("isotope");
             if (seg->getFeatures().recognizable)
@@ -578,7 +569,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
       {
 		  getLogExt().appendText("subscript2");
 		  //If subscript will appear before any letter, do some BADABUM
-         if (_cur_atom->label_first == 0)
+		  if (_cur_atom->getLabelFirst() == 0)
             throw LabelException("Unexpected symbol position (subscript instaed of capital)");
 
          if (seg->getFeatures().recognizable)
@@ -592,7 +583,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 			getLogExt().append("not recognizable", index_val);
 		 }
 
-		 if (_cur_atom->label_first == 'R')
+		 if (_cur_atom->getLabelFirst() == 'R')
 		 {			 
 			 _cur_atom->charge = _cur_atom->charge * 10 + index_val;
 			 getLogExt().append("R-group", _cur_atom->charge);
@@ -621,11 +612,11 @@ void LabelLogic::_postProcessLabel(Label& label)
 	std::string molecule = "";
 	for (size_t i = 0; i < sa.atoms.size(); i++)
 	{
-		if (sa.atoms[i].label_first != 0) 
-			molecule.push_back(sa.atoms[i].label_first);
-		if (sa.atoms[i].label_second != 0) 
-			molecule.push_back(sa.atoms[i].label_second);
-		if (sa.atoms[i].label_first == 'R' && sa.atoms[i].label_second == 0)
+		if (sa.atoms[i].getLabelFirst() != 0) 
+			molecule.push_back(sa.atoms[i].getLabelFirst());
+		if (sa.atoms[i].getLabelSecond() != 0) 
+			molecule.push_back(sa.atoms[i].getLabelSecond());
+		if (sa.atoms[i].getLabelFirst() == 'R' && sa.atoms[i].getLabelSecond() == 0)
 		{
 			if (sa.atoms[i].charge != 0)
 				molecule.push_back('0' + sa.atoms[i].charge);
@@ -653,11 +644,11 @@ void LabelLogic::_postProcessLabel(Label& label)
 			for (size_t i = 0; i < update.length(); i++)
 			{
 				Atom a;
-				a.label_first = update[i];
+				a.addLabel(update[i]);
 				// TODO: refactor this
-				if (i+1 < update.length() && CharacterRecognizer::lower.find(update[i+1]) != std::string::npos)
+				if ( (i+1) < update.length() && CharacterRecognizer::lower.find(update[i+1]) != std::string::npos )
 				{
-					a.label_second = update[i+1];
+					a.addLabel(update[i+1]);
 					i++;
 				}
 				sa.atoms.push_back(a);
@@ -669,7 +660,7 @@ void LabelLogic::_postProcessLabel(Label& label)
 	{
 		for (size_t i = 0; i < 2; i++)
 		{
-			if (sa.atoms[i].label_first == 'H' && sa.atoms[i].label_second == 0 &&
+			if (sa.atoms[i].getLabelFirst() == 'H' && sa.atoms[i].getLabelSecond() == 0 &&
 				sa.atoms[i].charge == 0 && sa.atoms[i].isotope == 0)
 			{
 				sa.atoms.erase(sa.atoms.begin() + i);
@@ -678,11 +669,11 @@ void LabelLogic::_postProcessLabel(Label& label)
 		}
 	}
 
-	if (_cur_atom && _cur_atom->label_first == 0)
+	if (_cur_atom && _cur_atom->getLabelFirst() == 0)
 	{
 		// TODO: then it's not a label!
 		// HACK
-		_cur_atom->label_first = 'H';
+		_cur_atom->setLabel("H");
 	}
 }
 

@@ -16,29 +16,35 @@
 #define _superatom_h
 
 #include <vector>
+#include <string>
 #include "vec2d.h"
+#include "recognition_tree.h"
 
 namespace imago
 {
-   struct Atom
-   {
-      char label_first, label_second;
-      int charge;
-      int isotope;
-      int count;
-      
-      Atom()
-      {
-         label_first = label_second = 0;
-         isotope = count = 0;
-         charge = 0;
-      }
-   };
+	struct Atom
+	{
+		CharactersRecognitionGroup labels;	   
 
-   struct Superatom
-   {
-      std::vector<Atom> atoms;
-   };
+		void addLabel(const RecognitionDistance& dist);
+		void addLabel(const char c);
+
+		void setLabel(const std::string& str);
+      
+		char getLabelFirst() const;
+		char getLabelSecond() const;
+
+		int charge;
+		int isotope;
+		int count;
+      
+		Atom();
+	};
+
+	struct Superatom
+	{
+		std::vector<Atom> atoms;
+	};
 }
 
 

@@ -392,9 +392,9 @@ bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex &v,
    }
    else
    {
-      conf.label_first = elem->second->satom.atoms[0].label_first;
-      conf.label_second = elem->second->satom.atoms[0].label_second;
-      conf.charge = elem->second->satom.atoms[0].charge;
+	   conf.label_first = elem->second->satom.atoms[0].getLabelFirst();
+	   conf.label_second = elem->second->satom.atoms[0].getLabelSecond();
+	   conf.charge = elem->second->satom.atoms[0].charge;
    }
 
    conf.degree = boost::in_degree(v, graph);

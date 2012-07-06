@@ -1,47 +1,20 @@
 #pragma once
 
-#include "image.h"
-#include "segment.h"
-#include "stl_fwd.h"
-#include "rectangle.h"
-#include "image_interface.h"
+#include "recognition_distance.h"
 #include <vector>
 
 namespace imago
 {	
-	class RecognitionRecord
+	class CharacterRecognitionEntry
 	{
-		public:
-			double getProbability() const { return _probability; }
+	public:
+		char selected_character;
+		RecognitionDistance alternatives;
 
-		private:
-			double _probability;
+		CharacterRecognitionEntry(const RecognitionDistance& src);
 	};
 
-	class CircleRecognitionRecord : public RecognitionRecord
+	class CharactersRecognitionGroup : public std::vector<CharacterRecognitionEntry>
 	{
-		public:
-			// ..
-	};
-
-	class SegmentRecognitionRecord : public RecognitionRecord
-	{
-		public:
-			// ..
-	};
-
-	class CharacterRecognitionRecord : public RecognitionRecord
-	{
-		public:
-			// ..
-	};
-
-	class RecognitionTree
-	{
-		public:
-			RecognitionTree(const Image& image);
-
-		private:		
-			const Image& raw;
 	};
 }

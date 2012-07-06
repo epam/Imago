@@ -3,7 +3,9 @@
 
 namespace imago
 {
-	RecognitionTree::RecognitionTree(const Image& image) : raw(image)
+	CharacterRecognitionEntry::CharacterRecognitionEntry(const RecognitionDistance& src)
 	{
+		alternatives = src;
+		selected_character = src.getBest();
 	}
 }
