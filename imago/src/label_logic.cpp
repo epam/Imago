@@ -668,14 +668,18 @@ void LabelLogic::_postProcessLabel(Label& label)
 			}
 		}
 	}
-
-	/*
-	if (_cur_atom && _cur_atom->getLabelFirst() == 0)
+	
+	// more adequate hack
+	if (sa.atoms.size() == 0)
 	{
-		// TODO: then it's not a label!
-		// HACK
-		_cur_atom->setLabel("H");
-	}*/
+		Atom placeholder;
+		placeholder.setLabel("H");
+		sa.atoms.push_back(placeholder);
+	}
+	else if (sa.atoms.size() == 1 && sa.atoms[0].getLabelFirst() == 0)
+	{
+		sa.atoms[0].setLabel("H");
+	}
 }
 
 
