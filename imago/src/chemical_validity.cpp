@@ -1,219 +1,285 @@
 #include "chemical_validity.h"
 #include "comdef.h"
 #include "boost/algorithm/string.hpp"
+#include "periodic_table.h"
+#include "log_ext.h"
 
 namespace imago
-{
-	double compare(const std::string& a, const std::string& b)
+{	
+	void ChemicalValidity::ElementTableEntry::push_back(const std::string& name, double prob)
 	{
-		double result = 1.0;
-		
-		if (a.size() < b.size())
-		{
-			return 0.0;
-		}
-		
-		if (a.size() > b.size())
-		{
-			for (size_t u = b.size(); u < a.size(); u++)
-			{
-				if (a[u] == 'I')
-					result *= 0.5;
-				else
-					return 0.0;
-			}
-		}
-
-		for (size_t u = 0; u < b.size(); u++)
-		{
-			// TODO: ...
-			if (a[u] == b[u])
-				;
-			else if (toupper(a[u]) == b[u] || tolower(a[u]) == b[u])
-				result *= 0.95;
-			else if (a[u] == 'G' && b[u] == 'C')
-				result *= 0.6;
-			else if (a[u] == 'N' && b[u] == 'H')
-				result *= 0.6;
-			else if (a[u] == 'e' && b[u] == 'l')
-				result *= 0.6;
-			else if (a[u] == 'H' && b[u] == 'N')
-				result *= 0.6;
-			else if (a[u] == 'P' && b[u] == 'H')
-				result *= 0.4;
-			else if (a[u] == 'I' && b[u] == 'H')
-				result *= 0.4;
-			else if (a[u] == 'L' && b[u] == 'H')
-				result *= 0.4;
-			else if (a[u] == 'M' && b[u] == 'H')
-				result *= 0.4;
-			else if (a[u] == 'Y' && b[u] == 'H')
-				result *= 0.4;
-			else if (a[u] == 'W' || a[u] == 'Q' || a[u] == 'X')
-				result *= 0.1;
-			else
-			{
-				return 0.0;
-			}
-		}
-		return result;
+		names.push_back(name);
+		probability[name] = prob;
 	}
 
-
-	std::vector<std::string> ChemicalValidity::getAlternatives(const std::string& label)
+	ChemicalValidity::Strings ChemicalValidity::optimalSplit(const std::string& input, const ChemicalValidity::Strings& dictionary)
 	{
-		std::vector<std::string> result;
-		std::string result1; 
-
-		for (size_t pos = 0; pos < label.size(); )
+		Strings result;
+		for (size_t u = 0; u < dictionary.size(); u++)
 		{
-			double best_match_pr = 0.0;
-			int best_shift = 0;
-			std::string best_match = "";
-			for (size_t k = 0; k < elements.size(); k++)
-			{
-				if (pos + elements[k].name.size() <= label.size())
-				{
-					double pr = compare(label.substr(pos, elements[k].name.size()), elements[k].name)
-						* elements[k].probability * elements[k].name.size();
-					if (pr > EPS && pr > best_match_pr)
-					{
-						best_match = elements[k].name;
-						best_match_pr = pr;
-						best_shift = elements[k].name.size();
-					}
-				}				
-			}
+			const std::string& word = dictionary[u];
 			
-			if (best_match.size() > 0)
+			size_t idx = input.find(word);
+
+			if (idx != std::string::npos)
 			{
-				pos += best_shift;
-				result1 += best_match;
-			}
-			else
-			{
-				// no match;
+				if (idx > 0)
+				{
+					std::string s1 = input.substr(0, idx);
+					Strings r1 = optimalSplit(s1, dictionary);
+					for (size_t p = 0; p < r1.size(); p++)
+						result.push_back(r1[p]);
+				}
+
+				result.push_back(word);
+
+				if (idx + word.size() < input.size())
+				{
+					std::string s2 = input.substr(idx + word.size());
+					Strings r2 = optimalSplit(s2, dictionary);
+					for (size_t p = 0; p < r2.size(); p++)
+						result.push_back(r2[p]);
+				}
+
 				return result;
 			}
 		}
 
+		// no dictionary strings found in input, return input as the minimal split
+		for (size_t u = 0; u < input.size(); u++)
+		{
+			std::string temp;
+			temp += input[u];
+			result.push_back(temp);
+		}
 
-		boost::replace_all(result1, "HH", "H");
-		boost::replace_all(result1, "CC", "C");
-		boost::replace_all(result1, "II", "H");
-		boost::replace_all(result1, "OO", "O");
-		boost::replace_all(result1, "BN", "N");
-
-		result.push_back(result1);
 		return result;
 	}
 
-	double ChemicalValidity::getLabelProbability(const std::string& label)
+	double ChemicalValidity::calcSplitProbability(const Strings& split) const
 	{
-		double pr = 1.0;
-		for (size_t pos = 0; pos < label.size(); )
+		double result = 1.0;
+		for (size_t u = 0; u < split.size(); u++)
 		{
-			double best_match_pr = 0.0;
-			std::string best_match = "";
-			for (size_t k = 0; k < elements.size(); k++)
+			const std::string& item = split[u];
+			if (elements.probability.find(item) != elements.probability.end())
 			{
-				if (elements[k].name.size() > best_match.size() 
-					&& pos + elements[k].name.size() <= label.size()
-					&& label.substr(pos, elements[k].name.size()) == elements[k].name)
+				result *= elements.probability.at(item);
+			}
+			else
+			{
+				result = 0.0;
+				break;
+			}
+		}
+		return result;
+	}
+
+	double ChemicalValidity::getLabelProbability(const Superatom& sa) const
+	{
+		logEnterFunction();
+		std::string molecule = sa.getPrintableForm(false);
+		Strings split = optimalSplit(molecule, elements.names);
+		getLogExt().appendVector("Split", split);
+		return calcSplitProbability(split);
+	}
+
+	bool ChemicalValidity::optimizeAtomGroup(AtomRefs& data) const
+	{
+		logEnterFunction();
+
+		// here we know that data contains the references to the bad atoms
+		// we can do anything with them.
+
+		// HACK for "R"
+		if (data.size() == 1 && data[0]->getPrintableForm() == "R")
+		{
+			return true;
+		}
+
+		struct IterationRecord
+		{
+			int counter;
+			int atom;
+			int pos;
+			std::string alts;
+		};
+		std::vector<IterationRecord> bruteforce;
+
+		std::string molecule;
+		for (size_t u = 0; u < data.size(); u++)
+		{
+			std::string s = data[u]->getPrintableForm(false);
+			molecule += s;
+			for (size_t v = 0; v < data[u]->labels.size(); v++)
+			{
+				IterationRecord irec;
+				irec.atom = u;
+				irec.pos = v;
+				irec.counter = 0;
+				irec.alts = data[u]->labels[u].alternatives.getRangedBest(2.0); // TODO
+				bruteforce.push_back(irec);
+			}
+		}
+		
+		getLogExt().append("bad part", molecule);
+
+		if (bruteforce.empty())
+			return false;
+
+		while (true)
+		{
+			// increment counter
+			bruteforce[0].counter++;
+			size_t idx = 0;
+			while (bruteforce[idx].counter >= (int)bruteforce[idx].alts.size())
+			{
+				bruteforce[idx].counter = 0;
+				idx++;
+				if (idx >= bruteforce.size())
+					goto not_found;
+				bruteforce[idx].counter++;
+			}
+
+			// update atoms
+			for (size_t u = 0; u < bruteforce.size(); u++)
+			{
+				if (!bruteforce[u].alts.empty())
 				{
-					best_match = elements[k].name;
-					best_match_pr = elements[k].probability;
+					CharacterRecognitionEntry& cg = data[bruteforce[u].atom]->labels[bruteforce[u].pos];
+					cg.selected_character = bruteforce[u].alts[bruteforce[u].counter];
 				}
 			}
-			pr *= best_match_pr;
-			if (best_match.size() > 0)
-				pos += best_match.size();
-			else
-				pos++;
+
+			// assemble string
+			std::string test;
+			for (size_t u = 0; u < data.size(); u++)
+			{
+				test += data[u]->getPrintableForm(false);				
+			}
+
+			getLogExt().append("check string", test);
+
+			if (calcSplitProbability(optimalSplit(test, elements.names)) > EPS)
+			{
+				getLogExt().append("passed!", test);
+				return true;
+			}
 		}
-		return pr;
+
+		not_found: ;
+		
+		return false;
 	}
+		
+	void ChemicalValidity::updateAlternative(Superatom& sa) const
+	{
+		logEnterFunction();
+
+		// step 1: calculate split
+		std::string molecule = sa.getPrintableForm(false);
+		getLogExt().append("molecule", molecule);
+		Strings split = optimalSplit(molecule, elements.names);
+		getLogExt().appendVector("split", split);
+		
+		
+		// step 2: assign split to real atoms & regroup letters from same atom
+		typedef std::pair<int,int> bad_entry;
+		typedef std::vector<bad_entry> bad_info;
+		bad_info bad_parts; // (index, length);
+		size_t pattern_processed_len = 0;
+		size_t atoms_sequence_len = 0;
+		size_t atoms_current_index = 0;
+		for (size_t u = 0; u < split.size(); u++)
+		{
+			const std::string& word = split[u];
+			bool good = elements.probability.find(word) != elements.probability.end();
+			pattern_processed_len += word.length();
+			int part_index = atoms_current_index;
+			int part_length = 0;
+			while (atoms_sequence_len < pattern_processed_len && atoms_current_index < sa.atoms.size())
+			{
+				atoms_sequence_len += sa.atoms[atoms_current_index].getPrintableForm(false).size();				
+				atoms_current_index++;
+				part_length++;
+			}
+			if (!good)
+			{
+				bad_parts.push_back(std::make_pair(part_index,part_length));
+				getLogExt().append("bad part index", part_index);
+				getLogExt().append("bad part length", part_length);
+			}
+		}
+		
+		// step 3: calculate the most probable (of all possible) combination for each bad atom groups
+
+		std::vector<int> keep;
+		for (size_t u = 0; u < sa.atoms.size(); u++)
+			keep.push_back(1);
+
+		for (bad_info::iterator it = bad_parts.begin(); it != bad_parts.end(); it++)
+		{
+			AtomRefs todo;
+			for (int offset_count = 0; offset_count < it->second; offset_count++)
+				todo.push_back(&sa.atoms[it->first + offset_count]);
+
+			if (!optimizeAtomGroup(todo))
+			{
+				// we can not optimize this part, just erase atoms from output
+				for (int offset_count = 0; offset_count < it->second; offset_count++)
+					keep[it->first + offset_count] = 0;
+			}
+		}
+
+		// step 4: reconstruct molecule using only valid parts
+		Superatom result;
+		for (size_t u = 0; u < sa.atoms.size(); u++)
+		{
+			if (keep[u])
+				result.atoms.push_back(sa.atoms[u]);
+		}
+
+		sa = result;
+	}
+
+	bool sort_comparator_length_reversed(const std::string & p_lhs, const std::string & p_rhs)
+    {
+        const size_t lhsLength = p_lhs.length();
+        const size_t rhsLength = p_rhs.length();
+        return (lhsLength == rhsLength) ? (p_lhs < p_rhs) : (lhsLength > rhsLength);
+    }
 
 	ChemicalValidity::ChemicalValidity()
 	{
-		elements.push_back(ElementEntry("CH",  1.0));
-		elements.push_back(ElementEntry("OH",  1.0));
+		logEnterFunction();
 
-		elements.push_back(ElementEntry("H",  1.0));
-		elements.push_back(ElementEntry("C",  1.0));
-		elements.push_back(ElementEntry("N",  1.0));
-		elements.push_back(ElementEntry("Li", 1.0));
-		elements.push_back(ElementEntry("Cl", 1.0));
-		elements.push_back(ElementEntry("O",  1.0));
+		// append atoms from periodic table
+		for (size_t u = 0; u < AtomMap.Elements.size(); u++)
+		{
+			double pr = (u < 32) ? 1.0 : 0.1;
+			elements.push_back(AtomMap.Elements[u],  pr);
+		}
 
-		elements.push_back(ElementEntry("P",  0.9));
-		elements.push_back(ElementEntry("F",  0.9));
+		// append also the abbreviations
+		elements.push_back("CH",    1.0);
+		elements.push_back("OH",    1.0);
+		elements.push_back("OTf",   0.7);
+		elements.push_back("TfO",   0.7);
+		elements.push_back("AcO",   0.7);
+		elements.push_back("OAc",   0.7);
+		elements.push_back("NHBoc", 0.7);
+		elements.push_back("NHBOC", 0.7);
+		elements.push_back("OMe",   0.7);		
+		elements.push_back("Boc",   0.2);
+		elements.push_back("tBu",   0.2);
+		elements.push_back("R1",    0.1);
+		elements.push_back("R2",    0.1);
+		elements.push_back("R3",    0.1);
+		elements.push_back("Z1",    0.1);		
+		elements.push_back("X",     0.1);
+		elements.push_back("Me",    0.2);
 
-		elements.push_back(ElementEntry("K",  0.8));
-		elements.push_back(ElementEntry("He", 0.8));		
-		elements.push_back(ElementEntry("S",  0.8));
-		elements.push_back(ElementEntry("Na", 0.8));
-		elements.push_back(ElementEntry("Ca", 0.8));
-		elements.push_back(ElementEntry("Fe", 0.8));
-
-		elements.push_back(ElementEntry("OTf",   0.7));
-		elements.push_back(ElementEntry("TfO",   0.7));
-		elements.push_back(ElementEntry("Ph",    0.7));
-		elements.push_back(ElementEntry("AcO",   0.7));
-		elements.push_back(ElementEntry("oAc",   0.7));
-		elements.push_back(ElementEntry("OAc",   0.7));
-		elements.push_back(ElementEntry("NHBoc", 0.7));
-		elements.push_back(ElementEntry("NHBOC", 0.7));
-		elements.push_back(ElementEntry("OMe",   0.7));
-		
-		elements.push_back(ElementEntry("Boc", 0.2));
-		elements.push_back(ElementEntry("tBu", 0.2));
-		elements.push_back(ElementEntry("R1", 0.1));
-		elements.push_back(ElementEntry("R2", 0.1));
-		elements.push_back(ElementEntry("X", 0.1));
-
-		elements.push_back(ElementEntry("Me", 0.2));
-		elements.push_back(ElementEntry("I", 0.1));
-		
-		elements.push_back(ElementEntry("Be", 0.6));
-		elements.push_back(ElementEntry("B",  0.6));		
-		elements.push_back(ElementEntry("Ne", 0.6));		
-		elements.push_back(ElementEntry("Mg", 0.6));
-		elements.push_back(ElementEntry("Al", 0.6));
-		elements.push_back(ElementEntry("Si", 0.6));		
-		elements.push_back(ElementEntry("Ar", 0.6));		
-		elements.push_back(ElementEntry("Ti", 0.6));
-		elements.push_back(ElementEntry("Br", 0.6));
-		
-		elements.push_back(ElementEntry("Sc", 0.1));		
-		elements.push_back(ElementEntry("V",  0.1));
-		elements.push_back(ElementEntry("Cr", 0.1));
-		elements.push_back(ElementEntry("Mn", 0.1));		
-		elements.push_back(ElementEntry("Co", 0.1));
-		elements.push_back(ElementEntry("Ni", 0.1));
-		elements.push_back(ElementEntry("Cu", 0.1));
-		elements.push_back(ElementEntry("Zn", 0.1));
-		elements.push_back(ElementEntry("Ga", 0.1));
-		elements.push_back(ElementEntry("Ge", 0.1));
-		elements.push_back(ElementEntry("As", 0.1));
-		elements.push_back(ElementEntry("Se", 0.1));		
-		elements.push_back(ElementEntry("Kr", 0.1));
-		elements.push_back(ElementEntry("Ag", 0.1));
-		elements.push_back(ElementEntry("Cd", 0.1));
-		elements.push_back(ElementEntry("In", 0.1));
-		elements.push_back(ElementEntry("Sn", 0.1));
-		elements.push_back(ElementEntry("Sb", 0.1));
-		elements.push_back(ElementEntry("Te", 0.1));
-		elements.push_back(ElementEntry("J",  0.1));
-
-		elements.push_back(ElementEntry("Xe", 0.01));
-		elements.push_back(ElementEntry("Cs", 0.01));
-		elements.push_back(ElementEntry("Ba", 0.01));
-		elements.push_back(ElementEntry("La", 0.01));
-		elements.push_back(ElementEntry("Hf", 0.01));
-		elements.push_back(ElementEntry("Ta", 0.01));
-		elements.push_back(ElementEntry("W",  0.01));
-		elements.push_back(ElementEntry("Re", 0.01));
-		elements.push_back(ElementEntry("Em", 0.01));
+		// elements should be sorted for optimal split function working
+		std::sort(elements.names.begin(), elements.names.end(), sort_comparator_length_reversed);		
 	}
 };

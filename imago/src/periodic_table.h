@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 
 namespace imago
 {
@@ -9,16 +10,18 @@ namespace imago
     class AtomSymbolMap
     {
 		// indexed by string like "Ag" interpretted as unsigned short, the first symbol must be in UPPER case
-        static unsigned char SymbolMap[0xFFFF];
+        unsigned char SymbolMap[0xFFFF];
+
+		// inserts element into 'Elements' and into 'SymbolMap'
+		void insert(const std::string& element);
+
+	public:
+		std::vector<std::string> Elements;
 
     public:
         AtomSymbolMap();
-        
-		inline unsigned char operator [] (unsigned short i) const
-		{
-			return SymbolMap[i];
-		}
-		
+        		
+		// fast lookup for specified element in table
 		bool lookup(const std::string& str) const;
     };
 

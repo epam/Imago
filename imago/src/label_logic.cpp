@@ -609,53 +609,23 @@ void LabelLogic::_postProcessLabel(Label& label)
 
 	Superatom &sa = label.satom;
 
-	std::string molecule = "";
-	for (size_t i = 0; i < sa.atoms.size(); i++)
-	{
-		if (sa.atoms[i].getLabelFirst() != 0) 
-			molecule.push_back(sa.atoms[i].getLabelFirst());
-		if (sa.atoms[i].getLabelSecond() != 0) 
-			molecule.push_back(sa.atoms[i].getLabelSecond());
-		if (sa.atoms[i].getLabelFirst() == 'R' && sa.atoms[i].getLabelSecond() == 0)
+	if (sa.atoms.size() > 0)
+	{		
+		getLogExt().append("Molecule", sa.getPrintableForm());
+
+		ChemicalValidity validator;
+		double pr = validator.getLabelProbability(sa);
+		getLogExt().append("probability", pr);
+
+		if (pr < EPS)
 		{
-			if (sa.atoms[i].charge != 0)
-				molecule.push_back('0' + sa.atoms[i].charge);
-		}
-	};
-
-	ChemicalValidity cv;
-	double pr = cv.getLabelProbability(molecule);
-	getLogExt().append("Molecule", molecule);
-
-	getLogExt().append("probability", pr);
-	if (pr < EPS)
-	{
-		getLogExt().appendText("Got wrong label!");		
-
-		std::vector<std::string> alt = cv.getAlternatives(molecule);
-		if (!alt.empty()) // at least one alternative is better
-		{
-			// currently we have nothing left to lose; so forget about charges and isotopes.
-			sa.atoms.clear();
-
-			std::string update = alt[0];
-			getLogExt().append("Used as alternative", update);
-
-			for (size_t i = 0; i < update.length(); i++)
-			{
-				Atom a;
-				a.addLabel(update[i]);
-				// TODO: refactor this
-				if ( (i+1) < update.length() && CharacterRecognizer::lower.find(update[i+1]) != std::string::npos )
-				{
-					a.addLabel(update[i+1]);
-					i++;
-				}
-				sa.atoms.push_back(a);
-			}
+			getLogExt().appendText("Got wrong label!");	
+			validator.updateAlternative(sa);
+			getLogExt().append("Used as alternative", sa.getPrintableForm());
 		}
 	}
 
+	// old hack removing extra hydrogen
 	if (sa.atoms.size() == 2)
 	{
 		for (size_t i = 0; i < 2; i++)
@@ -669,7 +639,7 @@ void LabelLogic::_postProcessLabel(Label& label)
 		}
 	}
 	
-	// more adequate hack
+	// more safe hack for empty labels
 	if (sa.atoms.size() == 0)
 	{
 		Atom placeholder;

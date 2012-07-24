@@ -1,32 +1,66 @@
+/****************************************************************************
+ * Copyright (C) 2009-2012 GGA Software Services LLC
+ * 
+ * This file is part of Imago toolkit.
+ * 
+ * This file may be distributed and/or modified under the terms of the
+ * GNU General Public License version 3 as published by the Free Software
+ * Foundation and appearing in the file LICENSE.GPL included in the
+ * packaging of this file.
+ * 
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ ***************************************************************************/
 #pragma once
+
+#ifndef _chemical_validity_h
+#define _chemical_validity_h
 
 #include <vector>
 #include <string>
+#include <map>
+#include "superatom.h"
 
 namespace imago
 {
 	class ChemicalValidity
 	{
 	public:
+		// fills internal elements table
 		ChemicalValidity();
 		
-		double getLabelProbability(const std::string& label);
+		// returns probability of superatom existence
+		double getLabelProbability(const Superatom& sa) const;
 
-		std::vector<std::string> getAlternatives(const std::string& label);
+		// updates the non-existent atom to the most close existent alternative
+		void updateAlternative(Superatom& sa) const;
 
 	private:
-		struct ElementEntry
-		{
-			std::string name;
-			double probability;
-			ElementEntry(std::string n, double p = 1.0)
-			{
-				name = n;
-				probability = p;
-			}
-		};
-		typedef std::vector<ElementEntry> ElementTable;
+		typedef std::vector<std::string> Strings;
+		typedef std::map<std::string, double> Probabilities;
 
-		ElementTable elements;
+		struct ElementTableEntry
+		{
+			Strings names;
+			Probabilities probability;
+
+			// helper function to initialize both names and probability 
+			void push_back(const std::string& name, double prob = 1.0);
+		};
+	
+		ElementTableEntry elements;
+
+	protected:
+		// returns optimal string split by specified dictionary
+		static Strings optimalSplit(const std::string& input, const Strings& dictionary);
+
+		// calculates split probability against the 'elements' information
+		double calcSplitProbability(const Strings& split) const;
+
+		typedef std::vector<Atom*> AtomRefs;
+		// subtask of the updateAlternative function
+		bool optimizeAtomGroup(AtomRefs& data) const;
 	};
 }
+
+#endif

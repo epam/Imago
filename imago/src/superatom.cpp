@@ -42,4 +42,62 @@ namespace imago
         isotope = count = 0;
         charge = 0;
     }
+
+	std::string Atom::getPrintableForm(bool expanded) const
+	{
+		const Atom& a = *this;
+
+		std::string molecule;
+
+		if (a.getLabelFirst() != 0) 
+			molecule.push_back(a.getLabelFirst());
+
+		if (a.getLabelSecond() != 0) 
+			molecule.push_back(a.getLabelSecond());
+
+		if ((a.getLabelFirst() == 'R' || a.getLabelFirst() == 'Z') && a.getLabelSecond() == 0)
+		{
+			if (a.charge > 0)
+			{
+				char buffer[32];
+				sprintf(buffer, "%i", a.charge);
+				molecule += buffer;
+			}
+		}
+		else
+		{
+			if (expanded && a.charge != 0)
+			{
+				char buffer[32];
+				if (a.charge < 0)
+					sprintf(buffer, "%i", a.charge);
+				else
+					sprintf(buffer, "+%i", a.charge);
+				molecule += buffer;
+			}					
+		}
+		if (expanded && a.count != 0)
+		{
+			char buffer[32];
+			sprintf(buffer, "x%i", a.count);
+			molecule += buffer;
+		}
+		if (expanded && a.isotope != 0)
+		{
+			char buffer[32];
+			sprintf(buffer, "{isotope:%i}", a.isotope);
+			molecule += buffer;
+		}
+		return molecule;
+	}
+
+	std::string Superatom::getPrintableForm(bool expanded) const
+	{
+		std::string molecule;
+		for (size_t i = 0; i < atoms.size(); i++)
+		{
+			molecule += atoms[i].getPrintableForm(expanded);
+		};
+		return molecule;
+	}
 }
