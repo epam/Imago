@@ -80,7 +80,7 @@ namespace imago
 		insert("Cs");
 		insert("Ba");
 		insert("La");
-		insert("Ce");
+		//insert("Ce");
 		insert("Pr");
 		insert("Nd");
 		insert("Pm");

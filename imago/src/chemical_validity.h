@@ -57,6 +57,12 @@ namespace imago
 		// calculates split probability against the 'elements' information
 		double calcSplitProbability(const Strings& split) const;
 
+		// returns if atom (short form, one atom) is probable
+		bool isProbable(const std::string& atom) const;
+
+		// returns list of alternative characters
+		std::string getAlternatives(char base_char, const RecognitionDistance& d) const;
+
 		typedef std::vector<Atom*> AtomRefs;
 		// subtask of the updateAlternative function
 		bool optimizeAtomGroup(AtomRefs& data) const;

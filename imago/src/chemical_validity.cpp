@@ -12,6 +12,14 @@ namespace imago
 		probability[name] = prob;
 	}
 
+	bool ChemicalValidity::isProbable(const std::string& atom) const
+	{
+		if (elements.probability.find(atom) != elements.probability.end())
+			return elements.probability.at(atom) > EPS;
+		else
+			return false;
+	}
+
 	ChemicalValidity::Strings ChemicalValidity::optimalSplit(const std::string& input, const ChemicalValidity::Strings& dictionary)
 	{
 		Strings result;
@@ -62,7 +70,7 @@ namespace imago
 		for (size_t u = 0; u < split.size(); u++)
 		{
 			const std::string& item = split[u];
-			if (elements.probability.find(item) != elements.probability.end())
+			if (isProbable(item))
 			{
 				result *= elements.probability.at(item);
 			}
@@ -82,6 +90,19 @@ namespace imago
 		Strings split = optimalSplit(molecule, elements.names);
 		getLogExt().appendVector("Split", split);
 		return calcSplitProbability(split);
+	}
+
+	std::string ChemicalValidity::getAlternatives(char base_char, const RecognitionDistance& d) const
+	{
+		std::string result = d.getRangedBest(2.0);
+		if (result.length() == 1 && result[0] == base_char)
+		{
+			if (base_char == 'I')
+				result += 'H';
+			if (base_char == 'Y')
+				result += 'H';
+		}
+		return result;
 	}
 
 	bool ChemicalValidity::optimizeAtomGroup(AtomRefs& data) const
@@ -117,7 +138,8 @@ namespace imago
 				irec.atom = u;
 				irec.pos = v;
 				irec.counter = 0;
-				irec.alts = data[u]->labels[u].alternatives.getRangedBest(2.0); // TODO
+				irec.alts = getAlternatives(data[u]->labels[v].selected_character, data[u]->labels[v].alternatives);
+				getLogExt().append("alternatives", irec.alts);
 				bruteforce.push_back(irec);
 			}
 		}
@@ -193,7 +215,7 @@ namespace imago
 		for (size_t u = 0; u < split.size(); u++)
 		{
 			const std::string& word = split[u];
-			bool good = elements.probability.find(word) != elements.probability.end();
+			bool good = isProbable(word);
 			pattern_processed_len += word.length();
 			int part_index = atoms_current_index;
 			int part_length = 0;
@@ -267,6 +289,7 @@ namespace imago
 		elements.push_back("TfO",   0.7);
 		elements.push_back("AcO",   0.7);
 		elements.push_back("OAc",   0.7);
+		elements.push_back("OAC",   0.7);
 		elements.push_back("NHBoc", 0.7);
 		elements.push_back("NHBOC", 0.7);
 		elements.push_back("OMe",   0.7);		
@@ -278,6 +301,13 @@ namespace imago
 		elements.push_back("Z1",    0.1);		
 		elements.push_back("X",     0.1);
 		elements.push_back("Me",    0.2);
+
+		// and also lock these bad combinations
+		elements.push_back("OI",    0.0);
+		elements.push_back("OY",    0.0);
+		elements.push_back("NI",    0.0);
+		elements.push_back("IN",    0.0);
+		elements.push_back("CHS",    0.0);
 
 		// elements should be sorted for optimal split function working
 		std::sort(elements.names.begin(), elements.names.end(), sort_comparator_length_reversed);		
