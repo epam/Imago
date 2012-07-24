@@ -231,11 +231,12 @@ void ComplexContour::Equalize(int n)
 void cvRetrieveContour(Image& img, Points2d &lines, int eps)
 {
 	int w = img.getWidth(), h = img.getHeight();
-   cv::Mat mat(h, w, CV_8U);
+   cv::Mat mat = cv::Mat::zeros(cv::Size(w + 2, h + 2), CV_8U);
+   
    for (int i = 0; i < w; i++)
       for (int j = 0; j < h; j++)
-         mat.at<unsigned char>(j, i) = 255 - img.getByte(i, j);
-
+         mat.at<unsigned char>(j+1, i+1) = 255 - img.getByte(i, j);
+   
 	std::vector<std::vector<cv::Point> > contours;
 	std::vector<cv::Point> newcont;
     std::vector<cv::Vec4i> hierarchy;
