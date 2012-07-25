@@ -75,9 +75,8 @@ namespace imago
 
       Vertex addVertex( const Vec2d &pos );      
 
-      Edge addBond( Vertex &v1, Vertex &v2, BondType type = SINGLE );
-      Edge addBond( const Vec2d &begin, const Vec2d &end, 
-         BondType type = SINGLE );
+      Edge addBond( Vertex &v1, Vertex &v2, BondType type = SINGLE, bool throw_if_error = false );
+      Edge addBond( const Vec2d &begin, const Vec2d &end, BondType type = SINGLE, bool throw_if_error = false );
 
       void removeBond( Vertex &v1, Vertex &v2 );
       void removeBond( Edge &e );

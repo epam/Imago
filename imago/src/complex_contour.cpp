@@ -261,7 +261,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 
 	Points2d lines;
 	
-	double eps = lnThickness / 2.0 > 2.0 ? lnThickness / 2.0 : 2.0;
+	double eps = (lnThickness / 2.0 > 2.0) ? (lnThickness / 2.0) : 2.0;
 	//gd.detect(seg, lines);
 	cvRetrieveContour(seg, lines, (int)eps); // TODO: round?
 
@@ -279,11 +279,11 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 		   Vec2d &p1 = lines[i - 1];
 		  Vec2d &p2 = lines[i];
 		  
-		   graph.addBond(p1, p2);      
+		   graph.addBond(p1, p2, SINGLE, true);
 		  lastPoint = p2;
 	   }
 
-	   graph.addBond(lastPoint, lines[0]);
+	   graph.addBond(lastPoint, lines[0], SINGLE, true);
 	}
 	else
 	{

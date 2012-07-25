@@ -609,7 +609,11 @@ int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark,  Segme
 	}
 	catch (LogicException &e)
 	{
-		getLogExt().append("CalculateProbabilities exception", e.what());
+		getLogExt().append("CalculateProbabilities logic exception", e.what());
+	}
+	catch (std::exception &e)
+	{
+		getLogExt().append("CalculateProbabilities general exception", e.what());
 	}
 
 	return retVal;

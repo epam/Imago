@@ -79,7 +79,7 @@ void Skeleton::recalcAvgBondLength()
    _avg_bond_length /= bonds_num;
 }
 
-Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
+Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type, bool throw_if_error )
 {
    //TODO: Check if edge was not added
    std::pair<Edge, bool> p;
@@ -88,11 +88,18 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
    if (p.second)
    {
       //Graph already has edge
-	   _warnings++;
-	   std::ostringstream temp;
-	   temp << "WARNING: Already has edge (" << v1 << ", " << v2 << ")";
-	   getLogExt().appendText(temp.str());
-      return p.first;
+	   if (throw_if_error)
+	   {
+		   throw LogicException("Already has edge");
+	   }
+	   else
+	   {
+		   _warnings++;
+		   std::ostringstream temp;
+		   temp << "WARNING: Already has edge (" << v1 << ", " << v2 << ")";
+		   getLogExt().appendText(temp.str());
+		   return p.first;
+	   }
    }
 
    p = boost::add_edge(v1, v2, _g);
@@ -130,11 +137,11 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type )
 }
 
 Skeleton::Edge Skeleton::addBond( const Vec2d &begin, const Vec2d &end,
-                                  BondType type )
+                                  BondType type, bool throw_if_error )
 {
    Vertex v1 = addVertex(begin), v2 = addVertex(end);
 
-   return addBond(v1, v2, type);
+   return addBond(v1, v2, type, throw_if_error);
 }
 
 void Skeleton::removeBond( Vertex &v1, Vertex &v2 )
