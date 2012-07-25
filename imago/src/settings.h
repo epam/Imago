@@ -29,7 +29,7 @@ namespace imago
 
 	struct GeneralSettings
 	{
-		FilterType DefaultFilterType;
+		FilterType DefaultFilterType; // filled with ftCV by default
 		bool LogEnabled;
 		bool LogVFSEnabled;
 		bool ExtractCharactersOnly;

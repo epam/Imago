@@ -20,6 +20,7 @@
 #include "indigo.h"
 #include "image_utils.h"
 #include "molfile_saver.h"
+#include "log_ext.h"
 #include "exception.h"
 #include "output.h"
 #include "scanner.h"
@@ -115,38 +116,23 @@ CEXPORT int imagoSetFilter( const char *Name )
 {
 	IMAGO_BEGIN;
 
-	// TODO: more accurate
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
-   FilterType ft = context->vars.general.DefaultFilterType;
+   bool found = false;
    for (int i = ftStd; i <= ftPass; i++)
 	   if (strcmp(Name, FilterName[i]) == 0)
-		   ft = (FilterType)i;
-	context->vars.general.DefaultFilterType = ft;
+	   {
+		   context->vars.general.DefaultFilterType = (FilterType)i;
+		   found = true;
+	   }
+
+	if (!found)
+		throw ImagoException(std::string("Filter not found: ") + Name);
 
    IMAGO_END;
 }
 
-CEXPORT int imagoSetBinarizationLevel( const int Level )
-{
-   IMAGO_BEGIN;
 
-   // really just ignored
-   getSettings().set("BinarizationLevel", Level);
-
-   IMAGO_END;
-}
-
-CEXPORT int imagoLoadPngImageFromFile( const char *FileName )
-{
-   IMAGO_BEGIN;
-
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
-   ImageUtils::loadImageFromFile(context->img, FileName);
-      
-   IMAGO_END;
-}
-
-CEXPORT int imagoLoadJpgImageFromFile( const char *FileName )
+CEXPORT int imagoLoadImageFromFile( const char *FileName )
 {
    IMAGO_BEGIN;
 
@@ -166,7 +152,7 @@ CEXPORT int imagoFilterImage()
    IMAGO_END;
 }
 
-CEXPORT int imagoLoadPngImageFromBuffer( const char *buf, const int buf_size )
+CEXPORT int imagoLoadImageFromBuffer( const char *buf, const int buf_size )
 {
    IMAGO_BEGIN;
    
@@ -229,7 +215,7 @@ CEXPORT int imagoGetPrefilteredImage (unsigned char **data, int *width, int *hei
    IMAGO_END;
 }
 
-CEXPORT int imagoSavePngImageToFile( const char *filename )
+CEXPORT int imagoSaveImageToFile( const char *filename )
 {
    IMAGO_BEGIN;
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
@@ -241,7 +227,7 @@ CEXPORT int imagoSavePngImageToFile( const char *filename )
    IMAGO_END;
 }
 
-CEXPORT int imagoRecognize()
+CEXPORT int imagoRecognize(int* warningsCountDataOut)
 {
    IMAGO_BEGIN;
 
@@ -250,6 +236,10 @@ CEXPORT int imagoRecognize()
 
    csr.setImage(context->img);
    csr.recognize(context->vars, context->mol);
+   if (warningsCountDataOut)
+   {
+	   (*warningsCountDataOut) = context->mol.getWarningsCount() + context->mol.getDissolvingsCount() / context->vars.main.DissolvingsFactor;
+   }
    context->molfile = expandSuperatoms(context->vars, context->mol);
 
    IMAGO_END;
@@ -274,14 +264,8 @@ CEXPORT int imagoSaveMolToBuffer( char **buf, int *buf_size )
    IMAGO_BEGIN;
 
    RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
-   std::string &out_buf = context->molfile; //context->out_buf;
+   std::string &out_buf = context->molfile;
    
-   //ArrayOutput aout(out_buf);
-   //MolfileSaver saver(aout);
-
-   //saver.saveMolecule(context->mol);
-
-   //Is that correct?
    *buf = new char[out_buf.size()];
    memcpy(*buf, out_buf.c_str(), out_buf.size());
    *buf_size = out_buf.size();
@@ -290,29 +274,14 @@ CEXPORT int imagoSaveMolToBuffer( char **buf, int *buf_size )
    IMAGO_END;
 }
 
-CEXPORT int imagoSetLogPrinter( void (*printer)( const char *str ) )
+CEXPORT int imagoSetLogging(bool enable)
 {
    IMAGO_BEGIN;
 
-   getLog().setPrinter(printer);
-
-   IMAGO_END;
-}
-
-CEXPORT int imagoDisableLog()
-{
-   IMAGO_BEGIN;
-
-   getLog().setPrinter(0);
-
-   IMAGO_END;
-}
-
-CEXPORT int imagoResetLog()
-{
-   IMAGO_BEGIN;
-
-   getLog().reset();
+   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   context->vars.general.LogEnabled = enable;
+   // warning: this is not thread-sensitive setter:
+   imago::getLogExt().setLoggingEnabled(enable);
 
    IMAGO_END;
 }

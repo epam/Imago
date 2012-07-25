@@ -61,63 +61,51 @@ CEXPORT void imagoReleaseSessionId( qword id );
 
 /* Set one of predefined configuration sets.
  * The given number must be nonnegative and less than the number of
- * available configuration sets. By default, the number is 0.
- */
+ * available configuration sets. 
+ * By default, the number is '-1' which means config auto-detect. */
 CEXPORT int imagoSetConfigNumber( const int number );
 
 /* Get the number of available predefined configuration sets. */
 CEXPORT int imagoGetConfigsCount();
 
-/* Choose filter to process image before recognition. 
- * name can be "sharp" or "blur".
- * By default, filter from current config will be used.
- */
+/* Choose filter to process image before call imagoFilterImage()
+ * name can be "std", "adaptive", "CV" or "passthru".
+ * By default, filter from current config will be used. */
 CEXPORT int imagoSetFilter( const char *name );
 
-/* Manually choose binarization level for image.
- * level can be between 0 and 255.
- * If the pixel color is less than the given level, it is considered black.
- * Otherwise, white. By default, the level from the current configuration set
- * will be used.
- */
-CEXPORT int imagoSetBinarizationLevel( const int level );
-
 /* Image loading functions. */
-CEXPORT int imagoLoadPngImageFromBuffer( const char *buf, const int buf_size );
-CEXPORT int imagoLoadPngImageFromFile( const char *FileName );
-CEXPORT int imagoLoadJpgImageFromFile( const char *FileName );
+CEXPORT int imagoLoadImageFromBuffer( const char *buf, const int buf_size );
+CEXPORT int imagoLoadImageFromFile( const char *FileName );
 
 /* PNG image saving function. */
-CEXPORT int imagoSavePngImageToFile( const char *FileName );
+CEXPORT int imagoSaveImageToFile( const char *FileName );
 
 /* Load raw grayscale image - byte array of length width*height. */
 CEXPORT int imagoLoadGreyscaleRawImage( const char *buf, const int width, const int height );
 
-/* Set the callback function for log printing. 
- * By default, log is printed to the standard output.
- */
-CEXPORT int imagoSetLogPrinter( void (*printer)( const char *str ) );
-
-/* Disable log printing (set quiet mode). */
-CEXPORT int imagoDisableLog();
-
-CEXPORT int imagoResetLog();
+/* Enable or disable global log printing */
+/* WARNING: affects all threads/IDS */
+CEXPORT int imagoSetLogging(bool enable);
 
 /* Attach some arbitrary data to the current Imago instance. */
 CEXPORT int imagoSetSessionSpecificData( void *data );
 CEXPORT int imagoGetSessionSpecificData( void **data );
 
-/* Main recognition routine. 
- * Image must be loaded previously. */
-CEXPORT int imagoRecognize();
+/* Main recognition routine. Image must be loaded & filtered previously.
+   Returns count of recognition warnings in warningsCountDataOut value (if specified) */
+CEXPORT int imagoRecognize(int* warningsCountDataOut = NULL);
 
 /* Molfile (.mol) output functions. */
 CEXPORT int imagoSaveMolToBuffer( char **buf, int *buf_size );
 CEXPORT int imagoSaveMolToFile( const char *FileName );
 
+/* Process image filtering */
 CEXPORT int imagoFilterImage();
 
+/* returns filtered image dimensions */
 CEXPORT int imagoGetPrefilteredImageSize (int *width, int *height);
+
+/* returns filtered image data */
 CEXPORT int imagoGetPrefilteredImage (unsigned char **data, int *width, int *height);
 
 #endif /* _imago_c_h */
