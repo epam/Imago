@@ -20,13 +20,13 @@ using namespace imago;
 void TLS::createSlot( KeyType &key )
 {
    if (pthread_key_create(&key, NULL))
-      throw OutOfMemoryException("Cannot create TLS key");
+      throw ImagoException("Cannot create TLS key");
 }
 
 void TLS::setData( KeyType &key, void *data )
 {
    if (pthread_setspecific(key, data))
-      throw OutOfMemoryException("Cannot set data to TLS");
+      throw ImagoException("Cannot set data to TLS");
 }
 
 void *TLS::getData( KeyType &key )
@@ -37,5 +37,5 @@ void *TLS::getData( KeyType &key )
 void TLS::deleteSlot( KeyType &key )
 {
    if (pthread_key_delete(key))
-      throw Exception("Cannot delete TLS key");
+      throw ImagoException("Cannot delete TLS key");
 }

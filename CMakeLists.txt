@@ -80,6 +80,8 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 		set(INDIGO_LIBS_DIR "${INDIGO_LIBS_DIR}/mac")	
 		set(OpenCV_DIR "${OpenCV_DIR}/mac/share/OpenCV")
 		set(BOOST_LIBRARYDIR "${BOOST_LIBRARYDIR}/mac")
+		set(CMAKE_OSX_ARCHITECTURES "i386;x86_64")
+		set(COMPILE_FLAGS "${COMPILE_FLAGS} -fPIC")
 	endif()
 endif()
 
@@ -113,9 +115,14 @@ if(IRECO)
 else()
 	#No need for this now
 	add_subdirectory(font_generator)
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+	# windows only tools
 	add_subdirectory(tools/constfuzzer)
-	add_subdirectory(tools/calculate_probability_matrices)
 	add_subdirectory(tools/timelimit)
+	add_subdirectory(tools/calculate_probability_matrices)
+endif()
+
 	add_subdirectory(imago_c)
 	add_subdirectory(alter-ego)
 	add_subdirectory(tests/vs)

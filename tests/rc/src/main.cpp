@@ -14,6 +14,7 @@
 #include "dirent.h"
 #else
 #include <dirent.h>
+#include <errno.h>
 #endif
 
 void dumpVFS(imago::VirtualFS& vfs)
@@ -116,7 +117,7 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, imago
 						result = recognizeImage(vars, image);
 						if (result.exceptions)
 						{
-							throw std::exception("Recognition fails.");
+							throw imago::ImagoException("Recognition fails.");
 						}
 					}
 				} 
@@ -153,12 +154,12 @@ int getdir(const std::string& dir, std::vector<std::string> &files)
     DIR *dp;
     struct dirent *dirp;
     if((dp  = opendir(dir.c_str())) == NULL) 
-	{
+    {
         return errno;
     }
 
     while ((dirp = readdir(dp)) != NULL) 
-	{
+    {
         files.push_back(std::string(dirp->d_name));
     }
     closedir(dp);
