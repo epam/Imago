@@ -127,11 +127,14 @@ void updateSettingsScanned(Settings &s)
 	FUZZ s.routines.Contour_Eps2 = 0.667673; // fuzzed, old value = 0.663702
 
 	FUZZ s.wbe.PointsCompareDist = 3; // fuzzed, old value = 3
+	
 	FUZZ s.wbe.SingleDownCompareDist = 2; // fuzzed, old value = 2
 	FUZZ s.wbe.SingleDownEps = 2.543398; // fuzzed, old value = 2.580686
 	FUZZ s.wbe.SingleDownAngleMax = 43.264439; // fuzzed, old value = 41.421052
 	FUZZ s.wbe.SingleDownDistancesMax = 10.653749; // fuzzed, old value = 10.188181
 	FUZZ s.wbe.SingleDownLengthMax = 48.948885; // fuzzed, old value = 51.130274
+	FUZZ s.wbe.SomeTresh = 0.12642; // fuzzed, old value = 0.108277
+
 	FUZZ s.wbe.SingleUpRatioEps = 1.549400; // fuzzed, old value = 1.583230
 	FUZZ s.wbe.SingleUpDefCoeff = 0.268526; // fuzzed, old value = 0.271136
 	FUZZ s.wbe.SingleUpIncCoeff = 0.472888; // fuzzed, old value = 0.452343
@@ -141,8 +144,7 @@ void updateSettingsScanned(Settings &s)
 	FUZZ s.wbe.SingleUpS2Divisor = 1.427519; // fuzzed, old value = 1.422550
 	FUZZ s.wbe.SingleUpMinATresh = 1.753776; // fuzzed, old value = 1.692852
 	FUZZ s.wbe.SingleUpSquareRatio = 0.576619; // fuzzed, old value = 0.603343
-	FUZZ s.wbe.SingleUpAngleTresh = 0.073703; // fuzzed, old value = 0.072782
-	FUZZ s.wbe.SomeTresh = 0.112642; // fuzzed, old value = 0.108277
+	FUZZ s.wbe.SingleUpAngleTresh = 0.073703; // fuzzed, old value = 0.072782	
 	//NormalizeBySide(SingleDownDistancesMax, LongestSide);
 	//NormalizeBySide(SingleUpIncLengthTresh, LongestSide);
 

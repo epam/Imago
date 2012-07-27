@@ -120,7 +120,7 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 			// HACK
 			if (satom->atoms[0].getLabelFirst() == 'R' && satom->atoms[0].getLabelSecond() == 0)
             {
-				if (satom->atoms[0].charge > 1)
+				if (satom->atoms[0].charge > 0)
 				{
 					getLogExt().append("R-group (type)", satom->atoms[0].charge);
 					_out.printf("%d", satom->atoms[0].charge);
