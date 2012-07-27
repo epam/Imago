@@ -12,7 +12,7 @@
 
 namespace imago
 {
-	void imago::prefilterEntrypoint(Settings& vars, Image& raw)
+	void prefilterEntrypoint(Settings& vars, Image& raw)
 	{
 		vars.general.ImageWidth = vars.general.OriginalImageWidth = raw.getWidth();
 		vars.general.ImageHeight = vars.general.OriginalImageHeight = raw.getHeight();

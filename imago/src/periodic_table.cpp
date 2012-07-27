@@ -5,10 +5,12 @@ namespace imago
 {
     AtomSymbolMap AtomMap;
 
+
 	bool AtomSymbolMap::lookup(const std::string& str) const
 	{
 		char c_str[4] = {0};
-		strcpy_s(c_str, 3, str.c_str());
+		for (size_t c = 0; c < str.size() && c < 2; c++)
+			c_str[c] = str[c];
 		return SymbolMap[*(unsigned short*)c_str] != 0;
 	}
 
@@ -16,7 +18,8 @@ namespace imago
 	{
 		Elements.push_back(element);
 		char c_str[4] = {0};
-		strcpy_s(c_str, 3, element.c_str());
+		for (size_t c = 0; c < element.size() && c < 2; c++)
+			c_str[c] = element[c];
 		SymbolMap[*(unsigned short*)(c_str)] = Elements.size();
 	}
 

@@ -4,6 +4,7 @@
 #include "image_draw_utils.h"
 #include "thin_filter2.h"
 #include <queue>
+#include <float.h>
 
 namespace imago
 {

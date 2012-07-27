@@ -8,12 +8,12 @@
 #include <cfloat>
 #include <deque>
 
+#include "stl_fwd.h"
 #include "character_recognizer.h"
 #include "segment.h"
 #include "exception.h"
 #include "scanner.h"
 #include "segmentator.h"
-#include "stl_fwd.h"
 #include "thin_filter2.h"
 #include "image_utils.h"
 #include "log_ext.h"
@@ -143,7 +143,7 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
 {
    logEnterFunction();
 
-   __int64 segHash = 0, shift = 0;
+   qword segHash = 0, shift = 0;
    
    // hash against the source candidates
    for (size_t i = 0; i < candidates.size(); i++)

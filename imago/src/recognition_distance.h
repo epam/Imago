@@ -5,6 +5,7 @@
 #include <vector>
 #include <string>
 #include <map>
+#include "comdef.h"
 
 namespace imago
 {
@@ -39,7 +40,7 @@ namespace imago
 		  void adjust(double factor, const std::string& sym_set);
 	  };
 
-	typedef std::map<__int64, RecognitionDistance> RecognitionDistanceCacheType;
+	typedef std::map<qword, RecognitionDistance> RecognitionDistanceCacheType;
 }
 
 #endif // _recognition_distance_h

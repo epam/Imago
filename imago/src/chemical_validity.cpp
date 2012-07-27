@@ -105,6 +105,14 @@ namespace imago
 		return result;
 	}
 
+	struct IterationRecord
+	{
+		int counter;
+		int atom;
+		int pos;
+		std::string alts;
+	};
+
 	bool ChemicalValidity::optimizeAtomGroup(AtomRefs& data) const
 	{
 		logEnterFunction();
@@ -118,13 +126,6 @@ namespace imago
 			return true;
 		}
 
-		struct IterationRecord
-		{
-			int counter;
-			int atom;
-			int pos;
-			std::string alts;
-		};
 		std::vector<IterationRecord> bruteforce;
 
 		std::string molecule;

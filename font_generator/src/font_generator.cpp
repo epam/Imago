@@ -13,6 +13,7 @@
  ***************************************************************************/
 
 #include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 #include <boost/program_options.hpp>
@@ -116,10 +117,10 @@ int main(int argc, char **argv)
 
    chars += "$%^&#+-="; // tricky
 
-   ofstream out(output);
+   ofstream out(output.c_str(), std::ios::out);
    std::auto_ptr<ofstream> contours_out;
    if (vm.count("output-contours-name"))
-      contours_out.reset(new ofstream(contours_output));
+      contours_out.reset(new ofstream(contours_output.c_str(), std::ios::out));
    //std::ostream &out = cout;
 
    out << count << " " << chars.length() << "\n";

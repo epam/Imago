@@ -848,7 +848,8 @@ void Separator::firstSeparation(Settings& vars, CharacterRecognizer &rec, Segmen
 
 		if (vars.general.UseProbablistics) // use probablistic method			
 		{
-			votes[PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND)]++;			
+			SegmentDeque temp;
+			votes[PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND, temp)]++;			
 		}
 
 		if (vars.separator.UseVoteArray)
