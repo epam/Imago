@@ -118,11 +118,19 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 			getLogExt().append("Label", label);
 			
 			// HACK
-			if (satom->atoms[0].getLabelFirst() == 'R' && satom->atoms[0].getLabelSecond() == 0 && satom->atoms[0].charge != 0)
-               {
-				   getLogExt().append("R-group (type)", satom->atoms[0].charge);
-                  _out.printf("%d", satom->atoms[0].charge);
-               }
+			if (satom->atoms[0].getLabelFirst() == 'R' && satom->atoms[0].getLabelSecond() == 0)
+            {
+				if (satom->atoms[0].charge > 1)
+				{
+					getLogExt().append("R-group (type)", satom->atoms[0].charge);
+					_out.printf("%d", satom->atoms[0].charge);
+				}
+				else
+				{
+					getLogExt().appendText("R-group (single)");
+					_out.printf("#");
+				}
+            }
          }
          else
          {
