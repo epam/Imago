@@ -74,6 +74,7 @@ namespace imago
 
 	  int PredictGroup(const Settings& vars, Segment *seg, int mark, SegmentDeque &layer_symbols);
 
+	  int ClusterLines(const Settings& vars,Points2d& inputLines, IntVector& outClasses);
    };
 }
 

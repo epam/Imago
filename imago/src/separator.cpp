@@ -84,13 +84,14 @@ bool Separator::_bIsTextContext(const Settings& vars, SegmentDeque &layer_symbol
 	double dist1 = imago::MaxImageDimensions;
 	double dist2 = imago::MaxImageDimensions;
 
+	Vec2i cntr(rec.x + rec.width/2, rec.y+rec.height/2);
+
 	//find first pair of symbols closer to rec
 	BOOST_FOREACH(Segment *s, layer_symbols)
 	{
 		imago::Rectangle srec = s->getRectangle();
 		Vec2i sc = s->getCenter();
-		Vec2i cntr(rec.x + rec.width/2, rec.y+rec.height/2);
-
+		
 		double dist = Vec2i::distance(sc, cntr);
 
 		if(dist < dist1)
@@ -112,57 +113,34 @@ bool Separator::_bIsTextContext(const Settings& vars, SegmentDeque &layer_symbol
 	bool xfirstSeparable = Algebra::rangesSeparable(rec.x, rec.x+rec.width, firstNear->getX(), firstNear->getX() + firstNear->getWidth());
 	bool yfirstSeparable = Algebra::rangesSeparable(rec.y, rec.y+rec.height, firstNear->getY(), firstNear->getX() + firstNear->getHeight());
 
-	if((xfirstSeparable || yfirstSeparable) && 
+	/*bool xsecSeparable = Algebra::rangesSeparable(rec.x, rec.x+rec.width, secNear->getX(), secNear->getX() + secNear->getWidth());
+	bool ysecSeparable = Algebra::rangesSeparable(rec.y, rec.y+rec.height, secNear->getY(), secNear->getX() + secNear->getHeight());
+*/
+	if(xfirstSeparable &&  !yfirstSeparable && (dist2 + dist1) < 2.5 * vars.estimation.CapitalHeight)
+		return true;
+
+	if(xfirstSeparable  && !yfirstSeparable &&
 		rec.height < vars.estimation.CapitalHeight + vars.separator.ltFactor1 * vars.estimation.LineThickness && 
 		rec.height > vars.estimation.CapitalHeight * vars.separator.capHeightMin &&
-		dist1 < vars.separator.capHeightMax * vars.estimation.CapitalHeight)
+		dist1 < vars.separator.capHeightMax * vars.estimation.CapitalHeight && vars.separator.extRatioMax > ((double)rec.width / (double)rec.height))
 		return true;
 	return false;
 }
 
-void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
+int Separator::ClusterLines(const Settings& vars,Points2d& inputLines, IntVector& outClasses)
 {
-	logEnterFunction();
-
-	// TODO: more logging here
-
-	Molecule mol;
-	Points2d lsegments;
-	
-	double line_thick = vars.estimation.LineThickness;
-    CvApproximator cvApprox;
-	//imago::Skeleton graph;
-    GraphicsDetector gd(&cvApprox, line_thick * vars.separator.gdConst);
-
-	Image timg(_img.getWidth(), _img.getHeight());
-	timg.fillWhite();
-
-	SegmentDeque::iterator sit;
-	// put the graphic layer on the image
-	for(sit = layer_graphics.begin();sit != layer_graphics.end(); sit++)
-	{
-		ImageUtils::putSegment(timg, *(*sit));
-	}
-	//approximate graphics with line segments
-	gd.detect(vars, timg, lsegments);
-
-	if(lsegments.empty())
-		return;
-	
-	double avg_size = 0;
-
 	std::vector<double> lengths;
 	// find the minimum and max of the line segments
-	for (size_t i = 0; i < lsegments.size() / 2; i++)
+	for (size_t i = 0; i < inputLines.size() / 2; i++)
 	{
-      Vec2d &p1 = lsegments[2 * i];
-      Vec2d &p2 = lsegments[2 * i + 1];
+      Vec2d &p1 = inputLines[2 * i];
+      Vec2d &p2 = inputLines[2 * i + 1];
 
       double dist = Vec2d::distance(p1, p2);
 	  lengths.push_back(dist);
    }
 
-	double min = timg.getHeight() * timg.getWidth();  //*(std::min(lengths.begin(), lengths.end()));
+	double min = imago::MaxImageDimensions;
 	double max = 0;
 	for(size_t i=0;i<lengths.size();i++)
 	{
@@ -172,15 +150,13 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 			max = lengths[i];
 	}
 	if(fabs(min - max) < 0.01) // eps
-		return;
+		return -1;
 
-	//avg_size = StatUtils::Median(lengths.begin(), lengths.end());
-	
 	// Clustering line segments in 2 groups
 	double c1 = min, c2 = max, c1_o = min, c2_o = max;
-	IntVector classes;
-	for (size_t i = 0; i < lsegments.size() / 2; i++)
-		classes.push_back(0);
+	
+	for (size_t i = 0; i < inputLines.size() / 2; i++)
+		outClasses.push_back(0);
 	int count1 = 0, count2=0;
 
 	do
@@ -188,44 +164,101 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 		c1_o = c1;
 		c2_o = c2;
 
-		for (size_t i = 0; i < lsegments.size() / 2; i++)
+		for (size_t i = 0; i < inputLines.size() / 2; i++)
 		{
-		  Vec2d &p1 = lsegments[2 * i];
-		  Vec2d &p2 = lsegments[2 * i + 1];
+		  Vec2d &p1 = inputLines[2 * i];
+		  Vec2d &p2 = inputLines[2 * i + 1];
 
 		  double dist = Vec2d::distance(p1, p2);
 		  double dc1 = fabs(dist - c1);
 		  double dc2 = fabs(dist - c2);
-		  if(dc1 < dc2)
-			  classes[i] = 0;
+		  if(dc1 < dc2 && dist < vars.estimation.CapitalHeight * vars.separator.getRatio2)
+			  outClasses[i] = 0;
 		  else
-			  classes[i] = 1;
+			  outClasses[i] = 1;
 		}
 		count1 = 0;
 		count2=0;
 		
 		double sum1=0, sum2 = 0;
 		
-		for(size_t i=0;i<classes.size();i++)
-			if(classes[i] == 0)
+		for(size_t i=0; i < outClasses.size(); i++)
+			if(outClasses[i] == 0)
 			{
 				count1++;
-				sum1 += Vec2d::distance(lsegments[2*i], lsegments[2*i+1]);
+				sum1 += Vec2d::distance(inputLines[2*i], inputLines[2*i+1]);
 			}
 			else
 			{
 				count2++;
-				sum2 += Vec2d::distance(lsegments[2*i], lsegments[2*i+1]);
+				sum2 += Vec2d::distance(inputLines[2*i], inputLines[2*i+1]);
 			}
 		c1 = sum1 / count1;
 		c2 = sum2 / count2;
 	
 	}while(fabs(c1 - c1_o) > 0.1 || fabs(c2 - c2_o) > 0.1); // eps
-
-	if(count1 == 0 || count2 == 0)
-		return;
-
 	
+	if(count1 == 0 || count2 == 0)
+		return -1;
+
+	return 0;
+}
+
+void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
+{
+	logEnterFunction();
+
+	// TODO: more logging here
+
+	Points2d lsegments;
+	
+	double line_thick = vars.estimation.LineThickness;
+    CvApproximator cvApprox;
+	
+    GraphicsDetector gd(&cvApprox, line_thick * vars.separator.gdConst);
+
+	Image timg(_img.getWidth(), _img.getHeight());
+	timg.fillWhite();
+
+	SegmentDeque::iterator sit;
+
+	// put the graphic layer on the image
+	for(sit = layer_graphics.begin();sit != layer_graphics.end(); sit++)
+	{
+		ImageUtils::putSegment(timg, *(*sit));
+	}
+
+	//approximate graphics with line segments
+	gd.detect(vars, timg, lsegments);
+
+	if(lsegments.empty())
+		return;
+	
+	IntVector classes;
+
+	int clusterResult = ClusterLines(vars, lsegments, classes);
+
+	if(clusterResult != 0)
+		return;
+	
+	if(getLogExt().loggingEnabled())
+	{
+		imago::Image	smallLines(vars.general.ImageWidth, vars.general.ImageHeight), 
+						largeLines(vars.general.ImageWidth, vars.general.ImageHeight);
+		smallLines.fillWhite();
+		largeLines.fillWhite();
+		for(size_t i = 0; i < classes.size(); i++)
+		{
+			if(classes[i] == 0)
+				imago::ImageDrawUtils::putLineSegment(smallLines, lsegments[2 * i], lsegments[ 2 * i + 1], 0);
+			else
+				imago::ImageDrawUtils::putLineSegment(largeLines, lsegments[2 * i], lsegments[ 2 * i + 1], 0);
+		}
+
+		getLogExt().appendImage(std::string("clustered small lines"), smallLines);
+		getLogExt().appendImage(std::string("clustered large lines"), largeLines); 
+	}
+
 	std::vector<Rectangle> symbRects;
 	IntVector LineCount;
 	std::vector<bool> visited;
@@ -247,15 +280,15 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 			si._lineSegment.second = p2;
 			pq.push(si);
 		}
-	for(size_t i=0;i<symInds.size(); i++)
-		visited.push_back(false);
+	/*for(size_t i=0;i<symInds.size(); i++)
+		visited.push_back(false);*/
 
 	typedef std::deque<Vec2d> polygon;
 
 	std::deque<polygon> RectPoints;
 
 	// integrate the results by joining close to each other segments
-	//for(int i=0;i<classes.size();i++)
+	
 	int i = -1, currInd;
 	int ncount;
 
@@ -288,20 +321,19 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 		bool added = false;
 		visited[currInd] = true;
 
-		//pq.SetRectangle(symbRects[ri]);
 		pq.UpdateComparer(RectPoints[ri]);
 		int j = 0;
-		//for(int j=0; j < classes.size(); j++)
+		
 		do{
 
 			added = false;
 			if(pq.empty())
 				break;
-			//for(j=0;j< symInds.size();j++)
+			
 			{
 				SegmentIndx si = pq.top();
 
-				int currInd2 = si._indx;//symInds[j];
+				int currInd2 = si._indx;
 				if(visited[currInd2] || currInd == currInd2)
 				{
 					pq.pop();
@@ -356,118 +388,162 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 
 	}while(ncount !=  symInds.size());
 
-		if(symbRects.empty())
-			return;
+	if(symbRects.empty())
+		return;
 
-		bool found_symbol = false;
+	bool found_symbol = false;
 		
 			
-		int sym_height_err = (int)vars.estimation.SymHeightErr;
-		int cap_height = (int)vars.estimation.CapitalHeight;		
-		double adequate_ratio_max = vars.estimation.MaxSymRatio;
-		double adequate_ratio_min = vars.estimation.MinSymRatio;
+	int sym_height_err = (int)vars.estimation.SymHeightErr;
+	int cap_height = (int)vars.estimation.CapitalHeight;		
+	double adequate_ratio_max = vars.estimation.MaxSymRatio;
+	double adequate_ratio_min = vars.estimation.MinSymRatio;
 
 		for(size_t i=0;i< symbRects.size(); i++)
+	{
+		bool isTextContext = _bIsTextContext(vars, layer_symbols, symbRects[i]);
+
+		if(LineCount[i] < 2 && (!isTextContext || (symbRects[i].width / symbRects[i].height) > adequate_ratio_min ))// && !(symbRects[i].height < cap_height +line_thick && symbRects[i].height > (cap_height - 1.2 * line_thick)))
+			continue;
+		if(LineCount[i] == 2 )
 		{
-			bool isTextContext = _bIsTextContext(vars, layer_symbols, symbRects[i]);
-
-			if(LineCount[i] < 2 && !isTextContext)// && !(symbRects[i].height < cap_height +line_thick && symbRects[i].height > (cap_height - 1.2 * line_thick)))
+			if(Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
+				RectPoints[i][2], RectPoints[i][3], 0.1))
 				continue;
-			if(LineCount[i] == 2 )
-			{
-				if(Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
-					RectPoints[i][2], RectPoints[i][3], 0.1))
-					continue;
-				Vec2d p1 = RectPoints[i][0];
-				Vec2d p2 = RectPoints[i][1];
-				if(Algebra::distance2segment(p1, RectPoints[i][2], RectPoints[i][3]) > line_thick &&
-					Algebra::distance2segment(p2, RectPoints[i][2], RectPoints[i][3]) > line_thick)
-					continue;
-				Line l1 = Algebra::points2line(p1, p2);
-				Line l2 = Algebra::points2line(RectPoints[i][2], RectPoints[i][3]);
-				Vec2d pintersect = Algebra::linesIntersection(vars, l1, l2);
-				if(absolute(pintersect.y - symbRects[i].y) < (symbRects[i].height / 2) )
-					continue;
+			Vec2d p1 = RectPoints[i][0];
+			Vec2d p2 = RectPoints[i][1];
+			if(Algebra::distance2segment(p1, RectPoints[i][2], RectPoints[i][3]) > line_thick &&
+				Algebra::distance2segment(p2, RectPoints[i][2], RectPoints[i][3]) > line_thick)
+				continue;
+			Line l1 = Algebra::points2line(p1, p2);
+			Line l2 = Algebra::points2line(RectPoints[i][2], RectPoints[i][3]);
+			Vec2d pintersect = Algebra::linesIntersection(vars, l1, l2);
+			if(absolute(pintersect.y - symbRects[i].y) < (symbRects[i].height / 2) )
+				continue;
 
-			}
+		}
 
-			if(LineCount[i] == 3)
-			{
-				if(Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
-					RectPoints[i][2], RectPoints[i][3], 0.13) || 
-					Algebra::segmentsParallel(RectPoints[i][4], RectPoints[i][5],
-					RectPoints[i][2], RectPoints[i][3], 0.13) || 
-					Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
-					RectPoints[i][4], RectPoints[i][5], 0.13))
-					continue;
-			}
+		if(LineCount[i] == 3)
+		{
+			if(Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
+				RectPoints[i][2], RectPoints[i][3], 0.13) || 
+				Algebra::segmentsParallel(RectPoints[i][4], RectPoints[i][5],
+				RectPoints[i][2], RectPoints[i][3], 0.13) || 
+				Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1],
+				RectPoints[i][4], RectPoints[i][5], 0.13))
+				continue;
+		}
 
-			int left = round(  (symbRects[i].x - line_thick < 0) ? 0 : (symbRects[i].x - line_thick));
-			int top =  round(  (symbRects[i].y - line_thick < 0) ? 0 : (symbRects[i].y - line_thick));
-			int right = round( (symbRects[i].x + symbRects[i].width + line_thick > timg.getWidth()) ? timg.getWidth() :
-				               (symbRects[i].x + symbRects[i].width + line_thick) );
-			int bottom = round((symbRects[i].y + symbRects[i].height + line_thick > timg.getHeight()) ? timg.getHeight() :
-				               (symbRects[i].y + symbRects[i].height  + line_thick) );
+		int left = round(  (symbRects[i].x - line_thick < 0) ? 0 : (symbRects[i].x - line_thick));
+		int top =  round(  (symbRects[i].y - line_thick < 0) ? 0 : (symbRects[i].y - line_thick));
+		int right = round( (symbRects[i].x + symbRects[i].width + line_thick > timg.getWidth()) ? timg.getWidth() :
+				            (symbRects[i].x + symbRects[i].width + line_thick) );
+		int bottom = round((symbRects[i].y + symbRects[i].height + line_thick > timg.getHeight()) ? timg.getHeight() :
+				            (symbRects[i].y + symbRects[i].height  + line_thick) );
 
-			Image extracted(right - left+1, bottom - top+1),
-				_2BClassified(right - left+1, bottom - top+1);
-			extracted.fillWhite();
-			_2BClassified.fillWhite();
+		Image extracted(right - left+1, bottom - top+1),
+			_2BClassified(right - left+1, bottom - top+1);
+		extracted.fillWhite();
+		_2BClassified.fillWhite();
 
 
-			timg.extract(left, top, right, bottom, extracted); 
+		timg.extract(left, top, right, bottom, extracted); 
 			
-			SegmentDeque segs;
-			Segment *s = NULL;
-			Segmentator::segmentate(extracted, segs);
+		SegmentDeque segs;
+		Segment *s = NULL;
+		Segmentator::segmentate(extracted, segs);
 
-			for(SegmentDeque::iterator it = segs.begin(); it!=segs.end(); it++)
+		for(SegmentDeque::iterator it = segs.begin(); it!=segs.end(); it++)
+		{
+
+			for(size_t n=0;n<RectPoints[i].size();n++)
 			{
-
-				for(size_t n=0;n<RectPoints[i].size();n++)
-				{
-					Vec2d pt = RectPoints[i][n];
-					int dx = round(pt.x - left);
-					int dy = round(pt.y - top);
+				Vec2d pt = RectPoints[i][n];
+				int dx = round(pt.x - left);
+				int dy = round(pt.y - top);
 					
-					if((*it)->getX() < dx && ((*it)->getWidth() + (*it)->getX()) > dx && 
-						(*it)->getY() < dy && ((*it)->getHeight() + (*it)->getY()) > dy)
-					{
-						int sx = dx - (*it)->getX();
-						int sy = dy - (*it)->getY();
+				if((*it)->getX() < dx && ((*it)->getWidth() + (*it)->getX()) > dx && 
+					(*it)->getY() < dy && ((*it)->getHeight() + (*it)->getY()) > dy)
+				{
+					int sx = dx - (*it)->getX();
+					int sy = dy - (*it)->getY();
 
-						if((*it)->getByte(sx, sy) == 0)
-						{
-							ImageUtils::putSegment(_2BClassified, *(*it));
-							break;
-						}
+					if((*it)->getByte(sx, sy) == 0)
+					{
+						ImageUtils::putSegment(_2BClassified, *(*it));
+						break;
 					}
 				}
-					
-
-				/*int area = (*it)->density() * (*it)->getWidth() * (*it)->getHeight();
-
-				int tarea = s != NULL ? (*it)->density() * (*it)->getWidth() * (*it)->getHeight():
-					0;
-				if(tarea < area)
-				{
-					s = new Segment();
-					s->copy(**it);
-					s->getX() += left;
-					s->getY() += top;
-				}*/
-				delete *it;
 			}
+				
+			delete *it;
+		}
 
-			segs.clear();
+		segs.clear();
 
-			//_2BClassified.crop();
-			s = new Segment();
-			s ->init( _2BClassified.getWidth(),  _2BClassified.getHeight());
-			memcpy(s->getData(),  _2BClassified.getData(), sizeof(byte) *  _2BClassified.getWidth() *  _2BClassified.getHeight());
-			s->getX() = left;
-			s->getY() = top;
-			
+		//_2BClassified.crop();
+		s = new Segment();
+		s ->init( _2BClassified.getWidth(),  _2BClassified.getHeight());
+		memcpy(s->getData(),  _2BClassified.getData(), sizeof(byte) *  _2BClassified.getWidth() *  _2BClassified.getHeight());
+		s->getX() = left;
+		s->getY() = top;
+
+		imago::Points2d linesegs;
+		gd.detect(vars, _2BClassified, linesegs);
+
+		if((int)(linesegs.size() / 2) > LineCount[i])
+		{
+			for(size_t k = 0; k < linesegs.size() / 2; k++)
+			{
+				Vec2d p1 = linesegs[2 * k];
+				Vec2d p2 = linesegs[2 * k + 1];
+				double xmin = p1.x > p2.x ? p2.x : p1.x;
+				double xmax = p1.x > p2.x ? p1.x : p2.x;
+
+				xmin += left;
+				xmax += left;
+
+				double ymin = p1.y > p2.y ? p2.y : p1.y;
+				double ymax = p1.y > p2.y ? p1.y : p2.y;
+
+				ymin += top;
+				ymax += top;
+
+				if(xmin > symbRects[i].x + symbRects[i].width )
+				{
+					for(int m = 0; m < s->getHeight(); m++)
+						for(int n = xmin - symbRects[i].x; n < s->getWidth(); n++) 
+							s->getByte(n, m) = 255;
+					getLogExt().appendSegment(std::string("after removing right redudant lines"), *s);
+				}
+				else
+					if(xmax < symbRects[i].x)
+					{
+						for(int m = 0; m < s->getHeight(); m++)
+							for(int n = 0; n < xmax - symbRects[i].x; n++) 
+								s->getByte(n, m) = 255;
+						getLogExt().appendSegment(std::string("after removing left redudant lines"), *s);
+					}
+					else
+						if(ymin > symbRects[i].y + symbRects[i].height)
+						{
+							for(int m = ymin - symbRects[i].y; m < s->getHeight(); m++)
+								for(int n = 0; n < s->getWidth(); n++) 
+									s->getByte(n, m) = 255;
+							getLogExt().appendSegment(std::string("after removing bottom redudant lines"), *s);
+						}
+						else
+							if(ymax < symbRects[i].y)
+							{
+								for(int m = 0; m < ymax - symbRects[i].y; m++)
+									for(int n = 0; n < s->getWidth(); n++) 
+										s->getByte(n, m) = 255;
+								getLogExt().appendSegment(std::string("after removing top redudant lines"), *s);
+							}
+			}
+		}
+
+		
 			int mark;
 			
 			//	classify object
