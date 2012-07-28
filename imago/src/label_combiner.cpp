@@ -48,7 +48,7 @@ LabelCombiner::LabelCombiner(Settings& vars, SegmentDeque &symbols_layer, Segmen
 				_fillLabelInfo(vars, l);
 		}
 		//Temporary switched off
-	}while(needsProcessing(vars));
+	}while(0);//(needsProcessing(vars));
 }
 
 

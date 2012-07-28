@@ -66,8 +66,11 @@ void _getHuMomentsC(const Image &img, double hu[7])
    cv::HuMoments(moments, hu);
 }
 
-int Separator::HuClassifier(const Settings& vars, double hu[7])
+int Separator::HuClassifier(const Settings& vars, Image &im)
 {
+	double hu[7];
+	_getHuMomentsC(im, hu);
+
 	if (hu[1] > vars.separator.hu_1_1 || (hu[1] < vars.separator.hu_1_2 && hu[0] < vars.separator.hu_0_1))
 		return SEP_BOND;
 	if (hu[1] < vars.separator.hu_1_3 && hu[0] > vars.separator.hu_0_2)
@@ -116,15 +119,57 @@ bool Separator::_bIsTextContext(const Settings& vars, SegmentDeque &layer_symbol
 	/*bool xsecSeparable = Algebra::rangesSeparable(rec.x, rec.x+rec.width, secNear->getX(), secNear->getX() + secNear->getWidth());
 	bool ysecSeparable = Algebra::rangesSeparable(rec.y, rec.y+rec.height, secNear->getY(), secNear->getX() + secNear->getHeight());
 */
-	if(xfirstSeparable &&  !yfirstSeparable && (dist2 + dist1) < 2.5 * vars.estimation.CapitalHeight)
+	if(xfirstSeparable &&  !yfirstSeparable && dist1 < vars.estimation.CapitalHeight)
 		return true;
 
 	if(xfirstSeparable  && !yfirstSeparable &&
 		rec.height < vars.estimation.CapitalHeight + vars.separator.ltFactor1 * vars.estimation.LineThickness && 
 		rec.height > vars.estimation.CapitalHeight * vars.separator.capHeightMin &&
-		dist1 < vars.separator.capHeightMax * vars.estimation.CapitalHeight && vars.separator.extRatioMax > ((double)rec.width / (double)rec.height))
+		dist1 < vars.separator.capHeightMax * vars.estimation.CapitalHeight && vars.separator.extRatioMin > ((double)rec.width / (double)rec.height))
 		return true;
 	return false;
+}
+
+double HuMoms[2][2] = {
+	{0.9419354839,	0.0682196339},
+	{0.0326612903,	0.8860232945}
+};
+
+double Ratioclass[2][2] = {
+	{0.9826612903, 0.6114808652},
+	{0.0096774194, 0.340266223}
+};
+
+double KNNclass[2][2] = {
+	{0.6596774194, 0.2978369384},
+	{0.3403225806, 0.7021630616}
+};
+
+double Probclass[2][2] = {
+	{0.964516129, 0.3693843594},
+	{0.035483871, 0.6306156406}
+};
+
+int GetClass(imago::Separator::ClassifierResults cres)
+{
+	double symClass = 1.0, bondClass = 1.0;
+	symClass *= (Probclass[1][cres.Probability] * KNNclass[1][cres.KNN]);
+	bondClass *= (Probclass[0][cres.Probability] * KNNclass[0][cres.KNN]);
+	if(cres.Ratios < 2)
+	{
+		symClass *= Ratioclass[1][cres.Ratios];
+		bondClass *= Ratioclass[0][cres.Ratios];
+	}
+
+	if(cres.HuMoments < 2)
+	{
+		symClass *= HuMoms[1][cres.Ratios];
+		bondClass *= HuMoms[0][cres.Ratios];
+	}
+
+	if(symClass > bondClass)
+		return 1;	//SEP_SYMBOL;
+	return 0;		//SEP_BOND;
 }
 
 int Separator::ClusterLines(const Settings& vars,Points2d& inputLines, IntVector& outClasses)
@@ -201,10 +246,13 @@ int Separator::ClusterLines(const Settings& vars,Points2d& inputLines, IntVector
 	if(count1 == 0 || count2 == 0)
 		return -1;
 
+	if(fabs(c1 - c2) < vars.estimation.LineThickness)
+		return -1;
+
 	return 0;
 }
 
-void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
+void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics, CharacterRecognizer &rec  )
 {
 	logEnterFunction();
 
@@ -280,8 +328,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 			si._lineSegment.second = p2;
 			pq.push(si);
 		}
-	/*for(size_t i=0;i<symInds.size(); i++)
-		visited.push_back(false);*/
+	
 
 	typedef std::deque<Vec2d> polygon;
 
@@ -403,7 +450,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 	{
 		bool isTextContext = _bIsTextContext(vars, layer_symbols, symbRects[i]);
 
-		if(LineCount[i] < 2 && (!isTextContext || (symbRects[i].width / symbRects[i].height) > adequate_ratio_min ))// && !(symbRects[i].height < cap_height +line_thick && symbRects[i].height > (cap_height - 1.2 * line_thick)))
+		if(LineCount[i] < 2 && (!isTextContext || (symbRects[i].width / symbRects[i].height) > adequate_ratio_min ))
 			continue;
 		if(LineCount[i] == 2 )
 		{
@@ -420,7 +467,6 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 			Vec2d pintersect = Algebra::linesIntersection(vars, l1, l2);
 			if(absolute(pintersect.y - symbRects[i].y) < (symbRects[i].height / 2) )
 				continue;
-
 		}
 
 		if(LineCount[i] == 3)
@@ -542,96 +588,35 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 							}
 			}
 		}
+	
+		ClassifierResults cres;
 
-		
-			int mark;
-			
-			//	classify object
-			int votes[2] = {0, 0};
-			getLogExt().appendSegment("segment", *s);
-
-			double hu[7];
-			
-			_getHuMomentsC(*s, hu);
-
-			mark = HuClassifier(vars, hu);
-			getLogExt().append("mark", mark);
-
-			if(mark < 2)
-				votes[mark]++;
-
-			double surf_coeff = vars.separator.SurfCoef;
-
-			if(extracted.getHeight() < vars.separator.capHeightRatio *cap_height || (symbRects[i].height * symbRects[i].width > surf_coeff * cap_height * cap_height))
-			{
-				mark = SEP_SUSPICIOUS;
-				getLogExt().appendText("mark -> SEP_SUSPICIOUS");
-			}
-
-			mark = (mark == SEP_SUSPICIOUS)  && isTextContext ? SEP_SYMBOL : mark;
-			
-			if(mark < 2)
-				votes[mark]++;
-
-
-			if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
-			{
-				
-				if (s->getHeight() >= cap_height - sym_height_err && 
-					s->getHeight() <= cap_height + sym_height_err &&
-					s->getHeight() <= cap_height * 2 && // TODO
-					s->getWidth() <= vars.separator.capHeightRatio2 * cap_height) 
-				{
-					if (s->getRatio() > vars.separator.getRatio1 && s->getRatio() < vars.separator.getRatio2)
-				{
-					if (_analyzeSpecialSegment(vars, s))
-					{
-						mark = SEP_BOND;//layer_graphics.push_back(s);
-						continue;
-					}
-				}
-				if (s->getRatio() > adequate_ratio_max)
-					if (ImageUtils::testSlashLine(vars, *s, 0, vars.separator.testSlashLine1))
-						mark = SEP_BOND;
-					else
-						mark = (LineCount[i] != 4) ? SEP_SYMBOL : SEP_BOND;
-				else
-					if (s->getRatio() < adequate_ratio_min)
-						if (_testDoubleBondV(vars, *s))
-							mark = SEP_BOND;
-						else
-							mark = SEP_SUSPICIOUS;
-					else
-						if (ImageUtils::testSlashLine(vars, *s, 0, vars.separator.testSlashLine2))
-							mark = SEP_BOND;
-						else 
-							mark = SEP_SUSPICIOUS;
-				}
-				else
-				mark = SEP_BOND;
-			} 
-
-			if(mark < 2)
-				votes[mark]++;
-
-				 				
-				mark = PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND, layer_symbols);
-				 if(mark == SEP_SYMBOL)
-				 {
-					 imago::ImageUtils::cutSegment(timg, *s, false, 255);
-					 layer_symbols.push_back(s);
-					 found_symbol = true;					 
-				 }
-				 else
-					 delete s;
-		}
-
-		if(found_symbol)
+		try
 		{
-			layer_graphics.clear();
-			
-			Segmentator::segmentate(timg, layer_graphics);
+			ClassifySegment(vars, layer_symbols, rec, s, cres);
 		}
+		catch(ImagoException ex)
+		{
+			delete s;
+			continue;
+		}
+		//	classify object
+		if(GetClass(cres) == SEP_SYMBOL || isTextContext)
+		{
+			imago::ImageUtils::cutSegment(timg, *s, false, 255);
+			layer_symbols.push_back(s);
+			found_symbol = true;					 
+		}
+		else
+			delete s;
+	}
+
+	if(found_symbol)
+	{
+		layer_graphics.clear();
+			
+		Segmentator::segmentate(timg, layer_graphics);
+	}
 	
 }
 
@@ -695,12 +680,250 @@ int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark,  Segme
 	return retVal;
 }
 
-void Separator::firstSeparation(Settings& vars, CharacterRecognizer &rec, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
+
+void Separator::ClassifySegment(const Settings& vars, SegmentDeque &layer_symbols, CharacterRecognizer &rec, Segment* seg, ClassifierResults &cresults)
+{
+	logEnterFunction();
+
+	int cap_height =(int) vars.estimation.CapitalHeight;
+
+	int sym_height_err = (int)vars.estimation.SymHeightErr;
+    //double susp_seg_density = rs["SuspSegDensity"],
+	double adequate_ratio_max = vars.estimation.MaxSymRatio;
+	double adequate_ratio_min = vars.estimation.MinSymRatio;
+    
+    /* Classification procedure */
+	
+	Segment* s = seg;
+
+	getLogExt().appendSegment("Segment", *s);
+
+	//thin segment
+	Image temp;
+	s->extract(0, 0, s->getWidth(), s->getHeight(), temp);
+	
+	int votes[2] = {0, 0};
+
+	int mark = HuClassifier(vars, temp);
+
+	cresults.HuMoments = mark;
+	
+	if(mark < 2)
+		votes[mark]++;
+
+	if(mark == SEP_SYMBOL && 
+		(!(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= cap_height)
+		|| s->getHeight() < vars.separator.capHeightRatio *cap_height)
+		)
+		mark = SEP_SUSPICIOUS;
+	cresults.KNNRatios = mark;
+
+	int mark1 = mark;
+	getLogExt().append("mark1", mark1);
+		
+	//if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
+	{
+		ThinFilter2 tfilt(temp);
+		tfilt.apply();
+
+		Segment *thinseg = new Segment();
+		thinseg->copy(*s);
+		//memcpy(thinseg->getData(), temp.getData(), temp.getWidth()*temp.getHeight() *sizeof(byte));
+
+		if (s->getHeight() >= cap_height - sym_height_err && 
+			s->getHeight() <= cap_height + sym_height_err &&
+			s->getHeight() <= cap_height * 2 &&
+			s->getWidth() <= vars.separator.capHeightRatio2 * cap_height) 
+		{
+			if (thinseg->getRatio() > vars.separator.getRatio1 && thinseg->getRatio() < vars.separator.getRatio2)
+			{
+				if (_analyzeSpecialSegment(vars, thinseg))
+				{
+					mark = SEP_BOND;
+				}
+			}
+
+			if (thinseg->getRatio() > adequate_ratio_max)
+				if (ImageUtils::testSlashLine(vars, *thinseg, 0, vars.separator.testSlashLine1))
+					mark = SEP_BOND;
+				else
+					mark = SEP_SPECIAL;
+			else
+				if (thinseg->getRatio() < adequate_ratio_min)
+					if (_testDoubleBondV(vars, *thinseg))
+						mark = SEP_BOND;
+					else
+						mark = SEP_SUSPICIOUS;
+				else
+					if (ImageUtils::testSlashLine(vars, *thinseg, 0, vars.separator.testSlashLine2))
+						mark = SEP_BOND;
+					else 
+						mark = SEP_SYMBOL;
+		}
+		else
+			mark = SEP_BOND;
+		delete thinseg;
+	}
+
+	if((mark == SEP_SUSPICIOUS || mark == SEP_BOND) && mark < 2)
+		votes[mark]++;
+	
+	cresults.Ratios = mark;
+
+	getLogExt().append("mark", mark);
+
+	//if (mark1 != SEP_SYMBOL)
+	{		
+		getLogExt().append("cap_height", cap_height);
+		getLogExt().append("Height", s->getHeight());
+		double wh = (double)s->getWidth() / (double)s->getHeight();
+		getLogExt().append("Width/height", wh);
+
+		bool two_chars_probably = 
+			wh > vars.separator.extRatioMax &&
+			wh < vars.separator.ext2charRatio * vars.separator.extRatioMax;
+		
+		if (s->getHeight() > vars.separator.extCapHeightMin * cap_height && 
+			s->getHeight() < vars.separator.extCapHeightMax * cap_height &&
+									wh > vars.separator.extRatioMin && 
+			(two_chars_probably || wh < vars.separator.extRatioMax) )
+		{				
+			char ch;
+
+			bool matches = false;
+			bool strict = false;				
+
+			if (rec.isPossibleCharacter(vars, *s, false, &ch))
+			{
+				if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
+				{
+					getLogExt().append("[strict] Segment passed as 2-chars, but recognized as", ch);
+				}
+				else
+				{
+					matches = true;
+					strict = true;
+				}
+			}
+			else if (rec.isPossibleCharacter(vars, *s, true, &ch))
+			{
+				if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
+				{
+					getLogExt().append("[loose] Segment passed as 2-chars, but recognized as", ch);
+				}
+				else
+				{
+					matches = true;
+					strict = false;
+				}
+			}
+			else if (two_chars_probably)
+			{
+				// calculate split					
+				int mid = s->getWidth() / 2;
+				int gap = mid / 2;
+				int best_x = -1;
+				int best_intersect = s->getHeight();
+				for (int xv = 0; xv < gap; xv++)
+				{
+					for (int xs = -1; xs <= 1; xs += 2)
+					{
+						int x = mid + xv * xs;
+						int y_intersect = 0;
+						for (int y = 0; y < s->getHeight(); y++)
+						{
+							if (s->getByte(x, y) == 0)
+								y_intersect++;
+						}
+						if (y_intersect < best_intersect)
+						{
+							best_intersect = y_intersect;
+							best_x = x;
+						}
+					}
+				}
+				if (best_x > 0)
+				{
+					Segment* s1 = new Segment();
+					Segment* s2 = new Segment();
+					s->splitVert(best_x, *s1, *s2);
+						
+					getLogExt().appendSegment("Split: S1", *s1);
+					getLogExt().appendSegment("Split: S2", *s2);
+
+					if (rec.isPossibleCharacter(vars, *s1, true, &ch) &&
+						rec.isPossibleCharacter(vars, *s2, true, &ch))
+					{
+						getLogExt().appendText("Both are symbols");
+						int segs = _getApproximationSegmentsCount(vars, s) - 1;
+						getLogExt().append("Approx segs", segs);
+						if (segs > vars.separator.minApproxSegsWeak)
+						{							
+							getLogExt().appendText("Segments criteria passed");
+							layer_symbols.push_back(s1);
+							layer_symbols.push_back(s2);
+							cresults.KNN = SEP_SYMBOL;
+							cresults.Processed = true;
+							//continue;
+						}
+					}
+					if(!cresults.Processed)	
+					{
+						delete s1;
+						delete s2;						
+					}
+				}
+			}
+
+			if (matches)
+			{
+				int segs = _getApproximationSegmentsCount(vars, s) - 1;
+				getLogExt().append("Approx segs", segs);
+				if (segs > (strict ? vars.separator.minApproxSegsStrong : vars.separator.minApproxSegsWeak))
+				{
+					getLogExt().appendText("Segment marked as symbol");
+					mark = SEP_SYMBOL;
+					votes[SEP_SYMBOL]++;
+				}
+			}			
+		}
+
+		cresults.KNN = mark;
+	}
+
+	if(mark1 != SEP_SYMBOL && cresults.KNN < 2 && cresults.KNN > -1)
+		votes[mark]++;
+
+	s->setSymbolProbability(mark < 2 ? (double)mark : 0.0);
+
+	if (vars.general.UseProbablistics) // use probablistic method			
+	{
+		mark = PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND, layer_symbols);
+		if(mark < 2)
+			votes[mark]++;			
+		cresults.Probability = mark;
+	}
+
+	if (vars.separator.UseVoteArray)
+	{
+		mark = votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND;
+	}
+
+	
+	char ch;
+	if(cresults.KNN == -1)
+		cresults.KNN = rec.isPossibleCharacter(vars, *s, true, &ch) ? 1 : 0;
+	if(cresults.Probability == -1)
+		cresults.Probability = PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND, layer_symbols);
+	
+	cresults.OverAll = mark;
+}
+
+void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
 {
    logEnterFunction();
 
    int cap_height;
-   IntVector suspicious_segments;
 
    if (_segs.size() == 0)
    {
@@ -710,247 +933,350 @@ void Separator::firstSeparation(Settings& vars, CharacterRecognizer &rec, Segmen
    else
       cap_height = _estimateCapHeight(vars);   
 
-   vars.estimation.CapitalHeight = cap_height;
+   if(cap_height > -1)
+		vars.estimation.CapitalHeight = cap_height;
 
    //Assume that there are no symbols in the picture
-   if (cap_height == -1)
+   /*if (cap_height == -1)
    {
       BOOST_FOREACH( Segment *s, _segs )
          layer_graphics.push_back(s);
    }
-   else
+   else*/
    {
 	   int sym_height_err = (int)vars.estimation.SymHeightErr;
       //double susp_seg_density = rs["SuspSegDensity"],
 	   double adequate_ratio_max = vars.estimation.MaxSymRatio;
 	   double adequate_ratio_min = vars.estimation.MinSymRatio;
       
-      IntVector seg_marks, suspicious_segments;
+	   SegmentDeque tempSymbols;
 
       /* Classification procedure */
 	  for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
       {
-        Segment* s = *it;
+		  ClassifierResults cres;
+		  Segment *s = *it;
+		  ClassifySegment(vars, tempSymbols, rec, s, cres);
 
-		getLogExt().appendSegment("Segment", *s);
+		  if(cres.Processed)
+		  {
+			  tempSymbols.push_back(s);
+			  continue;
+		  }
 
-		//thin segment
-		Image temp;
-		s->extract(0, 0, s->getWidth(), s->getHeight(), temp);
-		 
-		double hu[7];
-		_getHuMomentsC(temp, hu);
+		  int HuMms = cres.HuMoments > -1 && cres.HuMoments < 2 ? cres.HuMoments : 
+			  (cres.KNN == SEP_SYMBOL || cres.Probability == SEP_SYMBOL);
 
-		int votes[2] = {0, 0};
-
-		int mark = HuClassifier(vars, hu);
-
-		if(mark < 2)
-			votes[mark]++;
+		  if((cres.KNN == SEP_SYMBOL && cres.HuMoments == SEP_SYMBOL) || cres.Probability == SEP_SYMBOL)
+			  //(cres.KNN > 0 && HuMms) //cres.OverAll != SEP_BOND && (HuMms + cres.KNN + cres.Probability) > 0)
+		  //if(cres.OverAll == 1)
+			  tempSymbols.push_back(s);
+	  }
 
 
-		if(mark == SEP_SYMBOL && 
-			(!(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= cap_height)
-			|| s->getHeight() < vars.separator.capHeightRatio *cap_height)
-			)
-			mark = SEP_SUSPICIOUS;
-		
-		int mark1 = mark;
-		getLogExt().append("mark1", mark1);
-		
-		 if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
-		 {
-			 ThinFilter2 tfilt(temp);
-			  tfilt.apply();
+	  int hSymbols = 0;
+	  for(SegmentDeque::iterator it = tempSymbols.begin(); it != tempSymbols.end(); it++)
+	  {
+		  hSymbols += (*it)->getHeight();
+	  }
 
-			  Segment *thinseg = new Segment();
-			  thinseg->copy(*s);
-			  //memcpy(thinseg->getData(), temp.getData(), temp.getWidth()*temp.getHeight() *sizeof(byte));
+	  hSymbols = tempSymbols.size() > 0 ? hSymbols / tempSymbols.size() : (int)vars.estimation.CapitalHeight;
 
-			 if (s->getHeight() >= cap_height - sym_height_err && 
-				 s->getHeight() <= cap_height + sym_height_err &&
-				 s->getHeight() <= cap_height * 2 &&
-				 s->getWidth() <= vars.separator.capHeightRatio2 * cap_height) 
-			 {
-				 if (thinseg->getRatio() > vars.separator.getRatio1 && thinseg->getRatio() < vars.separator.getRatio2)
-				{
-				   if (_analyzeSpecialSegment(vars, thinseg))
-				   {
-					  layer_graphics.push_back(s);
-					  continue;
-				   }
-				}
-				if (thinseg->getRatio() > adequate_ratio_max)
-					if (ImageUtils::testSlashLine(vars, *thinseg, 0, vars.separator.testSlashLine1))
-					  mark = SEP_BOND;
-				   else
-					  mark = SEP_SPECIAL;
-				else
-				   if (thinseg->getRatio() < adequate_ratio_min)
-					  if (_testDoubleBondV(vars, *thinseg))
-						 mark = SEP_BOND;
-					  else
-						 mark = SEP_SUSPICIOUS;
-				   else
-					   if (ImageUtils::testSlashLine(vars, *thinseg, 0, vars.separator.testSlashLine2))
-						 mark = SEP_BOND;
-					  else 
-						 mark = SEP_SYMBOL;
-			 }
-			 else
-				mark = SEP_BOND;
-			 delete thinseg;
-		 }
+	  vars.estimation.CapitalHeight = hSymbols;
 
-		 if(mark < 2)
-			votes[mark]++;
+	  for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
+	  {
+		  Segment *s = *it;
+		  ClassifierResults cres;
 
-		 getLogExt().append("mark", mark);
+		  if(hSymbols == -1)
+		  {
+			layer_graphics.push_back(s);
+			continue;
+		  }
+		  else
+			ClassifySegment(vars, layer_symbols, rec, s, cres);
 
-		if (mark1 != SEP_SYMBOL)
-		{		
-			getLogExt().append("cap_height", cap_height);
-			getLogExt().append("Height", s->getHeight());
-			double wh = (double)s->getWidth() / (double)s->getHeight();
-			getLogExt().append("Width/height", wh);
-
-			bool two_chars_probably = 
-				wh > vars.separator.extRatioMax &&
-				wh < vars.separator.ext2charRatio * vars.separator.extRatioMax;
-		
-			if (s->getHeight() > vars.separator.extCapHeightMin * cap_height && 
-				s->getHeight() < vars.separator.extCapHeightMax * cap_height &&
-									   wh > vars.separator.extRatioMin && 
-				(two_chars_probably || wh < vars.separator.extRatioMax) )
-			{				
-				char ch;
-
-				bool matches = false;
-				bool strict = false;				
-
-				if (rec.isPossibleCharacter(vars, *s, false, &ch))
-				{
-					if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
-					{
-						getLogExt().append("[strict] Segment passed as 2-chars, but recognized as", ch);
-					}
-					else
-					{
-						matches = true;
-						strict = true;
-					}
-				}
-				else if (rec.isPossibleCharacter(vars, *s, true, &ch))
-				{
-					if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
-					{
-						getLogExt().append("[loose] Segment passed as 2-chars, but recognized as", ch);
-					}
-					else
-					{
-						matches = true;
-						strict = false;
-					}
-				}
-				else if (two_chars_probably)
-				{
-					// calculate split					
-					int mid = s->getWidth() / 2;
-					int gap = mid / 2;
-					int best_x = -1;
-					int best_intersect = s->getHeight();
-					for (int xv = 0; xv < gap; xv++)
-					{
-						for (int xs = -1; xs <= 1; xs += 2)
-						{
-							int x = mid + xv * xs;
-							int y_intersect = 0;
-							for (int y = 0; y < s->getHeight(); y++)
-							{
-								if (s->getByte(x, y) == 0)
-									y_intersect++;
-							}
-							if (y_intersect < best_intersect)
-							{
-								best_intersect = y_intersect;
-								best_x = x;
-							}
-						}
-					}
-					if (best_x > 0)
-					{
-						Segment* s1 = new Segment();
-						Segment* s2 = new Segment();
-						s->splitVert(best_x, *s1, *s2);
-						
-						getLogExt().appendSegment("Split: S1", *s1);
-						getLogExt().appendSegment("Split: S2", *s2);
-
-						if (rec.isPossibleCharacter(vars, *s1, true, &ch) &&
-							rec.isPossibleCharacter(vars, *s2, true, &ch))
-						{
-							getLogExt().appendText("Both are symbols");
-							int segs = _getApproximationSegmentsCount(vars, s) - 1;
-							getLogExt().append("Approx segs", segs);
-							if (segs > vars.separator.minApproxSegsWeak)
-							{							
-								getLogExt().appendText("Segments criteria passed");
-								layer_symbols.push_back(s1);
-								layer_symbols.push_back(s2);
-								continue;
-							}
-						}
-						
-						delete s1;
-						delete s2;						
-					}
-				}
-
-				if (matches)
-				{
-					int segs = _getApproximationSegmentsCount(vars, s) - 1;
-					getLogExt().append("Approx segs", segs);
-					if (segs > (strict ? vars.separator.minApproxSegsStrong : vars.separator.minApproxSegsWeak))
-					{
-						getLogExt().appendText("Segment marked as symbol");
-						mark = SEP_SYMBOL;
-						votes[SEP_SYMBOL]++;
-					}
-				}			
-			}	
-		}
-
-		s->setSymbolProbability(mark < 2 ? (double)mark : 0.0);
-
-		if (vars.general.UseProbablistics) // use probablistic method			
-		{
-			SegmentDeque temp;
-			votes[PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND, temp)]++;			
-		}
-
-		if (vars.separator.UseVoteArray)
-		{
-			mark = votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND;
-		}
-
-         switch (mark)
-         {
-         case SEP_BOND:
-            layer_graphics.push_back(s);
-            break;
-         case SEP_SYMBOL:
-            layer_symbols.push_back(s);
-            break;
-		 default:
-			 layer_graphics.push_back(s);
-         }
+		  if(!cres.Processed)
+		  {
+			  switch (cres.OverAll)
+			  {
+			  case SEP_BOND:
+				  layer_graphics.push_back(s);
+				  break;
+			  case SEP_SYMBOL:
+				  layer_symbols.push_back(s);
+				  break;
+			  default:
+				  layer_graphics.push_back(s);
+			  }
+		  }
       }
    }
 
-   SeparateStuckedSymbols(vars, layer_symbols, layer_graphics);
+   SeparateStuckedSymbols(vars, layer_symbols, layer_graphics, rec);
 
    std::sort(layer_symbols.begin(), layer_symbols.end(), _segmentsComparator);
 }
+
+
+
+//void Separator::firstSeparation(Settings& vars, CharacterRecognizer &rec, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
+//{
+//   logEnterFunction();
+//
+//   int cap_height;
+//   IntVector suspicious_segments;
+//
+//   if (_segs.size() == 0)
+//   {
+//	   getLogExt().appendText("Warning, _segs.size is 0!");
+//      cap_height = -1;
+//   }
+//   else
+//      cap_height = _estimateCapHeight(vars);   
+//
+//   vars.estimation.CapitalHeight = cap_height;
+//
+//   //Assume that there are no symbols in the picture
+//   if (cap_height == -1)
+//   {
+//      BOOST_FOREACH( Segment *s, _segs )
+//         layer_graphics.push_back(s);
+//   }
+//   else
+//   {
+//	   int sym_height_err = (int)vars.estimation.SymHeightErr;
+//      //double susp_seg_density = rs["SuspSegDensity"],
+//	   double adequate_ratio_max = vars.estimation.MaxSymRatio;
+//	   double adequate_ratio_min = vars.estimation.MinSymRatio;
+//      
+//      IntVector seg_marks, suspicious_segments;
+//
+//      /* Classification procedure */
+//	  for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
+//      {
+//        Segment* s = *it;
+//
+//		getLogExt().appendSegment("Segment", *s);
+//
+//		//thin segment
+//		Image temp;
+//		s->extract(0, 0, s->getWidth(), s->getHeight(), temp);
+//		 
+//		double hu[7];
+//		_getHuMomentsC(temp, hu);
+//
+//		int votes[2] = {0, 0};
+//
+//		int mark = HuClassifier(vars, hu);
+//
+//		if(mark < 2)
+//			votes[mark]++;
+//
+//
+//		if(mark == SEP_SYMBOL && 
+//			(!(s->getHeight() >= cap_height - sym_height_err && s->getHeight() <= cap_height + sym_height_err && s->getHeight() <= cap_height * 2 && s->getWidth() <= cap_height)
+//			|| s->getHeight() < vars.separator.capHeightRatio *cap_height)
+//			)
+//			mark = SEP_SUSPICIOUS;
+//		
+//		int mark1 = mark;
+//		getLogExt().append("mark1", mark1);
+//		
+//		 if(mark == SEP_SUSPICIOUS || mark == SEP_BOND)
+//		 {
+//			 ThinFilter2 tfilt(temp);
+//			  tfilt.apply();
+//
+//			  Segment *thinseg = new Segment();
+//			  thinseg->copy(*s);
+//			  //memcpy(thinseg->getData(), temp.getData(), temp.getWidth()*temp.getHeight() *sizeof(byte));
+//
+//			 if (s->getHeight() >= cap_height - sym_height_err && 
+//				 s->getHeight() <= cap_height + sym_height_err &&
+//				 s->getHeight() <= cap_height * 2 &&
+//				 s->getWidth() <= vars.separator.capHeightRatio2 * cap_height) 
+//			 {
+//				 if (thinseg->getRatio() > vars.separator.getRatio1 && thinseg->getRatio() < vars.separator.getRatio2)
+//				{
+//				   if (_analyzeSpecialSegment(vars, thinseg))
+//				   {
+//					  layer_graphics.push_back(s);
+//					  continue;
+//				   }
+//				}
+//				if (thinseg->getRatio() > adequate_ratio_max)
+//					if (ImageUtils::testSlashLine(vars, *thinseg, 0, vars.separator.testSlashLine1))
+//					  mark = SEP_BOND;
+//				   else
+//					  mark = SEP_SPECIAL;
+//				else
+//				   if (thinseg->getRatio() < adequate_ratio_min)
+//					  if (_testDoubleBondV(vars, *thinseg))
+//						 mark = SEP_BOND;
+//					  else
+//						 mark = SEP_SUSPICIOUS;
+//				   else
+//					   if (ImageUtils::testSlashLine(vars, *thinseg, 0, vars.separator.testSlashLine2))
+//						 mark = SEP_BOND;
+//					  else 
+//						 mark = SEP_SYMBOL;
+//			 }
+//			 else
+//				mark = SEP_BOND;
+//			 delete thinseg;
+//		 }
+//
+//		 if(mark < 2)
+//			votes[mark]++;
+//
+//		 getLogExt().append("mark", mark);
+//
+//		if (mark1 != SEP_SYMBOL)
+//		{		
+//			getLogExt().append("cap_height", cap_height);
+//			getLogExt().append("Height", s->getHeight());
+//			double wh = (double)s->getWidth() / (double)s->getHeight();
+//			getLogExt().append("Width/height", wh);
+//
+//			bool two_chars_probably = 
+//				wh > vars.separator.extRatioMax &&
+//				wh < vars.separator.ext2charRatio * vars.separator.extRatioMax;
+//		
+//			if (s->getHeight() > vars.separator.extCapHeightMin * cap_height && 
+//				s->getHeight() < vars.separator.extCapHeightMax * cap_height &&
+//									   wh > vars.separator.extRatioMin && 
+//				(two_chars_probably || wh < vars.separator.extRatioMax) )
+//			{				
+//				char ch;
+//
+//				bool matches = false;
+//				bool strict = false;				
+//
+//				if (rec.isPossibleCharacter(vars, *s, false, &ch))
+//				{
+//					if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
+//					{
+//						getLogExt().append("[strict] Segment passed as 2-chars, but recognized as", ch);
+//					}
+//					else
+//					{
+//						matches = true;
+//						strict = true;
+//					}
+//				}
+//				else if (rec.isPossibleCharacter(vars, *s, true, &ch))
+//				{
+//					if (two_chars_probably && ch != '#' && ch != '$' && ch != '&')
+//					{
+//						getLogExt().append("[loose] Segment passed as 2-chars, but recognized as", ch);
+//					}
+//					else
+//					{
+//						matches = true;
+//						strict = false;
+//					}
+//				}
+//				else if (two_chars_probably)
+//				{
+//					// calculate split					
+//					int mid = s->getWidth() / 2;
+//					int gap = mid / 2;
+//					int best_x = -1;
+//					int best_intersect = s->getHeight();
+//					for (int xv = 0; xv < gap; xv++)
+//					{
+//						for (int xs = -1; xs <= 1; xs += 2)
+//						{
+//							int x = mid + xv * xs;
+//							int y_intersect = 0;
+//							for (int y = 0; y < s->getHeight(); y++)
+//							{
+//								if (s->getByte(x, y) == 0)
+//									y_intersect++;
+//							}
+//							if (y_intersect < best_intersect)
+//							{
+//								best_intersect = y_intersect;
+//								best_x = x;
+//							}
+//						}
+//					}
+//					if (best_x > 0)
+//					{
+//						Segment* s1 = new Segment();
+//						Segment* s2 = new Segment();
+//						s->splitVert(best_x, *s1, *s2);
+//						
+//						getLogExt().appendSegment("Split: S1", *s1);
+//						getLogExt().appendSegment("Split: S2", *s2);
+//
+//						if (rec.isPossibleCharacter(vars, *s1, true, &ch) &&
+//							rec.isPossibleCharacter(vars, *s2, true, &ch))
+//						{
+//							getLogExt().appendText("Both are symbols");
+//							int segs = _getApproximationSegmentsCount(vars, s) - 1;
+//							getLogExt().append("Approx segs", segs);
+//							if (segs > vars.separator.minApproxSegsWeak)
+//							{							
+//								getLogExt().appendText("Segments criteria passed");
+//								layer_symbols.push_back(s1);
+//								layer_symbols.push_back(s2);
+//								continue;
+//							}
+//						}
+//						
+//						delete s1;
+//						delete s2;						
+//					}
+//				}
+//
+//				if (matches)
+//				{
+//					int segs = _getApproximationSegmentsCount(vars, s) - 1;
+//					getLogExt().append("Approx segs", segs);
+//					if (segs > (strict ? vars.separator.minApproxSegsStrong : vars.separator.minApproxSegsWeak))
+//					{
+//						getLogExt().appendText("Segment marked as symbol");
+//						mark = SEP_SYMBOL;
+//						votes[SEP_SYMBOL]++;
+//					}
+//				}			
+//			}	
+//		}
+//
+//		s->setSymbolProbability(mark < 2 ? (double)mark : 0.0);
+//
+//		if (vars.general.UseProbablistics) // use probablistic method			
+//		{
+//			SegmentDeque temp;
+//			votes[PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND, temp)]++;			
+//		}
+//
+//		if (vars.separator.UseVoteArray)
+//		{
+//			mark = votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND;
+//		}
+//
+//         switch (mark)
+//         {
+//         case SEP_BOND:
+//            layer_graphics.push_back(s);
+//            break;
+//         case SEP_SYMBOL:
+//            layer_symbols.push_back(s);
+//            break;
+//		 default:
+//			 layer_graphics.push_back(s);
+//         }
+//      }
+//   }
+//
+//   SeparateStuckedSymbols(vars, layer_symbols, layer_graphics);
+//
+//   std::sort(layer_symbols.begin(), layer_symbols.end(), _segmentsComparator);
+//}
 
 bool Separator::_analyzeSpecialSegment(const Settings& vars, Segment *cur_seg)
 {

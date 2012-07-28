@@ -33,11 +33,29 @@ namespace imago
    {
    public:      
 
-      Separator( SegmentDeque &segs, const Image &img );
+	Separator( SegmentDeque &segs, const Image &img );
 
-	  void firstSeparation(Settings& vars, CharacterRecognizer &rec, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics );
+/// Struct for reporting classification results for a segment
+	  struct ClassifierResults{
+		  int HuMoments;
+		  int Ratios;
+		  int KNN;
+		  int Probability;
+		  int OverAll;
+		  bool Processed;
+		  int KNNRatios;
 
-	  void SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics );
+		  ClassifierResults(){
+			  HuMoments = Ratios  = KNN = Probability = OverAll = KNNRatios = -1;
+			  Processed = false;
+		  }
+	  };
+
+	  void ClassifySegment(const Settings& vars, SegmentDeque &layer_symbols, CharacterRecognizer &rec, Segment* seg, ClassifierResults &cresults);
+
+	  void Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics );
+
+	  void SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics, CharacterRecognizer &rec );
 
    private:
 
@@ -70,7 +88,7 @@ namespace imago
       
 	  Separator( const Separator &S );
 	  
-	  int HuClassifier(const Settings& vars, double hu[7]);
+	  int HuClassifier(const Settings& vars, Image &im);
 
 	  int PredictGroup(const Settings& vars, Segment *seg, int mark, SegmentDeque &layer_symbols);
 
