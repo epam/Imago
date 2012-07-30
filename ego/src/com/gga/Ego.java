@@ -67,12 +67,12 @@ public class Ego extends javax.swing.JFrame {
         documentPanel.setParent(this);
         
         try {
-            imago.setLogCallback(new Imago.ImagoLogCallback() {
-                @Override
-                    public void log(String str) {
-                        addTextToLog(str);
-                    }
-                });
+           // imago.setLogCallback(new Imago.ImagoLogCallback() {
+           //     @Override
+           //         public void log(String str) {
+           //             addTextToLog(str);
+           //         }
+           //     });
         } catch (Exception e) {
             System.out.println(e.getMessage());
             //TODO: Broken log?
