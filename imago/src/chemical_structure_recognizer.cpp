@@ -163,7 +163,7 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 							bad_graphics.push_back(*it);
 						}
 			
-					if (bad_symbols.size() > bad_graphics.size())
+					if (bad_symbols.size() >= bad_graphics.size())
 					{
 						getLogExt().appendText("Clearing the image");
 						for (int x = badBounding.x1(); x <= badBounding.x2() && x < img.getWidth(); x++)
