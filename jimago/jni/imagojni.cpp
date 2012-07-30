@@ -43,13 +43,13 @@ static void setSession( JNIEnv *env, jobject obj )
    imagoSetSessionId(sid);
 }
 
-struct LogData 
+/*struct LogData 
 {
    JNIEnv *env;
    jobject thiz;
-};
+};*/
 
-void javaLogPrinter( const char *str )
+/*void javaLogPrinter( const char *str )
 {
    LogData *data;
    imagoGetSessionSpecificData((void**)&data);
@@ -99,7 +99,7 @@ JNICEXPORT void JNINAME(disableLog)( JNIEnv *env, jobject thiz )
 {
    setSession(env, thiz);
    imagoDisableLog();
-}
+}*/
 
 JNICEXPORT jlong JNINAME(allocSessionId)( JNIEnv *env, jclass thiz )
 {
@@ -140,11 +140,11 @@ JNICEXPORT void JNINAME(setBinarizationLevel)( JNIEnv *env, jobject thiz, jint j
       throwImagoException(env);
 }
 
-JNICEXPORT void JNINAME(loadPNGImageFromFile)( JNIEnv *env, jobject thiz, jstring jfilename)
+JNICEXPORT void JNINAME(loadImageFromFile)( JNIEnv *env, jobject thiz, jstring jfilename)
 {
    setSession(env, thiz);
    const char *filename = env->GetStringUTFChars(jfilename, 0);
-   int ret = imagoLoadPngImageFromFile(filename);
+   int ret = imagoLoadImageFromFile(filename);
    env->ReleaseStringUTFChars(jfilename, filename);
    if (!ret)
       throwImagoException(env);
@@ -161,22 +161,22 @@ JNICEXPORT void JNINAME(loadGreyscaleRawImage)( JNIEnv *env, jobject thiz, jbyte
       throwImagoException(env);
 }
 
-JNICEXPORT void JNINAME(loadPNGImageFromBuffer)( JNIEnv *env, jobject thiz, jbyteArray jbuffer)
+JNICEXPORT void JNINAME(loadImageFromBuffer)( JNIEnv *env, jobject thiz, jbyteArray jbuffer)
 {
    setSession(env, thiz);
    int len = env->GetArrayLength(jbuffer);
    void *buffer = env->GetPrimitiveArrayCritical(jbuffer, 0);
-   int ret = imagoLoadPngImageFromBuffer((const char*)buffer, len);
+   int ret = imagoLoadImageFromBuffer((const char*)buffer, len);
    env->ReleasePrimitiveArrayCritical(jbuffer, buffer, 0);
    if (!ret)
       throwImagoException(env);
 }
 
-JNICEXPORT void JNINAME(savePNGImageToFile)( JNIEnv *env, jobject thiz, jstring jfilename)
+JNICEXPORT void JNINAME(saveImageToFile)( JNIEnv *env, jobject thiz, jstring jfilename)
 {
    setSession(env, thiz);
    const char *filename = env->GetStringUTFChars(jfilename, 0);
-   int ret = imagoSavePngImageToFile(filename);
+   int ret = imagoSaveImageToFile(filename);
    env->ReleaseStringUTFChars(jfilename, filename);
    if (!ret)
       throwImagoException(env);   
@@ -189,7 +189,8 @@ JNICEXPORT void JNINAME(recognize)( JNIEnv *env, jobject thiz )
    data.env = env;
    data.thiz = thiz;
    imagoSetSessionSpecificData(&data);
-   int ret = imagoRecognize();
+   int warningsCount = 0;
+   int ret = imagoRecognize(&warningsCount);
    imagoSetSessionSpecificData(0);
    if (!ret)
       throwException(env, "com/gga/Imago$NoResultException", imagoGetLastError());
@@ -216,7 +217,7 @@ JNICEXPORT jstring JNINAME(getResult)( JNIEnv *env, jobject thiz )
    return mol;
 }
 
-JNICEXPORT void JNINAME(loadAndFilterJpgFile) ( JNIEnv *env, jobject thiz, jstring jfilename)
+/*JNICEXPORT void JNINAME(loadAndFilterJpgFile) ( JNIEnv *env, jobject thiz, jstring jfilename)
 {
    setSession(env, thiz);
    const char *filename = env->GetStringUTFChars(jfilename, 0);
@@ -230,7 +231,7 @@ JNICEXPORT void JNINAME(loadAndFilterJpgFile) ( JNIEnv *env, jobject thiz, jstri
    env->ReleaseStringUTFChars(jfilename, filename);
    if (!ret)
       throwImagoException(env);
-}
+}*/
 
 JNICEXPORT jint JNINAME(getPrefilteredImageWidth)( JNIEnv *env, jobject thiz )
 {

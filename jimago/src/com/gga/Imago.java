@@ -33,10 +33,10 @@ public class Imago {
         }
     }
 
-    public interface ImagoLogCallback {
-
-        public void log(String str);
-    }
+//    public interface ImagoLogCallback {
+//
+//        public void log(String str);
+//    }
 
     public Imago(String path) {
         path = path + File.separator + _dllpath;
@@ -67,7 +67,7 @@ public class Imago {
     @Override
     protected void finalize() throws Throwable {
         releaseSessionId(_sid);
-        disableLog();
+//        disableLog();
     }
     public int currentConfigId = 0;
     public static int configsCount;
@@ -84,20 +84,20 @@ public class Imago {
     }
     
     public void setLogCallback(ImagoLogCallback callback) {
-        logCallback = callback;
-        enableLog();
+//        logCallback = callback;
+//        enableLog();
     }
 
     public void loadPNG (String filename) throws Exception {
-        loadPNGImageFromFile(filename);
+        loadImageFromFile(filename);
     }
 
     public void loadPNG (byte[] buffer) throws Exception {
-        loadPNGImageFromBuffer(buffer);
+        loadImageFromBuffer(buffer);
     }
 
     public void exportPNG (String filename) throws Exception {
-         savePNGImageToFile(filename);
+         saveImageToFile(filename);
     }
 
     public void loadBufImage (BufferedImage image) throws Exception {
@@ -117,11 +117,11 @@ public class Imago {
         loadGreyscaleRawImage(simple_buf, w, h);	
     }
 
-    private ImagoLogCallback logCallback = null;
+//    private ImagoLogCallback logCallback = null;
 
-    private native void enableLog();
+//    private native void enableLog();
 
-    private native void disableLog();
+//    private native void disableLog();
     private long _sid;
 
     private static native long allocSessionId();
@@ -142,13 +142,13 @@ public class Imago {
 
     public native String getResult();
 
-    private native void loadPNGImageFromBuffer(byte[] buf);
+    private native void loadImageFromBuffer(byte[] buf);
 
     public native void loadGreyscaleRawImage(byte[] buf, int w, int h);
 
-    private native void savePNGImageToFile(String filename);
-    private native void loadPNGImageFromFile(String filename);
-    public native void loadAndFilterJpgFile (String filename);
+    private native void saveImageToFile(String filename);
+    private native void loadImageFromFile(String filename);
+//    public native void loadAndFilterJpgFile (String filename);
     public native byte[] getPrefilteredImage ();
     public native int getPrefilteredImageWidth ();
     public native int getPrefilteredImageHeight ();
