@@ -546,42 +546,58 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 				double xmin = p1.x > p2.x ? p2.x : p1.x;
 				double xmax = p1.x > p2.x ? p1.x : p2.x;
 
-				xmin += left;
-				xmax += left;
+				
 
 				double ymin = p1.y > p2.y ? p2.y : p1.y;
 				double ymax = p1.y > p2.y ? p1.y : p2.y;
 
+				double w_h_ratio = (xmax - xmin) / (ymax - ymin);
+
+				xmin += left;
+				xmax += left;
+				
 				ymin += top;
 				ymax += top;
 
-				if(xmin > symbRects[i].x + symbRects[i].width )
+				if(xmin >= symbRects[i].x + symbRects[i].width - 1 )
 				{
+					int limit = round(xmin - left);
+					if(w_h_ratio < 0.5)
+						limit += round(line_thick / 2.0);
 					for(int m = 0; m < s->getHeight(); m++)
-						for(int n = xmin - symbRects[i].x; n < s->getWidth(); n++) 
+						for(int n = limit; n < s->getWidth(); n++) 
 							s->getByte(n, m) = 255;
 					getLogExt().appendSegment(std::string("after removing right redudant lines"), *s);
 				}
 				else
-					if(xmax < symbRects[i].x)
+					if(xmax <= symbRects[i].x)
 					{
+						int limit = round(xmax - left);
+						if(w_h_ratio < 0.5)
+							limit += round(line_thick / 2.0);
 						for(int m = 0; m < s->getHeight(); m++)
-							for(int n = 0; n < xmax - symbRects[i].x; n++) 
+							for(int n = 0; n < limit; n++) 
 								s->getByte(n, m) = 255;
 						getLogExt().appendSegment(std::string("after removing left redudant lines"), *s);
 					}
 					else
-						if(ymin > symbRects[i].y + symbRects[i].height)
+						if(ymin >= symbRects[i].y + symbRects[i].height)
 						{
-							for(int m = ymin - symbRects[i].y; m < s->getHeight(); m++)
+							int limit = round(ymin - top);
+							if(w_h_ratio < 0.5)
+								limit += round(line_thick / 2.0);
+							for(int m = limit; m < s->getHeight(); m++)
 								for(int n = 0; n < s->getWidth(); n++) 
 									s->getByte(n, m) = 255;
 							getLogExt().appendSegment(std::string("after removing bottom redudant lines"), *s);
 						}
 						else
-							if(ymax < symbRects[i].y)
+							if(ymax <= symbRects[i].y)
 							{
-								for(int m = 0; m < ymax - symbRects[i].y; m++)
+								int limit = round(ymax - top);
+								if(w_h_ratio < 0.5)
+									limit += round(line_thick / 2.0);
+								for(int m = 0; m < limit; m++)
 									for(int n = 0; n < s->getWidth(); n++) 
 										s->getByte(n, m) = 255;
 								getLogExt().appendSegment(std::string("after removing top redudant lines"), *s);
