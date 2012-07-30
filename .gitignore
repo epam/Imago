@@ -2,3 +2,8 @@ imago/src/imago.font.inc
 Thumbs.db
 .DS_Store
 imago_gen
+/ego/nbproject/private/
+/jimago/nbproject/private/
+/jimago/build/
+/ego/build/
+/jimago/dist/
