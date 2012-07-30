@@ -85,8 +85,21 @@ elseif(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
 	endif()
 endif()
 
-file(GLOB INDIGO_LIBS "${INDIGO_LIBS_DIR}/*${CMAKE_STATIC_LIBRARY_SUFFIX}")
-
+if (UNIX AND NOT APPLE)
+	set(INDIGO_LIBS 
+		${INDIGO_LIBS_DIR}/libindigo-static.a
+		${INDIGO_LIBS_DIR}/libcommon.a 
+		${INDIGO_LIBS_DIR}/libmolecule.a  
+		${INDIGO_LIBS_DIR}/libreaction.a
+		${INDIGO_LIBS_DIR}/liblayout.a 
+		${INDIGO_LIBS_DIR}/libz.a 
+		${INDIGO_LIBS_DIR}/libtinyxml.a 
+		${INDIGO_LIBS_DIR}/libcommon.a 
+		${INDIGO_LIBS_DIR}/libmolecule.a  
+		${INDIGO_LIBS_DIR}/libgraph.a)
+else()
+	file(GLOB INDIGO_LIBS "${INDIGO_LIBS_DIR}/*${CMAKE_STATIC_LIBRARY_SUFFIX}")
+endif()
 include("${OpenCV_DIR}/OpenCVConfig.cmake")
 
 #set(Boost_DEBUG ON)
