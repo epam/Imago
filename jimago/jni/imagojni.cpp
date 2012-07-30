@@ -43,11 +43,11 @@ static void setSession( JNIEnv *env, jobject obj )
    imagoSetSessionId(sid);
 }
 
-/*struct LogData 
+struct LogData 
 {
    JNIEnv *env;
    jobject thiz;
-};*/
+};
 
 /*void javaLogPrinter( const char *str )
 {
@@ -135,9 +135,9 @@ JNICEXPORT void JNINAME(setFilter)( JNIEnv *env, jobject thiz, jstring jfilter)
 
 JNICEXPORT void JNINAME(setBinarizationLevel)( JNIEnv *env, jobject thiz, jint jlevel)
 {
-   setSession(env, thiz);
-   if (!imagoSetBinarizationLevel(jlevel))
-      throwImagoException(env);
+//   setSession(env, thiz);
+//   if (!imagoSetBinarizationLevel(jlevel))
+//      throwImagoException(env);
 }
 
 JNICEXPORT void JNINAME(loadImageFromFile)( JNIEnv *env, jobject thiz, jstring jfilename)
