@@ -33,10 +33,10 @@ public class Imago {
         }
     }
 
-//    public interface ImagoLogCallback {
-//
-//        public void log(String str);
-//    }
+    public interface ImagoLogCallback {
+
+        public void log(String str);
+    }
 
     public Imago(String path) {
         path = path + File.separator + _dllpath;
@@ -148,7 +148,7 @@ public class Imago {
 
     private native void saveImageToFile(String filename);
     private native void loadImageFromFile(String filename);
-//    public native void loadAndFilterJpgFile (String filename);
+    public native void loadAndFilterImageFile (String filename);
     public native byte[] getPrefilteredImage ();
     public native int getPrefilteredImageWidth ();
     public native int getPrefilteredImageHeight ();

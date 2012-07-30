@@ -217,7 +217,7 @@ JNICEXPORT jstring JNINAME(getResult)( JNIEnv *env, jobject thiz )
    return mol;
 }
 
-/*JNICEXPORT void JNINAME(loadAndFilterJpgFile) ( JNIEnv *env, jobject thiz, jstring jfilename)
+JNICEXPORT void JNINAME(loadAndFilterImageFile) ( JNIEnv *env, jobject thiz, jstring jfilename)
 {
    setSession(env, thiz);
    const char *filename = env->GetStringUTFChars(jfilename, 0);
@@ -225,13 +225,13 @@ JNICEXPORT jstring JNINAME(getResult)( JNIEnv *env, jobject thiz )
    data.env = env;
    data.thiz = thiz;
    imagoSetSessionSpecificData(&data);
-   int ret = imagoLoadJpgImageFromFile(filename);
+   int ret = imagoLoadImageFromFile(filename);
    imagoFilterImage();
    imagoSetSessionSpecificData(0);
    env->ReleaseStringUTFChars(jfilename, filename);
    if (!ret)
       throwImagoException(env);
-}*/
+}
 
 JNICEXPORT jint JNINAME(getPrefilteredImageWidth)( JNIEnv *env, jobject thiz )
 {

@@ -579,7 +579,7 @@ public class Ego extends javax.swing.JFrame {
 
         String ext = documentPanel.getFileExtension(file);
 
-        if ("jpg".equals(ext))
+        if (true) ///"jpg".equals(ext))
         {
             documentPanel.setCareful();
 
@@ -588,7 +588,7 @@ public class Ego extends javax.swing.JFrame {
 
             try
             {
-               imago.loadAndFilterJpgFile(file.getAbsoluteFile().toString());
+               imago.loadAndFilterImageFile(file.getAbsoluteFile().toString());
                arr = imago.getPrefilteredImage();
                w = imago.getPrefilteredImageWidth();
                h = imago.getPrefilteredImageHeight();
