@@ -219,7 +219,7 @@ void updateSettingsHandwritten(Settings &s)
 	FUZZ s.labels.capHeightError = 0.491437; // fuzzed, old value = 0.488753
 
 	FUZZ s.lcomb.MaximalSymbolRecognitionDistance = 2.583564; // fuzzed, old value = 2.662893
-	FUZZ s.lcomb.MaximalDistanceFactor = 0.710885; // fuzzed, old value = 0.683355
+	FUZZ s.lcomb.MaximalDistanceFactor = 0.683355; // fuzzed, old value = 0.683355
 	FUZZ s.lcomb.MaximalYDistanceFactor = 0.282795; // fuzzed, old value = 0.290503
 	FUZZ s.lcomb.FillLabelFactor1 = 0.515477; // fuzzed, old value = 0.523083
 	FUZZ s.lcomb.FillLabelFactor2 = 0.492974; // fuzzed, old value = 0.474184

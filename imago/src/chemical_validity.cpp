@@ -309,6 +309,17 @@ namespace imago
 		elements.push_back("NI",    0.0);
 		elements.push_back("IN",    0.0);
 		elements.push_back("CHS",    0.0);
+		elements.push_back("NHH",    0.0); // NH2
+		elements.push_back("HHN",    0.0); // NH3
+		elements.push_back("OHI",    0.0); // OH
+		elements.push_back("BN",    0.0); // N
+		elements.push_back("CIC",    0.0); // H3C
+		elements.push_back("IY",    0.0); // N
+		elements.push_back("IO",    0.0); // HO
+		elements.push_back("IC",    0.0); // H3C
+		
+
+
 
 		// elements should be sorted for optimal split function working
 		std::sort(elements.names.begin(), elements.names.end(), sort_comparator_length_reversed);		
