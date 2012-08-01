@@ -22,6 +22,8 @@
 #include "prefilter.h" // line thickness estimation, isCircle
 #include "settings.h"
 
+
+
 using namespace imago;
 //const std::string CharacterRecognizer::unusual = "$%^&#+-=";
 const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&#=";
