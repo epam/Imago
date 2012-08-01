@@ -66,7 +66,9 @@ CharacterRecognizer::CharacterRecognizer( int k ) : _k(k)
 {
    _mapping.resize(255, -1);
    std::string fontdata;
-   extern const char *_imago_fontdata[];
+   const char *_imago_fontdata[] = {
+       #include "imago.font.inc"
+   };
    for (int i = 0; _imago_fontdata[i] != 0; ++i)
       fontdata += _imago_fontdata[i];
 
