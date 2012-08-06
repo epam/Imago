@@ -939,6 +939,7 @@ double Skeleton::_avgEdgeLendth (const Vertex &v, int &nnei)
 
 void Skeleton::_joinVertices(double eps)
 {
+	logEnterFunction();
    std::deque<std::deque<Vertex> > nearVertices;
    std::deque<int> join_ind;
    boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type pos =
