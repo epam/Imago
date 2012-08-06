@@ -362,7 +362,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 			double angle = c.getAngle();
 			if(angle < 0)
 				angle  += 2 * PI;
-			directions += " ";
+			directions = " ";
 			if(angle < pi_8 || angle >= 15.0 * pi_8)
 				directions += "E";
 			else
