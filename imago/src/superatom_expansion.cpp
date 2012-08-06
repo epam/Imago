@@ -17,11 +17,18 @@ class Abbreviation
 public:
    std::string name, expansion;
    std::vector<std::string> labels;
+   int degree;
 
    Abbreviation (const std::string &name, const std::string &expansion) : name(name), expansion(expansion)
    {
+      degree = std::count(expansion.begin(), expansion.end(), '*');
    }
 
+   Abbreviation& add(const std::string &label)
+   {
+      labels.push_back(label);
+      return *this;
+   }
    Abbreviation& onleft(const std::string &label)
    {
       labels.push_back(label);
@@ -66,11 +73,13 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       abbrs.push_back(Abbreviation("ONO", "*ON=O").onright("ONO").onleft("ONO"));
       abbrs.push_back(Abbreviation("CN", "*C#N").onright("CN").onleft("NC"));
       abbrs.push_back(Abbreviation("NCO", "*N=C=O").onright("NCO").onleft("OCN"));
-      abbrs.push_back(Abbreviation("OCH3", "CO[*]").onright("OCH3").onleft("OCH3"));
+      abbrs.push_back(Abbreviation("OCH3", "CO[*]").onright("OCH3").onleft("H3CO"));
 
-	  //abbrs.push_back(Abbreviation("SO2", "S(O)=O*").onright("SO2").onleft("HO2S")); // temp
-	  //abbrs.push_back(Abbreviation("COOCH3", "OC*(=O)").onright("COOCH3").onleft("CH3COO")); // temp
-	  //abbrs.push_back(Abbreviation("CH2CH", "*CC").onright("CH2CH").onleft("CHCH2")); // temp
+	   abbrs.push_back(Abbreviation("COOCH3", "COC([*])=O").onright("COOCH3"));
+	   abbrs.push_back(Abbreviation("SO2", "[*:2]OS([*:1])=O").add("SO2"));
+	   abbrs.push_back(Abbreviation("CH2CH", "[*:1]CC([*:2])[*:3]").add("CH2CH"));
+	   abbrs.push_back(Abbreviation("OCH", "[*:1]OC([*:2])[*:3]").add("OCH"));
+	   abbrs.push_back(Abbreviation("CO", "[*:1]C([*:2])=O").add("CO"));
 
       abbrs.push_back(Abbreviation("SO3H", "OS(*)(=O)=O").onright("SO3H").onleft("HO3S"));
       abbrs.push_back(Abbreviation("SO2H", "OS(*)=O").onright("SO2H").onleft("HO2S"));
@@ -82,8 +91,14 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       abbrs.push_back(Abbreviation("AcO", "CC(=O)O*").onright("OAc").onleft("AcO"));
       abbrs.push_back(Abbreviation("NHBoc", "CC(C)(C)OC(=O)N*").onright("NHBoc").onleft("BocHN"));
 
+      abbrs.push_back(Abbreviation("CHO", "*C=O").onright("CHO").onleft("OCH"));
+
       // This should not be [O-][N+](*)=O by request
       abbrs.push_back(Abbreviation("NO2", "*N(=O)=O").onright("NO2").onleft("O2N"));	  
+
+      // Two-sided abbreviations
+      abbrs.push_back(Abbreviation("COOCH2", "[*:1]C(=O)OC[*:2]").add("COOCH2"));	  
+
 
       init = true;
    }
@@ -118,21 +133,29 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
          throw LogicException(indigoGetLastError());
    
       string symbol = indigoSymbol(item);
-      bool found = false;
-      for (size_t i = 0; i < abbrs.size() && !found; i++)
+      int degree = indigoDegree(item);
+      int abbr_idx = -1;
+      for (size_t i = 0; i < abbrs.size(); i++)
       {
          Abbreviation &cur = abbrs[i];
+         if (degree > cur.degree)
+            continue;
+
          BOOST_FOREACH(string label, cur.labels)
          {
             if (boost::iequals(symbol, label))               
             {
-               to_replace.push_back(make_pair(item, i));
-               found = true;
+               // Distinguish between same abbreviations with different degree
+               if (abbr_idx != -1 && cur.degree > abbrs[abbr_idx].degree)
+                  continue;
+               abbr_idx = i;
                break;
             }
          }
       }
-      if (!found)
+      if (abbr_idx != -1)
+         to_replace.push_back(make_pair(item, abbr_idx));
+      else
          indigoFree(item);
    }
    indigoFree(iter);
@@ -151,7 +174,8 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       int expanded = indigoLoadMoleculeFromString(abbr.expansion.c_str());
       //printf("***%d\n", expanded);
          
-      int attachment = 0;
+      const int NEI_COUNT = 3;
+      int attachment[NEI_COUNT] = {-1};
 
       iter = indigoIterateAtoms(expanded);
       while (item = indigoNext(iter))
@@ -161,49 +185,113 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
             
          if (indigoIsRSite(item))
          {
+            int rsite_group = indigoSingleAllowedRGroup(item);
+            if (rsite_group == -1)
+               rsite_group = 1;
+
             int item2, iter2 = indigoIterateNeighbors(item);
             while (item2 = indigoNext(iter2))
             {
                if (item2 == -1)
                   throw LogicException(indigoGetLastError());
    
-               attachment = item2;
-                  
-               //Only 1 attachment point. So, no freeing here
-               //indigoFree(item2);
+               if (rsite_group >= NEI_COUNT + 1)
+                  throw LogicException("Invalid abbreviation expansion");
+               attachment[rsite_group - 1] = item2;
             }      
             indigoFree(iter2);
                
             indigoRemove(item);
-            break;
          }
-         indigoFree(item);          
+         else
+            indigoFree(item);          
       }
       indigoFree(iter);
-         
+      
+      float xyz[3];
+      memcpy(xyz, indigoXYZ(p.first), 3 * sizeof(float));
+
       int item2, iter2 = indigoIterateNeighbors(p.first);
-      int atom_from, bond_order;
+      struct neiAtom
+      {
+         int atom;
+         int bond_order;
+         float angle;
+         Vec2f dir;
+
+         static bool less (neiAtom &a1, neiAtom &a2)
+         {
+            return a1.angle < a2.angle;
+         }
+      };
+      neiAtom attachment_atoms[NEI_COUNT];
+      int attachment_atoms_count = 0;
+
+      bool invalid_atom = false;
       while (item2 = indigoNext(iter2))
       {
          if (item2 == -1)
             throw LogicException(indigoGetLastError());         
 
-         atom_from = item2;
-         bond_order = indigoBondOrder(indigoBond(atom_from));
+         int bond = indigoBond(item2);
+
+         if (attachment_atoms_count >= NEI_COUNT)
+         {
+            fprintf(stderr, "Abbreviation has too many connections");
+            invalid_atom = true;
+            break;
+         }
+         neiAtom &cur_atom = attachment_atoms[attachment_atoms_count];
+         cur_atom.atom = item2;
+         cur_atom.bond_order = indigoBondOrder(bond);
+         float nei_xyz[3];
+         memcpy(nei_xyz, indigoXYZ(item2), 3 * sizeof(float));
+         cur_atom.dir.x = nei_xyz[0] - xyz[0];
+         cur_atom.dir.y = nei_xyz[1] - xyz[1];
+         attachment_atoms_count++;                 
+
+         indigoFree(bond);
       }
       indigoFree(iter2);
-         
+
+      if (invalid_atom)
+         continue;
+      
+      // Find left most attachement
+      int left_most = 0;
+      for (int i = 1; i < attachment_atoms_count; i++)
+         if (attachment_atoms[i].dir.x < attachment_atoms[left_most].dir.x)
+            left_most = i;
+      for (int i = 0; i < attachment_atoms_count; i++)
+      {
+         Vec2f v1(attachment_atoms[i].dir.x, attachment_atoms[i].dir.y);
+         Vec2f v2(attachment_atoms[left_most].dir.x, attachment_atoms[left_most].dir.y);
+
+         attachment_atoms[i].angle = Vec2f::angle(v1, v2);
+      }
+
+      // Sort attachment points according to the angle
+      std::sort(attachment_atoms, attachment_atoms + attachment_atoms_count, neiAtom::less); 
+
       //printf("***%d\n", bond_order);
          
-      float xyz[3];
-      memcpy(xyz, indigoXYZ(p.first), 3 * sizeof(float));
       indigoRemove(p.first);
        
       int mapping = indigoMerge(mol, expanded);
-      int mapped = indigoMapAtom(mapping, attachment);
 
-      indigoAddBond(atom_from, mapped, bond_order);
-      indigoSetXYZ(mapped, xyz[0], xyz[1], xyz[2]);
+      for (int att_idx = 0; att_idx < attachment_atoms_count; att_idx++)
+      {
+         neiAtom &cur_att = attachment_atoms[att_idx];
+         if (attachment[att_idx] == -1)
+         {
+            fprintf(stderr, "There is no connection to the abbreviation");
+            continue;
+         }
+         int mapped = indigoMapAtom(mapping, attachment[att_idx]);
+
+         indigoAddBond(cur_att.atom, mapped, cur_att.bond_order);
+         indigoSetXYZ(mapped, xyz[0], xyz[1], xyz[2]);
+      }
          
       vector<int> superatom_vertices;
       iter = indigoIterateAtoms(expanded);
@@ -215,7 +303,7 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
          int midx = indigoIndex(indigoMapAtom(mapping, item));
          superatom_vertices.push_back(midx);
             
-         int attach_index = indigoIndex(attachment);
+         int attach_index = indigoIndex(attachment[0]);
          if (indigoIndex(item) != attach_index)
          {
             to_layout.push_back(midx);
