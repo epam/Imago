@@ -102,6 +102,9 @@ CEXPORT int imagoSaveMolToFile( const char *FileName );
 /* Process image filtering */
 CEXPORT int imagoFilterImage();
 
+/* Returns filtered image ink percentage (0.0 .. 1.0) */
+CEXPORT int imagoGetInkPercentage(double *result);
+
 /* returns filtered image dimensions */
 CEXPORT int imagoGetPrefilteredImageSize (int *width, int *height);
 

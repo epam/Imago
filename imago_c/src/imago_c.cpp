@@ -180,6 +180,34 @@ CEXPORT int imagoLoadGreyscaleRawImage( const char *buf, const int width, const 
    IMAGO_END;
 }
 
+CEXPORT int imagoGetInkPercentage(double *result)
+{
+	IMAGO_BEGIN;
+	RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+	Image &img = context->img;
+	
+	size_t ink = 0;
+	size_t total = img.getWidth() * img.getHeight();
+	for (int y = 0; y < img.getHeight(); y++)
+	{
+		for (int x = 0; x < img.getWidth(); x++)
+		{
+			if (img.getByte(x,y) < 64)
+				ink++;			
+		}
+	}
+
+	if (result)
+	{
+		if (total > 0)
+			*result = (double)ink / (double)total;
+		else
+			*result = 0;
+	}
+   
+	IMAGO_END;
+}
+
 CEXPORT int imagoGetPrefilteredImageSize (int *width, int *height)
 {
    IMAGO_BEGIN;

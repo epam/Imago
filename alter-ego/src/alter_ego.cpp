@@ -63,6 +63,7 @@ void printHelp( const char *exe_name )
 	  "    -c <config>       Force-select configuration: \"scanned\", \"handwritten\", \"highres\"\n"
 	  "                          by default auto-detection is used (recommended)\n"
 	  "    -l                Enable logging (slowdowns process, disabled by default)\n"
+	  "    -i <value>        Drop images with ink percentage greater that value\n"
       "    -p <directory>    Directory prefix for output file\n",
 	  exe_name, exe_name, exe_name);
 }
@@ -107,6 +108,7 @@ int main( int argc, char **argv )
 
    ConfigClusterType imagoConfigNumber = ctDefault;
    std::string imagoFilterName = "default";
+   int dropInkPercentage = -1;
 
    for (int i = 1; i < argc; i++)
    {
@@ -147,6 +149,15 @@ int main( int argc, char **argv )
             EXIT(1);
          }
 		 imagoFilterName = argv[i];
+      }
+	  else if (strcmp(str, "-i") == 0)
+      {
+         if (++i == argc)
+         {
+            fprintf(stderr, "expected value after -i\n");
+            EXIT(1);
+         }
+		 dropInkPercentage = atoi(argv[i]);
       }
       else if (strcmp(str, "-h") == 0)
       {
@@ -218,6 +229,18 @@ int main( int argc, char **argv )
 
 	// call filter   
 	CALL( imagoFilterImage() );
+
+	if (dropInkPercentage > 0)
+	{
+		double ink = 0.0;
+		CALL ( imagoGetInkPercentage(&ink) );
+		ink *= 100.0;
+		if (ink > dropInkPercentage)
+		{
+			fprintf(stderr, "Error: image fill percentage (%f) is greater than max specified (%i).\n", ink, dropInkPercentage);
+			EXIT(3);
+		}
+	}
 
 	// update config cluster
 	if (imagoConfigNumber != ctDefault)
