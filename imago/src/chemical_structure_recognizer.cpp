@@ -66,9 +66,10 @@ double maxHeightHelper(const Settings& vars, int lines)
 
 bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, Image& img, SegmentDeque& symbols, SegmentDeque& graphics)
 {
-	bool result = false;
-
 	logEnterFunction();
+
+	bool result = false;
+	
 	getLogExt().append("Symbols height", vars.estimation.CapitalHeight);
 
 	if (vars.estimation.CapitalHeight < vars.lab_remover.MinCapitalHeight || 
@@ -181,19 +182,19 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 	return result;
 }
 
-void ChemicalStructureRecognizer::segmentate(const Settings& vars, Image& img, SegmentDeque& segments)
+void ChemicalStructureRecognizer::segmentate(const Settings& vars, Image& img, SegmentDeque& segments, bool reconnect)
 {
 	logEnterFunction();
 
 	// extract segments using WeakSegmentator
 	WeakSegmentator ws(img.getWidth(), img.getHeight());
-	// ws.ConnectMode = true;
+	ws.ConnectMode = reconnect;
 	ws.appendData(prefilter_cv::ImgAdapter(img, img), vars.csr.WeakSegmentatorDist);
 	for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 	{
 		const Points2i& pts = it->second;
 		RectShapedBounding b(pts);
-		Segment *s = new Segment();
+		Segment *s = new Segment();		
 		s->init(b.getBounding().width+1, b.getBounding().height+1);
 		s->fillWhite();
 		s->getX() = b.getBounding().x;
@@ -206,6 +207,8 @@ void ChemicalStructureRecognizer::segmentate(const Settings& vars, Image& img, S
 
 void ChemicalStructureRecognizer::storeSegments(const Settings& vars, SegmentDeque& layer_symbols, SegmentDeque& layer_graphics)
 {
+	logEnterFunction();
+
 	BOOST_FOREACH( Segment *s, layer_symbols )
 	{
 		RecognitionDistance rd = getCharacterRecognizer().recognize_all(vars, *s, CharacterRecognizer::all, true);
@@ -251,6 +254,50 @@ void ChemicalStructureRecognizer::storeSegments(const Settings& vars, SegmentDeq
 	}
 }
 
+bool ChemicalStructureRecognizer::isReconnectSegmentsRequired(const Settings& vars, const Image& img, const SegmentDeque& segments)
+{
+	logEnterFunction();
+
+	if (img.getWidth() < vars.prefilter.ReduceImageDim && img.getHeight() < vars.prefilter.ReduceImageDim)
+	{
+		getLogExt().appendText("Too small image to analyze");
+		return false;
+	}
+
+	getLogExt().append("Segments count", segments.size());
+	
+	double avg_fill = 0.0;
+	size_t surely_bad = 0;
+	size_t probably_bad = 0;
+	size_t probably_good = 0;
+	size_t surely_good = 0;
+
+	for (size_t u = 0; u < segments.size(); u++)
+	{
+		int count = SegmentTools::getAllFilled((*segments[u])).size();
+		avg_fill += count;
+		if (count < vars.prefilterCV.MinGoodPixelsCount / 2)
+			surely_bad++;
+		else if (count < vars.prefilterCV.MinGoodPixelsCount)
+			probably_bad++;
+		else if (count > vars.prefilterCV.MinGoodPixelsCount * 2)
+			surely_good++;
+		else
+			probably_good++;
+	}
+	avg_fill /= segments.size();
+
+	getLogExt().append("Average fill", avg_fill);
+	getLogExt().append("Surely bad", surely_bad);
+	getLogExt().append("Probably bad", probably_bad);
+	getLogExt().append("Probably good", probably_good);
+	getLogExt().append("Surely good", surely_good);
+
+	// TODO
+	bool result = (2 * surely_bad > surely_good) || (3 * probably_bad > probably_good);
+	return result;
+}
+
 void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol) 
 {
 	logEnterFunction();
@@ -279,6 +326,22 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 
 		SegmentDeque segments;
 		segmentate(vars, _img, segments);
+		
+		bool reconnect = isReconnectSegmentsRequired(vars, _img, segments);
+		if (reconnect)
+		{
+			getLogExt().appendText("Reconnection procedure apply");
+			
+			BOOST_FOREACH( Segment *s, segments )
+				delete s;
+
+			// use filter
+			prefilter_cv::prefilterCV(vars, _img);
+
+			SegmentDeque temp;
+			segmentate(vars, _img, temp);
+			segments = temp;
+		}
 
 		if (segments.size() == 0)
 		{

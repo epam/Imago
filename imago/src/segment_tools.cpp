@@ -152,7 +152,7 @@ namespace imago
 		}
 	}
 
-	void SegmentTools::WaveMap::fillByStartPoint(const Vec2i& start)
+	void SegmentTools::WaveMap::fillByStartPoint(const Vec2i& start, int max_length, bool outer_mode)
 	{
 		typedef std::queue<std::pair<Vec2i, int> > WorkVector;
 		WorkVector v;
@@ -165,17 +165,33 @@ namespace imago
 			
 			int idx = cur_v.x + cur_v.y * getWidth();
 
-			if (cur_v.x >= 0 && cur_v.y >= 0
-				&& cur_v.x < getWidth() && cur_v.y < getHeight()
-				&& getByte(cur_v.x, cur_v.y) == 0
-				&& (wavemap[idx] > cur_d || wavemap[idx] == 0))
+			if (cur_v.x >= 0 && cur_v.y >= 0 && cur_v.x < getWidth() && cur_v.y < getHeight() // range
+				&& (getByte(cur_v.x, cur_v.y) == 0 || outer_mode) // fill
+				&& (wavemap[idx] > cur_d || wavemap[idx] == 0)) // not filled with better value
 			{
 				wavemap[idx] = cur_d;
 
-				#define lookup(dx,dy) v.push(std::make_pair(Vec2i(cur_v.x + (dx), cur_v.y + (dy)), cur_d+1));
-				lookup(1,0); lookup(-1,0); lookup(0,1);  lookup(0,-1);
-				lookup(1,1); lookup(-1,1); lookup(1,-1); lookup(-1,-1);				
-				#undef lookup
+				if (max_length > 0 && cur_d > max_length)
+				{
+					// ignore
+				}
+				else
+				{
+					int new_d = cur_d;
+					if (outer_mode)
+					{
+						if (getByte(cur_v.x, cur_v.y) != 0)
+							new_d++; // penalty 1 if not filled
+					}
+					else
+						new_d++; // penalty 1 anyway
+
+
+					#define lookup(dx,dy) v.push(std::make_pair(Vec2i(cur_v.x + (dx), cur_v.y + (dy)), new_d));
+					lookup(1,0); lookup(-1,0); lookup(0,1);  lookup(0,-1);
+					lookup(1,1); lookup(-1,1); lookup(1,-1); lookup(-1,-1);				
+					#undef lookup
+				}
 			}
 		}		
 	}

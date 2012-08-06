@@ -83,6 +83,9 @@ namespace imago
 	private:
 		// returns filled pixels count
 		void fill(const ImageInterface &img, int& id, int startx, int starty, int lookup_range);
+		
+		// returns shortest path between two pixels
+		Points2i WeakSegmentator::getShortestPath(const ImageInterface &img, const Vec2i& start, const Vec2i& end);
 
 		// returns 2 probably condensation point for integer vector
 		static bool get2centers(int* data, int size, double &c1, double& c2);		

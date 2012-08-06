@@ -5,6 +5,7 @@
 #include "pixel_boundings.h"
 #include "color_channels.h"
 #include "thin_filter2.h"
+#include "segment_tools.h"
 
 namespace imago
 {	
@@ -297,6 +298,33 @@ namespace imago
 		return false;
 	}
 
+	Points2i WeakSegmentator::getShortestPath(const ImageInterface &img, const Vec2i& start, const Vec2i& end)
+	{
+		// this function works OK but it's such a performance waste
+
+		int id = at(start.x, start.y).id;
+		const Points2i pts = SegmentPoints[id];
+		Points2i pts_ext = pts;
+		pts_ext.push_back(end);
+
+		RectShapedBounding b(pts_ext);
+		int _x = b.getBounding().x;
+		int _y = b.getBounding().y;
+		Image output(b.getBounding().width+1, b.getBounding().height+1);		
+		output.fillWhite();
+		for (size_t u = 0; u < pts.size(); u++) // draw points
+			output.getByte(pts[u].x - _x, pts[u].y - _y) = 0;
+
+		SegmentTools::WaveMap wave(output);
+		//getLogExt().appendImage("wavemap for", output);
+		wave.fillByStartPoint(Vec2i(start.x - _x, start.y - _y), 10, true);
+		Points2i res = wave.getPath(Vec2i(end.x - _x, end.y - _y));
+		Points2i result;
+		for (size_t u = 0; u < res.size(); u++)
+			result.push_back(Vec2i(res[u].x + _x, res[u].y + _y));
+		return result;
+	}
+
 	void WeakSegmentator::fill(const ImageInterface &img, int& id, int sx, int sy, int lookup_range)
 	{
 		std::queue<Vec2i> v;
@@ -313,7 +341,7 @@ namespace imago
 
 				for (int dx = -lookup_range; dx <= lookup_range; dx++)
 					for (int dy = -lookup_range; dy <= lookup_range; dy++)
-					{
+					{						
 						Vec2i t(cur.x + dx,cur.y + dy);
 						if ((dx != 0 || dy != 0) && inRange(t.x, t.y))
 						{
@@ -321,6 +349,20 @@ namespace imago
 							{					
 								if (img.isFilled(t.x, t.y) && refineIsAllowed(t.x, t.y))
 								{
+									/*
+									// performance waste
+									if (ConnectMode && (abs(dx) >= lookup_range || abs(dy) >= lookup_range) )
+									{
+										if (SegmentPoints[id].size() < 120)
+										{
+											Points2i shortestPath = getShortestPath(img, cur, t);
+											for (size_t u = 0; u < shortestPath.size(); u++)
+											{
+												v.push(shortestPath[u]);
+											}
+										}
+									}*/	
+
 									if (ConnectMode && (abs(dx) > 1 || abs(dy) > 1) )
 									{
 										v.push(Vec2i(cur.x + dx/2,cur.y + dy/2));

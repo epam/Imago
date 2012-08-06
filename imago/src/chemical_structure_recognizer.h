@@ -46,8 +46,9 @@ namespace imago
       Image _origImage;
 
 	  bool removeMoleculeCaptions(const Settings& vars, Image& img, SegmentDeque& layer_symbols, SegmentDeque& layer_graphics);
-	  void segmentate(const Settings& vars, Image& img, SegmentDeque& segments);
+	  void segmentate(const Settings& vars, Image& img, SegmentDeque& segments, bool connect_mode = false);
 	  void storeSegments(const Settings& vars, SegmentDeque& layer_symbols, SegmentDeque& layer_graphics);
+	  bool isReconnectSegmentsRequired(const Settings& vars, const Image& img, const SegmentDeque& segments);
       
       ChemicalStructureRecognizer( const ChemicalStructureRecognizer &csr );
    };

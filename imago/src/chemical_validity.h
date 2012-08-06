@@ -49,6 +49,7 @@ namespace imago
 		};
 	
 		ElementTableEntry elements;
+		std::map<std::string, Superatom> hacks;
 
 	protected:
 		// returns optimal string split by specified dictionary

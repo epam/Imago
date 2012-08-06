@@ -204,8 +204,14 @@ namespace imago
 		getLogExt().append("molecule", molecule);
 		Strings split = optimalSplit(molecule, elements.names);
 		getLogExt().appendVector("split", split);
-		
-		
+
+		if (hacks.find(molecule) != hacks.end())
+		{
+			getLogExt().append("Found predefined hack for", molecule);
+			sa = hacks.at(molecule);
+			return;
+		}
+				
 		// step 2: assign split to real atoms & regroup letters from same atom
 		typedef std::pair<int,int> bad_entry;
 		typedef std::vector<bad_entry> bad_info;
@@ -304,21 +310,70 @@ namespace imago
 		elements.push_back("Me",    0.2);
 
 		// and also lock these bad combinations
-		elements.push_back("OI",    0.0);
-		elements.push_back("OY",    0.0);
-		elements.push_back("NI",    0.0);
-		elements.push_back("IN",    0.0);
+		elements.push_back("OI",     0.0);
+		elements.push_back("OY",     0.0);
+		elements.push_back("NI",     0.0);
+		elements.push_back("IN",     0.0);
 		elements.push_back("CHS",    0.0);
+
 		elements.push_back("NHH",    0.0); // NH2
 		elements.push_back("HHN",    0.0); // NH3
-		elements.push_back("OHI",    0.0); // OH
-		elements.push_back("BN",    0.0); // N
-		elements.push_back("CIC",    0.0); // H3C
-		elements.push_back("IY",    0.0); // N
-		elements.push_back("IO",    0.0); // HO
-		elements.push_back("IC",    0.0); // H3C
-		
 
+		elements.push_back("OHI",    0.0); // OH
+		elements.push_back("IO",     0.0); // HO
+
+		elements.push_back("BN",     0.0); // N
+		elements.push_back("IY",     0.0); // N
+
+		elements.push_back("IC",     0.0); // H3C
+		elements.push_back("CHI",    0.0); // CH3
+		elements.push_back("CIC",    0.0); // H3C
+		
+		Atom C;  C.setLabel("C");
+		Atom N;  N.setLabel("N");
+		Atom H;  H.setLabel("H");
+		Atom O;  O.setLabel("O");
+
+		Atom H2; H2.setLabel("H"); H2.count = 2;
+		Atom H3; H3.setLabel("H"); H3.count = 3;		
+
+		{
+			Superatom temp;
+			temp.atoms.push_back(O);
+			temp.atoms.push_back(H);
+			hacks["OHI"] = temp;
+			hacks["IO"] = temp;
+		}
+
+		{
+			Superatom temp;
+			temp.atoms.push_back(N);
+			hacks["BN"] = temp;
+			hacks["IY"] = temp;
+		}
+
+		{
+			Superatom temp;			
+			temp.atoms.push_back(N);
+			temp.atoms.push_back(H2);
+			hacks["NHH"] = temp;
+		}
+
+		{
+			Superatom temp;			
+			temp.atoms.push_back(N);
+			temp.atoms.push_back(H3);
+			hacks["HHN"] = temp;
+		}
+
+		{
+			Superatom temp;			
+			temp.atoms.push_back(C);
+			temp.atoms.push_back(H3);
+			hacks["IC"] = temp;
+			hacks["CHI"] = temp;
+			hacks["CIC"] = temp;
+		}
 
 
 		// elements should be sorted for optimal split function working
