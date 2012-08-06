@@ -293,8 +293,9 @@ bool ChemicalStructureRecognizer::isReconnectSegmentsRequired(const Settings& va
 	getLogExt().append("Probably good", probably_good);
 	getLogExt().append("Surely good", surely_good);
 
-	// TODO
-	bool result = (2 * surely_bad > surely_good) || (3 * probably_bad > probably_good);
+	// TODO: move coeffs to settings
+	bool result = (surely_bad > 5) && (2.0 * surely_bad > surely_good + probably_good / 2.0);
+
 	return result;
 }
 
@@ -332,15 +333,21 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 		{
 			getLogExt().appendText("Reconnection procedure apply");
 			
-			BOOST_FOREACH( Segment *s, segments )
-				delete s;
-
 			// use filter
-			prefilter_cv::prefilterCV(vars, _img);
+			Image temp_img;
+			temp_img.copy(_img);
+			prefilter_cv::prefilterCV(vars, temp_img);
 
 			SegmentDeque temp;
-			segmentate(vars, _img, temp);
-			segments = temp;
+			segmentate(vars, temp_img, temp);
+
+			if (temp.size() > 0)
+			{
+				BOOST_FOREACH( Segment *s, segments )
+					delete s;
+
+				segments = temp;
+			}			
 		}
 
 		if (segments.size() == 0)

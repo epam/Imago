@@ -62,6 +62,13 @@ namespace imago
 		// returns printable form of the whole molecule content
 		// apply 'expanded' rule to all subatoms
 		std::string getPrintableForm(bool expanded = true) const;
+
+		Superatom() {};
+
+		// some useful constructors to create superatom from atoms fast
+		Superatom(const Atom& a1);
+		Superatom(const Atom& a1, const Atom& a2);
+		Superatom(const Atom& a1, const Atom& a2, const Atom& a3);
 	};
 }
 

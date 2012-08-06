@@ -87,9 +87,16 @@ namespace imago
 	{
 		logEnterFunction();
 		std::string molecule = sa.getPrintableForm(false);
-		Strings split = optimalSplit(molecule, elements.names);
-		getLogExt().appendVector("Split", split);
-		return calcSplitProbability(split);
+		if (hacks.find(molecule) != hacks.end())
+		{
+			return 0.0;
+		}
+		else
+		{
+			Strings split = optimalSplit(molecule, elements.names);
+			getLogExt().appendVector("Split", split);
+			return calcSplitProbability(split);
+		}
 	}
 
 	std::string ChemicalValidity::getAlternatives(char base_char, const RecognitionDistance& d) const
@@ -309,72 +316,41 @@ namespace imago
 		elements.push_back("X",     0.1);
 		elements.push_back("Me",    0.2);
 
-		// and also lock these bad combinations
-		elements.push_back("OI",     0.0);
-		elements.push_back("OY",     0.0);
-		elements.push_back("NI",     0.0);
-		elements.push_back("IN",     0.0);
-		elements.push_back("CHS",    0.0);
-
-		elements.push_back("NHH",    0.0); // NH2
-		elements.push_back("HHN",    0.0); // NH3
-
-		elements.push_back("OHI",    0.0); // OH
-		elements.push_back("IO",     0.0); // HO
-
-		elements.push_back("BN",     0.0); // N
-		elements.push_back("IY",     0.0); // N
-
-		elements.push_back("IC",     0.0); // H3C
-		elements.push_back("CHI",    0.0); // CH3
-		elements.push_back("CIC",    0.0); // H3C
+		// and also fixup these bad combinations
+		elements.push_back("IN", 0.0);
 		
-		Atom C;  C.setLabel("C");
-		Atom N;  N.setLabel("N");
-		Atom H;  H.setLabel("H");
-		Atom O;  O.setLabel("O");
+		Atom C;   C.setLabel("C");
+		Atom N;   N.setLabel("N");
+		Atom H;   H.setLabel("H");
+		Atom O;   O.setLabel("O");
+		Atom Br;  Br.setLabel("Br");
 
 		Atom H2; H2.setLabel("H"); H2.count = 2;
 		Atom H3; H3.setLabel("H"); H3.count = 3;		
+		Atom F3; F3.setLabel("F"); F3.count = 3;		
 
-		{
-			Superatom temp;
-			temp.atoms.push_back(O);
-			temp.atoms.push_back(H);
-			hacks["OHI"] = temp;
-			hacks["IO"] = temp;
-		}
+		hacks["U"] = Superatom(O);
+		hacks["OYI"] = Superatom(O, H);
+		hacks["IO"] = Superatom(O, H);
+		hacks["OI"] = Superatom(O, H);
+		
+		hacks["BN"] = Superatom(N);
+		hacks["IY"] = Superatom(N);
 
-		{
-			Superatom temp;
-			temp.atoms.push_back(N);
-			hacks["BN"] = temp;
-			hacks["IY"] = temp;
-		}
+		hacks["NN"] = Superatom(N, H);
+		hacks["NHH"] = Superatom(N, H2);
+		hacks["NIH"] = Superatom(N, H3);
 
-		{
-			Superatom temp;			
-			temp.atoms.push_back(N);
-			temp.atoms.push_back(H2);
-			hacks["NHH"] = temp;
-		}
+		hacks["HHN"] = Superatom(N, H3);
+		hacks["HIN"] = Superatom(N, H3);
 
-		{
-			Superatom temp;			
-			temp.atoms.push_back(N);
-			temp.atoms.push_back(H3);
-			hacks["HHN"] = temp;
-		}
+		hacks["IC"] = Superatom(C, H3);
+		hacks["CHI"] = Superatom(C, H3);
+		hacks["ClC"] = Superatom(C, H3);
+		hacks["HIC"] = Superatom(C, H3);
+		hacks["HOC"] = Superatom(C, H3);
 
-		{
-			Superatom temp;			
-			temp.atoms.push_back(C);
-			temp.atoms.push_back(H3);
-			hacks["IC"] = temp;
-			hacks["CHI"] = temp;
-			hacks["CIC"] = temp;
-		}
-
+		hacks["FIC"] = Superatom(C, F3);
 
 		// elements should be sorted for optimal split function working
 		std::sort(elements.names.begin(), elements.names.end(), sort_comparator_length_reversed);		

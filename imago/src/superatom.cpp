@@ -100,4 +100,22 @@ namespace imago
 		};
 		return molecule;
 	}
+
+	Superatom::Superatom(const Atom& a1)
+	{
+		atoms.push_back(a1);
+	}
+
+	Superatom::Superatom(const Atom& a1, const Atom& a2)
+	{
+		atoms.push_back(a1);
+		atoms.push_back(a2);
+	}
+
+	Superatom::Superatom(const Atom& a1, const Atom& a2, const Atom& a3)
+	{
+		atoms.push_back(a1);
+		atoms.push_back(a2);
+		atoms.push_back(a3);
+	}
 }
