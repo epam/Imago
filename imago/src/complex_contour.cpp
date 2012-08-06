@@ -179,24 +179,6 @@ void ComplexContour::EqualizeUp(int n)
 			newCont.push_back(_contours[i]);
 	}
 
-	/*for(int i=0;i<n;i++)
-	{
-		double index = i * count / double(n);
-		int j = (int)index;
-		double k = index -j;
-
-		if(j == count - 1)
-			newCont.push_back(_contours[j]);
-		else
-		{
-			ComplexNumber c1 = _contours[j];
-			ComplexNumber c2 = _contours[j+1];
-			c1 *= (1-k);
-			c2 *=k;
-			newCont.push_back(c1 + c2);
-		}
-	}
-*/
 	_contours = newCont;
 }
 
@@ -262,35 +244,36 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 	Points2d lines;
 	
 	double eps = (lnThickness / 2.0 > 2.0) ? (lnThickness / 2.0) : 2.0;
-	//gd.detect(seg, lines);
-	cvRetrieveContour(seg, lines, (int)eps); // TODO: round?
+
+	cvRetrieveContour(seg, lines, imago::round(eps)); 
 
 	Skeleton graph;
 	Vec2d lastPoint;
 	
+	imago::Skeleton::Vertex vStart = graph.addVertex(lines[0]);
+	imago::Skeleton::Vertex vStart1 = vStart;
+
 	// add lines to graph
 	if (!lines.empty())
 	{
 	   for (size_t i = 1; i < lines.size() ; i++)
-	   {
-		  /*Vec2d &p1 = lines[2 * i];
-		  Vec2d &p2 = lines[2 * i + 1];*/
-		   
-		   Vec2d &p1 = lines[i - 1];
-		  Vec2d &p2 = lines[i];
-		  
-		   graph.addBond(p1, p2, SINGLE, true);
-		  lastPoint = p2;
+	   {	  
+		   imago::Skeleton::Vertex vEnd = graph.addVertex(lines[i]);
+		   //graph.addBond(p1, p2, SINGLE, true);
+		   graph.addBond(vStart, vEnd);
+		   vStart = vEnd; //graph.addVertex(lines[i]);
+		  //lastPoint = p2;
 	   }
 
-	   graph.addBond(lastPoint, lines[0], SINGLE, true);
+	   //graph.addBond(lastPoint, lines[0], SINGLE, true);
+	   graph.addBond(vStart, vStart1);
 	}
 	else
 	{
 		throw LogicException("No contours");
 	}
 
-	graph._joinVertices(0.01);
+	//graph._joinVertices(0.01);
 	Skeleton::SkeletonGraph _g = graph.getGraph();
 	getLogExt().appendSkeleton(vars, "after join vertices", _g);
 	Skeleton::Vertex vert1 = *(_g.m_vertices.begin());
@@ -301,22 +284,10 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 	std::deque<Skeleton::Vertex>::iterator vit, minIt;
 	boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b, e;
   
-	//Find start vertex with minimal degree
-	int minDeg = boost::num_vertices(_g);
-	BGL_FORALL_VERTICES(v, _g, Skeleton::SkeletonGraph)
-	{
-		int deg = boost::degree(v, _g);
-		if(minDeg > deg)
-		{
-			minDeg = deg;
-			vert1 = v;
-		}
-	}
-
-	vertIt = vert1;
-	boost::tie(b, e) = boost::adjacent_vertices(vert1, _g);
+	vertIt = vStart1;
+	boost::tie(b, e) = boost::adjacent_vertices(vStart1, _g);
 	neighbours.assign(b, e);
-	//TODO: FIND appropriate vert2 for a clocwise traversal 
+	//TODO: FIND appropriate vert2 for a clockwise traversal 
 
 	vert2 = *(neighbours.begin());
 
@@ -375,14 +346,6 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 			vert1 = vert2;
 			vert2 = *(minIt);
 
-		
-		/*const Skeleton::Vertex &beg = boost::source(edge, _g);
-		const Skeleton::Vertex &end = boost::target(edge, _g);
-
-		Vec2d bpos = boost::get(boost::vertex_pos, _g, beg);
-
-		contours.push_back(ComplexNumber(bpos.x, bpos.y));*/
-
 	}while(vert1 != vertIt);
 
 	std::string directions;
@@ -393,38 +356,42 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 	for(size_t i=1;i < contours.size();i+=2)
 	{
 		ComplexNumber c = contours[i] - contours[i-1];
-		double angle = c.getAngle();
-		if(angle < 0)
-			angle  += 2 * PI;
-		directions += " ";
-		if(angle < pi_8 || angle >= 15.0 * pi_8)
-			directions += "E";
-		else
-			if(angle >= pi_8 && angle < 3.0 * pi_8)
-				directions += "NE";
-			else
-				if(angle >= 3.0 * pi_8 && angle < pi_8 * 5.0)
-					directions += "N";
-				else
-					if(angle >= pi_8 * 5.0 && angle < pi_8 * 7.0)
-						directions += "NW";
-					else
-						if(angle >= pi_8 * 7.0 && angle < pi_8 * 9.0)
-							directions += "W";
 		
-		if(angle >= 9.0 * pi_8 && angle < 11.0 * pi_8)
-				directions += "SW";
+		if(getLogExt().loggingEnabled())
+		{
+			double angle = c.getAngle();
+			if(angle < 0)
+				angle  += 2 * PI;
+			directions = " ";
+			if(angle < pi_8 || angle >= 15.0 * pi_8)
+				directions += "E";
 			else
-				if(angle >= 11.0 * pi_8 && angle < pi_8 * 13.0)
-					directions += "S";
+				if(angle >= pi_8 && angle < 3.0 * pi_8)
+					directions += "NE";
 				else
-					if(angle >= pi_8 * 13.0 && angle < pi_8 * 15.0)
-						directions += "SE";
-
+					if(angle >= 3.0 * pi_8 && angle < pi_8 * 5.0)
+						directions += "N";
+					else
+						if(angle >= pi_8 * 5.0 && angle < pi_8 * 7.0)
+							directions += "NW";
+						else
+							if(angle >= pi_8 * 7.0 && angle < pi_8 * 9.0)
+								directions += "W";
+		
+			if(angle >= 9.0 * pi_8 && angle < 11.0 * pi_8)
+					directions += "SW";
+				else
+					if(angle >= 11.0 * pi_8 && angle < pi_8 * 13.0)
+						directions += "S";
+					else
+						if(angle >= pi_8 * 13.0 && angle < pi_8 * 15.0)
+							directions += "SE";
+			getLogExt().appendText(directions);
+		}
 		diffCont.push_back(c);
 	}
 
-	getLogExt().appendText(directions);
+	
 
 	return ComplexContour(diffCont);
 }
