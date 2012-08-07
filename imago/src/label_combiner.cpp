@@ -38,7 +38,7 @@ LabelCombiner::LabelCombiner(Settings& vars, SegmentDeque &symbols_layer, Segmen
 {
 	do
 	{
-		vars.estimation.CapitalHeight = _findCapitalHeight(vars);
+		//vars.estimation.CapitalHeight = _findCapitalHeight(vars);
 
 		if (vars.estimation.CapitalHeight > 0.0)
 		{
