@@ -114,7 +114,7 @@ bool Separator::_bIsTextContext(const Settings& vars, SegmentDeque &layer_symbol
 		return false;
 
 	bool xfirstSeparable = Algebra::rangesSeparable(rec.x, rec.x+rec.width, firstNear->getX(), firstNear->getX() + firstNear->getWidth());
-	bool yfirstSeparable = Algebra::rangesSeparable(rec.y, rec.y+rec.height, firstNear->getY(), firstNear->getX() + firstNear->getHeight());
+	bool yfirstSeparable = Algebra::rangesSeparable(rec.y, rec.y+rec.height, firstNear->getY(), firstNear->getY() + firstNear->getHeight());
 
 	/*bool xsecSeparable = Algebra::rangesSeparable(rec.x, rec.x+rec.width, secNear->getX(), secNear->getX() + secNear->getWidth());
 	bool ysecSeparable = Algebra::rangesSeparable(rec.y, rec.y+rec.height, secNear->getY(), secNear->getX() + secNear->getHeight());
