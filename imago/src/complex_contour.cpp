@@ -241,10 +241,21 @@ void cvRetrieveContour(Image& img, Points2d &lines, int eps)
 	std::vector<cv::Point> newcont;
     std::vector<cv::Vec4i> hierarchy;
 	cv::findContours(mat, contours, hierarchy, cv::RETR_EXTERNAL, cv::CHAIN_APPROX_TC89_KCOS);
+	size_t maxLengthContour = 0, maxLength = 0;
+	
 	if (!contours.empty())
 	{
-		cv::Mat m(contours[0]);
-		cv::approxPolyDP(contours[0], newcont, eps, false);
+		for(size_t i = 0; i < contours.size(); i++)
+		{
+			if(contours[i].size() > maxLength)
+			{
+				maxLength = contours[i].size();
+				maxLengthContour = i;
+			}
+		}
+	
+		cv::Mat m(contours[maxLengthContour]);
+		cv::approxPolyDP(contours[maxLengthContour], newcont, eps, false);
 	
 		for(size_t i = 0;i < newcont.size(); i++)
 		{
@@ -267,30 +278,38 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 
 	Skeleton graph;
 	Vec2d lastPoint;
-	
+
 	// add lines to graph
 	if (!lines.empty())
 	{
+		imago::Skeleton::Vertex vStart = graph.addVertex(lines[0]);
+		imago::Skeleton::Vertex vStart1 = vStart;
 	   for (size_t i = 1; i < lines.size() ; i++)
 	   {
-		  /*Vec2d &p1 = lines[2 * i];
-		  Vec2d &p2 = lines[2 * i + 1];*/
-		   
-		   Vec2d &p1 = lines[i - 1];
-		  Vec2d &p2 = lines[i];
-		  
-		   graph.addBond(p1, p2, SINGLE, true);
-		  lastPoint = p2;
+		   imago::Skeleton::Vertex vEnd = graph.addVertex(lines[i]);
+		   try
+		   {
+			   graph.addBond(vStart, vEnd, SINGLE, true);
+		   }// no need to add already existing edge - continue
+		   catch(LogicException ex)
+		   {
+		   }
+		   vStart = vEnd;
 	   }
 
-	   graph.addBond(lastPoint, lines[0], SINGLE, true);
+	   try
+	   {
+		   graph.addBond(vStart, vStart1, SINGLE, true);
+	   }// no need to add already existing edge
+	   catch(LogicException ex)
+	   {
+	   }
 	}
 	else
 	{
 		throw LogicException("No contours");
 	}
 
-	graph._joinVertices(0.01);
 	Skeleton::SkeletonGraph _g = graph.getGraph();
 	getLogExt().appendSkeleton(vars, "after join vertices", _g);
 	Skeleton::Vertex vert1 = *(_g.m_vertices.begin());
