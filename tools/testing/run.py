@@ -120,13 +120,13 @@ class Item:
         if os.path.exists("molecule.mol"):
             os.remove("molecule.mol")
         time_before = time.clock()
-        ret = subprocess.call([tl_exe, "32", abs_version, abs_img]) 
+        ret = subprocess.call([tl_exe, "10", abs_version, abs_img]) 
         time_after = time.clock()
         
         os.chdir("..")
         time_val = time_after - time_before
         item_version.setTime(time_val)
-        if time_val > 31.0:
+        if time_val >= 10.0:
             item_version.setFailed()
             return
         
