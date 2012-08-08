@@ -18,6 +18,7 @@
  * @brief  Probabilistic estimate of segments
  */
 
+#pragma once
 #ifndef _probability_separator_h
 #define _probability_separator_h
 
@@ -25,8 +26,8 @@
 #include "segment.h"
 #include "settings.h"
 
-namespace imago{
-
+namespace imago
+{
 	class ProbabilitySeparator
 	{
 	public:

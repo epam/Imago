@@ -256,8 +256,6 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 {
 	logEnterFunction();
 
-	// TODO: more logging here
-
 	Points2d lsegments;
 	
 	double line_thick = vars.estimation.LineThickness;
@@ -1486,7 +1484,6 @@ int Separator::_estimateCapHeight(const Settings& vars)
 
 bool Separator::_checkSequence(const Settings& vars, IntPair &checking, IntPair &symbols_graphics, double &density )
 {
-      //TODO: consider to be dirty hack
    if (checking.second - checking.first == 1)
    {
 	   if (_segs[checking.first]->getDensity() < vars.separator.minDensity)

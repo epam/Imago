@@ -18,6 +18,7 @@
   * @brief  Declares Exception class
   */
 
+#pragma once
 #ifndef _exception_h
 #define _exception_h
 

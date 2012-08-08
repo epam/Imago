@@ -1,16 +1,52 @@
+/****************************************************************************
+ * Copyright (C) 2009-2012 GGA Software Services LLC
+ * 
+ * This file is part of Imago toolkit.
+ * 
+ * This file may be distributed and/or modified under the terms of the
+ * GNU General Public License version 3 as published by the Free Software
+ * Foundation and appearing in the file LICENSE.GPL included in the
+ * packaging of this file.
+ * 
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ ***************************************************************************/
+
 #include "boost/foreach.hpp"
 #include "boost/algorithm/string.hpp"
 
 #include "superatom_expansion.h"
 
+#include <stdlib.h>
 #include "indigo.h"
-
 #include "molecule.h"
 #include "output.h"
 #include "molfile_saver.h"
 
 namespace imago
 {
+
+struct neiAtom
+{
+    int atom;
+    int bond_order;
+    float angle;
+    Vec2f dir;
+
+    static bool less (neiAtom &a1, neiAtom &a2)
+    {
+		return a1.angle < a2.angle;
+    }
+
+	static int lessPtr(const void *pa1, const void *pa2)
+	{
+		const neiAtom& a1 = *((neiAtom*)pa1);
+		const neiAtom& a2 = *((neiAtom*)pa2);
+		if (a1.angle < a2.angle) return -1;
+		else if (a1.angle > a2.angle) return 1;
+		else return 0;
+	}
+};
 
 class Abbreviation
 {
@@ -212,18 +248,7 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       memcpy(xyz, indigoXYZ(p.first), 3 * sizeof(float));
 
       int item2, iter2 = indigoIterateNeighbors(p.first);
-      struct neiAtom
-      {
-         int atom;
-         int bond_order;
-         float angle;
-         Vec2f dir;
-
-         static bool less (neiAtom &a1, neiAtom &a2)
-         {
-            return a1.angle < a2.angle;
-         }
-      };
+      
       neiAtom attachment_atoms[NEI_COUNT];
       int attachment_atoms_count = 0;
 
@@ -267,11 +292,12 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
          Vec2f v1(attachment_atoms[i].dir.x, attachment_atoms[i].dir.y);
          Vec2f v2(attachment_atoms[left_most].dir.x, attachment_atoms[left_most].dir.y);
 
-         attachment_atoms[i].angle = Vec2f::angle(v1, v2);
+         attachment_atoms[i].angle = (float)Vec2f::angle(v1, v2);
       }
 
       // Sort attachment points according to the angle
-      std::sort(attachment_atoms, attachment_atoms + attachment_atoms_count, neiAtom::less); 
+      //std::sort(attachment_atoms, attachment_atoms + attachment_atoms_count, neiAtom::less); 
+	  qsort(attachment_atoms, attachment_atoms_count, sizeof(attachment_atoms[0]), neiAtom::lessPtr);
 
       //printf("***%d\n", bond_order);
          

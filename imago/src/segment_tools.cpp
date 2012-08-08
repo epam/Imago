@@ -1,3 +1,17 @@
+/****************************************************************************
+ * Copyright (C) 2009-2012 GGA Software Services LLC
+ * 
+ * This file is part of Imago toolkit.
+ * 
+ * This file may be distributed and/or modified under the terms of the
+ * GNU General Public License version 3 as published by the Free Software
+ * Foundation and appearing in the file LICENSE.GPL included in the
+ * packaging of this file.
+ * 
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ ***************************************************************************/
+
 #include "segment_tools.h"
 #include "log_ext.h"
 #include "image.h"
@@ -24,9 +38,8 @@ namespace imago
 		return result;
 	}
 
-	double SegmentTools::getRealDistance(const Segment& seg1, const Segment& seg2, int type)
+	double SegmentTools::getRealDistance(const Segment& seg1, const Segment& seg2, DistanceType type)
 	{
-		// not so fast, TODO: optimize
 		Points2i p1 = getAllFilled(seg1);
 		Points2i p2 = getAllFilled(seg2);
 		double result = DBL_MAX;
@@ -39,15 +52,15 @@ namespace imago
 				int y2 = p2[u2].y + seg2.getY();
 				double d = DBL_MAX;
 
-				if (type == 1)
+				if (type == dtDeltaX)
 				{
 					d = absolute(x1 - x2);
 				}
-				else if (type == 2)
+				else if (type == dtDeltaY)
 				{
 					d = absolute(y1 - y2);
 				}
-				else if (type == 0)
+				else if (type == dtEuclidian)
 				{
 					d = Vec2i::distance(Vec2i(x1,y1), Vec2i(x2,y2));
 				}

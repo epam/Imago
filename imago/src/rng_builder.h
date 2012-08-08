@@ -12,6 +12,7 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
+#pragma once
 #ifndef _rng_builder_h
 #define _rng_builder_h
 
@@ -50,7 +51,6 @@ namespace imago
          BGL_FORALL_VERTICES_T(v, g, EuclideanGraph)
             ind2vert[vert2ind[v]] = v;
 
-         //TODO: too many distances
          for (int i = 0; i < n; i++)
          {
             for (int j = 0; j < n; j++)

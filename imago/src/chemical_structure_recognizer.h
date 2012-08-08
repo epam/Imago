@@ -12,6 +12,7 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
+#pragma once
 #ifndef _chemical_structure_recognizer_h
 #define _chemical_structure_recognizer_h
 

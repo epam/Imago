@@ -13,7 +13,6 @@
  ***************************************************************************/
 
 #pragma once
-
 #ifndef _adaptive_filter_h
 #define _adaptive_filter_h
 

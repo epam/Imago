@@ -1,3 +1,17 @@
+/****************************************************************************
+ * Copyright (C) 2009-2012 GGA Software Services LLC
+ * 
+ * This file is part of Imago toolkit.
+ * 
+ * This file may be distributed and/or modified under the terms of the
+ * GNU General Public License version 3 as published by the Free Software
+ * Foundation and appearing in the file LICENSE.GPL included in the
+ * packaging of this file.
+ * 
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ ***************************************************************************/
+
 #include "chemical_validity.h"
 #include "comdef.h"
 #include "boost/algorithm/string.hpp"
@@ -324,12 +338,17 @@ namespace imago
 		Atom H;   H.setLabel("H");
 		Atom O;   O.setLabel("O");
 		Atom Br;  Br.setLabel("Br");
+		Atom T;   T.setLabel("T");
+		Atom F;   F.setLabel("F");
 
 		Atom H2; H2.setLabel("H"); H2.count = 2;
 		Atom H3; H3.setLabel("H"); H3.count = 3;		
 		Atom F3; F3.setLabel("F"); F3.count = 3;		
 
-		hacks["U"] = Superatom(O);
+		
+		hacks["U"] = Superatom(O); // the most evil hack
+		hacks["II"] = Superatom(O);
+
 		hacks["OYI"] = Superatom(O, H);
 		hacks["IO"] = Superatom(O, H);
 		hacks["OI"] = Superatom(O, H);
@@ -351,6 +370,7 @@ namespace imago
 		hacks["HOC"] = Superatom(C, H3);
 
 		hacks["FIC"] = Superatom(C, F3);
+		hacks["OTO"] = Superatom(O, T, F);
 
 		// elements should be sorted for optimal split function working
 		std::sort(elements.names.begin(), elements.names.end(), sort_comparator_length_reversed);		

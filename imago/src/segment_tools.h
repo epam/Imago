@@ -1,3 +1,17 @@
+/****************************************************************************
+ * Copyright (C) 2009-2012 GGA Software Services LLC
+ * 
+ * This file is part of Imago toolkit.
+ * 
+ * This file may be distributed and/or modified under the terms of the
+ * GNU General Public License version 3 as published by the Free Software
+ * Foundation and appearing in the file LICENSE.GPL included in the
+ * packaging of this file.
+ * 
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ ***************************************************************************/
+
 #pragma once
 #ifndef _segment_tools_h
 #define _segment_tools_h
@@ -35,8 +49,8 @@ namespace imago
 		static Points2i getAllFilled(const Segment& seg);
 
 		// returns distance between two sets
-		// type = 0, euclidian distance, type: = 1 by X, type = 2: by Y
-		static double getRealDistance(const Segment& seg1, const Segment& seg2, int type = 0);
+		enum DistanceType { dtEuclidian, dtDeltaX, dtDeltaY };
+		static double getRealDistance(const Segment& seg1, const Segment& seg2, DistanceType type = dtEuclidian);
 
 		// returns real segment height (delta between top and bottom filled pixels)
 		static int getRealHeight(const Segment& seg);

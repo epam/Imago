@@ -12,6 +12,7 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
+#pragma once
 #ifndef _double_bond_maker_h
 #define _double_bond_maker_h
 
@@ -29,7 +30,6 @@ namespace imago
       typedef Skeleton::Edge Edge;
       typedef Skeleton::SkeletonGraph Graph;
    public:
-	   // TODO: associate Settings with class - not overall good
       DoubleBondMaker( const Settings& settings, Skeleton &s );
 
       typedef boost::tuple<int, Edge, Edge> Result;

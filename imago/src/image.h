@@ -17,6 +17,8 @@
  * 
  * @brief   Declares the Image class
  */
+
+#pragma once
 #ifndef _image_h
 #define _image_h
 

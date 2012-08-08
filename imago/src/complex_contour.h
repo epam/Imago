@@ -18,6 +18,7 @@
  * @brief  Complex numbers
  */
 
+#pragma once
 #ifndef _complex_contour_h
 #define _complex_contour_h
 

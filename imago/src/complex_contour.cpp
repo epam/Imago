@@ -1,3 +1,17 @@
+/****************************************************************************
+ * Copyright (C) 2009-2012 GGA Software Services LLC
+ * 
+ * This file is part of Imago toolkit.
+ * 
+ * This file may be distributed and/or modified under the terms of the
+ * GNU General Public License version 3 as published by the Free Software
+ * Foundation and appearing in the file LICENSE.GPL included in the
+ * packaging of this file.
+ * 
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ ***************************************************************************/
+
 #include "complex_contour.h"
 #include "settings.h"
 #include "approximator.h"
@@ -335,7 +349,8 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 	vertIt = vert1;
 	boost::tie(b, e) = boost::adjacent_vertices(vert1, _g);
 	neighbours.assign(b, e);
-	//TODO: FIND appropriate vert2 for a clocwise traversal 
+
+	// TODO: FIND appropriate vert2 for a clokcwise traversal 
 
 	vert2 = *(neighbours.begin());
 

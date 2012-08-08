@@ -172,6 +172,7 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
       minLength = bf.length;
    }
 
+   // TODO: more adaptive classifier required
    if (maxLength > vars.mbond.MaxLen1)
 	   _multiBondErr = vars.mbond.mbe1;
    else if (maxLength > vars.mbond.MaxLen2)
@@ -181,7 +182,7 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
       else
          _multiBondErr = vars.mbond.mbe3;
    }
-   else if (maxLength > vars.mbond.MaxLen3) // TODO: WARNING: some trash here!
+   else if (maxLength > vars.mbond.MaxLen3)
       _multiBondErr = vars.mbond.mbe4;
    else if (maxLength > vars.mbond.MaxLen4)
    {

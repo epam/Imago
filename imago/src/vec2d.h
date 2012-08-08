@@ -17,11 +17,12 @@
  * 
  * @brief  2d double vector
  */
+
+#pragma once
 #ifndef _vec2d_h
 #define _vec2d_h
 
 #include <cmath>
-
 #include "comdef.h"
 #include "exception.h"
 

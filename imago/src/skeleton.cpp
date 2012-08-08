@@ -37,22 +37,17 @@ Skeleton::Skeleton()
 
 void Skeleton::setInitialAvgBondLength(Settings& vars, double avg_length )
 {
-   // DP: NOT USING WHAT IS SET HERE
-   //RecognitionSettings &rs = getSettings();
-
    _avg_bond_length = avg_length;
+   double mult = vars.skeleton.BaseMult;
 
-   double mult;
+   // TODO: depends on hard-set constants (some more adaptive here required)
 
-   //TODO: Stupid temporary fix. We should think about it carefully.
    if (_avg_bond_length < vars.skeleton.ShortBondLen)
 	   mult = vars.skeleton.ShortMul;
    else if (_avg_bond_length < vars.skeleton.MediumBondLen)
 	   mult = vars.skeleton.MediumMul;
    else if (_avg_bond_length < vars.skeleton.LongBondLen)
 	   mult = vars.skeleton.LongMul;
-   else
-      mult = vars.skeleton.BaseMult;
    
    _addVertexEps = mult * _avg_bond_length;
    vars.estimation.AddVertexEps = _addVertexEps;
@@ -81,13 +76,12 @@ void Skeleton::recalcAvgBondLength()
 
 Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type, bool throw_if_error )
 {
-   //TODO: Check if edge was not added
    std::pair<Edge, bool> p;
 
    p = boost::edge(v1, v2, _g);
    if (p.second)
    {
-      //Graph already has edge
+	   // Graph already has the edge
 	   if (throw_if_error)
 	   {
 		   throw LogicException("Already has edge");
@@ -198,7 +192,8 @@ void Skeleton::_repairBroken(const Settings& vars)
    double coef;
    recalcAvgBondLength();
 
-   //TODO: Tuning here?
+   // TODO: depends on hard-set constants (some more adaptive here required)
+
    double toSmallErr;
    if (_avg_bond_length > vars.skeleton.LongBondLen)
 	   toSmallErr = vars.skeleton.LongSmallErr;
@@ -1027,8 +1022,8 @@ bool Skeleton::_isSegmentIntersectedByEdge(const Settings& vars, Vec2d &b, Vec2d
 		Vec2d p2 = getVertexPos(getBondEnd(edge));
 		Vec2d intersection = Algebra::linesIntersection(vars, b, e, p1, p2);
 
-		//check if intersection point is in segment p1, p2
-		//TODO
+		// TODO: check if intersection point is in segment p1, p2
+
 		Vec2d diff1, diff2;
 		diff1.diff(p1, intersection);
 		diff2.diff(p2, intersection);

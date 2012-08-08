@@ -17,17 +17,16 @@
  * 
  * @brief  Template for ComplexContours
  */
+
+#pragma once
 #ifndef _contour_template_h
 #define _contour_template_h
 
 #include "complex_contour.h"
 
-
-
-namespace imago{
-	
+namespace imago
+{
 	const int maxACFDescriptorDeviation = 4;
-
 
 	class ContourTemplate
 	{

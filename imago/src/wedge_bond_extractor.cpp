@@ -114,15 +114,11 @@ int WedgeBondExtractor::singleDownFetch(const Settings& vars, Skeleton &g )
       segs_info[i].seginfo_index = i;
    }
 
-//   int f = 0;
-
-   //TODO: maybe better a LOT
    for (size_t i = 0; i < segs_info.size(); i++)
       for (size_t j = i + 1; j < segs_info.size(); j++)
       {
 		  if (segs_info[i].used && segs_info[j].used && fabs(segs_info[i].angle - segs_info[j].angle) < vars.wbe.SomeTresh)
          {
-            //f++;
             DoubleVector distances;
             Vec2d p1 = segs_info[i].center, p2 = segs_info[j].center;   
 
@@ -168,7 +164,7 @@ int WedgeBondExtractor::singleDownFetch(const Settings& vars, Skeleton &g )
 			__PointsCompareDist = vars.wbe.PointsCompareDist;
 			std::sort(cur_points.begin(), cur_points.end(), _pointsCompare);
 
-            //Minimum segments count in single-down bond is 3, right?
+            // Minimum segments count in single-down bond is 3, right?
             if (cur_points.size() >= 3)
             {
                std::vector<IntPair> same_dist_pairs;
@@ -184,7 +180,6 @@ int WedgeBondExtractor::singleDownFetch(const Settings& vars, Skeleton &g )
 
                   for (; l != (int)distances.size(); l++)
                   {
-                     //TODO: Check this with care and tender
 					  if (fabs(distances[l - 1] - distances[l]) > vars.wbe.SingleDownDistancesMax)
                         break;
                   }
@@ -215,18 +210,16 @@ int WedgeBondExtractor::singleDownFetch(const Settings& vars, Skeleton &g )
 					 if (ave_dist > vars.wbe.SingleDownLengthMax)
                         continue;
 
-                     //TODO: check this again
-                     if (segs_info[cur_points[p.first].seginfo_index].used == false ||
-                         segs_info[cur_points[p.second].seginfo_index].used == false)
+                     if (!segs_info[cur_points[p.first].seginfo_index].used ||
+                         !segs_info[cur_points[p.second].seginfo_index].used)
                          continue;
 
-                     double length;
+                     Vec2d p1 = cur_points[p.first].center;
+                     Vec2d p2 = cur_points[p.second].center; 
+					 
+                     double length = Vec2d::distance(p1, p2);
 
-                     Vec2d p1 = cur_points[p.first].center, 
-                        p2 = cur_points[p.second].center, orient;
-
-                     length = Vec2d::distance(p1, p2);
-
+					 Vec2d orient;
                      orient.diff(p2, p1);
                      orient = orient.getNormalized();
 
@@ -244,7 +237,7 @@ int WedgeBondExtractor::singleDownFetch(const Settings& vars, Skeleton &g )
 
                      for (int l = p.first; l <= p.second; l++)
                      {
-                        //TODO: It is not nice deleting elements from deque. 
+                        // mark elements to delete from deque 
                         to_delete_segs.push_back(*cur_points[l].seg_iterator);
                         segs_info[cur_points[l].seginfo_index].used = false;
                      }
@@ -255,7 +248,7 @@ int WedgeBondExtractor::singleDownFetch(const Settings& vars, Skeleton &g )
         }
       }
 
-   //TODO: Not clever enough. Because of deque iterators invalidation after erase
+   // delete elements from queue (note: iterators invalidation after erase)
    for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end();)
    {
       std::vector<Segment *>::iterator res = std::find(to_delete_segs.begin(), to_delete_segs.end(), *it);
@@ -454,18 +447,14 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
    int count = 0;
 
    Skeleton::SkeletonGraph &graph = g.getGraph();
-   //RecognitionSettings &rs = getSettings();
-
+   
    if (g.getEdgesCount() >= 1)
    {
       Image img;
       img.copy(_img);
 	  _bond_length = vars.estimation.AvgBondLength;
 
-      //TODO: Watch out. v.x & v.y can be larger than picture size
-
       _bfs_state.resize(_img.getWidth() * _img.getHeight());
-      //_thicknesses.resize(g.getVerticesCount());
       IntVector iqm_thick;
 
       BGL_FORALL_VERTICES(v, graph, Skeleton::SkeletonGraph) 
@@ -493,9 +482,6 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
       _bfs_state.clear();
    }
 
-//   if (false)
-//      g.drawGraph(_img.getWidth(), _img.getHeight(), "output/graph_su.png");
-
    getLogExt().append("Single-up bonds", count);
 }
 
@@ -506,26 +492,15 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
    if (bond.type != SINGLE)
       return false;
 
-   int r;
-
-   //if (_thicknesses[g.getBondBegin(e1)] >= _thicknesses[g.getBondEnd(e1)])
-      //g.reverseEdge(e1);
-
-   r = _thicknesses[g.getBondEnd(e1)];
-   //if (r / _mean_thickness < vars.wbe.SingleUpRatioEps)
-   //   return false;
+   int r = _thicknesses[g.getBondEnd(e1)];
 
    if (_thicknesses[g.getBondBegin(e1)] / _mean_thickness > vars.wbe.SingleUpRatioEps)
    {
-      //This bond is just thick
+      // This bond is just thick
    }
 
    Vec2d bb = g.getVertexPos(g.getBondBegin(e1));
    Vec2d ee = g.getVertexPos(g.getBondEnd(e1));
-
-#ifdef DEBUG
-   printf("SU: (%lf; %lf) (%lf; %lf)  %lf\n", bb.x, bb.y, ee.x, ee.y, Vec2d::distance(bb, ee));
-#endif
 
    double coef = vars.wbe.SingleUpDefCoeff;
    if (_bond_length < vars.wbe.SingleUpIncLengthTresh)
@@ -553,9 +528,9 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
    Vec2d pa1, pa2, pb1, pb2;
    a1 = a2 = b1 = b2 = 0;
 
-   double A0, B0, C0; //line through b & e
-   double A1, B1, C1; //line orthog (A,B,C) through b
-   double A2, B2, C2; //line orthog (A,B,C) through e
+   double A0, B0, C0; // line through b & e
+   double A1, B1, C1; // line orthogonal (A,B,C) through b
+   double A2, B2, C2; // line orthogonal (A,B,C) through e
    double t;
    
    A0 = b.y - e.y;
@@ -654,13 +629,10 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
       }
    }
 
-   ////printf("%lf   %lf   %lf   %lf\n", a1, a2, b1, b2);
-
    Vec2d p1(pa1);
    Vec2d p2(pa2);
    Vec2d p3(pb2);
    Vec2d p4(pb1);
-
 
    double S1 = fabs(p1.x * p2.y - p2.x * p1.y +
                    p2.x * p3.y - p3.x * p2.y +
@@ -694,7 +666,7 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
       }
       catch (ImagoException &e)
       {
-		  getLogExt().append("_isSingleUp skipped exception", e.what());
+		  getLogExt().append("_isSingleUp ignored exception", e.what());
       }
    }
 

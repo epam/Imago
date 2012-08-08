@@ -99,9 +99,8 @@ void Segmentator::_walkSegment( const Image &img, BitArray &visited,
       x = tmp % width;
       byte b = img.getByte(x, y);
       y -= y_min;
-      x -= x_min;
-      //TODO: do something better
-      if (validColor == 255)
+      x -= x_min;      
+      if (validColor == 255) // compare with white
          b = 0;
       segment->getByte(x, y) = b;
    }

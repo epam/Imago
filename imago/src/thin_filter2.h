@@ -17,6 +17,8 @@
  *
  * @brief   Declares the thinning filter class
  */
+
+#pragma once
 #ifndef _thin_filter2_h
 #define _thin_filter2_h
 

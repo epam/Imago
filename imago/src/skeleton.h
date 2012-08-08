@@ -12,6 +12,7 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
+#pragma once
 #ifndef _skeleton_h
 #define _skeleton_h
 
@@ -55,8 +56,7 @@ namespace imago
       typedef boost::property<boost::edge_type_t, Bond>
          SkeletonEdgeProperties;
 
-      //TODO: Check if setS is really necessary. Parallel edges are forbidden
-      //in Skeleton, but add_vertex works slower.
+      // note: Check if setS is really necessary. Parallel edges are forbidden in Skeleton, but add_vertex works slower.
       typedef boost::adjacency_list<boost::listS, boost::listS, boost::undirectedS,
          SkeletonVertexProperties, SkeletonEdgeProperties> SkeletonGraph;
 
@@ -101,7 +101,6 @@ namespace imago
 
       void clear();
 
-      //TODO: Debug purpose. See graph_extractor.cpp:94, 105
       operator SkeletonGraph(){ return _g; }
       SkeletonGraph &getGraph() { return _g; }
       ~Skeleton();

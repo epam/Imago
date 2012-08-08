@@ -12,6 +12,7 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
+#pragma once
 #ifndef _molecule_h
 #define _molecule_h
 
@@ -32,12 +33,12 @@ namespace imago
 
       Molecule();
 
-      //TODO: One can easily consider these function as encapsulation 
-      //      violation
       const ChemMapping &getMappedLabels() const;
       ChemMapping &getMappedLabels();
+
       const std::deque<Label> &getLabels() const;
       std::deque<Label> &getLabels();
+
       const SkeletonGraph &getSkeleton() const;
       SkeletonGraph &getSkeleton();
 
@@ -47,11 +48,9 @@ namespace imago
 
       void clear();
 
-
       ~Molecule();
 
    private:
-
       ChemMapping _mapping;
       std::deque<Label> _labels;
       std::vector<Label> labels;

@@ -36,9 +36,12 @@ namespace fs = boost::filesystem;
 
 void prefilter(imago::Segment& img)
 {
+	// TODO: use the same pfefilter as in main code to achieve better results
+	const int INK_TRESHOLD = 190;
+
 	for (int x = 0; x < img.getWidth(); x++)
 		for (int y = 0; y < img.getHeight(); y++)
-			if (img.getByte(x,y) < 190) // TODO!!!!!!
+			if (img.getByte(x,y) < INK_TRESHOLD)
 				img.getByte(x,y) = 0;
 			else
 				img.getByte(x,y) = 255;

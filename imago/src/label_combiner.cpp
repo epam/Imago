@@ -105,10 +105,6 @@ int LabelCombiner::_findCapitalHeight(const Settings& vars)
 		}
 	  }
    }
-
-   //TODO: temporary!
-   //if (cap_height == -1)
-     // throw LogicException("Cannot determine CapHeight");
    
    getLogExt().append("Capital height", cap_height);
 
@@ -148,8 +144,8 @@ void LabelCombiner::_locateLabels(const Settings& vars)
 	  Segment *s_e = boost::get(img_ptrs, boost::vertex(boost::target(*ei, seg_graph), seg_graph));
       
       ++next;
-	  if (SegmentTools::getRealDistance(*s_b,*s_e, 0) < distance_constraint &&
-		  SegmentTools::getRealDistance(*s_b,*s_e, 2) < distance_constraint_y )
+	  if (SegmentTools::getRealDistance(*s_b,*s_e, SegmentTools::dtEuclidian) < distance_constraint &&
+		  SegmentTools::getRealDistance(*s_b,*s_e, SegmentTools::dtDeltaY) < distance_constraint_y )
 		  continue;
 	  else
          boost::remove_edge(*ei, seg_graph);

@@ -1,8 +1,9 @@
 @echo -------------------Updating variables-------------------
 
 set FUZZ_LEVEL_FILTERS=0.0
-set FUZZ_LEVEL_LABREM=0.1
-set FUZZ_LEVEL_OTHER=0.1
+set FUZZ_LEVEL_HANDWRITTEN=0.0
+set FUZZ_LEVEL_LABREM=0.15
+set FUZZ_LEVEL_SCANNED=0.1
 set PYTHON_DIR=C:\Python27
 set CPP_COMPILER="C:\Program Files (x86)\Microsoft Visual Studio 10.0\Common7\IDE\devenv.exe"
 set SRC_IMAGES_PATH="K:\Projects\OpenSource\flamingo-dev\progress\test-tools-dev\images"
@@ -22,11 +23,11 @@ set SRC_IMAGES_PATH="K:\Projects\OpenSource\flamingo-dev\progress\test-tools-dev
 @SET TESTTOOLS="%~dp0\tools\testing\"
 @SET TESTTOOLS_IMAGES="%~dp0\tools\testing\images\"
 
-@SET TESTTOOLS_CONSTS_FILTERS="%~dp0\tools\testing\settings_filters.inc"
-@SET TESTTOOLS_CONSTS_HANDWRITTEN="%~dp0\tools\testing\settings_handwritten.inc"
-@SET TESTTOOLS_CONSTS_HIGHRES="%~dp0\tools\testing\settings_highres.inc"
-@SET TESTTOOLS_CONSTS_SCANNED="%~dp0\tools\testing\settings_scanned.inc"
-@SET TESTTOOLS_CONSTS_LABREM="%~dp0\tools\testing\settings_label_remover.inc"
+@SET TESTTOOLS_CONSTS_FILTERS="%~dp0\tools\testing\tmp\settings_filters.inc"
+@SET TESTTOOLS_CONSTS_HANDWRITTEN="%~dp0\tools\testing\tmp\settings_handwritten.inc"
+@SET TESTTOOLS_CONSTS_HIGHRES="%~dp0\tools\testing\tmp\settings_highres.inc"
+@SET TESTTOOLS_CONSTS_SCANNED="%~dp0\tools\testing\tmp\settings_scanned.inc"
+@SET TESTTOOLS_CONSTS_LABREM="%~dp0\tools\testing\tmp\settings_label_remover.inc"
 
 @SET IMAGO_SLN="%~dp0\Imago.sln"
 
@@ -44,8 +45,8 @@ CMake .
 
 @echo -------------------Copying testset-------------------
 
-XCOPY %SRC_IMAGES_PATH%  %TESTTOOLS_IMAGES% /s /c /y >>_fuzzing-logs\log-copy.txt
-@IF %ERRORLEVEL% NEQ 0 GOTO EXIT
+REM XCOPY %SRC_IMAGES_PATH%  %TESTTOOLS_IMAGES% /s /c /y >>_fuzzing-logs\log-copy.txt
+REM @IF %ERRORLEVEL% NEQ 0 GOTO EXIT
 
 @echo -------------------Checking built files-------------------
 
@@ -64,6 +65,8 @@ cd %TESTTOOLS%
 @IF %ERRORLEVEL% NEQ 0 GOTO EXIT
 
 @echo -------------------Entering the loop-------------------
+
+@mkdir tmp 2>NUL
 
 copy %CONSTS_SRC_FILTERS% %TESTTOOLS_CONSTS_FILTERS% >>..\..\_fuzzing-logs\log-copy.txt
 @IF %ERRORLEVEL% NEQ 0 GOTO EXIT
@@ -86,7 +89,6 @@ copy %TIMELIMIT% ".\TimeLimit.exe" >>..\..\_fuzzing-logs\log-copy.txt
 @set /a ITER=0
 
 @mkdir results 2>NUL
-@mkdir tmp 2>NUL
 @mkdir versions 2>NUL
 
 :loop
@@ -100,13 +102,13 @@ copy %TIMELIMIT% ".\TimeLimit.exe" >>..\..\_fuzzing-logs\log-copy.txt
 @%CONSTFUZZ% %TESTTOOLS_CONSTS_FILTERS% %CONSTS_SRC_FILTERS% %FUZZ_LEVEL_FILTERS% -strict >>..\..\_fuzzing-logs\log-fuzz.txt
 @IF %ERRORLEVEL% NEQ 0 GOTO EXIT
 
-@%CONSTFUZZ% %TESTTOOLS_CONSTS_HANDWRITTEN% %CONSTS_SRC_HANDWRITTEN% %FUZZ_LEVEL_OTHER% -strict >>..\..\_fuzzing-logs\log-fuzz.txt
+@%CONSTFUZZ% %TESTTOOLS_CONSTS_HANDWRITTEN% %CONSTS_SRC_HANDWRITTEN% %FUZZ_LEVEL_HANDWRITTEN% -strict >>..\..\_fuzzing-logs\log-fuzz.txt
 @IF %ERRORLEVEL% NEQ 0 GOTO EXIT
 
-@%CONSTFUZZ% %TESTTOOLS_CONSTS_HIGHRES% %CONSTS_SRC_HIGHRES% %FUZZ_LEVEL_OTHER% -strict >>..\..\_fuzzing-logs\log-fuzz.txt
+@%CONSTFUZZ% %TESTTOOLS_CONSTS_HIGHRES% %CONSTS_SRC_HIGHRES% %FUZZ_LEVEL_HANDWRITTEN% -strict >>..\..\_fuzzing-logs\log-fuzz.txt
 @IF %ERRORLEVEL% NEQ 0 GOTO EXIT
 
-@%CONSTFUZZ% %TESTTOOLS_CONSTS_SCANNED% %CONSTS_SRC_SCANNED% %FUZZ_LEVEL_OTHER% -strict >>..\..\_fuzzing-logs\log-fuzz.txt
+@%CONSTFUZZ% %TESTTOOLS_CONSTS_SCANNED% %CONSTS_SRC_SCANNED% %FUZZ_LEVEL_SCANNED% -strict >>..\..\_fuzzing-logs\log-fuzz.txt
 @IF %ERRORLEVEL% NEQ 0 GOTO EXIT
 
 @%CONSTFUZZ% %TESTTOOLS_CONSTS_LABREM% %CONSTS_SRC_LABREM% %FUZZ_LEVEL_LABREM% -strict >>..\..\_fuzzing-logs\log-fuzz.txt
@@ -128,12 +130,13 @@ copy %TIMELIMIT% ".\TimeLimit.exe" >>..\..\_fuzzing-logs\log-copy.txt
 
 @set SCORE=0
 @set /p SCORE=<score.txt
-copy %CONSTS_SRC_FILTERS% "..\..\_fuzzing-results\score%SCORE%_iter%ITER%_settings_filters.inc" >>..\..\_fuzzing-logs\log-copy.txt
-copy %CONSTS_SRC_HANDWRITTEN% "..\..\_fuzzing-results\score%SCORE%_iter%ITER%_settings_handwritten.inc" >>..\..\_fuzzing-logs\log-copy.txt
-copy %CONSTS_SRC_HIGHRES% "..\..\_fuzzing-results\score%SCORE%_iter%ITER%_settings_highres.inc" >>..\..\_fuzzing-logs\log-copy.txt
-copy %CONSTS_SRC_SCANNED% "..\..\_fuzzing-results\score%SCORE%_iter%ITER%_settings_scanned.inc" >>..\..\_fuzzing-logs\log-copy.txt
-copy %CONSTS_SRC_LABREM% "..\..\_fuzzing-results\score%SCORE%_iter%ITER%_settings_label_remover.inc" >>..\..\_fuzzing-logs\log-copy.txt
-copy report.html   "..\..\_fuzzing-results\score%SCORE%_iter%ITER%_report.html" >>..\..\_fuzzing-logs\log-copy.txt
+mkdir                           "..\..\_fuzzing-results\score%SCORE%_iter%ITER%"                            >>..\..\_fuzzing-logs\log-copy.txt
+copy %CONSTS_SRC_FILTERS%       "..\..\_fuzzing-results\score%SCORE%_iter%ITER%\settings_filters.inc"       >>..\..\_fuzzing-logs\log-copy.txt
+copy %CONSTS_SRC_HANDWRITTEN%   "..\..\_fuzzing-results\score%SCORE%_iter%ITER%\settings_handwritten.inc"   >>..\..\_fuzzing-logs\log-copy.txt
+copy %CONSTS_SRC_HIGHRES%       "..\..\_fuzzing-results\score%SCORE%_iter%ITER%\settings_highres.inc"       >>..\..\_fuzzing-logs\log-copy.txt
+copy %CONSTS_SRC_SCANNED%       "..\..\_fuzzing-results\score%SCORE%_iter%ITER%\settings_scanned.inc"       >>..\..\_fuzzing-logs\log-copy.txt
+copy %CONSTS_SRC_LABREM%        "..\..\_fuzzing-results\score%SCORE%_iter%ITER%\settings_label_remover.inc" >>..\..\_fuzzing-logs\log-copy.txt
+copy report.html                "..\..\_fuzzing-results\score%SCORE%_iter%ITER%\report.html"                >>..\..\_fuzzing-logs\log-copy.txt
 
 @goto loop
 

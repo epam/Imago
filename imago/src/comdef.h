@@ -18,6 +18,7 @@
  * @brief  Common definitions
  */
 
+#pragma once
 #ifndef _comdef_h
 #define _comdef_h
 

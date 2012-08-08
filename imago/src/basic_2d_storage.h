@@ -13,7 +13,6 @@
  ***************************************************************************/
 
 #pragma once
-
 #ifndef _basic_2d_storage_h
 #define _basic_2d_storage_h
 

@@ -34,7 +34,7 @@ void GraphExtractor::extract(Settings& vars, const GraphicsDetector &gd, const S
    Image tmp;
    int w = 0, h = 0;
 
-   //TODO: New image here. Is this really necessary? 
+   // recreate image from segments
    BOOST_FOREACH( Segment *s, segments )
    {
       if (s->getX() + s->getWidth() >= w)
@@ -42,6 +42,7 @@ void GraphExtractor::extract(Settings& vars, const GraphicsDetector &gd, const S
       if (s->getY() + s->getHeight() >= h)
          h = s->getY() + s->getHeight();
    }
+
    tmp.init(w + 10, h + 10);
    tmp.fillWhite();
 

@@ -4,73 +4,73 @@ void updateSettingsScanned(Settings &s)
 	s.general.UseProbablistics = false;
 	s.p_estimator.UsePerimeterNormalization = true; 
 
-	FUZZ s.separator.ext2charRatio = 1.743581; // fuzzed, old value = 1.769256
-	FUZZ s.separator.SymProbabilityThresh = 0.593205; // fuzzed, old value = 0.582931
+	FUZZ s.separator.ext2charRatio = 1.774531; // fuzzed, old value = 1.743581
+	FUZZ s.separator.SymProbabilityThresh = 0.594290; // fuzzed, old value = 0.593205
 
-	FUZZ s.molecule.LengthFactor_long = 0.355735; // fuzzed, old value = 0.351291
-	FUZZ s.molecule.LengthFactor_medium = 0.389131; // fuzzed, old value = 0.404442
-	FUZZ s.molecule.LengthFactor_default = 0.462193; // fuzzed, old value = 0.470038
-	FUZZ s.molecule.LengthValue_long = 108.109000; // fuzzed, old value = 109.107607
-	FUZZ s.molecule.LengthValue_medium = 95.312191; // fuzzed, old value = 93.887277
-	FUZZ s.molecule.SpaceMultiply = 1.231943; // fuzzed, old value = 1.337344
-	FUZZ s.molecule.AngleTreshold = 0.272188; // fuzzed, old value = 0.270375
+	FUZZ s.molecule.LengthFactor_long = 0.353589; // fuzzed, old value = 0.355735
+	FUZZ s.molecule.LengthFactor_medium = 0.391335; // fuzzed, old value = 0.389131
+	FUZZ s.molecule.LengthFactor_default = 0.458738; // fuzzed, old value = 0.462193
+	FUZZ s.molecule.LengthValue_long = 103.489779; // fuzzed, old value = 108.109000
+	FUZZ s.molecule.LengthValue_medium = 91.834592; // fuzzed, old value = 95.312191
+	FUZZ s.molecule.SpaceMultiply = 1.187321; // fuzzed, old value = 1.231943
+	FUZZ s.molecule.AngleTreshold = 0.270732; // fuzzed, old value = 0.272188
 	//NormalizeBySide(LengthValue_long, LongestSide);
 	//NormalizeBySide(LengthValue_medium, LongestSide);
 
 	FUZZ s.main.DissolvingsFactor = 9; // fuzzed, old value = 9
 	FUZZ s.main.WarningsRecalcTreshold = 2; // fuzzed, old value = 2
 
-	FUZZ s.estimation.CapitalHeight = 17.194822; // fuzzed, old value = 15.871465
-	FUZZ s.estimation.LineThickness = 7.079233; // fuzzed, old value = 7.153437
-	FUZZ s.estimation.AvgBondLength = 29.416510; // fuzzed, old value = 30.459016
-	FUZZ s.estimation.AddVertexEps = 5.016030; // fuzzed, old value = 5.030846
-	FUZZ s.estimation.MaxSymRatio = 1.069893; // fuzzed, old value = 1.079929
-	FUZZ s.estimation.MinSymRatio = 0.285072; // fuzzed, old value = 0.300973
-	FUZZ s.estimation.ParLinesEps = 0.536698; // fuzzed, old value = 0.555687
-	FUZZ s.estimation.SymHeightErr = 29.022566; // fuzzed, old value = 27.777021
-	FUZZ s.estimation.CapitalHeightError = 0.760701; // fuzzed, old value = 0.840118
-	FUZZ s.estimation.DoubleBondDist = 21; // fuzzed, old value = 21
+	FUZZ s.estimation.CapitalHeight = 16.792724; // fuzzed, old value = 17.194822
+	FUZZ s.estimation.LineThickness = 7.225357; // fuzzed, old value = 7.079233
+	FUZZ s.estimation.AvgBondLength = 28.462608; // fuzzed, old value = 29.416510
+	FUZZ s.estimation.AddVertexEps = 4.995724; // fuzzed, old value = 5.016030
+	FUZZ s.estimation.MaxSymRatio = 1.107000; // fuzzed, old value = 1.069893
+	FUZZ s.estimation.MinSymRatio = 0.285846; // fuzzed, old value = 0.285072
+	FUZZ s.estimation.ParLinesEps = 0.552002; // fuzzed, old value = 0.536698
+	FUZZ s.estimation.SymHeightErr = 27.969571; // fuzzed, old value = 29.022566
+	FUZZ s.estimation.CapitalHeightError = 0.732853; // fuzzed, old value = 0.760701
+	FUZZ s.estimation.DoubleBondDist = 20; // fuzzed, old value = 21
 	FUZZ s.estimation.SegmentVerEps = 4; // fuzzed, old value = 4
-	FUZZ s.estimation.CharactersSpaceCoeff = 0.326633; // fuzzed, old value = 0.354178
-	FUZZ s.estimation.MaxSymbolHeightPercentsOfImage = 0.156462; // fuzzed, old value = 0.154351
+	FUZZ s.estimation.CharactersSpaceCoeff = 0.333673; // fuzzed, old value = 0.326633
+	FUZZ s.estimation.MaxSymbolHeightPercentsOfImage = 0.161271; // fuzzed, old value = 0.156462
 	//NormalizeBySide(SymHeightErr, LongestSide);
 
-	FUZZ s.mbond.LongBond = 99; // fuzzed, old value = 99
-	FUZZ s.mbond.LongErr = 0.353414; // fuzzed, old value = 0.330418
-	FUZZ s.mbond.MediumBond = 83; // fuzzed, old value = 83
-	FUZZ s.mbond.MediumErr = 0.469626; // fuzzed, old value = 0.467820
-	FUZZ s.mbond.DefaultErr = 0.584307; // fuzzed, old value = 0.646498
-	FUZZ s.mbond.ParBondsEps = 0.362610; // fuzzed, old value = 0.336024
-	FUZZ s.mbond.DoubleRatioTresh = 7.061581; // fuzzed, old value = 6.783767
-	FUZZ s.mbond.DoubleCoef = 0.083859; // fuzzed, old value = 0.079666
-	FUZZ s.mbond.DoubleMagic1 = 0.829009; // fuzzed, old value = 0.877534
-	FUZZ s.mbond.DoubleMagic2 = 0.914577; // fuzzed, old value = 0.982159
-	FUZZ s.mbond.DoubleTreshMin = 0.099368; // fuzzed, old value = 0.104439
-	FUZZ s.mbond.DoubleTreshMax = 0.666836; // fuzzed, old value = 0.703464
-	FUZZ s.mbond.MaxLen1 = 163.553226; // fuzzed, old value = 149.019639
-	FUZZ s.mbond.MaxLen2 = 137.180163; // fuzzed, old value = 137.313844
-	FUZZ s.mbond.MaxLen3 = 104.423302; // fuzzed, old value = 100.285129
-	FUZZ s.mbond.MaxLen4 = 119.117034; // fuzzed, old value = 121.342278
-	FUZZ s.mbond.MaxLen5 = 72.624597; // fuzzed, old value = 77.494396
-	FUZZ s.mbond.MinLen1 = 80.577400; // fuzzed, old value = 88.886633
-	FUZZ s.mbond.MinLen2 = 80.076680; // fuzzed, old value = 73.254266
-	FUZZ s.mbond.mbe1 = 0.072552; // fuzzed, old value = 0.076981
-	FUZZ s.mbond.mbe2 = 0.158933; // fuzzed, old value = 0.160999
-	FUZZ s.mbond.mbe3 = 0.167420; // fuzzed, old value = 0.183111
-	FUZZ s.mbond.mbe4 = 0.151161; // fuzzed, old value = 0.162348
-	FUZZ s.mbond.mbe5 = 0.179908; // fuzzed, old value = 0.172933
-	FUZZ s.mbond.mbe6 = 0.216604; // fuzzed, old value = 0.202205
-	FUZZ s.mbond.mbe7 = 0.413698; // fuzzed, old value = 0.379333
-	FUZZ s.mbond.mbe_def = 0.538936; // fuzzed, old value = 0.521695
-	FUZZ s.mbond.DoubleLeftLengthTresh = 0.401010; // fuzzed, old value = 0.366550
-	FUZZ s.mbond.DoubleRightLengthTresh = 0.333789; // fuzzed, old value = 0.310290
-	FUZZ s.mbond.TripleLeftLengthTresh = 0.265374; // fuzzed, old value = 0.253222
-	FUZZ s.mbond.TripleRightLengthTresh = 0.228064; // fuzzed, old value = 0.218196
-	FUZZ s.mbond.Case1LengthTresh = 92.881280; // fuzzed, old value = 91.730416
-	FUZZ s.mbond.Case1Factor = 0.350847; // fuzzed, old value = 0.340534
-	FUZZ s.mbond.Case2LengthTresh = 84.715577; // fuzzed, old value = 91.324005
-	FUZZ s.mbond.Case2Factor = 0.671213; // fuzzed, old value = 0.702939
-	FUZZ s.mbond.Case3Factor = 0.916945; // fuzzed, old value = 1.016236
+	FUZZ s.mbond.LongBond = 97; // fuzzed, old value = 99
+	FUZZ s.mbond.LongErr = 0.358157; // fuzzed, old value = 0.353414
+	FUZZ s.mbond.MediumBond = 84; // fuzzed, old value = 83
+	FUZZ s.mbond.MediumErr = 0.478652; // fuzzed, old value = 0.469626
+	FUZZ s.mbond.DefaultErr = 0.580151; // fuzzed, old value = 0.584307
+	FUZZ s.mbond.ParBondsEps = 0.371063; // fuzzed, old value = 0.362610
+	FUZZ s.mbond.DoubleRatioTresh = 7.014460; // fuzzed, old value = 7.061581
+	FUZZ s.mbond.DoubleCoef = 0.084084; // fuzzed, old value = 0.083859
+	FUZZ s.mbond.DoubleMagic1 = 0.793018; // fuzzed, old value = 0.829009
+	FUZZ s.mbond.DoubleMagic2 = 0.894817; // fuzzed, old value = 0.914577
+	FUZZ s.mbond.DoubleTreshMin = 0.101762; // fuzzed, old value = 0.099368
+	FUZZ s.mbond.DoubleTreshMax = 0.679261; // fuzzed, old value = 0.666836
+	FUZZ s.mbond.MaxLen1 = 162.757846; // fuzzed, old value = 163.553226
+	FUZZ s.mbond.MaxLen2 = 133.088873; // fuzzed, old value = 137.180163
+	FUZZ s.mbond.MaxLen3 = 107.205894; // fuzzed, old value = 104.423302
+	FUZZ s.mbond.MaxLen4 = 116.339139; // fuzzed, old value = 119.117034
+	FUZZ s.mbond.MaxLen5 = 74.485371; // fuzzed, old value = 72.624597
+	FUZZ s.mbond.MinLen1 = 77.318967; // fuzzed, old value = 80.577400
+	FUZZ s.mbond.MinLen2 = 82.623997; // fuzzed, old value = 80.076680
+	FUZZ s.mbond.mbe1 = 0.072101; // fuzzed, old value = 0.072552
+	FUZZ s.mbond.mbe2 = 0.161936; // fuzzed, old value = 0.158933
+	FUZZ s.mbond.mbe3 = 0.170567; // fuzzed, old value = 0.167420
+	FUZZ s.mbond.mbe4 = 0.153941; // fuzzed, old value = 0.151161
+	FUZZ s.mbond.mbe5 = 0.179342; // fuzzed, old value = 0.179908
+	FUZZ s.mbond.mbe6 = 0.206701; // fuzzed, old value = 0.216604
+	FUZZ s.mbond.mbe7 = 0.405372; // fuzzed, old value = 0.413698
+	FUZZ s.mbond.mbe_def = 0.555370; // fuzzed, old value = 0.538936
+	FUZZ s.mbond.DoubleLeftLengthTresh = 0.394318; // fuzzed, old value = 0.401010
+	FUZZ s.mbond.DoubleRightLengthTresh = 0.333874; // fuzzed, old value = 0.333789
+	FUZZ s.mbond.TripleLeftLengthTresh = 0.266706; // fuzzed, old value = 0.265374
+	FUZZ s.mbond.TripleRightLengthTresh = 0.234583; // fuzzed, old value = 0.228064
+	FUZZ s.mbond.Case1LengthTresh = 91.059909; // fuzzed, old value = 92.881280
+	FUZZ s.mbond.Case1Factor = 0.350568; // fuzzed, old value = 0.350847
+	FUZZ s.mbond.Case2LengthTresh = 88.513132; // fuzzed, old value = 84.715577
+	FUZZ s.mbond.Case2Factor = 0.656119; // fuzzed, old value = 0.671213
+	FUZZ s.mbond.Case3Factor = 0.911078; // fuzzed, old value = 0.916945
 	//NormalizeBySide(LongBond, LongestSide);
 	//NormalizeBySide(MediumBond, LongestSide);
 	//NormalizeBySide(MaxLen1, LongestSide);
@@ -81,155 +81,155 @@ void updateSettingsScanned(Settings &s)
 	//NormalizeBySide(MinLen1, LongestSide);
 	//NormalizeBySide(MinLen2, LongestSide);
 
-	FUZZ s.skeleton.BaseMult = 0.107111; // fuzzed, old value = 0.117493
-	FUZZ s.skeleton.BaseSmallErr = 0.142183; // fuzzed, old value = 0.140523
-	FUZZ s.skeleton.ShortBondLen = 22; // fuzzed, old value = 23
-	FUZZ s.skeleton.ShortMul = 0.324503; // fuzzed, old value = 0.314905
-	FUZZ s.skeleton.MediumBondLen = 96; // fuzzed, old value = 89
-	FUZZ s.skeleton.MediumMul = 0.183817; // fuzzed, old value = 0.175681
-	FUZZ s.skeleton.MediumSmallErr = 0.134083; // fuzzed, old value = 0.146688
-	FUZZ s.skeleton.LongBondLen = 95; // fuzzed, old value = 97
-	FUZZ s.skeleton.LongMul = 0.142501; // fuzzed, old value = 0.151669
-	FUZZ s.skeleton.LongSmallErr = 0.059993; // fuzzed, old value = 0.056926
-	FUZZ s.skeleton.BrokenRepairFactor = 3.575462; // fuzzed, old value = 3.447391
-	FUZZ s.skeleton.BrokenRepairCoef1 = 1.062723; // fuzzed, old value = 1.059048
-	FUZZ s.skeleton.BrokenRepairCoef2 = 3.258597; // fuzzed, old value = 3.354175
-	FUZZ s.skeleton.BrokenRepairAngleEps = 0.176828; // fuzzed, old value = 0.192246
-	FUZZ s.skeleton.DissolveMinErr = 0.196044; // fuzzed, old value = 0.185388
-	FUZZ s.skeleton.ConnectBlockS = 9.771269; // fuzzed, old value = 9.996446
-	FUZZ s.skeleton.ConnectFactor = 2.512766; // fuzzed, old value = 2.335045
-	FUZZ s.skeleton.JoinVerticiesConst = 0.102945; // fuzzed, old value = 0.110547
-	FUZZ s.skeleton.DissolveConst = 0.101335; // fuzzed, old value = 0.098174
-	FUZZ s.skeleton.Dissolve2Const = 0.207443; // fuzzed, old value = 0.193516
-	FUZZ s.skeleton.Join2Const = 0.223819; // fuzzed, old value = 0.223900
-	FUZZ s.skeleton.Join3Const = 0.164641; // fuzzed, old value = 0.173121
-	FUZZ s.skeleton.DistTreshLimFactor = 2.059933; // fuzzed, old value = 2.128537
-	FUZZ s.skeleton.SlopeFact1 = 0.086924; // fuzzed, old value = 0.088477
-	FUZZ s.skeleton.SlopeFact2 = 0.166295; // fuzzed, old value = 0.164530
-	FUZZ s.skeleton.ShrinkEps = 0.147193; // fuzzed, old value = 0.146069
+	FUZZ s.skeleton.BaseMult = 0.105446; // fuzzed, old value = 0.107111
+	FUZZ s.skeleton.BaseSmallErr = 0.142150; // fuzzed, old value = 0.142183
+	FUZZ s.skeleton.ShortBondLen = 23; // fuzzed, old value = 22
+	FUZZ s.skeleton.ShortMul = 0.319675; // fuzzed, old value = 0.324503
+	FUZZ s.skeleton.MediumBondLen = 97; // fuzzed, old value = 96
+	FUZZ s.skeleton.MediumMul = 0.174741; // fuzzed, old value = 0.183817
+	FUZZ s.skeleton.MediumSmallErr = 0.130133; // fuzzed, old value = 0.134083
+	FUZZ s.skeleton.LongBondLen = 92; // fuzzed, old value = 95
+	FUZZ s.skeleton.LongMul = 0.143128; // fuzzed, old value = 0.142501
+	FUZZ s.skeleton.LongSmallErr = 0.058402; // fuzzed, old value = 0.059993
+	FUZZ s.skeleton.BrokenRepairFactor = 3.530762; // fuzzed, old value = 3.575462
+	FUZZ s.skeleton.BrokenRepairCoef1 = 1.051655; // fuzzed, old value = 1.062723
+	FUZZ s.skeleton.BrokenRepairCoef2 = 3.183927; // fuzzed, old value = 3.258597
+	FUZZ s.skeleton.BrokenRepairAngleEps = 0.177702; // fuzzed, old value = 0.176828
+	FUZZ s.skeleton.DissolveMinErr = 0.193186; // fuzzed, old value = 0.196044
+	FUZZ s.skeleton.ConnectBlockS = 9.737110; // fuzzed, old value = 9.771269
+	FUZZ s.skeleton.ConnectFactor = 2.567178; // fuzzed, old value = 2.512766
+	FUZZ s.skeleton.JoinVerticiesConst = 0.100176; // fuzzed, old value = 0.102945
+	FUZZ s.skeleton.DissolveConst = 0.099488; // fuzzed, old value = 0.101335
+	FUZZ s.skeleton.Dissolve2Const = 0.204460; // fuzzed, old value = 0.207443
+	FUZZ s.skeleton.Join2Const = 0.218853; // fuzzed, old value = 0.223819
+	FUZZ s.skeleton.Join3Const = 0.158067; // fuzzed, old value = 0.164641
+	FUZZ s.skeleton.DistTreshLimFactor = 2.011705; // fuzzed, old value = 2.059933
+	FUZZ s.skeleton.SlopeFact1 = 0.084126; // fuzzed, old value = 0.086924
+	FUZZ s.skeleton.SlopeFact2 = 0.171282; // fuzzed, old value = 0.166295
+	FUZZ s.skeleton.ShrinkEps = 0.148880; // fuzzed, old value = 0.147193
 	//NormalizeBySide(ShortBondLen, LongestSide);
 	//NormalizeBySide(MediumBondLen, LongestSide);
 	//NormalizeBySide(LongBondLen, LongestSide);
 
 	FUZZ s.routines.LineThick_Grid = 10; // fuzzed, old value = 10
 	
-	FUZZ s.routines.Circle_GapRadiusMax = 1.240496; // fuzzed, old value = 1.141885
-	FUZZ s.routines.Circle_GapAngleMax = 0.203999; // fuzzed, old value = 0.215571
-	FUZZ s.routines.Circle_MinRadius = 6.317388; // fuzzed, old value = 6.428329
-	FUZZ s.routines.Circle_MaxDeviation = 0.008787; // fuzzed, old value = 0.009418
-	FUZZ s.routines.Circle_AsCharFactor = 1.058451; // fuzzed, old value = 0.981736
-	FUZZ s.routines.Algebra_IntersectionEps = 0.012047; // fuzzed, old value = 0.011680
-	FUZZ s.routines.Algebra_SameLineEps = 0.225165; // fuzzed, old value = 0.230627
-	FUZZ s.routines.Approx_Eps1 = 0.970654; // fuzzed, old value = 1.060099
-	FUZZ s.routines.Approx_Eps2 = 0.802213; // fuzzed, old value = 0.880628
-	FUZZ s.routines.Approx_CalcLineTresh = 0.811790; // fuzzed, old value = 0.829363
-	FUZZ s.routines.Contour_Eps1 = 0.988044; // fuzzed, old value = 0.956695
-	FUZZ s.routines.Contour_Eps2 = 0.628422; // fuzzed, old value = 0.667673
+	FUZZ s.routines.Circle_GapRadiusMax = 1.219945; // fuzzed, old value = 1.240496
+	FUZZ s.routines.Circle_GapAngleMax = 0.211626; // fuzzed, old value = 0.203999
+	FUZZ s.routines.Circle_MinRadius = 6.056196; // fuzzed, old value = 6.317388
+	FUZZ s.routines.Circle_MaxDeviation = 0.009138; // fuzzed, old value = 0.008787
+	FUZZ s.routines.Circle_AsCharFactor = 1.087470; // fuzzed, old value = 1.058451
+	FUZZ s.routines.Algebra_IntersectionEps = 0.012304; // fuzzed, old value = 0.012047
+	FUZZ s.routines.Algebra_SameLineEps = 0.218254; // fuzzed, old value = 0.225165
+	FUZZ s.routines.Approx_Eps1 = 0.960157; // fuzzed, old value = 0.970654
+	FUZZ s.routines.Approx_Eps2 = 0.825622; // fuzzed, old value = 0.802213
+	FUZZ s.routines.Approx_CalcLineTresh = 0.802077; // fuzzed, old value = 0.811790
+	FUZZ s.routines.Contour_Eps1 = 0.980031; // fuzzed, old value = 0.988044
+	FUZZ s.routines.Contour_Eps2 = 0.652436; // fuzzed, old value = 0.628422
 
 	FUZZ s.wbe.PointsCompareDist = 3; // fuzzed, old value = 3
 	
 	FUZZ s.wbe.SingleDownCompareDist = 2; // fuzzed, old value = 2
-	FUZZ s.wbe.SingleDownEps = 2.561631; // fuzzed, old value = 2.543398
-	FUZZ s.wbe.SingleDownAngleMax = 47.478388; // fuzzed, old value = 43.264439
-	FUZZ s.wbe.SingleDownDistancesMax = 10.151706; // fuzzed, old value = 10.653749
-	FUZZ s.wbe.SingleDownLengthMax = 51.932546; // fuzzed, old value = 48.948885
-	FUZZ s.wbe.SomeTresh = 0.133258; // fuzzed, old value = 0.12642
+	FUZZ s.wbe.SingleDownEps = 2.586511; // fuzzed, old value = 2.561631
+	FUZZ s.wbe.SingleDownAngleMax = 49.546430; // fuzzed, old value = 47.478388
+	FUZZ s.wbe.SingleDownDistancesMax = 10.507451; // fuzzed, old value = 10.151706
+	FUZZ s.wbe.SingleDownLengthMax = 50.707336; // fuzzed, old value = 51.932546
+	FUZZ s.wbe.SomeTresh = 0.129289; // fuzzed, old value = 0.133258
 
-	FUZZ s.wbe.SingleUpRatioEps = 1.549140; // fuzzed, old value = 1.549400
-	FUZZ s.wbe.SingleUpDefCoeff = 0.283414; // fuzzed, old value = 0.268526
-	FUZZ s.wbe.SingleUpIncCoeff = 0.428110; // fuzzed, old value = 0.472888
-	FUZZ s.wbe.SingleUpIncLengthTresh = 34.415397; // fuzzed, old value = 37.410696
-	FUZZ s.wbe.SingleUpInterpolateEps = 0.072223; // fuzzed, old value = 0.069428
-	FUZZ s.wbe.SingleUpMagicAddition = 0.206708; // fuzzed, old value = 0.225687
-	FUZZ s.wbe.SingleUpS2Divisor = 1.558116; // fuzzed, old value = 1.427519
-	FUZZ s.wbe.SingleUpMinATresh = 1.613488; // fuzzed, old value = 1.753776
-	FUZZ s.wbe.SingleUpSquareRatio = 0.565263; // fuzzed, old value = 0.576619
-	FUZZ s.wbe.SingleUpAngleTresh = 0.075684; // fuzzed, old value = 0.073703
+	FUZZ s.wbe.SingleUpRatioEps = 1.531990; // fuzzed, old value = 1.549140
+	FUZZ s.wbe.SingleUpDefCoeff = 0.289316; // fuzzed, old value = 0.283414
+	FUZZ s.wbe.SingleUpIncCoeff = 0.447693; // fuzzed, old value = 0.428110
+	FUZZ s.wbe.SingleUpIncLengthTresh = 34.588540; // fuzzed, old value = 34.415397
+	FUZZ s.wbe.SingleUpInterpolateEps = 0.071319; // fuzzed, old value = 0.072223
+	FUZZ s.wbe.SingleUpMagicAddition = 0.211217; // fuzzed, old value = 0.206708
+	FUZZ s.wbe.SingleUpS2Divisor = 1.613958; // fuzzed, old value = 1.558116
+	FUZZ s.wbe.SingleUpMinATresh = 1.624018; // fuzzed, old value = 1.613488
+	FUZZ s.wbe.SingleUpSquareRatio = 0.573586; // fuzzed, old value = 0.565263
+	FUZZ s.wbe.SingleUpAngleTresh = 0.075966; // fuzzed, old value = 0.075684
 	//NormalizeBySide(SingleDownDistancesMax, LongestSide);
 	//NormalizeBySide(SingleUpIncLengthTresh, LongestSide);
 
 	s.characters.HackFor3Use = false;
-	FUZZ s.characters.MaximalEndpointsUse = 6; // fuzzed, old value = 7
+	FUZZ s.characters.MaximalEndpointsUse = 6; // fuzzed, old value = 6
 	FUZZ s.characters.ImpossibleToWriteDelta = 1; // fuzzed, old value = 1
-	FUZZ s.characters.WriteProbablyImpossibleFactor = 1.029738; // fuzzed, old value = 1.087160
-	FUZZ s.characters.WriteSurelyImpossibleFactor = 1.195352; // fuzzed, old value = 1.220392
-	FUZZ s.characters.WriteEasyFactor = 0.987334; // fuzzed, old value = 1.020712
-	FUZZ s.characters.WriteVeryEasyFactor = 1.015028; // fuzzed, old value = 0.981309
+	FUZZ s.characters.WriteProbablyImpossibleFactor = 1.055716; // fuzzed, old value = 1.029738
+	FUZZ s.characters.WriteSurelyImpossibleFactor = 1.164232; // fuzzed, old value = 1.195352
+	FUZZ s.characters.WriteEasyFactor = 1.008169; // fuzzed, old value = 0.987334
+	FUZZ s.characters.WriteVeryEasyFactor = 1.027080; // fuzzed, old value = 1.015028
 	FUZZ s.characters.DefaultFourierClassesUse = 3; // fuzzed, old value = 3
-	FUZZ s.characters.PossibleCharacterDistanceStrong = 2.996088; // fuzzed, old value = 2.918605
-	FUZZ s.characters.PossibleCharacterDistanceWeak = 3.173687; // fuzzed, old value = 3.088471
-	FUZZ s.characters.PossibleCharacterMinimalQuality = 0.085981; // fuzzed, old value = 0.092541
-	FUZZ s.characters.DescriptorsOddFactorStrong = 2.710389; // fuzzed, old value = 2.615505
-	FUZZ s.characters.DescriptorsEvenFactorStrong = 4.133139; // fuzzed, old value = 4.122759
-	FUZZ s.characters.DescriptorsOddFactorWeak = 0.967056; // fuzzed, old value = 0.995146
-	FUZZ s.characters.DescriptorsEvenFactorWeak = 0.267291; // fuzzed, old value = 0.276531
-	FUZZ s.characters.X_Quality = 0.104308; // fuzzed, old value = 0.098890
+	FUZZ s.characters.PossibleCharacterDistanceStrong = 2.946004; // fuzzed, old value = 2.996088
+	FUZZ s.characters.PossibleCharacterDistanceWeak = 3.302985; // fuzzed, old value = 3.173687
+	FUZZ s.characters.PossibleCharacterMinimalQuality = 0.089897; // fuzzed, old value = 0.085981
+	FUZZ s.characters.DescriptorsOddFactorStrong = 2.633044; // fuzzed, old value = 2.710389
+	FUZZ s.characters.DescriptorsEvenFactorStrong = 4.163078; // fuzzed, old value = 4.133139
+	FUZZ s.characters.DescriptorsOddFactorWeak = 0.972565; // fuzzed, old value = 0.967056
+	FUZZ s.characters.DescriptorsEvenFactorWeak = 0.268273; // fuzzed, old value = 0.267291
+	FUZZ s.characters.X_Quality = 0.109278; // fuzzed, old value = 0.104308
 	FUZZ s.characters.MinEndpointsPossible = 4; // fuzzed, old value = 4
 	
 	s.csr.UseDPApproximator = false;
-	FUZZ s.csr.Dissolve = 0.523496; // fuzzed, old value = 0.580034
-	FUZZ s.csr.DeleteBadTriangles = 2.009109; // fuzzed, old value = 1.975545
+	FUZZ s.csr.Dissolve = 0.502633; // fuzzed, old value = 0.523496
+	FUZZ s.csr.DeleteBadTriangles = 2.008064; // fuzzed, old value = 2.009109
 	FUZZ s.csr.WeakSegmentatorDist = 1; // fuzzed, old value = 1
-	FUZZ s.csr.LineVectorizationFactor = 1.501167; // fuzzed, old value = 1.576224
+	FUZZ s.csr.LineVectorizationFactor = 1.574297; // fuzzed, old value = 1.501167
 
-	FUZZ s.graph.MinimalDistTresh = 2.367689; // fuzzed, old value = 2.176209
-	FUZZ s.graph.RatioSub = 0.870463; // fuzzed, old value = 0.954494
-	FUZZ s.graph.RatioTresh = 0.500043; // fuzzed, old value = 0.519574
+	FUZZ s.graph.MinimalDistTresh = 2.466159; // fuzzed, old value = 2.367689
+	FUZZ s.graph.RatioSub = 0.893443; // fuzzed, old value = 0.870463
+	FUZZ s.graph.RatioTresh = 0.477176; // fuzzed, old value = 0.500043
 
-	FUZZ s.utils.SlashLineDensity = 0.430484; // fuzzed, old value = 0.391473
-	FUZZ s.utils.TestPlusDensity = 0.436217; // fuzzed, old value = 0.456812
-	FUZZ s.utils.TestPlusSq = 0.524485; // fuzzed, old value = 0.481167
-	FUZZ s.utils.TestMinusRatio = 0.302269; // fuzzed, old value = 0.309565
-	FUZZ s.utils.TestMinusDensity = 0.573194; // fuzzed, old value = 0.597853
-	FUZZ s.utils.TestMinusHeightFactor = 0.858968; // fuzzed, old value = 0.828293
+	FUZZ s.utils.SlashLineDensity = 0.411511; // fuzzed, old value = 0.430484
+	FUZZ s.utils.TestPlusDensity = 0.457418; // fuzzed, old value = 0.436217
+	FUZZ s.utils.TestPlusSq = 0.507304; // fuzzed, old value = 0.524485
+	FUZZ s.utils.TestMinusRatio = 0.303036; // fuzzed, old value = 0.302269
+	FUZZ s.utils.TestMinusDensity = 0.590034; // fuzzed, old value = 0.573194
+	FUZZ s.utils.TestMinusHeightFactor = 0.843076; // fuzzed, old value = 0.858968
 
-	FUZZ s.separator.hu_1_1 = 0.221018; // fuzzed, old value = 0.226285
-	FUZZ s.separator.hu_1_2 = 0.095080; // fuzzed, old value = 0.096703
-	FUZZ s.separator.hu_0_1 = 0.176212; // fuzzed, old value = 0.187522
-	FUZZ s.separator.hu_1_3 = 0.101366; // fuzzed, old value = 0.093465
-	FUZZ s.separator.hu_0_2 = 0.237451; // fuzzed, old value = 0.219675
+	FUZZ s.separator.hu_1_1 = 0.217657; // fuzzed, old value = 0.221018
+	FUZZ s.separator.hu_1_2 = 0.092536; // fuzzed, old value = 0.095080
+	FUZZ s.separator.hu_0_1 = 0.181678; // fuzzed, old value = 0.176212
+	FUZZ s.separator.hu_1_3 = 0.099738; // fuzzed, old value = 0.101366
+	FUZZ s.separator.hu_0_2 = 0.239692; // fuzzed, old value = 0.237451
 	FUZZ s.separator.ltFactor1 = 3; // fuzzed, old value = 3
-	FUZZ s.separator.capHeightMin = 0.492599; // fuzzed, old value = 0.496290
-	FUZZ s.separator.capHeightMax = 1.645412; // fuzzed, old value = 1.580132
-	FUZZ s.separator.gdConst = 1.544403; // fuzzed, old value = 1.419209
-	FUZZ s.separator.SurfCoef = 3.243341; // fuzzed, old value = 3.408475
-	FUZZ s.separator.capHeightRatio = 0.339706; // fuzzed, old value = 0.309119
-	FUZZ s.separator.capHeightRatio2 = 2.128121; // fuzzed, old value = 1.941788
-	FUZZ s.separator.getRatio1 = 0.944537; // fuzzed, old value = 1.012415
-	FUZZ s.separator.getRatio2 = 1.302321; // fuzzed, old value = 1.300935
-	FUZZ s.separator.testSlashLine1 = 2.818022; // fuzzed, old value = 2.905606
-	FUZZ s.separator.testSlashLine2 = 2.530549; // fuzzed, old value = 2.772313
-	FUZZ s.separator.minDensity = 0.189583; // fuzzed, old value = 0.203843
-	FUZZ s.separator.maxDensity = 0.919619; // fuzzed, old value = 0.869230
-	FUZZ s.separator.extCapHeightMin = 0.293347; // fuzzed, old value = 0.271218
-	FUZZ s.separator.extCapHeightMax = 2.197903; // fuzzed, old value = 2.094510
-	FUZZ s.separator.extRatioMin = 0.287754; // fuzzed, old value = 0.303654
-	FUZZ s.separator.extRatioMax = 1.412397; // fuzzed, old value = 1.418671
+	FUZZ s.separator.capHeightMin = 0.487291; // fuzzed, old value = 0.492599
+	FUZZ s.separator.capHeightMax = 1.585603; // fuzzed, old value = 1.645412
+	FUZZ s.separator.gdConst = 1.528281; // fuzzed, old value = 1.544403
+	FUZZ s.separator.SurfCoef = 3.231201; // fuzzed, old value = 3.243341
+	FUZZ s.separator.capHeightRatio = 0.331877; // fuzzed, old value = 0.339706
+	FUZZ s.separator.capHeightRatio2 = 2.171431; // fuzzed, old value = 2.128121
+	FUZZ s.separator.getRatio1 = 0.963598; // fuzzed, old value = 0.944537
+	FUZZ s.separator.getRatio2 = 1.329942; // fuzzed, old value = 1.302321
+	FUZZ s.separator.testSlashLine1 = 2.803440; // fuzzed, old value = 2.818022
+	FUZZ s.separator.testSlashLine2 = 2.426928; // fuzzed, old value = 2.530549
+	FUZZ s.separator.minDensity = 0.192539; // fuzzed, old value = 0.189583
+	FUZZ s.separator.maxDensity = 0.951803; // fuzzed, old value = 0.919619
+	FUZZ s.separator.extCapHeightMin = 0.307928; // fuzzed, old value = 0.293347
+	FUZZ s.separator.extCapHeightMax = 2.234919; // fuzzed, old value = 2.197903
+	FUZZ s.separator.extRatioMin = 0.299709; // fuzzed, old value = 0.287754
+	FUZZ s.separator.extRatioMax = 1.354984; // fuzzed, old value = 1.412397
 	FUZZ s.separator.minApproxSegsStrong = 4; // fuzzed, old value = 4
-	FUZZ s.separator.minApproxSegsWeak = 9; // fuzzed, old value = 8
+	FUZZ s.separator.minApproxSegsWeak = 9; // fuzzed, old value = 9
 	FUZZ s.separator.specialSegmentsTreat = 4; // fuzzed, old value = 4
 	FUZZ s.separator.UseVoteArray = false; // fuzzed, old value = false
 
-	FUZZ s.labels.underlinePos = 0.411072; // fuzzed, old value = 0.377250
-	FUZZ s.labels.weightUnderline = 0.272381; // fuzzed, old value = 0.290914
-	FUZZ s.labels.ratioBase = 0.668668; // fuzzed, old value = 0.698448
-	FUZZ s.labels.ratioWeight = 0.272612; // fuzzed, old value = 0.289062
-	FUZZ s.labels.adjustDec = 1.293263; // fuzzed, old value = 1.370973
-	FUZZ s.labels.adjustInc = 0.839069; // fuzzed, old value = 0.793203
-	FUZZ s.labels.sameLineEps = 0.096047; // fuzzed, old value = 0.105948
-	FUZZ s.labels.heightRatio = 0.775791; // fuzzed, old value = 0.724848
-	FUZZ s.labels.medHeightFactor = 0.591175; // fuzzed, old value = 0.542632
-	FUZZ s.labels.capHeightError = 0.518909; // fuzzed, old value = 0.480263
+	FUZZ s.labels.underlinePos = 0.429213; // fuzzed, old value = 0.411072
+	FUZZ s.labels.weightUnderline = 0.280091; // fuzzed, old value = 0.272381
+	FUZZ s.labels.ratioBase = 0.662331; // fuzzed, old value = 0.668668
+	FUZZ s.labels.ratioWeight = 0.261594; // fuzzed, old value = 0.272612
+	FUZZ s.labels.adjustDec = 1.339033; // fuzzed, old value = 1.293263
+	FUZZ s.labels.adjustInc = 0.804306; // fuzzed, old value = 0.839069
+	FUZZ s.labels.sameLineEps = 0.094947; // fuzzed, old value = 0.096047
+	FUZZ s.labels.heightRatio = 0.772778; // fuzzed, old value = 0.775791
+	FUZZ s.labels.medHeightFactor = 0.616474; // fuzzed, old value = 0.591175
+	FUZZ s.labels.capHeightError = 0.497631; // fuzzed, old value = 0.518909
 
-	FUZZ s.lcomb.MaximalSymbolRecognitionDistance = 2.586887; // fuzzed, old value = 2.802531
-	FUZZ s.lcomb.MaximalDistanceFactor = 0.573271; // fuzzed, old value = 0.594233
-	FUZZ s.lcomb.MaximalYDistanceFactor = 0.215002; // fuzzed, old value = 0.218836
-	FUZZ s.lcomb.FillLabelFactor1 = 0.502944; // fuzzed, old value = 0.480044
-	FUZZ s.lcomb.FillLabelFactor2 = 0.537351; // fuzzed, old value = 0.561935
+	FUZZ s.lcomb.MaximalSymbolRecognitionDistance = 2.582944; // fuzzed, old value = 2.586887
+	FUZZ s.lcomb.MaximalDistanceFactor = 0.570641; // fuzzed, old value = 0.573271
+	FUZZ s.lcomb.MaximalYDistanceFactor = 0.208459; // fuzzed, old value = 0.215002
+	FUZZ s.lcomb.FillLabelFactor1 = 0.487336; // fuzzed, old value = 0.502944
+	FUZZ s.lcomb.FillLabelFactor2 = 0.539997; // fuzzed, old value = 0.537351
 
-	FUZZ s.p_estimator.DefaultApriority = 0.522938; // fuzzed, old value = 0.503351
-	FUZZ s.p_estimator.ApriorProb4SymbolCase = 0.754731; // fuzzed, old value = 0.835807
-	FUZZ s.p_estimator.MinRatio2ConsiderGrPr = 0.264833; // fuzzed, old value = 0.249019
-	FUZZ s.p_estimator.LogisticScale = 1.031566; // fuzzed, old value = 1.078106
-	FUZZ s.p_estimator.LogisticLocation = 0.952955; // fuzzed, old value = 0.999942
+	FUZZ s.p_estimator.DefaultApriority = 0.546622; // fuzzed, old value = 0.522938
+	FUZZ s.p_estimator.ApriorProb4SymbolCase = 0.737595; // fuzzed, old value = 0.754731
+	FUZZ s.p_estimator.MinRatio2ConsiderGrPr = 0.259158; // fuzzed, old value = 0.264833
+	FUZZ s.p_estimator.LogisticScale = 0.993478; // fuzzed, old value = 1.031566
+	FUZZ s.p_estimator.LogisticLocation = 0.908998; // fuzzed, old value = 0.952955
 }

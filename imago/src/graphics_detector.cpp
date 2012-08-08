@@ -319,8 +319,7 @@ void GraphicsDetector::analyzeUnmappedLabels( std::deque<Label> &unmapped_labels
 
    BOOST_FOREACH( Label &l, unmapped_labels )
    {
-      //TODO: More convenient criteria here
-      //      like 'No O inside convex polygon'
+	   // this code is not required now
       /*if (l.satom.atoms[0].label_first == 'O')
       {
          ring_centers.push_back(l.symbols[0]->getCenter());

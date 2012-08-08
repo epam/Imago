@@ -18,6 +18,7 @@
  * @brief  Complex numbers
  */
 
+#pragma once
 #ifndef _complex_number_h
 #define _complex_number_h
 

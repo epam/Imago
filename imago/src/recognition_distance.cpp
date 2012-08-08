@@ -1,3 +1,17 @@
+/****************************************************************************
+ * Copyright (C) 2009-2012 GGA Software Services LLC
+ * 
+ * This file is part of Imago toolkit.
+ * 
+ * This file may be distributed and/or modified under the terms of the
+ * GNU General Public License version 3 as published by the Free Software
+ * Foundation and appearing in the file LICENSE.GPL included in the
+ * packaging of this file.
+ * 
+ * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
+ * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
+ ***************************************************************************/
+
 #include "recognition_distance.h"
 #include <algorithm>
 #include "log_ext.h"
@@ -21,8 +35,8 @@ namespace imago
 
 	void RecognitionDistance::adjust(double factor, const std::string& sym_set)
 	{
-		//logEnterFunction();
 		getLogExt().append("Distance map adjust for " + sym_set, factor);
+
 		for (size_t u = 0; u < sym_set.size(); u++)
 			if (this->find(sym_set[u]) != this->end())
 				(*this)[sym_set[u]] *= factor;

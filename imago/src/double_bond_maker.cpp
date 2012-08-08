@@ -77,8 +77,6 @@ void DoubleBondMaker::_disconnect( Vertex a, Vertex b, const Vertex *third )
 
 DoubleBondMaker::Result DoubleBondMaker::_simple()
 {
-   // DP: commented that; needed a quick fix
-
    int dfb = boost::degree(fb, _g), dfe = boost::degree(fe, _g),
        dsb = boost::degree(sb, _g), dse = boost::degree(se, _g);
 
@@ -113,39 +111,7 @@ DoubleBondMaker::Result DoubleBondMaker::_simple()
       _s._reconnectBonds(fe, ne);
       _s._reconnectBonds(se, ne);
       std::set<Vertex> toRemove;
-      /*
-   {
-      double len_f = (boost::get(boost::edge_type, _g, first)).length;
-      double len_s = (boost::get(boost::edge_type, _g, second)).length;
-      
 
-      // keep the larger one
-      if (len_f > len_s)
-      {
-         _s._reconnectBonds(sb, fb);
-         _s._reconnectBonds(se, fe);
-         if (boost::degree(sb, _g) == 0)
-            toRemove.insert(sb);
-         if (boost::degree(se, _g) == 0)
-            toRemove.insert(se);
-         _s.setBondType(first, DOUBLE);
-      }
-      else
-      {
-         _s._reconnectBonds(fb, sb);
-         _s._reconnectBonds(fe, se);
-         if (boost::degree(fb, _g) == 0)
-            toRemove.insert(fb);
-         if (boost::degree(fe, _g) == 0)
-            toRemove.insert(fe);
-         _s.setBondType(second, DOUBLE);
-      }
-      */
-
-
-      //TODO: Delete them now or later?
-      //Some vars may point to the same vertex, so this will cause segfault
-      
       if (boost::degree(fb, _g) == 0)
          toRemove.insert(fb);
       if (boost::degree(sb, _g) == 0)
@@ -155,13 +121,12 @@ DoubleBondMaker::Result DoubleBondMaker::_simple()
       if (boost::degree(se, _g) == 0)
          toRemove.insert(se);
 
-
       BOOST_FOREACH(Vertex v, toRemove)
       {
          boost::remove_vertex(v, _g);
       }
-      //DP: commented this too
-      _s.addBond(nb, ne, DOUBLE);
+
+	  _s.addBond(nb, ne, DOUBLE);
    }
 
    return make_tuple(0, empty, empty);
@@ -258,9 +223,6 @@ DoubleBondMaker::Result DoubleBondMaker::operator()( std::pair<Edge,Edge> edges 
       std::swap(sb_pos, se_pos);
    }
 
-//   if (fe == sb)
-//      return boost::make_tuple(0, empty, empty);
-
    const Vertex *third = 0;
    if (fe == se)
       third = &fe;
@@ -283,7 +245,6 @@ DoubleBondMaker::Result DoubleBondMaker::operator()( std::pair<Edge,Edge> edges 
    else
 	   mult = vars.mbond.Case3Factor;
 
-   //printf("SIMPLE OR HARD %lf %lf\n", fl - sl, mult * _avgBondLength);
    if (fl - sl < mult * _avgBondLength)
       return _simple();
    else

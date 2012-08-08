@@ -120,7 +120,7 @@ void LabelLogic::_predict(const Settings& vars, const Segment *seg, std::string 
 	  if (_cur_atom->getLabelFirst() == '?')
 	  {
 		  getLogExt().appendText("All small letters branch");
-         letters = comb[27]; //All small letters // TODO
+		  letters = CharacterRecognizer::lower;
 	  }
 
 	  else if(_cur_atom->getLabelFirst() >= 'A' && _cur_atom->getLabelFirst() <= 'Z') //just for sure 
@@ -385,6 +385,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
       _predict(vars, seg, letters);
       char sym = hwc;
 
+	  // probably this checking is outdated
       if (sym == 'N')
          ;
       else if (sym == 'H')
@@ -396,6 +397,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
       else
          sym = '?';
 
+	  // probably this checking is outdated too
       if (sym == 'o' || sym == 'c' || sym == 's' ||
           sym == 'i' || sym == 'p' || sym == 'u' ||
           sym == 'v' || sym == 'w')
@@ -421,22 +423,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 			  _cur_atom->charge = sym - '0';
 			  was_charge = 1;
 			  was_letter = 0;
-		  }		  
-		  else if (sym == 'I' && _cur_atom->getLabelFirst() == 'I')
-		  {
-			  // HACK! II -> O
-			  getLogExt().appendText("Hack works! II -> O");
-			  _cur_atom->setLabel("O"); // TODO: probability table too
-			  was_letter = 1;
-		  }
-		  else if (sym == 'O' && _cur_atom->getLabelFirst() == 'T')
-		  {
-			  // HACK! OTO -> OTF
-			  getLogExt().appendText("Hack works! OTO -> OTF");
-			  _addAtom();
-			  _cur_atom->setLabel("F"); // TODO: probability table too
-			  was_letter = 1;
-		  }		  
+		  }		  		  
 		  // ------------------------------ ------------------------------
 		  else
 		  {

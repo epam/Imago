@@ -12,12 +12,12 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
+#pragma once
 #ifndef _scanner_h
 #define _scanner_h
 
 #include <cstdio>
 #include <cstdarg>
-
 #include "comdef.h"
 
 namespace imago
@@ -87,7 +87,6 @@ namespace imago
       FileScanner( const FileScanner & );
    };
 
-   //TODO: Be careful. Not checked properly.
    class BufferScanner : public Scanner
    {
    public:

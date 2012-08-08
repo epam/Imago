@@ -12,6 +12,7 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
+#pragma once
 #ifndef _output_h
 #define _output_h
 
@@ -69,7 +70,7 @@ namespace imago
    class ArrayOutput : public Output
    {
    public:
-      explicit ArrayOutput( std::string &arr );  //TODO: really string?
+      explicit ArrayOutput( std::string &arr );
       virtual ~ArrayOutput();
 
       virtual void write( const void *data, int size );
