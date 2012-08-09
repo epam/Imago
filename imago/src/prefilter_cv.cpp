@@ -69,12 +69,16 @@ namespace imago
 		bool resampleImage(Image &image, bool binarized)
 		{
 			logEnterFunction();
+			
+			int maxdim = MaxImageDimensions;
+			if (!binarized)
+				maxdim = MaxImageDimensions_HW;
 
 			int w = image.getWidth();
 			int h = image.getHeight();
 			int m = std::max(w, h);
 			int scale = 1;
-			while (m / scale > MaxImageDimensions) scale++;
+			while (m / scale > maxdim) scale++;
 			if (scale == 1)
 			{
 				getLogExt().appendText("resample is not required");
