@@ -76,11 +76,13 @@ namespace imago
 	{
 		int longestSide = std::max(general.OriginalImageWidth, general.OriginalImageHeight);
 
+		const int MaxImageDimensions_highres_cluster = 1600;
+
 		if (ct == ctDetermine)
 		{
 			if (general.IsHandwritten)
 			{
-				if (longestSide > prefilterCV.HighResPassBound * MaxImageDimensions)
+				if (longestSide > prefilterCV.HighResPassBound * MaxImageDimensions_highres_cluster)
 					ct = ctHighResolution;
 				else
 					ct = ctHandwritten;

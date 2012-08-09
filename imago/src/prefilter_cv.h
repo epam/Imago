@@ -46,7 +46,7 @@ namespace imago
 		bool isBinarized(const Settings& vars, Image &image);
 
 		// returns true if image was modified
-		bool resampleImage(Image &image);   
+		bool resampleImage(Image &image, bool binarized);   
   
 		// filters image using cv adaptive filtering and cross-correlation
 		void prefilterCV(const Settings& vars, Image& raw);

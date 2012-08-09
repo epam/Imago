@@ -31,16 +31,19 @@ namespace imago
 		vars.general.ImageWidth = vars.general.OriginalImageWidth = raw.getWidth();
 		vars.general.ImageHeight = vars.general.OriginalImageHeight = raw.getHeight();
 
-		prefilter_cv::resampleImage(raw);
-
 		vars.general.IsHandwritten = true;
+
+		bool binarized = false;
 
 		if (prefilter_cv::isBinarized(vars, raw))
 		{
 			vars.general.IsHandwritten = false;			
 			vars.general.DefaultFilterType = ftPass;
+			binarized = true;
 		}
 
+		prefilter_cv::resampleImage(raw, binarized);
+		
 		if (vars.general.DefaultFilterType == ftAdaptive)
 		{
 			AdaptiveFilter::process(vars, raw);
@@ -63,7 +66,7 @@ namespace imago
 
 	namespace prefilter_cv
 	{
-		bool resampleImage(Image &image)
+		bool resampleImage(Image &image, bool binarized)
 		{
 			logEnterFunction();
 
@@ -88,7 +91,13 @@ namespace imago
 						for (int dy = 0; dy < scale; dy++)
 							for (int dx = 0; dx < scale; dx++)
 								c += image.getByte(x*scale+dx, y*scale+dy);
-						temp.getByte(x, y) = c / scale / scale;
+						byte value = c / scale / scale;
+						if (binarized)
+						{
+							temp.getByte(x, y) = (value > 127) ? 255 : 0;
+						}
+						else
+							temp.getByte(x, y) = value;
 					}
 				image.copy(temp);
 				return true;

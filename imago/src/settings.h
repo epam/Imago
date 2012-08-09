@@ -30,7 +30,7 @@ namespace imago
 
 	static const char* FilterName[4] = {"std", "adaptive", "CV", "passthru" };
 
-	static const int MaxImageDimensions = 1600;
+	static const int MaxImageDimensions = 3200;
 	
 	enum ClusterType
 	{
