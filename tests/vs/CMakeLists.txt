@@ -6,5 +6,5 @@ set(SRC
   src/main.cpp
   )
 
-add_executable(test.vs ${SRC})
+add_library(test.vs SHARED ${SRC})
 target_link_libraries(test.vs imago)

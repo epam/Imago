@@ -10,34 +10,46 @@
 
 using namespace imago;
 
-int main(int argc, char **argv)
+extern "C" __declspec(dllexport) int recognize(char* image, int image_width, int image_height,
+	                                           char* output_buffer, int output_buffer_size,
+											   int* recognition_warnings, int* reserved)
 {
-   try
-   {
-      Image img;
+	if (!image_width || !image_height || !image || !output_buffer || !output_buffer_size)
+	{
+		return 2;
+	}
 
-      const char *f = (argc == 2)?argv[1]:"../../../tests/vs/TestImages/TS_3_iPad_2_1.JPG";
-      
-      ChemicalStructureRecognizer csr;
+	try
+	{
+		Image img;
+		img.init(image_width, image_height);
+		for (int y = 0; y < image_height; y++)
+		{
+			for (int x = 0; x < image_width; x++)
+			{
+				img.getByte(x,y) = image[x + y * image_width];
+			}
+		}
 
-      ImageUtils::loadImageFromFile(img, f);
-      
-	  Settings vars;
+		ChemicalStructureRecognizer csr;
 
-      prefilterEntrypoint(vars, img);
-      Molecule mol;
+		Settings vars;
 
-      csr.image2mol(vars, img, mol);
+		prefilterEntrypoint(vars, img);
+		Molecule mol;
 
-      std::string molfile = expandSuperatoms(vars, mol);
+		csr.image2mol(vars, img, mol);
+		if (recognition_warnings)
+			*recognition_warnings = mol.getWarningsCount();
 
-      FileOutput fout("molecule.mol");
-      fout.writeString(molfile);      
-   }
-   catch (std::exception &e)
-   {
-      std::cout << e.what() << "\n";
-   }
-   
-   return 0;
+		std::string molfile = expandSuperatoms(vars, mol);
+		memcpy(output_buffer, molfile.c_str(), std::min(output_buffer_size, (int)molfile.size() ) );
+		
+	}
+	catch (std::exception&)
+	{
+		return 1;
+	}
+
+	return 0;
 }
