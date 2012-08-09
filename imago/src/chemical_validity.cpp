@@ -122,6 +122,10 @@ namespace imago
 				result += 'H';
 			if (base_char == 'Y')
 				result += 'H';
+			if (base_char == 'E')
+				result += 'F';
+			if (base_char == 'F')
+				result += 'T';
 		}
 		return result;
 	}
