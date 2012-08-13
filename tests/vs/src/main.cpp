@@ -43,6 +43,7 @@ extern "C" __declspec(dllexport) int recognize(char* image, int image_width, int
 			*recognition_warnings = mol.getWarningsCount();
 
 		std::string molfile = expandSuperatoms(vars, mol);
+		memset(output_buffer, 0, output_buffer_size);
 		memcpy(output_buffer, molfile.c_str(), std::min(output_buffer_size, (int)molfile.size() ) );
 		
 	}

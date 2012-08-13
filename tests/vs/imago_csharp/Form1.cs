@@ -35,42 +35,46 @@ namespace imago_csharp
             }
         }
 
-        private void button2_Click(object sender, EventArgs e)
+        public static string recognize(Bitmap bitmap)
         {
-            Bitmap bitmap = new Bitmap(pictureBox1.Image);
-
             int width = bitmap.Width;
             int height = bitmap.Height;
-            int imagesize = width * height;
-            
-            byte[] imagedata = new byte[imagesize];
+            int image_size = width * height;
+
+            byte[] image_data = new byte[image_size];
 
             for (int x = 0; x < width; x++)
-            {
                 for (int y = 0; y < height; y++)
-                {
-                    imagedata[x + y * width] = bitmap.GetPixel(x, y).B;
-                }
-            }
+                    image_data[x + y * width] = (byte)((bitmap.GetPixel(x, y).R * 30 + bitmap.GetPixel(x, y).G * 59 + bitmap.GetPixel(x, y).B * 11) / 100);
 
-            IntPtr image = Marshal.AllocHGlobal(imagesize);
-            Marshal.Copy(imagedata, 0, image, imagesize);
+            IntPtr image_buffer = Marshal.AllocHGlobal(image_size);
+            Marshal.Copy(image_data, 0, image_buffer, image_size);
 
-            int bufsize = 65536;
-            byte[] data = new byte[bufsize];            
-            IntPtr outputbuffer = Marshal.AllocHGlobal(bufsize);
+            int buffer_size = 65536;
+            byte[] molfile_data = new byte[buffer_size];
+            for (int i = 0; i < buffer_size; i++)
+                molfile_data[i] = 0;
 
-            IntPtr warnings = Marshal.AllocHGlobal(4);
+            IntPtr output_buffer = Marshal.AllocHGlobal(buffer_size);
+            Marshal.Copy(molfile_data, 0, output_buffer, buffer_size);
 
-            int result = recognize(image, width, height, outputbuffer, bufsize, warnings, IntPtr.Zero);
+            IntPtr warnings_buffer = Marshal.AllocHGlobal(4);
 
-            Marshal.Copy(outputbuffer, data, 0, bufsize);
-            string molfile = System.Text.ASCIIEncoding.Default.GetString(data);
-            MessageBox.Show("result: " + result.ToString() + "; output: " + molfile);
+            int result = recognize(image_buffer, width, height, output_buffer, buffer_size, warnings_buffer, IntPtr.Zero);
 
-            Marshal.FreeHGlobal(outputbuffer);
-            Marshal.FreeHGlobal(image);
-            Marshal.FreeHGlobal(warnings);
+            Marshal.Copy(output_buffer, molfile_data, 0, buffer_size);
+            string molfile_string = System.Text.ASCIIEncoding.Default.GetString(molfile_data);
+
+            Marshal.FreeHGlobal(output_buffer);
+            Marshal.FreeHGlobal(image_buffer);
+            Marshal.FreeHGlobal(warnings_buffer);
+
+            return molfile_string;
+        }
+
+        private void button2_Click(object sender, EventArgs e)
+        {
+            MessageBox.Show(recognize(new Bitmap(pictureBox1.Image)));            
         }
     }
 }
