@@ -302,7 +302,6 @@ void GraphicsDetector::extractRingsCenters(const Settings& vars, SegmentDeque &s
 				}
 
 				ring_centers.push_back(tmp.getCenter());
-				delete *it;
 				it = segments.erase(it);
 				continue;
 			} // if isCircle
