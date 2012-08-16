@@ -43,6 +43,7 @@ namespace imago
 
 	  Image( const Image &other)
 	  {
+		  _data = 0;
 		  copy(other);
 	  }
 
