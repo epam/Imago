@@ -385,7 +385,8 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 				/*BOOST_FOREACH( Segment *s, segments )
 					delete s;
 				segments.clear();*/
-				ClearSegments(segments, SegmentDeque(), SegmentDeque());
+				SegmentDeque temp1, temp2;
+				ClearSegments(segments, temp1, temp2);
 
 				segments = temp;
 			}			
