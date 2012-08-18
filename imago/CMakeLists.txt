@@ -23,6 +23,10 @@ else (${IMAGO_SHARED})
   add_library(imago STATIC ${SRC})
 endif (${IMAGO_SHARED})
 
+if(UNIX OR APPLE)
+    SET(COMPILE_FLAGS "${COMPILE_FLAGS} -fPIC")
+endif()
+
 add_dependencies(imago OpenCV)
 target_link_libraries(imago ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(imago ${INDIGO_LIBS})
