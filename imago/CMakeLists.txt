@@ -17,11 +17,7 @@ file(GLOB SRC src/*.cpp)
 FILE(GLOB HEADERS "src/*.h")
 list(APPEND SRC ${HEADERS})
 
-if (${IMAGO_SHARED})
-  add_library(imago SHARED ${SRC})
-else (${IMAGO_SHARED})
-  add_library(imago STATIC ${SRC})
-endif (${IMAGO_SHARED})
+add_library(imago STATIC ${SRC})
 
 if(UNIX OR APPLE)
     SET(COMPILE_FLAGS "${COMPILE_FLAGS} -fPIC")

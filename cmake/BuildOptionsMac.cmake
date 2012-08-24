@@ -1,0 +1,26 @@
+option(IRECO "Build iOS application iReco" OFF)
+	
+set(CMAKE_XCODE_ATTRIBUTE_GCC_VERSION "com.apple.compilers.llvmgcc42")
+
+if (IRECO)
+	set(INDIGO_LIBS_DIR "${INDIGO_LIBS_DIR}/ios")
+	set(OpenCV_DIR "${OpenCV_DIR}/ios/share/OpenCV")
+	set(BOOST_LIBRARYDIR "${BOOST_LIBRARYDIR}/ios")
+		
+	SET (SDKVER "5.0")
+	SET (DEVROOT "/Developer/Platforms/iPhoneOS.platform/Developer")
+	SET (SDKROOT "${DEVROOT}/SDKs/iPhoneOS${SDKVER}.sdk")
+	SET (CMAKE_OSX_SYSROOT "${SDKROOT}")
+	SET (CMAKE_OSX_ARCHITECTURES "armv7;i386") #"$(ARCHS_STANDARD_32_BIT)") #"$(ARCHS_UNIVERSAL_IPHONE_OS)")
+	SET (CMAKE_XCODE_EFFECTIVE_PLATFORMS "-iphoneos;-iphonesimulator")
+	#Other 'CMAKE_OSX_ARCHITECTURES' iPhone/IOS option examples
+	#SET (CMAKE_OSX_ARCHITECTURES "armv7")
+	#SET (CMAKE_OSX_ARCHITECTURES $(ARCHS_STANDARD_32_BIT)		
+else()
+	find_package(Threads REQUIRED)
+	set(INDIGO_LIBS_DIR "${INDIGO_LIBS_DIR}/mac")	
+	set(OpenCV_DIR "${OpenCV_DIR}/mac/share/OpenCV")
+	set(BOOST_LIBRARYDIR "${BOOST_LIBRARYDIR}/mac")
+	set(CMAKE_OSX_ARCHITECTURES "i386;x86_64")
+	set(COMPILE_FLAGS "${COMPILE_FLAGS} -fPIC")
+endif()
