@@ -375,6 +375,7 @@ namespace imago
 
 		hacks["FIC"] = Superatom(C, F3);
 		hacks["OTO"] = Superatom(O, T, F);
+		hacks["OTE"] = Superatom(O, T, F);
 
 		// elements should be sorted for optimal split function working
 		std::sort(elements.names.begin(), elements.names.end(), sort_comparator_length_reversed);		

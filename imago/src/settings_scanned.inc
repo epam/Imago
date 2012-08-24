@@ -139,7 +139,7 @@ void updateSettingsScanned(Settings &s)
 	FUZZ s.wbe.SingleUpDefCoeff = 0.283414; // fuzzed, old value = 0.268526
 	FUZZ s.wbe.SingleUpIncCoeff = 0.428110; // fuzzed, old value = 0.472888
 	FUZZ s.wbe.SingleUpIncLengthTresh = 34.415397; // fuzzed, old value = 37.410696
-	FUZZ s.wbe.SingleUpInterpolateEps = 0.072223; // fuzzed, old value = 0.069428
+	FUZZ s.wbe.SingleUpInterpolateEps = 0.2; //0.072223; // fuzzed, old value = 0.069428
 	FUZZ s.wbe.SingleUpMagicAddition = 0.206708; // fuzzed, old value = 0.225687
 	FUZZ s.wbe.SingleUpS2Divisor = 1.558116; // fuzzed, old value = 1.427519
 	FUZZ s.wbe.SingleUpMinATresh = 1.613488; // fuzzed, old value = 1.753776

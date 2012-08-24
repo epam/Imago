@@ -10,7 +10,7 @@
 
 using namespace imago;
 
-extern "C" __declspec(dllexport) int recognize(char* image, int image_width, int image_height,
+extern "C" DLLEXPORT int recognize(char* image, int image_width, int image_height,
 	                                           char* output_buffer, int output_buffer_size,
 											   int* recognition_warnings, int* reserved)
 {

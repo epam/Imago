@@ -71,7 +71,7 @@ namespace imago
          SEP_SUSPICIOUS
       };
      
-      int _estimateCapHeight(const Settings& vars);
+      int _estimateCapHeight(const Settings& vars, bool &restrictedHeight);
 
       bool _testDoubleBondV(const Settings& vars, Segment &segment );
 

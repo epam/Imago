@@ -163,8 +163,8 @@ int GetClass(imago::Separator::ClassifierResults cres)
 
 	if(cres.HuMoments < 2)
 	{
-		symClass *= HuMoms[1][cres.Ratios];
-		bondClass *= HuMoms[0][cres.Ratios];
+		symClass *= HuMoms[1][cres.HuMoments];
+		bondClass *= HuMoms[0][cres.HuMoments];
 	}
 
 	if(symClass > bondClass)
@@ -214,10 +214,36 @@ int Separator::ClusterLines(const Settings& vars,Points2d& inputLines, IntVector
 		  Vec2d &p1 = inputLines[2 * i];
 		  Vec2d &p2 = inputLines[2 * i + 1];
 
+		  double maxX, maxY, minX, minY;
+		  if(p1.x > p2.x)
+		  {
+			  maxX = p1.x;
+			  minX = p2.x;
+		  }
+		  else
+		  {
+			  maxX = p2.x;
+			  minX = p1.x;
+		  }
+
+		  if(p1.y > p2.y)
+		  {
+			  maxY = p1.y;
+			  minY = p2.y;
+		  }
+		  else
+		  {
+			  maxY = p2.y;
+			  minY = p1.y;
+		  }
+
+		  double ratio = (maxX - minX)/(maxY - minY);
+
 		  double dist = Vec2d::distance(p1, p2);
 		  double dc1 = fabs(dist - c1);
 		  double dc2 = fabs(dist - c2);
-		  if(dc1 < dc2 && dist < vars.estimation.CapitalHeight * vars.separator.getRatio2)
+		  if(dc1 < dc2 && (dist < vars.estimation.CapitalHeight || 
+			  (dist < vars.estimation.CapitalHeight * vars.separator.getRatio2 && ratio < vars.estimation.MinSymRatio)))
 			  outClasses[i] = 0;
 		  else
 			  outClasses[i] = 1;
@@ -485,8 +511,8 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 		int bottom = round((symbRects[i].y + symbRects[i].height + line_thick > timg.getHeight()) ? timg.getHeight() :
 				            (symbRects[i].y + symbRects[i].height  + line_thick) );
 
-		Image extracted(right - left+1, bottom - top+1),
-			_2BClassified(right - left+1, bottom - top+1);
+		Image extracted(right - left + 1, bottom - top + 1),
+			_2BClassified(right - left + 1, bottom - top + 1);
 		extracted.fillWhite();
 		_2BClassified.fillWhite();
 
@@ -500,14 +526,14 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 		for(SegmentDeque::iterator it = segs.begin(); it!=segs.end(); it++)
 		{
 
-			for(size_t n=0;n<RectPoints[i].size();n++)
+			for(size_t n = 0; n < RectPoints[i].size(); n++)
 			{
 				Vec2d pt = RectPoints[i][n];
 				int dx = round(pt.x - left);
 				int dy = round(pt.y - top);
 					
-				if((*it)->getX() < dx && ((*it)->getWidth() + (*it)->getX()) > dx && 
-					(*it)->getY() < dy && ((*it)->getHeight() + (*it)->getY()) > dy)
+				if((*it)->getX() <= dx && ((*it)->getWidth() + (*it)->getX()) > dx && 
+					(*it)->getY() <= dy && ((*it)->getHeight() + (*it)->getY()) > dy)
 				{
 					int sx = dx - (*it)->getX();
 					int sy = dy - (*it)->getY();
@@ -533,7 +559,11 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 		s->getY() = top;
 
 		imago::Points2d linesegs;
-		gd.detect(vars, _2BClassified, linesegs);
+		GraphicsDetector gd2(&cvApprox, round(line_thick / 2.0));
+		gd2.detect(vars, _2BClassified, linesegs);
+
+		getLogExt().appendImage(std::string("assembled image"), _2BClassified);
+		getLogExt().appendImage(std::string("assembled segment"), *s);
 
 		if((int)(linesegs.size() / 2) > LineCount[i])
 		{
@@ -543,8 +573,6 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 				Vec2d p2 = linesegs[2 * k + 1];
 				double xmin = p1.x > p2.x ? p2.x : p1.x;
 				double xmax = p1.x > p2.x ? p1.x : p2.x;
-
-				
 
 				double ymin = p1.y > p2.y ? p2.y : p1.y;
 				double ymax = p1.y > p2.y ? p1.y : p2.y;
@@ -557,7 +585,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 				ymin += top;
 				ymax += top;
 
-				if(xmin >= symbRects[i].x + symbRects[i].width - 1 )
+				if(xmin > symbRects[i].x + symbRects[i].width - 1 )
 				{
 					int limit = round(xmin - left);
 					if(w_h_ratio < 0.5)
@@ -568,7 +596,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 					getLogExt().appendSegment(std::string("after removing right redudant lines"), *s);
 				}
 				else
-					if(xmax <= symbRects[i].x)
+					if(xmax < symbRects[i].x)
 					{
 						int limit = round(xmax - left);
 						if(w_h_ratio < 0.5)
@@ -579,10 +607,10 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 						getLogExt().appendSegment(std::string("after removing left redudant lines"), *s);
 					}
 					else
-						if(ymin >= symbRects[i].y + symbRects[i].height)
+						if(ymin > symbRects[i].y + symbRects[i].height)
 						{
 							int limit = round(ymin - top);
-							if(w_h_ratio < 0.5)
+							if(w_h_ratio > 0.5)
 								limit += round(line_thick / 2.0);
 							for(int m = limit; m < s->getHeight(); m++)
 								for(int n = 0; n < s->getWidth(); n++) 
@@ -590,10 +618,10 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 							getLogExt().appendSegment(std::string("after removing bottom redudant lines"), *s);
 						}
 						else
-							if(ymax <= symbRects[i].y)
+							if(ymax < symbRects[i].y)
 							{
 								int limit = round(ymax - top);
-								if(w_h_ratio < 0.5)
+								if(w_h_ratio > 0.5)
 									limit += round(line_thick / 2.0);
 								for(int m = 0; m < limit; m++)
 									for(int n = 0; n < s->getWidth(); n++) 
@@ -603,15 +631,22 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 			}
 		}
 	
+		linesegs.clear();
+
 		ClassifierResults cres;
+
+		imago::Segment *scopy = new Segment(*s);
+		scopy->crop();
 
 		try
 		{
-			ClassifySegment(vars, layer_symbols, rec, s, cres);
+			ClassifySegment(vars, layer_symbols, rec, scopy, cres);
+			delete scopy;
 		}
 		catch(ImagoException ex)
 		{
 			delete s;
+			delete scopy;
 			continue;
 		}
 		//	classify object
@@ -936,7 +971,7 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque &layer_symbol
 void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque &layer_symbols, SegmentDeque &layer_graphics )
 {
    logEnterFunction();
-
+   bool _heightRestricted = false;
    int cap_height;
 
    if (_segs.size() == 0)
@@ -945,18 +980,11 @@ void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque 
       cap_height = -1;
    }
    else
-      cap_height = _estimateCapHeight(vars);   
+      cap_height = _estimateCapHeight(vars, _heightRestricted);   
 
    if(cap_height > -1)
 		vars.estimation.CapitalHeight = cap_height;
 
-   //Assume that there are no symbols in the picture
-   /*if (cap_height == -1)
-   {
-      BOOST_FOREACH( Segment *s, _segs )
-         layer_graphics.push_back(s);
-   }
-   else*/
    {
 	   int sym_height_err = (int)vars.estimation.SymHeightErr;
       //double susp_seg_density = rs["SuspSegDensity"],
@@ -966,44 +994,48 @@ void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque 
 	   SegmentDeque tempSymbols;
 
       /* Classification procedure */
+	   
+	   
+		for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
+		{
+			ClassifierResults cres;
+			Segment *s = *it;
+			ClassifySegment(vars, tempSymbols, rec, s, cres);
+
+			if(cres.Processed)
+			{
+				tempSymbols.push_back(s);
+				continue;
+			}
+
+			int HuMms = cres.HuMoments > -1 && cres.HuMoments < 2 ? cres.HuMoments : 
+				(cres.KNN == SEP_SYMBOL || cres.Probability == SEP_SYMBOL);
+
+			if((cres.KNN == SEP_SYMBOL && cres.HuMoments == SEP_SYMBOL) || cres.Probability == SEP_SYMBOL)
+				//(cres.KNN > 0 && HuMms) //cres.OverAll != SEP_BOND && (HuMms + cres.KNN + cres.Probability) > 0)
+			//if(cres.OverAll == 1)
+				tempSymbols.push_back(s);
+		}
+
+
+		int hSymbols = 0;
+		for(SegmentDeque::iterator it = tempSymbols.begin(); it != tempSymbols.end(); it++)
+		{
+			hSymbols += (*it)->getHeight();
+		}
+
+		hSymbols = tempSymbols.size() > 0 ? hSymbols / tempSymbols.size() : (int)vars.estimation.CapitalHeight;
+
+		if(!_heightRestricted || (_heightRestricted && hSymbols < vars.estimation.CapitalHeight))
+			vars.estimation.CapitalHeight = hSymbols;
+	   
+
 	  for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
-      {
-		  ClassifierResults cres;
-		  Segment *s = *it;
-		  ClassifySegment(vars, tempSymbols, rec, s, cres);
-
-		  if(cres.Processed)
-		  {
-			  tempSymbols.push_back(s);
-			  continue;
-		  }
-
-		  int HuMms = cres.HuMoments > -1 && cres.HuMoments < 2 ? cres.HuMoments : 
-			  (cres.KNN == SEP_SYMBOL || cres.Probability == SEP_SYMBOL);
-
-		  if((cres.KNN == SEP_SYMBOL && cres.HuMoments == SEP_SYMBOL) || cres.Probability == SEP_SYMBOL)
-			  //(cres.KNN > 0 && HuMms) //cres.OverAll != SEP_BOND && (HuMms + cres.KNN + cres.Probability) > 0)
-		  //if(cres.OverAll == 1)
-			  tempSymbols.push_back(s);
-	  }
-
-
-	  int hSymbols = 0;
-	  for(SegmentDeque::iterator it = tempSymbols.begin(); it != tempSymbols.end(); it++)
-	  {
-		  hSymbols += (*it)->getHeight();
-	  }
-
-	  hSymbols = tempSymbols.size() > 0 ? hSymbols / tempSymbols.size() : (int)vars.estimation.CapitalHeight;
-
-	  vars.estimation.CapitalHeight = hSymbols;
-
-	  for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
 	  {
 		  Segment *s = *it;
 		  ClassifierResults cres;
 
-		  if(hSymbols == -1)
+		  if(vars.estimation.CapitalHeight == -1)
 		  {
 			layer_graphics.push_back(s);
 			continue;
@@ -1019,7 +1051,7 @@ void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque 
 				  layer_graphics.push_back(s);
 				  break;
 			  case SEP_SYMBOL:
-				  layer_symbols.push_back(s);
+					layer_symbols.push_back(s);
 				  break;
 			  default:
 				  layer_graphics.push_back(s);
@@ -1327,7 +1359,7 @@ bool Separator::_isSuspiciousSymbol( Segment *cur_seg, SegmentDeque &layer_symbo
    return true;
 }
 
-int Separator::_estimateCapHeight(const Settings& vars)
+int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
 {
 	logEnterFunction();
 
@@ -1476,8 +1508,11 @@ int Separator::_estimateCapHeight(const Settings& vars)
    if (cap_height > cap_height_limit)
    {
 	   cap_height = round(cap_height_limit);
+	   restrictedHeight = true;
 	   getLogExt().append("Limited to", cap_height);
    }
+   else
+	   restrictedHeight = false;
 
    return cap_height;
 }

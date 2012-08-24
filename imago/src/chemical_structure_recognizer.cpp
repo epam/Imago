@@ -297,6 +297,47 @@ bool ChemicalStructureRecognizer::isReconnectSegmentsRequired(const Settings& va
 	return result;
 }
 
+void ClearSegments(SegmentDeque& segs, SegmentDeque& segSymbols, SegmentDeque& segGraphics)
+{
+	std::map<std::string, Segment*> all_segs;
+	std::map<std::string, Segment*>::iterator map_it;
+	SegmentDeque::iterator it;
+
+	for(it = segs.begin(); it != segs.end(); it++)
+	{
+		std::ostringstream str;
+		str << (*it);
+		all_segs[str.str()] = (*it);
+	}
+
+	for(it = segSymbols.begin(); it != segSymbols.end(); it++)
+	{
+		std::ostringstream str;
+		str << (*it);
+		if(all_segs.find(str.str()) == all_segs.end())
+			all_segs[str.str()] = (*it);
+	}
+
+	for(it = segGraphics.begin(); it != segGraphics.end(); it++)
+	{
+		std::ostringstream str;
+		str << (*it);
+		if(all_segs.find(str.str()) == all_segs.end())
+			all_segs[str.str()] = (*it);
+	}
+
+	for(map_it = all_segs.begin(); map_it != all_segs.end(); map_it++)
+	{
+		if((*map_it).second)
+			delete (*map_it).second;
+	}
+
+	segGraphics.clear();
+	segSymbols.clear();
+	segs.clear();
+	all_segs.clear();
+}
+
 void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol) 
 {
 	logEnterFunction();
@@ -341,8 +382,11 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 
 			if (temp.size() > 0)
 			{
-				BOOST_FOREACH( Segment *s, segments )
+				/*BOOST_FOREACH( Segment *s, segments )
 					delete s;
+				segments.clear();*/
+				SegmentDeque temp1, temp2;
+				ClearSegments(segments, temp1, temp2);
 
 				segments = temp;
 			}			
@@ -375,6 +419,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 				// TODO: this is completely performance waste! 
 				// ...but quite easily than trying to filter skeleton
 				getLogExt().appendText("Restart!!!");
+				ClearSegments(segments, layer_symbols, layer_graphics);
 				goto restart;
 			}
 		}
@@ -492,13 +537,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 
 		wbe.fixStereoCenters(mol);      
 
-		BOOST_FOREACH( Segment *s, layer_symbols )
-			delete s;
-		BOOST_FOREACH( Segment *s, layer_graphics )
-			delete s;
-
-		layer_symbols.clear();
-		layer_graphics.clear();
+		ClearSegments(segments, layer_symbols, layer_graphics);
 
 		getLogExt().appendText("Recognition finished");
 	}
