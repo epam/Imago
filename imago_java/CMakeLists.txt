@@ -1,26 +1,18 @@
-Find_Package(Java)
-Include(UseJava)
-
 set(CMAKE_JAVA_INCLUDE_PATH lib/jna.jar)
 set(CMAKE_JAVA_TARGET_OUTPUT_NAME imago)
-add_jar(imago_java
-	src/com/ggasoftware/imago/Imago.java
-	src/com/ggasoftware/imago/ImagoException.java 
-	src/com/ggasoftware/imago/ImagoLib.java
-)
 
+file(GLOB_RECURSE Imago_java_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.java)
+add_jar(imago_java ${Imago_java_SRC})
 add_dependencies(imago_java imago_c_shared)
-get_target_property(imago_jar_filename imago_java JAR_FILE)
 
 #Add manifest
+get_target_property(imago_jar_filename imago_java JAR_FILE)
 add_custom_command(TARGET imago_java POST_BUILD
 				   COMMAND "${Java_JAR_EXECUTABLE}" "ufm" "${imago_jar_filename}" "manifest.mf"
 				   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
-get_target_property(imago_dll_filename imago_c_shared LOCATION_Release)
-
-message(${imago_dll_filename})
 #Add libraries
+get_target_property(imago_dll_filename imago_c_shared LOCATION)
 if(IMAGO_BITNESS EQUAL 32)
 	set(SYSTEM_BITS "x86")
 else()
@@ -37,7 +29,6 @@ else()
 endif()
 
 set(IMAGO_DLL_DIR "com/ggasoftware/imago/${SYSTEM_NAME}/${SYSTEM_BITS}")
-
 add_custom_command(TARGET imago_java POST_BUILD
 	               COMMAND "${CMAKE_COMMAND}" "-E" "make_directory" "${IMAGO_DLL_DIR}"
 	               WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

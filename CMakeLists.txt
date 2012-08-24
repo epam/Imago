@@ -145,7 +145,12 @@ endif()
 	add_subdirectory(imago_c)
 	add_subdirectory(alter-ego)
 
-	add_subdirectory(imago_java)
+	Find_Package(Java)
+	if(Java_FOUND)
+		Include(UseJava)
+		add_subdirectory(imago_java)
+		add_subdirectory(ego)
+	endif()
 
 	add_subdirectory(tests/vs)
 	add_subdirectory(tests/rc)

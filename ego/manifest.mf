@@ -1,3 +1,5 @@
 Manifest-Version: 1.0
-X-COMMENT: Main-Class will be added automatically by build
-
+Ant-Version: Apache Ant 1.7.1
+Created-By: 14.2-b01 (Sun Microsystems Inc.)
+Main-Class: com.ggasoftware.Ego
+Class-Path: lib/indigo.jar lib/indigo-renderer.jar lib/imago.jar lib/jai_core.jar lib/jai_codec.jar lib/PDFRenderer.jar
