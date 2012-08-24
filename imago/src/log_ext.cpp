@@ -98,12 +98,12 @@ namespace imago
 	{		
 		std::string htmlName;
 		std::string imageName = generateImageName(&htmlName);
-		  
+		
 		dumpImage(imageName, img);
-      
+
 		std::string table = "<table style=\"display:inline;\"><tbody><tr>";		
 		table += "<td>" + filterHtml(caption) + "</td>";
-		table += "<td><img src=\"" + htmlName + "\" /></td>";
+		table += "<td><img src=\"file:" + htmlName + "\" /></td>";
 		table += "</tr></tbody></table>";
       
 		dump(getStringPrefix() + table);
@@ -197,9 +197,10 @@ namespace imago
 		fr.anchor = filterHtml(generateAnchor(name));
 
 		char color[64];
-		sprintf(color, "%u, %u, %u", rand()%20 + 236, rand()%20 + 237, rand()%20 + 236);
+      //sprintf(color, "RGB(%u, %u, %u)", rand()%20 + 236, rand()%20 + 236, rand()%20 + 236);
+      sprintf(color, "#%02x%02x%02x", rand()%20 + 236, rand()%20 + 236, rand()%20 + 236);
 
-		dump(getStringPrefix(true) + "<div title=\"" + fr.name + "\" style=\"background-color: RGB(" + color + ");\" >"
+      dump(getStringPrefix(true) + "<div title=\"" + fr.name + "\" style=\"background-color: " + color + ";\" >"
 			+ "<b><font size=\"+1\">Enter into <a href=\"#" + fr.anchor + "\">" 
 			+ fr.name + "</a> function</font></b><div style=\"margin-left: 20px;\">");
 		Stack.push_back(fr);
@@ -266,12 +267,10 @@ namespace imago
 		{
 			if (pVFS)
 			{
-            //FIX(Smolov): Removed Png(Jpeg)Loader/Saver
-            //TODO: Check if it's still correct
             std::vector<byte> bin_data;
             std::string buf;
             ImageUtils::saveImageToBuffer(data, ".png", bin_data);
-            std::copy(bin_data.begin(), bin_data.end(), buf.begin());
+            buf.assign(bin_data.begin(), bin_data.end());
             pVFS->createNewFile(filename, buf);
 			}
 		}

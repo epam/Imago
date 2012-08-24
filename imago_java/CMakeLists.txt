@@ -1,0 +1,56 @@
+Find_Package(Java)
+Include(UseJava)
+
+set(CMAKE_JAVA_INCLUDE_PATH lib/jna.jar)
+set(CMAKE_JAVA_TARGET_OUTPUT_NAME imago)
+add_jar(imago_java
+	src/com/ggasoftware/imago/Imago.java
+	src/com/ggasoftware/imago/ImagoException.java 
+	src/com/ggasoftware/imago/ImagoLib.java
+)
+
+add_dependencies(imago_java imago_c_shared)
+get_target_property(imago_jar_filename imago_java JAR_FILE)
+
+#Add manifest
+add_custom_command(TARGET imago_java POST_BUILD
+				   COMMAND "${Java_JAR_EXECUTABLE}" "ufm" "${imago_jar_filename}" "manifest.mf"
+				   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+get_target_property(imago_dll_filename imago_c_shared LOCATION_Release)
+
+message(${imago_dll_filename})
+#Add libraries
+if(IMAGO_BITNESS EQUAL 32)
+	set(SYSTEM_BITS "x86")
+else()
+	set(SYSTEM_BITS "x64")
+endif()
+
+if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
+	set(SYSTEM_NAME "Mac")
+	message(ERROR "Not done yet!")
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
+	set(SYSTEM_NAME "Win")
+else()
+	set(SYSTEM_NAME "Linux")
+endif()
+
+set(IMAGO_DLL_DIR "com/ggasoftware/imago/${SYSTEM_NAME}/${SYSTEM_BITS}")
+
+add_custom_command(TARGET imago_java POST_BUILD
+	               COMMAND "${CMAKE_COMMAND}" "-E" "make_directory" "${IMAGO_DLL_DIR}"
+	               WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
+include(InstallRequiredSystemLibraries)
+foreach(lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
+	add_custom_command(TARGET imago_java POST_BUILD
+	                   COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${lib}" "${IMAGO_DLL_DIR}/"	
+	                   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+endforeach()
+
+add_custom_command(TARGET imago_java POST_BUILD
+	               COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${imago_dll_filename}" "${IMAGO_DLL_DIR}/imago_c.dll"
+				   COMMAND "${Java_JAR_EXECUTABLE}" "uf" "${imago_jar_filename}" "com"
+				   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

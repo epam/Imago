@@ -97,13 +97,12 @@ int main( int argc, char **argv )
 
    qword id = imagoAllocSessionId();
    imagoSetSessionId(id);
-
+   
    //Check & parse command-line parameters
-
    if (argc < 2)
    {
       HELP(argv[0]);
-	  EXIT(1);
+      EXIT(1);
    }
 
    ConfigClusterType imagoConfigNumber = ctDefault;
@@ -114,7 +113,7 @@ int main( int argc, char **argv )
    {
       char *str = argv[i];
 	  
-	  if (strcmp(str, "-c") == 0)
+      if (strcmp(str, "-c") == 0)
       {
          if (++i == argc)
          {
@@ -122,42 +121,42 @@ int main( int argc, char **argv )
             EXIT(1);
          }
 
-		 std::string filter_type = argv[i];
+         std::string filter_type = argv[i];
          if (filter_type == "scanned")
-		 {
-			 imagoConfigNumber = ctScanned;
-		 }
-		 else if (filter_type == "handwritten")
-		 {
-			 imagoConfigNumber = ctHandwritten;
-		 }
-		 else if (filter_type == "highres")
-		 {
-			 imagoConfigNumber = ctHighResolution;
-		 }
-		 else
          {
-			fprintf(stderr, "%s is not valid configuration name", filter_type.c_str());
+            imagoConfigNumber = ctScanned;
+         }
+         else if (filter_type == "handwritten")
+         {
+            imagoConfigNumber = ctHandwritten;
+         }
+         else if (filter_type == "highres")
+         {
+            imagoConfigNumber = ctHighResolution;
+         }
+         else
+         {
+            fprintf(stderr, "%s is not valid configuration name", filter_type.c_str());
             EXIT(1);
          }         
       }
-	  else if (strcmp(str, "-f") == 0)
+      else if (strcmp(str, "-f") == 0)
       {
          if (++i == argc)
          {
             fprintf(stderr, "expected value after -f\n");
             EXIT(1);
          }
-		 imagoFilterName = argv[i];
+         imagoFilterName = argv[i];
       }
-	  else if (strcmp(str, "-i") == 0)
+      else if (strcmp(str, "-i") == 0)
       {
          if (++i == argc)
          {
             fprintf(stderr, "expected value after -i\n");
             EXIT(1);
          }
-		 dropInkPercentage = atoi(argv[i]);
+         dropInkPercentage = atoi(argv[i]);
       }
       else if (strcmp(str, "-h") == 0)
       {
@@ -215,132 +214,131 @@ int main( int argc, char **argv )
    int configs_count = imagoGetConfigsCount();   
 
    // main process
+retry: // allowing some retries while process
 
-   retry: // allowing some retries while process
+   // load / reload image
+   CALL( imagoLoadImageFromFile(in_file_name) ); 
 
-    // load / reload image
-    CALL( imagoLoadImageFromFile(in_file_name) ); 
+   // setup filter
+   if (imagoFilterName != "default")
+   {
+      CALL( imagoSetFilter(imagoFilterName.c_str()) );
+   }
 
-	// setup filter
-	if (imagoFilterName != "default")
-	{
-		CALL( imagoSetFilter(imagoFilterName.c_str()) );
-	}
+   // call filter   
+   CALL( imagoFilterImage() );
 
-	// call filter   
-	CALL( imagoFilterImage() );
+   if (dropInkPercentage > 0)
+   {
+      double ink = 0.0;
+      CALL ( imagoGetInkPercentage(&ink) );
+      ink *= 100.0;
+      if (ink > dropInkPercentage)
+      {
+         fprintf(stderr, "Error: image fill percentage (%f) is greater than max specified (%i).\n", ink, dropInkPercentage);
+         EXIT(3);
+      }
+   }
 
-	if (dropInkPercentage > 0)
-	{
-		double ink = 0.0;
-		CALL ( imagoGetInkPercentage(&ink) );
-		ink *= 100.0;
-		if (ink > dropInkPercentage)
-		{
-			fprintf(stderr, "Error: image fill percentage (%f) is greater than max specified (%i).\n", ink, dropInkPercentage);
-			EXIT(3);
-		}
-	}
+   // update config cluster
+   if (imagoConfigNumber != ctDefault)
+   {
+      CALL( imagoSetConfigNumber(imagoConfigNumber) );
+   }
 
-	// update config cluster
-	if (imagoConfigNumber != ctDefault)
-	{
-		CALL( imagoSetConfigNumber(imagoConfigNumber) );
-	}
+   int recognitionWarningsCount = 0;
+   // call the recognition method from API
+   bool good = imagoRecognize(&recognitionWarningsCount) > 0;
 
-	int recognitionWarningsCount = 0;
-	// call the recognition method from API
-	bool good = imagoRecognize(&recognitionWarningsCount) > 0;
-	
-	if (recognitionWarningsCount > 0)
-	{
-		fprintf(stderr, "Warnings for filter '%s': %i\n", imagoFilterName.c_str(), recognitionWarningsCount);
-	}
+   if (recognitionWarningsCount > 0)
+   {
+      fprintf(stderr, "Warnings for filter '%s': %i\n", imagoFilterName.c_str(), recognitionWarningsCount);
+   }
 
-	if (!good)
-	{
-		fprintf(stderr, "Error: %s\n", imagoGetLastError());
-	}
+   if (!good)
+   {
+      fprintf(stderr, "Error: %s\n", imagoGetLastError());
+   }
 
-	if ((!good || recognitionWarningsCount > WARNINGS_TRESHOLD) && imagoFilterName == "default")
-	{
-		imagoFilterName = "std";
-		goto retry;
-	}
+   if ((!good || recognitionWarningsCount > WARNINGS_TRESHOLD) && imagoFilterName == "default")
+   {
+      imagoFilterName = "std";
+      goto retry;
+   }
 
 
-	/// store result if got one
+   /// store result if got one
 
    if (good)
    {
-	   // crop input file name
-	   int n = strlen(in_file_name), slash_delim = -1;
-	   for (int i = n - 1; i >= 0; i--)
-	   {
-		  if (in_file_name[i] == '\\' || in_file_name[i] == '/')
-		  {
-			 slash_delim = i;
-			 break;
-		  }
-	   }
-	   strcpy(in_file_name, in_file_name + slash_delim + 1);
+      // crop input file name
+      int n = strlen(in_file_name), slash_delim = -1;
+      for (int i = n - 1; i >= 0; i--)
+      {
+         if (in_file_name[i] == '\\' || in_file_name[i] == '/')
+         {
+            slash_delim = i;
+            break;
+         }
+      }
+      strcpy(in_file_name, in_file_name + slash_delim + 1);
 
-	   //Write result in infile.mol
-	   if (no_output)
-	   {
-		  int n = strlen(in_file_name), k;
+      //Write result in infile.mol
+      if (no_output)
+      {
+         int n = strlen(in_file_name), k;
 
-		  k = n - 4;
+         k = n - 4;
 
-		  out_file_name = new char[n + 1];
-		  strcpy(out_file_name, in_file_name);
-		  strcpy(out_file_name + k + 1, "mol");
-	   }
+         out_file_name = new char[n + 1];
+         strcpy(out_file_name, in_file_name);
+         strcpy(out_file_name + k + 1, "mol");
+      }
 
-	   //Save molecule in file 
-	   if (!standard_output)
-	   {
-		  int n1 = strlen(out_file_name), n2;
+      //Save molecule in file 
+      if (!standard_output)
+      {
+         int n1 = strlen(out_file_name), n2;
 
-		  if (out_directory_prefix != 0)
-			 n2 = strlen(out_directory_prefix);
-		  else
-			 n2 = 0;
+         if (out_directory_prefix != 0)
+            n2 = strlen(out_directory_prefix);
+         else
+            n2 = 0;
 
-		  char *output_name = new char[n1 + n2 + 2];
+         char *output_name = new char[n1 + n2 + 2];
 
-		  if (out_directory_prefix != 0)
-		  {
-			 strcpy(output_name, out_directory_prefix);
-			 strcat(output_name, "/");
-			 strcat(output_name, out_file_name);
-		  }
-		  else
-			 strcpy(output_name, out_file_name);
+         if (out_directory_prefix != 0)
+         {
+            strcpy(output_name, out_directory_prefix);
+            strcat(output_name, "/");
+            strcat(output_name, out_file_name);
+         }
+         else
+            strcpy(output_name, out_file_name);
 
-		  CALL(imagoSaveMolToFile(output_name));
+         CALL(imagoSaveMolToFile(output_name));
 
-		  if (no_output)
-			 delete out_file_name;
+         if (no_output)
+            delete out_file_name;
 
-		  delete output_name;
-	   }
-	   else // output to stdout
-	   {
-		  int size = 0;
-		  char *buf = NULL;
+         delete output_name;
+      }
+      else // output to stdout
+      {
+         int size = 0;
+         char *buf = NULL;
 
-		  CALL(imagoSaveMolToBuffer(&buf, &size));
+         CALL(imagoSaveMolToBuffer(&buf, &size));
 
-		  puts(buf);
-	   }
+         puts(buf);
+      }
 
-	   EXIT(0);
+      EXIT(0);
    }   
    else
    {
-	   fprintf(stderr, "No result achieved.\n");
+      fprintf(stderr, "No result achieved.\n");
 
-	   EXIT(2);
+      EXIT(2);
    }
 }

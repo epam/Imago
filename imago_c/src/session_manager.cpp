@@ -13,26 +13,20 @@
  ***************************************************************************/
 
 #include <iostream>
+#include <boost/thread.hpp>
 
 #include "session_manager.h"
-#include "segment.h"
-#include "imago_session.h"
 
 using namespace imago;
 
+boost::mutex SessionManager::_mutex;
+boost::thread_specific_ptr<qword> SessionManager::_curSID;
 SessionManager SessionManager::_instance;
-Lock SessionManager::_lock;
-ThreadLocalPtr<qword> SessionManager::_curSID;
 
-namespace imago
-{
-   ThreadLocalPtr<ImagoSession> gSession;
-}
 
 SessionManager::SessionManager()
 {
    _freeSID = 0;
-   _activeSessions.clear();
 }
 
 qword SessionManager::getSID()
@@ -53,7 +47,7 @@ qword SessionManager::getSID()
 
 qword SessionManager::allocSID()
 {
-   AutoLock locker(_lock);
+   lock_guard lock(_mutex);
    qword id;
 
    if (_availableSIDs.size() > 0)
@@ -70,19 +64,19 @@ qword SessionManager::allocSID()
       ++_freeSID;
    }
 
-   _activeSessions.insert(std::make_pair(id, (ImagoSession*)0));
+   _activeSessions.insert(id);
    return id;
 }
 
 void SessionManager::setSID( qword id )
 {
-   AutoLock locker(_lock);
+   lock_guard lock(_mutex);
 
    if (_activeSessions.find(id) == _activeSessions.end())
    {
       //keep working or throw an exception?
       //throw WrongSessionIdException();
-      _activeSessions.insert(std::make_pair(id, (ImagoSession*)0));
+      _activeSessions.insert(id);
    }
 
    qword *pId = _curSID.get();
@@ -93,33 +87,20 @@ void SessionManager::setSID( qword id )
    }
    else
       *pId = id;
-   
-   IdToPtrMap::iterator curSessionIt = _activeSessions.find(id);
-
-   if (curSessionIt->second == 0)
-      curSessionIt->second = new ImagoSession();
-   
-   gSession.set(curSessionIt->second);
 }
 
 void SessionManager::releaseSID( qword id )
 {
-   AutoLock locker(_lock);
+   lock_guard lock(_mutex);
 
-   //for (IdToPtrMap::iterator it = _activeSessions.begin(); it != _activeSessions.end(); ++it)
-   //   std::cout << it->first << " <-> " << it->second << std::endl;
-
-   IdToPtrMap::iterator curSessionIt = _activeSessions.find(id);
+   IdSet::iterator curSessionIt = _activeSessions.find(id);
    if (curSessionIt == _activeSessions.end())
    {
       std::cerr << "Trying to release unallocated session " << id << "\n";
       return;
    }
 
-   //std::cout << "deleting " << curSessionIt->second << "\n";
-   delete curSessionIt->second;
    _activeSessions.erase(curSessionIt);
-   gSession.set(0);
    _availableSIDs.push_back(id);
 }
 
@@ -130,13 +111,6 @@ SessionManager &SessionManager::getInstance()
 
 SessionManager::~SessionManager()
 {
-   for (IdToPtrMap::iterator it = _activeSessions.begin();
-         it != _activeSessions.end(); ++it)
-   {
-      //std::cout << it->first << " <-> " << (int)it->second << std::endl;
-      delete it->second;
-   }
-
    _activeSessions.clear();
    _availableSIDs.clear();
    _curSID.reset(0);

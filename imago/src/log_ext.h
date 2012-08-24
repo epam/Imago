@@ -62,6 +62,12 @@ namespace imago
 			UseVirtualFS = true;
 		}
 
+      void SetNoVirtualFS()
+      {
+         pVFS = NULL;
+         UseVirtualFS = false;
+      }
+
 		bool loggingEnabled() const;
 		void setLoggingEnabled(bool value);
 

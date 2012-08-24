@@ -26,17 +26,16 @@
 #include "scanner.h"
 #include "comdef.h"
 #include "session_manager.h"
-#include "current_session.h"
 #include "superatom_expansion.h"
 #include "settings.h"
 #include "failsafe_png.h"
+#include "recognition_context.h"
 
 #define IMAGO_BEGIN try {                                                    
 
 #define IMAGO_END   } catch ( ImagoException &e )                                 \
                     {                                                        \
-                       RecognitionContext *context =                         \
-                          (RecognitionContext*)gSession.get()->context();    \
+                       RecognitionContext *context = getCurrentContext();    \
                        std::string &error_buf = context->error_buf;          \
                        error_buf.erase();                                    \
                        ArrayOutput aout(error_buf);                          \
@@ -52,24 +51,6 @@ namespace imago
 
 using namespace imago;
 
-struct RecognitionContext
-{
-   Image img;
-   Molecule mol;
-   std::string molfile;
-   std::string out_buf;
-   std::string error_buf;
-   Settings vars;
-   void *session_specific_data;
-   RecognitionContext () 
-   {
-      session_specific_data = 0;
-
-      ArrayOutput aout(error_buf);
-      aout.writeStringZ("No error");
-   }
-};
-
 CEXPORT qword imagoAllocSessionId()
 {
    return SessionManager::getInstance().allocSID();
@@ -79,21 +60,20 @@ CEXPORT void imagoSetSessionId( qword id )
 {
    SessionManager::getInstance().setSID(id);
    indigoSetSessionId(id);
-   RecognitionContext *&context = (RecognitionContext *&)gSession.get()->context(); 
+
+   RecognitionContext *context = getCurrentContext(); 
    
    if (context == 0)
-      context = new RecognitionContext();
+      setContextForSession(id, new RecognitionContext());
 }
 
 CEXPORT void imagoReleaseSessionId( qword id )
 {
    indigoReleaseSessionId(id);
    RecognitionContext *context;
-   if ((context = (RecognitionContext*)gSession.get()->context()) != 0)
-   {
-      delete context;
-      gSession.get()->context() = 0;
-   }
+   if ((context = getCurrentContext()) != 0)
+      deleteRecognitionContext(id, context);
+
    SessionManager::getInstance().releaseSID(id);
 }
 
@@ -106,7 +86,7 @@ CEXPORT int imagoSetConfigNumber( const int number )
 {
    IMAGO_BEGIN;
 
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
    context->vars.updateCluster((ClusterType)number);
 
    IMAGO_END;
@@ -116,14 +96,16 @@ CEXPORT int imagoSetFilter( const char *Name )
 {
 	IMAGO_BEGIN;
 
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
    bool found = false;
    for (int i = ftStd; i <= ftPass; i++)
+   {
 	   if (strcmp(Name, FilterName[i]) == 0)
 	   {
 		   context->vars.general.DefaultFilterType = (FilterType)i;
 		   found = true;
 	   }
+   }
 
 	if (!found)
 		throw ImagoException(std::string("Filter not found: ") + Name);
@@ -136,7 +118,7 @@ CEXPORT int imagoLoadImageFromFile( const char *FileName )
 {
    IMAGO_BEGIN;
 
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
    ImageUtils::loadImageFromFile(context->img, FileName);
       
    IMAGO_END;
@@ -146,7 +128,11 @@ CEXPORT int imagoFilterImage()
 {
    IMAGO_BEGIN;
    
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
+   
+   //TODO(vs): Move to a better place!
+   context->vfs.clear();
+
    prefilterEntrypoint(context->vars, context->img);
 
    IMAGO_END;
@@ -156,7 +142,7 @@ CEXPORT int imagoLoadImageFromBuffer( const char *buf, const int buf_size )
 {
    IMAGO_BEGIN;
    
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
    const unsigned char* buf_uc = (const unsigned char*)buf;
    failsafePngLoadBuffer(buf_uc, buf_size, context->img);
 
@@ -167,7 +153,7 @@ CEXPORT int imagoLoadGreyscaleRawImage( const char *buf, const int width, const 
 {
    IMAGO_BEGIN;
 
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
    Image &img = context->img;
 
    img.clear();
@@ -183,7 +169,7 @@ CEXPORT int imagoLoadGreyscaleRawImage( const char *buf, const int width, const 
 CEXPORT int imagoGetInkPercentage(double *result)
 {
 	IMAGO_BEGIN;
-	RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+	RecognitionContext *context = getCurrentContext();
 	Image &img = context->img;
 	
 	size_t ink = 0;
@@ -211,7 +197,7 @@ CEXPORT int imagoGetInkPercentage(double *result)
 CEXPORT int imagoGetPrefilteredImageSize (int *width, int *height)
 {
    IMAGO_BEGIN;
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
    Image &img = context->img;
 
    *height = img.getHeight();
@@ -222,7 +208,7 @@ CEXPORT int imagoGetPrefilteredImageSize (int *width, int *height)
 CEXPORT int imagoGetPrefilteredImage (unsigned char **data, int *width, int *height)
 {
    IMAGO_BEGIN;
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
    Image &img = context->img;
    unsigned char *buf = new unsigned char[img.getWidth() * img.getHeight()];
 
@@ -246,7 +232,7 @@ CEXPORT int imagoGetPrefilteredImage (unsigned char **data, int *width, int *hei
 CEXPORT int imagoSaveImageToFile( const char *filename )
 {
    IMAGO_BEGIN;
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
    if (context->img.isInit())
    {
       ImageUtils::saveImageToFile(context->img, filename);
@@ -259,8 +245,8 @@ CEXPORT int imagoRecognize(int* warningsCountDataOut)
 {
    IMAGO_BEGIN;
 
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
-   ChemicalStructureRecognizer &csr = getRecognizer();
+   RecognitionContext *context = getCurrentContext();
+   ChemicalStructureRecognizer &csr = context->csr;
 
    csr.setImage(context->img);
    csr.recognize(context->vars, context->mol);
@@ -277,7 +263,7 @@ CEXPORT int imagoSaveMolToFile( const char *FileName )
 {
    IMAGO_BEGIN;
 
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
    
    {
 	   FileOutput fout(FileName);
@@ -291,26 +277,46 @@ CEXPORT int imagoSaveMolToBuffer( char **buf, int *buf_size )
 {
    IMAGO_BEGIN;
 
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
    std::string &out_buf = context->molfile;
    
-   *buf = new char[out_buf.size()];
+   *buf = new char[out_buf.size() + 1];
    memcpy(*buf, out_buf.c_str(), out_buf.size());
    *buf_size = out_buf.size();
-   (*buf)[out_buf.size() - 1] = 0;
+   (*buf)[out_buf.size()] = 0;
 
    IMAGO_END;
 }
 
-CEXPORT int imagoSetLogging(bool enable)
+CEXPORT int imagoSetLogging( int mode )
 {
    IMAGO_BEGIN;
 
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
-   context->vars.general.LogEnabled = enable;
-   // warning: this is not thread-sensitive setter:
-   imago::getLogExt().setLoggingEnabled(enable);
+   RecognitionContext *context = getCurrentContext();
 
+   if (mode > 0)
+   {
+      context->vars.general.LogEnabled = true;
+      imago::getLogExt().setLoggingEnabled(true);
+
+      if (mode == 2)
+      {
+         context->vars.general.LogVFSEnabled = true;
+         imago::getLogExt().SetVirtualFS(context->vfs);
+         context->vfs.clear();
+      }
+      else
+      {
+         context->vars.general.LogVFSEnabled = false;
+         imago::getLogExt().SetNoVirtualFS();
+      }
+   }
+   else 
+   {
+      context->vars.general.LogEnabled = false;
+      imago::getLogExt().setLoggingEnabled(false);
+   }
+   
    IMAGO_END;
 }
 
@@ -318,7 +324,7 @@ CEXPORT int imagoSetSessionSpecificData( void *data )
 {
    IMAGO_BEGIN;
 
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
    context->session_specific_data = data;
 
    IMAGO_END;
@@ -330,7 +336,7 @@ CEXPORT int imagoGetSessionSpecificData( void **data )
 
    if (data != 0)
    {
-      RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+      RecognitionContext *context = getCurrentContext();
       *data = context->session_specific_data;
    }
 
@@ -339,8 +345,35 @@ CEXPORT int imagoGetSessionSpecificData( void **data )
 
 CEXPORT const char* imagoGetLastError()
 {
-   RecognitionContext *context = (RecognitionContext*)gSession.get()->context();
+   RecognitionContext *context = getCurrentContext();
    std::string &error_buf = context->error_buf;
 
    return error_buf.c_str();
+}
+
+CEXPORT int imagoGetLogCount( int *count )
+{
+   IMAGO_BEGIN;
+
+   VirtualFS &vfs = getCurrentContext()->vfs;
+   *count = vfs.size();
+
+   IMAGO_END;
+}
+
+CEXPORT int imagoGetLogRecord( int it, char **filename, int *length, char **data)
+{
+   IMAGO_BEGIN;
+
+   VirtualFS &vfs = getCurrentContext()->vfs;
+
+   *filename = new char[vfs[it].filename.length() + 1];
+   *length = vfs[it].data.size();
+   *data = new char[vfs[it].data.size()];
+
+   memcpy(*filename, vfs[it].filename.c_str(), vfs[it].filename.length());
+   (*filename)[vfs[it].filename.length()] = 0;
+   memcpy(*data, &vfs[it].data[0], *length);
+
+   IMAGO_END;
 }

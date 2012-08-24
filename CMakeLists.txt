@@ -144,6 +144,9 @@ endif()
 
 	add_subdirectory(imago_c)
 	add_subdirectory(alter-ego)
+
+	add_subdirectory(imago_java)
+
 	add_subdirectory(tests/vs)
 	add_subdirectory(tests/rc)
 endif()

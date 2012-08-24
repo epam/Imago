@@ -85,8 +85,9 @@ CEXPORT int imagoSaveImageToFile( const char *FileName );
 CEXPORT int imagoLoadGreyscaleRawImage( const char *buf, const int width, const int height );
 
 /* Enable or disable global log printing */
+/* Modes are: 0 - disabled, 1 - enable log to file, 2 - enable log to virtual fs*/
 /* WARNING: affects all threads/IDS */
-CEXPORT int imagoSetLogging(bool enable);
+CEXPORT int imagoSetLogging( int mode );
 
 /* Attach some arbitrary data to the current Imago instance. */
 CEXPORT int imagoSetSessionSpecificData( void *data );
@@ -94,22 +95,24 @@ CEXPORT int imagoGetSessionSpecificData( void **data );
 
 /* Main recognition routine. Image must be loaded & filtered previously.
    Returns count of recognition warnings in warningsCountDataOut value (if specified) */
-CEXPORT int imagoRecognize(int* warningsCountDataOut = NULL);
+CEXPORT int imagoRecognize( int *warningsCountDataOut = NULL );
 
 /* Molfile (.mol) output functions. */
 CEXPORT int imagoSaveMolToBuffer( char **buf, int *buf_size );
-CEXPORT int imagoSaveMolToFile( const char *FileName );
+CEXPORT int imagoSaveMolToFile( const char *fileName );
 
 /* Process image filtering */
 CEXPORT int imagoFilterImage();
 
 /* Returns filtered image ink percentage (0.0 .. 1.0) */
-CEXPORT int imagoGetInkPercentage(double *result);
+CEXPORT int imagoGetInkPercentage( double *result );
 
 /* returns filtered image dimensions */
-CEXPORT int imagoGetPrefilteredImageSize (int *width, int *height);
+CEXPORT int imagoGetPrefilteredImageSize( int *width, int *height );
 
 /* returns filtered image data */
-CEXPORT int imagoGetPrefilteredImage (unsigned char **data, int *width, int *height);
+CEXPORT int imagoGetPrefilteredImage( unsigned char **data, int *width, int *height );
 
+CEXPORT int imagoGetLogCount( int *count );
+CEXPORT int imagoGetLogRecord( int it, char **filename, int *lengths, char **data );
 #endif /* _imago_c_h */
