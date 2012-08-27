@@ -301,6 +301,7 @@ namespace imago
 		double DescriptorsOddFactorWeak;
 		double DescriptorsEvenFactorWeak;
 		double X_Quality;		
+		double SmallLetterRecogThreshold;
 	};
 	
 	struct ChemicalStructureRecognizerSettings // POD

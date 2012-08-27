@@ -25,6 +25,7 @@
 #include "contour_extractor.h"
 #include "stl_fwd.h"
 #include "prefilter_cv.h"
+#include <opencv2\opencv.hpp>
 
 using std::string;
 using std::cout;
@@ -59,6 +60,22 @@ imago::SymbolFeatures calc_features(const fs::path &p, int count)
    return img.getFeatures();
 }
 
+imago::IntDeque calc_templates(const fs::path &p)
+{
+	imago::Segment img, resImg;
+	cv::Mat cv_img, cv_reimg(15, 10, CV_8U);
+	imago::ImageUtils::loadImageFromFile(img, "%s", p.string().c_str());
+	imago::ImageUtils::copyImageToMat(img, cv_img);
+	cv::resize(cv_img, cv_reimg, cv_reimg.size()) ;
+
+	imago::IntDeque img_templ;
+
+	for(int i = 0; i < cv_reimg.cols; i++)
+		for(int j = 0; j < cv_reimg.rows; j++)
+			img_templ.push_back(cv_reimg.at<unsigned char>(cv::Point(i, j)));
+	return img_templ;
+}
+
 imago::Points2i calc_contours(const fs::path &p) 
 {
    imago::Segment img;
@@ -75,7 +92,7 @@ int main(int argc, char **argv)
 {
    string data;
    int count; 
-   string output, contours_output;
+   string output, contours_output, templates_output;
    po::options_description opts("Allowed options");
 
    opts.add_options()
@@ -83,7 +100,8 @@ int main(int argc, char **argv)
       ("data-path,D", po::value<string>(&data), "Path to the directory with symbols images")
       ("count", po::value<int>(&count)->default_value(25), "Count of descriptor pairs")
       ("output-name,O", po::value<string>(&output), "Output file name")
-      ("output-contours-name,C", po::value<string>(&contours_output), "Contours output file name");
+      ("output-contours-name,C", po::value<string>(&contours_output), "Contours output file name")
+	  ("output-templates-name,T", po::value<string>(&templates_output), "Templates output file name");
 
    po::variables_map vm;
    po::store(po::parse_command_line(argc, argv, opts), vm);
@@ -122,9 +140,12 @@ int main(int argc, char **argv)
 
    ofstream out(output.c_str(), std::ios::out);
    std::auto_ptr<ofstream> contours_out;
+   std::auto_ptr<ofstream> templates_out;
    if (vm.count("output-contours-name"))
       contours_out.reset(new ofstream(contours_output.c_str(), std::ios::out));
    //std::ostream &out = cout;
+   if(vm.count("output-templates-name"))
+	   templates_out.reset(new ofstream(templates_output.c_str(), std::ios::out));
 
    out << count << " " << chars.length() << "\n";
    BOOST_FOREACH(char c, chars)
@@ -135,26 +156,39 @@ int main(int argc, char **argv)
       else
          p /= string() + c;
 
-      fs::directory_iterator di(p), di_end;
-      vector<fs::path> files;
-      for (; di != di_end; ++di)
-      {
-         if(di->path().extension() != ".png")
-            continue;
-         
-         files.push_back(di->path());
-      }
+	  vector<fs::path> files;
+
+	  try
+	  {
+		  fs::directory_iterator di(p), di_end;
+	 
+		  for (; di != di_end; ++di)
+		  {
+			 if(di->path().extension() != ".png")
+				continue;
+		  
+			 files.push_back(di->path());
+		  }
+	  }
+	  catch(std::exception exc)
+	  {
+		  continue;
+	  }
 
       cout << c << "\n";
       out << c << " " << files.size() << "\n";
 
       if (contours_out.get())
          *contours_out << c << " " << files.size() << "\n";
+	  
+	  if(templates_out.get())
+		  *templates_out << c << " " << files.size() << "\n";
 
       BOOST_FOREACH(fs::path p, files)
       {
-         imago::SymbolFeatures sf = calc_features(p, count);
-         out << sf.inner_contours_count << "\n";
+		  
+		  imago::SymbolFeatures sf = calc_features(p, count);
+		  out << sf.inner_contours_count << "\n";
 
          std::copy(sf.descriptors.begin(), sf.descriptors.end(), ostream_iterator<double>(out, " "));
          out << "\n";
@@ -164,6 +198,12 @@ int main(int argc, char **argv)
             out << "\n";
          }
 
+		 if(templates_out.get())
+		 {
+			 imago::IntDeque templ = calc_templates(p);
+			 std::copy(templ.begin(), templ.end(), ostream_iterator<int>(*templates_out, " "));
+			 *templates_out << "\n";
+		 }
          if (contours_out.get())
          {
             imago::Points2i contour = calc_contours(p);
