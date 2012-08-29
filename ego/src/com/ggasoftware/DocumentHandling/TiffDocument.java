@@ -65,7 +65,9 @@ public class TiffDocument implements Document {
             scale = scl;
             int newWidth = (int)(noImage.getWidth() * scale);
             int newHeight = (int)(noImage.getHeight() * scale);
-            image = new BufferedImage(newWidth, newHeight, origImage.getType());
+            int type = (origImage.getType() == 0) ? BufferedImage.TYPE_INT_RGB : origImage.getType();
+
+            image = new BufferedImage(newWidth, newHeight, type);
             image.getGraphics().drawImage(origImage.getScaledInstance(newWidth,
                     newHeight, Image.SCALE_FAST), 0, 0, null);
         }

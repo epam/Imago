@@ -13,22 +13,7 @@ add_custom_command(TARGET imago_java POST_BUILD
 
 #Add libraries
 get_target_property(imago_dll_filename imago_c_shared LOCATION)
-if(IMAGO_BITNESS EQUAL 32)
-	set(SYSTEM_BITS "x86")
-else()
-	set(SYSTEM_BITS "x64")
-endif()
-
-if(CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-	set(SYSTEM_NAME "Mac")
-	message(ERROR "Not done yet!")
-elseif(CMAKE_SYSTEM_NAME STREQUAL "Windows")
-	set(SYSTEM_NAME "Win")
-else()
-	set(SYSTEM_NAME "Linux")
-endif()
-
-set(IMAGO_DLL_DIR "com/ggasoftware/imago/${SYSTEM_NAME}/${SYSTEM_BITS}")
+set(IMAGO_DLL_DIR "com/ggasoftware/imago/${SYSTEM_NAME}/${SUBSYSTEM_NAME}")
 add_custom_command(TARGET imago_java POST_BUILD
 	               COMMAND "${CMAKE_COMMAND}" "-E" "make_directory" "${IMAGO_DLL_DIR}"
 	               WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})

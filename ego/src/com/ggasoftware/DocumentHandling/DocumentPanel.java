@@ -89,29 +89,24 @@ public class DocumentPanel extends javax.swing.JPanel {
             ready = false;
             currentPage = page;
 
-            if (parent.careful) {
-                if (page.getUnscaledSize().height > page.getUnscaledSize().width)
-                    parent.fitHeight();
-                else
-                    parent.fitWidth();
-            }
+            if (page.getUnscaledSize().height > page.getUnscaledSize().width)
+                parent.fitHeight();
+            else
+                parent.fitWidth();
 
-            prepPage(scale);
-            ready = true;                        
+            ready = true;
         }
 
         @Override
         public void paint(Graphics g) {
-
             super.paint(g);
 
             if (ready)
             {
-                Point center = new Point((parent.jScrollPane1.getSize().width -
-                        parent.jScrollPane1.getVerticalScrollBar().getWidth() -
+                Point center = new Point((parent.jPanel1.getVisibleRect().width -
                         currentPage.getSize().width) / 2,
 
-                        (parent.jScrollPane1.getSize().height -
+                        (parent.jPanel1.getVisibleRect().height -
                                 currentPage.getSize().height) / 2);
 
                 if (center.x < 0)
@@ -153,14 +148,7 @@ public class DocumentPanel extends javax.swing.JPanel {
         }
 
         public void prepPage(double new_scale) {
-
-            try {
-                currentPage.setScale(new_scale);
-            }
-            catch (Exception e) {
-                return;
-            }
-
+            currentPage.setScale(new_scale);
             setPreferredSize(currentPage.getSize());
 
             int dx = (currentPage.getSize().width - parent.jScrollPane1.getSize().width) / 2,
@@ -232,10 +220,10 @@ public class DocumentPanel extends javax.swing.JPanel {
             }
 
             Point center =
-                    new Point((parent.jScrollPane1.getSize().width -
-                    currentPage.getSize().width) / 2,
-                    (parent.jScrollPane1.getSize().height -
-                    currentPage.getSize().height) / 2);
+                    new Point((parent.jPanel1.getVisibleRect().width -
+                            currentPage.getSize().width) / 2,
+                            (parent.jPanel1.getVisibleRect().height -
+                                    currentPage.getSize().height) / 2);
 
             if (center.x > 0)
                 selection.x -= center.x;
@@ -269,14 +257,13 @@ public class DocumentPanel extends javax.swing.JPanel {
 
         //TODO: Strange functions.
         public void increaseScale() {
-
             int ind = parent.jZoomComboBox.getSelectedIndex(),
                 count = parent.jZoomComboBox.getItemCount();            
-            
+
             if (ind >= count - 1)
                 return;
 
-            if (ind < 0)
+            if (ind - 4 < 0)
             {
                 int i = findClosestScale(scale, true);
 
@@ -306,9 +293,7 @@ public class DocumentPanel extends javax.swing.JPanel {
         }
 
         public void decreaseScale() {
-
-            int ind = parent.jZoomComboBox.getSelectedIndex(),
-                count = parent.jZoomComboBox.getItemCount();
+            int ind = parent.jZoomComboBox.getSelectedIndex();
 
             if (ind <= 4 && ind >= 0)
                 return;
@@ -387,10 +372,10 @@ public class DocumentPanel extends javax.swing.JPanel {
             if (button == MouseEvent.BUTTON1 || button == MouseEvent.BUTTON3) {
                 begin = me.getPoint();
                 Point center =
-                    new Point((parent.jScrollPane1.getSize().width -
-                    currentPage.getSize().width) / 2,
-                    (parent.jScrollPane1.getSize().height -
-                    currentPage.getSize().height) / 2);
+                        new Point((parent.jPanel1.getVisibleRect().width -
+                                currentPage.getSize().width) / 2,
+                                (parent.jPanel1.getVisibleRect().height -
+                                        currentPage.getSize().height) / 2);
 
                 if (center.x < 0)
                     center.x = 0;
@@ -712,11 +697,6 @@ public class DocumentPanel extends javax.swing.JPanel {
 
     public void recoverPreviousDocument() {
         viewer.recoverPreviousDocument();
-        
-        if (document instanceof PdfDocument ||
-            document instanceof TiffDocument) {
-            parent.toggleRecognizeItems(false);
-        }
     }
 
     private void initComponents() {

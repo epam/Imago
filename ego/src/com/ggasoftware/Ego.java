@@ -84,14 +84,9 @@ public class Ego {
         frame.toggleAfterSelectionItems(false);
         frame.toggleNavigateItems(true);
         frame.setTitle("Ego: " + file.getName());
+        frame.toggleRecognizeItems(true);
+        frame.jDocumentPanel.setCareful();
 
-        if (Utils.isPDF(file) || Utils.isTIF(file)) {
-            frame.toggleRecognizeItems(false);
-        } else {
-            frame.jDocumentPanel.setCareful();
-            frame.toggleRecognizeItems(true);
-        }
-        
         frame.setDocument(doc);
     }
 
