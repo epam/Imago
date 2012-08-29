@@ -42,6 +42,9 @@
  * instance to get Imago library work properly.
  */
 
+/* Get the version of Imago.*/
+CEXPORT const char *imagoGetVersion();
+
 /* Get the last error message.
  * This can be called if some other function returned zero value.
  */

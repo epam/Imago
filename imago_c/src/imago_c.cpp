@@ -17,6 +17,7 @@
 #include <string>
 
 #include "imago_c.h"
+#include "imago_version.h"
 #include "indigo.h"
 #include "image_utils.h"
 #include "molfile_saver.h"
@@ -50,6 +51,11 @@ namespace imago
 }
 
 using namespace imago;
+
+CEXPORT const char *imagoGetVersion()
+{
+   return IMAGO_VERSION;
+}
 
 CEXPORT qword imagoAllocSessionId()
 {

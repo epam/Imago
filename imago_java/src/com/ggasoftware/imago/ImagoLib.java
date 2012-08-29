@@ -18,6 +18,7 @@ import com.sun.jna.*;
 import com.sun.jna.ptr.*;
 
 public interface ImagoLib extends Library {
+    String imagoGetVersion();
     String imagoGetLastError();
 
     long imagoAllocSessionId();

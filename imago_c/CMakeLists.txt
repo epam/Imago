@@ -3,9 +3,10 @@ include_directories(${Boost_INCLUDE_DIR})
 include_directories(${INDIGO_INCLUDE_DIR})
 include_directories(${OpenCV_INCLUDE_DIRS})
 
-set(SRC
-  src/imago_c.cpp
-  )
+include(imago_version.cmake)
+message(STATUS "Imago version is ${IMAGO_VERSION} (${IMAGO_VERSION_EXT})")
+set(IMAGO_VERSION "${IMAGO_VERSION}" PARENT_SCOPE) # promote Imago version
+configure_file(src/imago_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/imago_version.h)
 
 file(GLOB SRC src/*.cpp)
 file(GLOB HEADERS src/*.h)

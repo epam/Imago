@@ -64,6 +64,10 @@ public class Imago {
         return result;
     }
 
+    public String getVersion() {
+        return _lib.imagoGetVersion();
+    }
+    
     public void setSessionID()
     {
         _lib.imagoSetSessionId(_sid);
