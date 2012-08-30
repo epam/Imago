@@ -15,13 +15,9 @@
 package com.ggasoftware;
 
 import com.ggasoftware.DocumentHandling.Document;
-import java.awt.BorderLayout;
-import java.awt.Dimension;
-import java.awt.Toolkit;
-import javax.swing.JFrame;
-import javax.swing.JLabel;
-import javax.swing.JPanel;
-import javax.swing.SwingUtilities;
+
+import java.awt.*;
+import javax.swing.*;
 
 public class EgoFrame extends EgoForm {
     
@@ -46,10 +42,6 @@ public class EgoFrame extends EgoForm {
         jMainTabbedPane.setEnabledAt(0, false);
         jMainTabbedPane.setEnabledAt(1, false);
         jMainTabbedPane.setEnabledAt(2, false);
-               
-        jNoResultPanel = new JPanel(new BorderLayout());
-        jNoResultLabel = new JLabel("Unfortunately, Imago couldn't recognize selected image.", JLabel.CENTER);
-        jNoResultPanel.add(jNoResultLabel, BorderLayout.CENTER);        
     }
     
     public void setDocument(Document document) {
@@ -60,7 +52,7 @@ public class EgoFrame extends EgoForm {
             }
         });
 
-        selectTab(EgoFrame.Tabs.DOCUMENT);
+        selectTab("Document");
     }
     
     public void toggleNavigateItems(boolean value) {
@@ -94,42 +86,34 @@ public class EgoFrame extends EgoForm {
     }
     
     public void showNoResultMessage() {
-        if (!jNoResultPanel.equals(jMainTabbedPane.getComponentAt(Tabs.LOG.index))) {
-            jMainTabbedPane.setComponentAt(Tabs.LOG.index, jNoResultPanel);
-        }
-        selectTab(Tabs.LOG);
+        JOptionPane.showMessageDialog(this, "Unfortunately, Imago couldn't recognize selected image.", "Result",
+                JOptionPane.INFORMATION_MESSAGE);
     }
 
     public boolean setMolecule(String molecule) {
-        selectTab(Tabs.MOLECULE);
+        selectTab("Molecule");
         return jMoleculePanel.setMolecule(molecule);
     }
 
-    public enum Tabs {
-        DOCUMENT(0),
-        LOG(1),
-        MOLECULE(2);
-        
-        public int index;
-        Tabs(int index) {
-            this.index = index;
-        }
+    public void selectTab(String title) {
+        int index = jMainTabbedPane.indexOfTab(title);
+        jMainTabbedPane.setEnabledAt(index, true);
+        jMainTabbedPane.setSelectedIndex(index);
+    }
+
+    public void enableTab(String title) {
+        int index = jMainTabbedPane.indexOfTab(title);
+        jMainTabbedPane.setEnabledAt(index, true);
     }
     
-    public void selectTab(Tabs tab) {
-        jMainTabbedPane.setEnabledAt(tab.index, true);
-        jMainTabbedPane.setSelectedIndex(tab.index);
+    public void disableTab(String title) {
+        int index = jMainTabbedPane.indexOfTab(title);
+        jMainTabbedPane.setEnabledAt(index, false);
     }
-    
-    public void enableTab(Tabs tab) {
-        jMainTabbedPane.setEnabledAt(tab.index, true);
+
+    public void deleteLogTab() {
+        int index = jMainTabbedPane.indexOfTab("Log");
+        jMainTabbedPane.removeTabAt(index);
     }
-    
-    public void disableTab(Tabs tab) {
-        jMainTabbedPane.setEnabledAt(tab.index, false);
-    }
-        
-    private javax.swing.JPanel jNoResultPanel;
-    private javax.swing.JLabel jNoResultLabel;
 }
 

@@ -20,19 +20,13 @@ import java.awt.Graphics;
 import java.awt.Image;
 import java.awt.Point;
 import java.awt.Rectangle;
-import java.awt.event.ActionEvent;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
-import java.awt.event.MouseMotionListener;
+import java.awt.event.*;
 import java.awt.image.ImageObserver;
 import com.ggasoftware.DocumentHandling.Document.DocumentPageAsImage;
 import com.ggasoftware.EgoFrame;
 import java.awt.Cursor;
 import java.awt.Dimension;
 import java.awt.FlowLayout;
-import java.awt.event.ActionListener;
-import java.awt.event.MouseWheelEvent;
-import java.awt.event.MouseWheelListener;
 import java.awt.image.BufferedImage;
 import javax.swing.*;
 
@@ -873,6 +867,10 @@ public class DocumentPanel extends javax.swing.JPanel {
 
     public boolean isLogEnabled() {
         return jLogCheckBox.isSelected();
+    }
+
+    public void hideLogCheckbox() {
+        jLogCheckBox.setVisible(false);
     }
 
     private javax.swing.JButton jFirstPageButton;

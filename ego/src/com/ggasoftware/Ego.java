@@ -18,11 +18,14 @@ import java.awt.event.WindowEvent;
 import java.awt.event.WindowListener;
 import java.awt.image.BufferedImage;
 import java.io.*;
+import java.net.MalformedURLException;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.text.StyledDocument;
+import javax.swing.text.html.HTMLDocument;
 
 public class Ego {
     private EgoFrame frame;
@@ -30,17 +33,30 @@ public class Ego {
     private Imago imago = new Imago();
     private String molecule = "";
     private String prevSaveDirectory = ".";
-    
+    private String logTempDir = null;
+
     public Ego(String filename) {
         frame = new EgoFrame("Ego");
         setActions();
         if (filename != null) {
             setFile(new File(filename));
         }
+
+        try {
+            createTempDirectory();
+        } catch (IOException e) {
+            frame.jDocumentPanel.hideLogCheckbox();
+            frame.deleteLogTab();
+        }
+
         frame.addWindowListener(new WindowListener() {
             public void windowOpened(WindowEvent e) {}
             public void windowClosing(WindowEvent e) {
                 dropLogImages();
+                
+                //Deleting tempDirectory
+                if (logTempDir != null)
+                    new File(logTempDir).delete();
             }
             public void windowClosed(WindowEvent e) {}
             public void windowIconified(WindowEvent e) {}
@@ -110,7 +126,8 @@ public class Ego {
         boolean logEnabled = frame.jDocumentPanel.isLogEnabled();
         boolean result = true;
 
-        frame.disableTab(EgoFrame.Tabs.LOG);
+        if (logTempDir != null)
+            frame.disableTab("Log");
 
         try {
             if (logEnabled) {
@@ -134,24 +151,43 @@ public class Ego {
         return result;
     }
 
+    private void createTempDirectory() throws IOException {
+        File tmpfile = File.createTempFile("imago", null);
+        String tmpdir_path = tmpfile.getAbsolutePath() + ".d";
+        tmpfile.delete();
+        final File tmpdir = new File(tmpdir_path);
+
+        if (tmpdir.mkdir()) {
+            logTempDir = tmpdir.getAbsolutePath();
+        } else {
+            throw new IOException("Cannot create temp diretory");
+        }
+    }
+
     private void dropLogImages() {
-        File f = new File("htmlimgs");
+        if (logTempDir == null)
+            return;
+
+        String imgsPath = logTempDir + File.separator + "htmlimgs";
+        File f = new File(imgsPath);
         if (f.exists()) {
             for (String child : f.list()) {
-                new File("htmlimgs", child).delete();
+                new File(imgsPath, child).delete();
             }
         }
         f.delete();
     }
 
     public void logThread() {
+        assert(logTempDir != null);
+
         Imago.LogRecord[] log = imago.getLogRecords();
 
         dropLogImages();
-        new File("htmlimgs").mkdir();
+        new File(logTempDir + File.separator + "htmlimgs").mkdir();
         for (int i = 1; i < log.length; ++i) {
             try {
-                FileOutputStream fos = new FileOutputStream(new File(log[i].filename));
+                FileOutputStream fos = new FileOutputStream(new File(logTempDir + File.separator + log[i].filename));
                 fos.write(log[i].data);
                 fos.close();
             } catch (IOException ex) {
@@ -159,13 +195,18 @@ public class Ego {
         }
 
         frame.logArea.setText(new String(log[0].data));
-        frame.enableTab(EgoFrame.Tabs.LOG);
+        StyledDocument sd = frame.logArea.getStyledDocument();
+        if (sd instanceof HTMLDocument) {
+            try {
+                ((HTMLDocument) sd).setBase(new File(logTempDir).toURI().toURL());
+            } catch (MalformedURLException e) {
+            }
+        }
+        frame.enableTab("Log");
     }
 
     public void recognize() {
-        frame.selectTab(EgoFrame.Tabs.MOLECULE);
-        
-        final JDialog waitingDialog = new JDialog(frame, "Please wait", 
+        final JDialog waitingDialog = new JDialog(frame, "Please wait",
                 Dialog.ModalityType.DOCUMENT_MODAL);
         
         waitingDialog.setDefaultCloseOperation(JDialog.DO_NOTHING_ON_CLOSE);

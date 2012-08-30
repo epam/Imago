@@ -2,7 +2,6 @@ package com.ggasoftware;
 
 import java.io.File;
 
-
 public class Utils {
     public static String getFileExtension(File file) {
         String name = file.getName();

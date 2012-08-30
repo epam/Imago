@@ -286,7 +286,6 @@ public class Imago {
             tmpdir_path = tmpfile.getAbsolutePath() + ".d";
             tmpfile.delete();
         } catch (IOException e) {
-
             return null;
         }
 
