@@ -96,7 +96,7 @@ public class FormBuilder {
         ef.jMainToolBar.add(ef.jCopyButton);
 
         ef.jSketcherButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/resources/edit-find-replace.png")));
-        ef.jSketcherButton.setToolTipText("Open molecule in MarvinSketch");
+        ef.jSketcherButton.setToolTipText("Open molecule in sketcher");
         ef.jSketcherButton.setEnabled(false);
         ef.jSketcherButton.setFocusable(false);
         ef.jSketcherButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);

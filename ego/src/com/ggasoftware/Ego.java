@@ -34,6 +34,7 @@ public class Ego {
     private String molecule = "";
     private String prevSaveDirectory = ".";
     private String logTempDir = null;
+    private OpenSketcherDialog osd;
 
     public Ego(String filename) {
         frame = new EgoFrame("Ego");
@@ -49,6 +50,7 @@ public class Ego {
             frame.deleteLogTab();
         }
 
+        osd = new OpenSketcherDialog(frame);
         frame.addWindowListener(new WindowListener() {
             public void windowOpened(WindowEvent e) {}
             public void windowClosing(WindowEvent e) {
@@ -302,7 +304,7 @@ public class Ego {
         ActionListener sketcherAction = new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 try {
-                    new Sketcher(frame, frame.jMoleculePanel.getMoleculeString());
+                    osd.show(molecule);
                 } catch (java.lang.UnsatisfiedLinkError ex) {
                 }
             }
