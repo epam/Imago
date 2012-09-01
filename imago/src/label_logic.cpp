@@ -22,6 +22,7 @@
 #include "image_utils.h"
 #include "log_ext.h"
 #include "chemical_validity.h"
+#include "small_character_recognizer.h"
 
 using namespace imago;
 
@@ -318,6 +319,15 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
    int digit_small = -1;
    RecognitionDistance rd = _cr.recognize_all(vars, *seg);
    char hwc = rd.getBest();
+
+   if(seg->getHeight() < 20 && seg->getHeight() < 20)
+   {
+	   SmallCharRecognizer scr;
+	   char sChar  = scr.Recognize(vars, seg);
+	   if(sChar != -1)
+		   hwc = sChar;
+   }
+   
    if (hwc == 'X' && rd.getQuality() < vars.characters.X_Quality) // HACK
 	   hwc = 'H';
 

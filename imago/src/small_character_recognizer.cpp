@@ -41,6 +41,8 @@
 
 using namespace imago;
 
+std::vector<SmallCharRecognizer::CharRecord> SmallCharRecognizer::_data;
+
 struct CharScoreRec
 {
 	char character;
@@ -85,13 +87,12 @@ char SmallCharRecognizer::Recognize(const Settings& vars, const Segment *seg)
 			int val = cr.templates[i];
 			int tval = temp[i];
 			score += (val - tval) * (val - tval);
-		
-			CharScoreRec csrRes;
-			csrRes.character = cr.Character;
-			csrRes.score = score;
-			results.push_back(csrRes);
 		}
 		
+		CharScoreRec csrRes;
+		csrRes.character = cr.Character;
+		csrRes.score = score;
+		results.push_back(csrRes);
 	}
 
 	std::sort(results.begin(), results.end(), CompareChars);
@@ -105,9 +106,10 @@ char SmallCharRecognizer::Recognize(const Settings& vars, const Segment *seg)
 		char_score[(*ires).character] = 0.0;
 	}
 
-	for(ires = results.begin(); ires != results.end() || ires != (results.begin() + 5); ires++) // warning: 5 is the number of closest neighbours
+	for(ires = results.begin(); ires != results.end() && ires != (results.begin() + 5); ires++) // warning: 5 is the number of closest neighbours
 	{
-		char_score[(*ires).character] += 1.0 / (*ires).score;
+		double s = (*ires).score;
+		char_score[(*ires).character] += 1.0 / (s < imago::EPS ? imago::SMALL_EPS : s ) ;
 	}
 
 	double score_max = 0;
@@ -141,8 +143,10 @@ void SmallCharRecognizer::_loadData( std::istream &in )
 				in >> tempEl;
 				currRec.templates.push_back(tempEl);
 			}
-
+			
+			_data.push_back(currRec);
+			currRec.templates.clear();
 		}
-		_data.push_back(currRec);
+		
 	}while(!in.eof());
 }
