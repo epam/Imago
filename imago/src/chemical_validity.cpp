@@ -333,6 +333,7 @@ namespace imago
 		elements.push_back("Z1",    0.1);		
 		elements.push_back("X",     0.1);
 		elements.push_back("Me",    0.2);
+		elements.push_back("Et",    0.2); // whats that?
 
 		// and also fixup these bad combinations
 		elements.push_back("IN", 0.0);
