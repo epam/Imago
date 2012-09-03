@@ -2,32 +2,43 @@ import sys
 import os                 
 sys.path.append(os.path.abspath(os.path.join(os.curdir, 'indigo')))
 from indigo import Indigo, IndigoException        
-from xml.dom.minidom import Document
+from xml.etree.cElementTree import Element, tostring
 from time import time
+
+indigo = Indigo()
 
 successfullyRecognizedImages = 0
 totalImages = 0
 indigoFailedImages = 0
-doc = Document()
-xml_test_results = doc.createElement("test-results")
-doc.appendChild(xml_test_results)
-test_suite = doc.createElement("test-suite")
-test_suite.setAttribute("name", 'Imago')
-results = doc.createElement("results")
-indigo = Indigo()
 
-def createTestCase(doc, name, time, error):
-   test_case = doc.createElement("test-case")
-   test_case.setAttribute("name", name)
-   test_case.setAttribute("time", time)
+xmlReport = Element('test-results')
+testSuite = Element('test-suite', name='Imago')
+results = Element('results')
+
+def indent(elem, level=0):
+    i = "\n" + level*"  "
+    if len(elem):
+        if not elem.text or not elem.text.strip():
+            elem.text = i + "  "
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+        for elem in elem:
+            indent(elem, level+1)
+        if not elem.tail or not elem.tail.strip():
+            elem.tail = i
+    else:
+        if level and (not elem.tail or not elem.tail.strip()):
+            elem.tail = i
+
+def createTestCase(name, time, error):
+   testCase = Element('test-case', name=name, time=str(round(time, 2)))
    if error:
-      failure = doc.createElement("failure")
-      message = doc.createElement("message")
-      message_text = doc.createTextNode(error)
-      message.appendChild(message_text)
-      failure.appendChild(message)
-      test_case.appendChild(failure)
-   return test_case
+      failure = Element('failure')
+      message = Element('message')
+      message.text = error
+      failure.append(message)
+      testCase.append(failure)
+   return testCase
 
 def testAlterEgo(mol, image):
     global totalImages, successfullyRecognizedImages, indigoFailedImages, results
@@ -36,7 +47,6 @@ def testAlterEgo(mol, image):
         execSuffix = '.exe'
     else:
         execSuffix = ''
-    #print 'alter_ego%s "%s" -o "%s"' % (execSuffix, image, resultMolFile)
     beginTime = time()
     os.system('alter_ego%s "%s" -o "%s"' % (execSuffix, image, resultMolFile))   
     totalTime = time() - beginTime
@@ -47,16 +57,17 @@ def testAlterEgo(mol, image):
         if indigo.exactMatch(stdMol, resultMol):
             successfullyRecognizedImages += 1
         else:
-            error = "Imago"
+            error = 'Imago'
         totalImages += 1  	
     except IndigoException, e:
-        sys.stderr.write(e.message + '\n')
+        sys.stderr.write('Indigo: ' + e.message + '\n')
         indigoFailedImages += 1
-        error = 'Indigo'
+        error = 'Indigo: ' + e.message
     finally:
-        results.appendChild(createTestCase(doc, image, time, error))
+        results.append(createTestCase(image, totalTime, error))
    
-for root, dirs, files in os.walk(os.path.join('images', '1. Main Set')):
+#for root, dirs, files in os.walk(os.path.join('images', '1. Main Set')):
+for root, dirs, files in os.walk('images'):
     for f in files:
         file = os.path.join(root, f)
         if file.endswith('.mol'):
@@ -65,11 +76,11 @@ for root, dirs, files in os.walk(os.path.join('images', '1. Main Set')):
             if os.path.exists(file.replace('.mol', '.jpg')):
                 testAlterEgo(file, file.replace('.mol', '.jpg'))
 
-test_suite.appendChild(results)
-xml_test_results.appendChild(test_suite)
-doc.appendChild(xml_test_results)
-#print doc
-#open('report.xml', "w").write(doc.to)   
+testSuite.append(results)
+xmlReport.append(testSuite)
+with open('report.xml', 'wt') as f:
+    indent(xmlReport)
+    f.write(tostring(xmlReport))
 
 print 'Test results:'
 print 'Total images: %s' % totalImages
