@@ -184,10 +184,10 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
    RecognitionDistance rec;
    getLogExt().append("Segment hash", segHash);
    
-   if (vars.characters.PCacheClean &&
-	   vars.characters.PCacheClean->find(segHash) != vars.characters.PCacheClean->end())
+   if (vars.caches.PCacheClean &&
+	   vars.caches.PCacheClean->find(segHash) != vars.caches.PCacheClean->end())
    {
-	   rec = (*vars.characters.PCacheClean)[segHash];
+	   rec = (*vars.caches.PCacheClean)[segHash];
 	   getLogExt().appendText("Used cache: clean");
    }
    else
@@ -216,19 +216,19 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
 	   
 	   getLogExt().appendMap("Distance map for source", rec);
 
-	   if (vars.characters.PCacheClean)
+	   if (vars.caches.PCacheClean)
 	   {
-		   (*vars.characters.PCacheClean)[segHash] = rec;
+		   (*vars.caches.PCacheClean)[segHash] = rec;
 		   getLogExt().appendText("Filled cache: clean");
 	   }
    }
 
 	if (can_adjust)
 	{
-		if (vars.characters.PCacheAdjusted &&
-			vars.characters.PCacheAdjusted->find(segHash) != vars.characters.PCacheAdjusted->end())
+		if (vars.caches.PCacheAdjusted &&
+			vars.caches.PCacheAdjusted->find(segHash) != vars.caches.PCacheAdjusted->end())
 		{
-			rec = (*vars.characters.PCacheAdjusted)[segHash];
+			rec = (*vars.caches.PCacheAdjusted)[segHash];
 			getLogExt().appendText("Used cache: adjusted");
 		}
 		else
@@ -273,9 +273,9 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
 
 		   getLogExt().appendMap("Adjusted (result) distance map", rec);
 
-		   if (vars.characters.PCacheAdjusted)
+		   if (vars.caches.PCacheAdjusted)
 		   {
-			   (*vars.characters.PCacheAdjusted)[segHash] = rec;
+			   (*vars.caches.PCacheAdjusted)[segHash] = rec;
 			   getLogExt().appendText("Filled cache: adjusted");
 		   }
 		}

@@ -217,7 +217,7 @@ namespace imago
       for (int l = 0; l < 2; l++)
       {
          int i = 1;
-		 double epsilon = (l == 0) ? vars.routines.Contour_Eps1 : vars.routines.Contour_Eps2;
+		 double epsilon = (l == 0) ? vars.shared.Contour_Eps1 : vars.shared.Contour_Eps2;
 
          while (i < (int)contour.size() - 2)
          {

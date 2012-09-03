@@ -123,8 +123,10 @@ void updateSettingsScanned(Settings &s)
 	FUZZ s.routines.Approx_Eps1 = 0.970654; // fuzzed, old value = 1.060099
 	FUZZ s.routines.Approx_Eps2 = 0.802213; // fuzzed, old value = 0.880628
 	FUZZ s.routines.Approx_CalcLineTresh = 0.811790; // fuzzed, old value = 0.829363
-	FUZZ s.routines.Contour_Eps1 = 0.988044; // fuzzed, old value = 0.956695
-	FUZZ s.routines.Contour_Eps2 = 0.628422; // fuzzed, old value = 0.667673
+
+	// WARNING, these lines should be removed after check
+	FUZZ s.shared.Contour_Eps1 = 0.988044; // fuzzed, old value = 0.956695
+	FUZZ s.shared.Contour_Eps2 = 0.628422; // fuzzed, old value = 0.667673
 
 	FUZZ s.wbe.PointsCompareDist = 3; // fuzzed, old value = 3
 	
