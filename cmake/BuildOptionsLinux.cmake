@@ -1,4 +1,4 @@
-option(IMAGO_BITNESS "Target bitness" 64)
+set(IMAGO_BITNESS 64 CACHE STRING "Target bitness")
 if(${IMAGO_BITNESS} EQUAL 64)
    	set(SUBSYSTEM_NAME "x64")
 elseif(${IMAGO_BITNESS} EQUAL 32)
@@ -9,7 +9,6 @@ find_package(Threads REQUIRED)
 if(${SUBSYSTEM_NAME} STREQUAL "x86")	
 	set(IMAGO_C_FLAGS "-m32")
 	set(INDIGO_LIBS_DIR "${INDIGO_LIBS_DIR}/linux32")
-	#"/home/vsmolov/opencv/linux32/share/OpenCV") #
 	set(OpenCV_DIR "${OpenCV_DIR}/linux32/share/OpenCV")
 	set(BOOST_LIBRARYDIR "${BOOST_LIBRARYDIR}/linux32")
 elseif(${SUBSYSTEM_NAME} STREQUAL "x64")
