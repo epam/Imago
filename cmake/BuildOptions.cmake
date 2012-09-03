@@ -14,6 +14,13 @@ elseif(SYSTEM_NAME STREQUAL "Mac")
 	include(BuildOptionsMac)
 endif()
 
+if(UNIX OR APPLE)
+    add_definitions("${IMAGO_C_FLAGS}")
+    SET(CMAKE_EXE_LINKER_FLAGS ${CMAKE_EXE_LINKER_FLAGS_INIT} ${IMAGO_C_FLAGS})
+    SET(CMAKE_SHARED_LINKER_FLAGS ${CMAKE_SHARED_LINKER_FLAGS_INIT} ${IMAGO_C_FLAGS})
+    set(LINK_FLAGS "${LINK_FLAGS} ${IMAGO_C_FLAGS}")
+endif()
+
 #set(Boost_DEBUG ON)
 set(Boost_ADDITIONAL_VERSIONS "1.49" "1.49.0")
 set(Boost_USE_STATIC_LIBS ON)
@@ -26,6 +33,9 @@ include("${OpenCV_DIR}/OpenCVConfig.cmake")
 include_directories(${OpenCV_INCLUDE_DIRS})
 
 include_directories(${INDIGO_INCLUDE_DIR})
+
+if(NOT UNIX)
 file(GLOB INDIGO_LIBS "${INDIGO_LIBS_DIR}/*${CMAKE_STATIC_LIBRARY_SUFFIX}")
+endif()
 
 Find_Package(Java)

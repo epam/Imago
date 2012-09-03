@@ -19,11 +19,6 @@ list(APPEND SRC ${HEADERS})
 
 add_library(imago STATIC ${SRC})
 
-if(UNIX OR APPLE)
-    SET(COMPILE_FLAGS "${COMPILE_FLAGS} -fPIC")
-endif()
-
-add_dependencies(imago OpenCV)
 target_link_libraries(imago ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(imago ${INDIGO_LIBS})
 target_link_libraries(imago ${OpenCV_LIBS})
