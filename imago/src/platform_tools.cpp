@@ -41,6 +41,11 @@ unsigned int platform::MEM_AVAIL()
 	return static_cast<size_t>(statex.ullAvailVirtual / 1024);
 }
 
+std::string platform::getLineEndings()
+{
+	return "\r\n";
+}
+
 #else // ------------------- POSIX -------------------
 
 #include <sys/stat.h>
@@ -59,6 +64,11 @@ unsigned int platform::TICKS()
 unsigned int platform::MEM_AVAIL()
 {
 	return 0; // TODO
+}
+
+std::string platform::getLineEndings()
+{
+	return "\n";
 }
 
 #endif

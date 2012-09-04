@@ -37,6 +37,7 @@ void dumpVFS(imago::VirtualFS& vfs)
 	{
 		imago::FileOutput flogdump("log_vfs.txt");
 		std::vector<char> logdata;
+		// store all the vfs contents in one single file (including html, images, etc)
 		vfs.getData(logdata);
 		flogdump.write(&logdata.at(0), logdata.size());
 	}
@@ -159,6 +160,18 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, imago
 	}
 
 	dumpVFS(vfs);
+
+	{
+		// test config store
+		std::string data;
+		vars.saveToDataStream(data);
+
+		imago::VirtualFS vfs;
+		// store only one file
+		vfs.appendData("config.txt", data);
+		vfs.storeOnDisk();
+	}
+
 	return result;
 }
 
@@ -265,7 +278,7 @@ int main(int argc, char **argv)
 	else if (!image.empty())
 	{
 		return performFileAction(vars, image, filter);	
-	}
+	}		
 	
 	return 0;
 }

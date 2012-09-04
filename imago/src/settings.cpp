@@ -13,6 +13,7 @@
  ***************************************************************************/
 
 #include "settings.h"
+#include "platform_tools.h"
 #include <stdio.h>
 #include <algorithm>
 
@@ -33,15 +34,16 @@ namespace imago
 	imago::GeneralSettings::GeneralSettings()
 	{
 		LogEnabled = LogVFSEnabled = ExtractCharactersOnly = false;
-		IsHandwritten = true;
 		UseProbablistics = false;
 		OriginalImageWidth = OriginalImageHeight = ImageWidth = ImageHeight = 0;
+		ImageAlreadyBinarized = false; // we don't know yet
 		DefaultFilterType = ftCV;
+		ClusterIndex = ctDetermine;
 	}
 
 	imago::Settings::Settings()
 	{
-		configVersion = 101;
+		_configVersion = 101;
 		
 		// TODO: remove
 		updateCluster(ctHandwritten);
@@ -53,7 +55,10 @@ namespace imago
 		#define STRINGIZE(A)      STRINGIZE_NX(A)
 		#define ASSIGN_REF(X)     entries[ (std::string)STRINGIZE(X) ] = DataTypeReference(X);
 
-		ASSIGN_REF(configVersion);
+		ASSIGN_REF(_configVersion);
+		ASSIGN_REF(general.ClusterIndex);
+
+		// DO NOT FORGET TO ADD REFERENCES TO ALL NEW VARIABLES HERE!
 				
 		ASSIGN_REF(adaptive.GuessInkThresholdFactor);
 		ASSIGN_REF(adaptive.InterpolationLevel);
@@ -342,8 +347,30 @@ namespace imago
 
 	void imago::Settings::saveToDataStream(std::string& data)
 	{
+		data = "";
+
 		ReferenceAssignmentMap entries;
 		fillReferenceMap(entries);		
+		
+		for (ReferenceAssignmentMap::const_iterator it = entries.begin(); it != entries.end(); it++)
+		{			
+			char buffer[MAX_TEXT_LINE];
+
+			switch (it->second.getType())
+			{
+			case DataTypeReference::otBool:
+				sprintf(buffer, "%s = %d", it->first.c_str(), *(it->second.getBool()));
+				break;
+			case DataTypeReference::otInt:
+				sprintf(buffer, "%s = %i", it->first.c_str(), *(it->second.getInt()));
+				break;
+			case DataTypeReference::otDouble:
+				sprintf(buffer, "%s = %f", it->first.c_str(), *(it->second.getDouble()));
+				break;
+			}
+
+			data += buffer + platform::getLineEndings();
+		}
 	}
 
 	imago::SharedSettings::SharedSettings()
@@ -378,22 +405,22 @@ namespace imago
 	{
 		int longestSide = std::max(general.OriginalImageWidth, general.OriginalImageHeight);
 
-		
-
 		if (ct == ctDetermine)
 		{
-			if (general.IsHandwritten)
+			if (general.ImageAlreadyBinarized)
+			{
+				ct = ctScanned;				
+			}
+			else
 			{
 				if (longestSide > prefilterCV.HighResPassBound * MaxImageDimensions_HW)
 					ct = ctHighResolution;
 				else
 					ct = ctHandwritten;
 			}
-			else
-			{
-				ct = ctScanned;
-			}
 		}
+		
+		general.ClusterIndex = ct;
 
 		switch (ct)
 		{

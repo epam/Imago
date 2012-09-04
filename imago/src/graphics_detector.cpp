@@ -338,7 +338,7 @@ void GraphicsDetector::detect(const Settings& vars, const Image &img, Points2d &
    ThinFilter2 tf2(tmp);
    tf2.apply();
      
-   if (vars.general.IsHandwritten)
+   if (vars.csr.StableDecorner)
    {
 	   // less accurate, but more stable
 	   _decorner(tmp);   

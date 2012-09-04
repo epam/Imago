@@ -47,18 +47,21 @@ namespace imago
 
 	struct GeneralSettings
 	{
-		FilterType DefaultFilterType; // filled with ftCV by default
+		FilterType DefaultFilterType; // filled with ftCV by default		
 		bool   LogEnabled;
-		bool   LogVFSEnabled;
+		bool   LogVFSEnabled;		
 		bool   ExtractCharactersOnly;
-		bool   IsHandwritten;
-		bool   UseProbablistics;
+		bool   UseProbablistics;		
+		bool   ImageAlreadyBinarized;
+		int    ClusterIndex;
 		int    OriginalImageWidth;
 		int    OriginalImageHeight;
 		int    ImageWidth;
 		int    ImageHeight;
 		GeneralSettings();
 	};
+
+	// DO NOT FORGET TO ADD REFERENCES TO ALL NEW VARIABLES IN SETTINGS.CPP:fillReferenceMap()
 
 	struct PrefilterCVSettings // POD
 	{
@@ -316,6 +319,7 @@ namespace imago
 	struct ChemicalStructureRecognizerSettings // POD
 	{
 		bool   UseDPApproximator;
+		bool   StableDecorner;
 		int    WeakSegmentatorDist;
 		double Dissolve;
 		double DeleteBadTriangles;		
@@ -423,7 +427,7 @@ namespace imago
 		// stores settings into file, etc.
 		void saveToDataStream(std::string& data);
 
-		int configVersion;
+		int _configVersion;
 		GeneralSettings general;
 		RecognitionCaches caches;
 

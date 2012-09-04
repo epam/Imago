@@ -51,6 +51,27 @@ namespace imago
 		{
 			type = otDouble;			
 		}
+
+		ObjectType getType() const
+		{
+			return type;
+		}
+
+		bool* getBool() const
+		{
+			return b_value;
+		}
+
+		int* getInt() const
+		{
+			return i_value;
+		}
+
+		double* getDouble() const
+		{
+			return d_value;
+		}
+
 	private:
 		union
 		{

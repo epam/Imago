@@ -220,6 +220,8 @@ void MolfileSaver::_writeCtab(const Settings& vars)
       else
          _out.printf("M  V30 %d %d %d %d", j++, type, begin, end);
 
+	  // line endings "\n" here are platform-indepent and fixed.
+
       switch (type)
       {
       case SINGLE_UP:

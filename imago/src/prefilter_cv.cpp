@@ -31,13 +31,13 @@ namespace imago
 		vars.general.ImageWidth = vars.general.OriginalImageWidth = raw.getWidth();
 		vars.general.ImageHeight = vars.general.OriginalImageHeight = raw.getHeight();
 
-		vars.general.IsHandwritten = true;
+		vars.general.ImageAlreadyBinarized = false;
 
 		bool binarized = false;
 
 		if (prefilter_cv::isBinarized(vars, raw))
 		{
-			vars.general.IsHandwritten = false;			
+			vars.general.ImageAlreadyBinarized = true;
 			vars.general.DefaultFilterType = ftPass;
 			binarized = true;
 		}

@@ -284,6 +284,8 @@ namespace imago
 	{
 		const std::string log_file = Folder + "/log.html";
 
+		// line endings "\n" here are platform-indepent and fixed.
+
 		if (UseVirtualFS)
 		{
 			if (pVFS != NULL)

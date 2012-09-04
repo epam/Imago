@@ -411,7 +411,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 		getLogExt().append("Symbols", layer_symbols.size());
 		getLogExt().append("Graphics", layer_graphics.size());
 
-		if (!vars.general.IsHandwritten && !captions_removed)
+		if (vars.general.ImageAlreadyBinarized && !captions_removed)
 		{
 			if (removeMoleculeCaptions(vars, _img, layer_symbols, layer_graphics))
 			{
