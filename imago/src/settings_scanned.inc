@@ -3,6 +3,7 @@ void updateSettingsScanned(Settings &s)
 {
 	s.general.UseProbablistics = false;
 	s.p_estimator.UsePerimeterNormalization = true; 
+	s.csr.StableDecorner = false;
 
 	FUZZ s.separator.ext2charRatio = 1.743581; // fuzzed, old value = 1.769256
 	FUZZ s.separator.SymProbabilityThresh = 0.593205; // fuzzed, old value = 0.582931
