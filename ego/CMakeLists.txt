@@ -12,3 +12,6 @@ get_target_property(ego_jar_filename ego JAR_FILE)
 add_custom_command(TARGET ego POST_BUILD
 				   COMMAND "${Java_JAR_EXECUTABLE}" "ufm" "${ego_jar_filename}" "manifest.mf"
 				   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
+
+install_jar(ego ego)
+install(FILES ${Ego_LIBS} DESTINATION ego/lib)
