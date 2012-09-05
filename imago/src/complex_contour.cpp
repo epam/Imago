@@ -307,6 +307,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 		   }// no need to add already existing edge - continue
 		   catch(LogicException ex)
 		   {
+			   getLogExt().append("Error while adding bond", i);
 		   }
 		   vStart = vEnd;
 	   }
@@ -317,6 +318,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 	   }// no need to add already existing edge
 	   catch(LogicException ex)
 	   {
+		   getLogExt().append("Error while adding bond", -1);
 	   }
 	}
 	else

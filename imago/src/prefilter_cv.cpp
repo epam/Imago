@@ -61,8 +61,8 @@ namespace imago
 			// ftPass, do nothing
 		}
 
-		// TODO: think about
-		// vars.updateCluster();
+		// TODO: think about right place for that
+		vars.selectBestCluster();
 	}
 
 	namespace prefilter_cv

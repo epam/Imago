@@ -391,6 +391,9 @@ namespace imago
 
 	void imago::Settings::selectBestCluster()
 	{
+		shared.Contour_Eps1 = 0.988044; 
+		shared.Contour_Eps2 = 0.628422;
+
 		// TODO: update
 
 		/*int longestSide = std::max(general.OriginalImageWidth, general.OriginalImageHeight);

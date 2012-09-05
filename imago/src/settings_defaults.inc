@@ -29,6 +29,7 @@ characters.X_Quality = 0.104308;
 csr.DeleteBadTriangles = 2.009109;
 csr.Dissolve = 0.523496;
 csr.LineVectorizationFactor = 1.501167;
+csr.StableDecorner = 0;
 csr.UseDPApproximator = 0;
 csr.WeakSegmentatorDist = 1;
 estimation.CapitalHeightError = 0.760701;
