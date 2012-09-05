@@ -6,5 +6,5 @@ set(SRC
 
 add_executable(alter_ego ${SRC})
 
-add_dependencies(alter_ego imago_c)
-target_link_libraries(alter_ego imago_c)
+add_dependencies(alter_ego imago_c_static)
+target_link_libraries(alter_ego imago_c_static)

@@ -27,6 +27,6 @@ foreach(lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
 endforeach()
 
 add_custom_command(TARGET imago_java POST_BUILD
-	               COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${imago_dll_filename}" "${IMAGO_DLL_DIR}/imago_c.dll"
+	               COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${imago_dll_filename}" "${IMAGO_DLL_DIR}/"
 				   COMMAND "${Java_JAR_EXECUTABLE}" "uf" "${imago_jar_filename}" "com"
 				   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
