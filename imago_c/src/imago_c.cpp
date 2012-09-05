@@ -85,7 +85,8 @@ CEXPORT void imagoReleaseSessionId( qword id )
 
 CEXPORT int imagoGetConfigsCount()
 {  
-	return imago::ctClustersTotalCount;
+	// TODO: !
+	return 1; // imago::ctClustersTotalCount;
 }
 
 CEXPORT int imagoSetConfigNumber( const int number )
@@ -93,7 +94,9 @@ CEXPORT int imagoSetConfigNumber( const int number )
    IMAGO_BEGIN;
 
    RecognitionContext *context = getCurrentContext();
-   context->vars.updateCluster((ClusterType)number);
+   // TODO: !
+   //context->vars.forceSelectCluster((ClusterType)number);
+   context->vars.selectBestCluster();
 
    IMAGO_END;
 }

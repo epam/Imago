@@ -38,14 +38,6 @@ static qword id = 0;
 	imagoReleaseSessionId(id)
 */
 
-enum ConfigClusterType
-{
-	ctDefault = -1,
-	ctScanned = 0,
-	ctHandwritten = 1,
-	ctHighResolution = 2
-};
-
 const int WARNINGS_TRESHOLD = 9;
 
 void printHelp( const char *exe_name )
@@ -60,8 +52,7 @@ void printHelp( const char *exe_name )
 	  "                          use \"-o -\" for saving the molecule to the standard output\n"
 	  "    -f <filter>       Force-select filter type: \"std\", \"adaptive\", \"CV\", \"passthru\"\n"
 	  "                          by default the best result of std and CV is used (recommended)\n"
-	  "    -c <config>       Force-select configuration: \"scanned\", \"handwritten\", \"highres\"\n"
-	  "                          by default auto-detection is used (recommended)\n"
+	  "    -c <config_file>  Force-select configuration cluster\n"
 	  "    -l                Enable logging (slowdowns process, disabled by default)\n"
 	  "    -i <value>        Drop images with ink percentage greater that value\n"
       "    -p <directory>    Directory prefix for output file\n",
@@ -105,7 +96,7 @@ int main( int argc, char **argv )
       EXIT(1);
    }
 
-   ConfigClusterType imagoConfigNumber = ctDefault;
+//   ConfigClusterType imagoConfigNumber = ctDefault;
    std::string imagoFilterName = "default";
    int dropInkPercentage = -1;
 
@@ -121,22 +112,15 @@ int main( int argc, char **argv )
             EXIT(1);
          }
 
-         std::string filter_type = argv[i];
-         if (filter_type == "scanned")
+         std::string config_type = argv[i];
+		 // TODO
+         /*if (someLoadConfigFunction(config_type))
          {
-            imagoConfigNumber = ctScanned;
+            //
          }
-         else if (filter_type == "handwritten")
+         else*/
          {
-            imagoConfigNumber = ctHandwritten;
-         }
-         else if (filter_type == "highres")
-         {
-            imagoConfigNumber = ctHighResolution;
-         }
-         else
-         {
-            fprintf(stderr, "%s is not valid configuration name", filter_type.c_str());
+            fprintf(stderr, "%s is not valid configuration name", config_type.c_str());
             EXIT(1);
          }         
       }
@@ -241,10 +225,12 @@ retry: // allowing some retries while process
    }
 
    // update config cluster
+   // TODO:
+   /*
    if (imagoConfigNumber != ctDefault)
    {
       CALL( imagoSetConfigNumber(imagoConfigNumber) );
-   }
+   }*/
 
    int recognitionWarningsCount = 0;
    // call the recognition method from API

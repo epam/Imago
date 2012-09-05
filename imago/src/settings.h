@@ -21,29 +21,19 @@
 
 namespace imago
 {
-	enum FilterType
-	{
-		ftStd = 0,
-		ftAdaptive = 1,
-		ftCV = 2,
-		ftPass = 3
-	};
+	static const int MaxImageDimensions = 2400;
 
+	enum FilterType { ftStd = 0, ftAdaptive = 1, ftCV = 2, ftPass = 3 };
 	static const char* FilterName[4] = {"std", "adaptive", "CV", "passthru" };
 
-	static const int MaxImageDimensions    = 2400;
-	static const int MaxImageDimensions_HW = 1600;
-	
-	enum ClusterType
-	{
-		ctDetermine = -1,
-		ctScanned = 0,
-		ctHandwritten = 1,
-		ctHighResolution = 2,
-		ctClustersTotalCount // should set automatically
-	};
-
 	/// ------------------ cluster-independ settings ------------------ ///
+	
+	struct SharedSettings // POD, constants shared between imago library and other tools
+	{
+		double Contour_Eps1;
+		double Contour_Eps2;
+		SharedSettings();
+	};	
 
 	struct GeneralSettings
 	{
@@ -60,6 +50,8 @@ namespace imago
 		int    ImageHeight;
 		GeneralSettings();
 	};
+
+	/// ------------------ cluster-depending settings ------------------ ///
 
 	// DO NOT FORGET TO ADD REFERENCES TO ALL NEW VARIABLES IN SETTINGS.CPP:fillReferenceMap()
 
@@ -81,7 +73,6 @@ namespace imago
 		double AdditionPercentage;
 		double MaxFillRatio;
 		double HighResPassBound;
-		PrefilterCVSettings();
 	};
 
 	struct AdaptiveFilterSettings // POD
@@ -96,7 +87,6 @@ namespace imago
 		double MinimalInkPercentage;
 		double MaximalInkPercentage;
 		double GuessInkThresholdFactor;
-		AdaptiveFilterSettings();
 	};
 
 	struct PrefilterSettings // POD
@@ -118,7 +108,6 @@ namespace imago
 		double MaxLSSplah;
 		double MagicCoeff;
 		double SAreaTresh;
-		PrefilterSettings();
 	};
 
 	struct WeakSegmentatorSettings // POD
@@ -128,7 +117,6 @@ namespace imago
 		double RefineWidth;
 		double MinDistanceDraw;
 		double SubpixelDraw;
-		WeakSegmentatorSettings();
 	};
 
 	struct LabelRemoverSettings // POD
@@ -142,18 +130,7 @@ namespace imago
 		double HeightFactor;
 		double CenterShiftMax;
 		double MinimalDensity;		
-		LabelRemoverSettings();
 	};
-
-	struct SharedSettings // POD
-		// constants shared between imago library and other tools
-	{
-		double Contour_Eps1;
-		double Contour_Eps2;
-		SharedSettings();
-	};
-
-	/// ------------------ cluster-depending settings ------------------ ///
 
 	struct EstimationSettings // POD
 	{
@@ -163,7 +140,12 @@ namespace imago
 			double AvgBondLength;
 			double CapitalHeight;
 			double LineThickness;
-			//double AddVertexEps; // unused
+			
+			DynamicEstimationSettings()
+			{
+				// default filling
+				AvgBondLength = CapitalHeight = LineThickness = -1.0;
+			}
 		} dynamic;
 
 		int    DoubleBondDist;
@@ -432,6 +414,12 @@ namespace imago
 		// stores settings into file, etc.
 		void saveToDataStream(std::string& data);
 
+		// should be called after general settings are filled
+		void selectBestCluster();
+
+		// loads configuration from file
+		void forceSelectCluster(std::string& clusterFileName);
+
 		int _configVersion;
 		GeneralSettings general;
 		RecognitionCaches caches;
@@ -440,9 +428,6 @@ namespace imago
 		AdaptiveFilterSettings adaptive;
 		PrefilterSettings prefilter;
 		SharedSettings shared;
-
-		// should be called after general settings filled
-		void updateCluster(ClusterType ct = ctDetermine);
 
 		// other settings, should be updated
 		MoleculeSettings molecule;

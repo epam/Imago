@@ -21,16 +21,6 @@
 
 namespace imago
 {
-	#include "settings_filters.inc"
-	#include "settings_label_remover.inc"
-	
-	#include "settings_scanned.inc"
-	#include "settings_handwritten.inc"
-	#include "settings_highres.inc"	
-}
-
-namespace imago
-{
 	imago::GeneralSettings::GeneralSettings()
 	{
 		LogEnabled = LogVFSEnabled = ExtractCharactersOnly = false;
@@ -38,15 +28,18 @@ namespace imago
 		OriginalImageWidth = OriginalImageHeight = ImageWidth = ImageHeight = 0;
 		ImageAlreadyBinarized = false; // we don't know yet
 		DefaultFilterType = ftCV;
-		ClusterIndex = ctDetermine;
+		ClusterIndex = 0; // default;
 	}
+
+	imago::SharedSettings::SharedSettings()
+	{
+		Contour_Eps1 = 1.130985;
+		Contour_Eps2 = 0.680156;		
+	}	
 
 	imago::Settings::Settings()
 	{
-		_configVersion = 101;
-		
-		// TODO: remove
-		updateCluster(ctHandwritten);
+		#include "settings_defaults.inc"
 	}
 	
 	void imago::Settings::fillReferenceMap(ReferenceAssignmentMap& entries)
@@ -361,26 +354,19 @@ namespace imago
 			switch (it->second.getType())
 			{
 			case DataTypeReference::otBool:
-				sprintf(buffer, "%s = %d", it->first.c_str(), *(it->second.getBool()));
+				sprintf(buffer, "%s = %d;", it->first.c_str(), *(it->second.getBool()));
 				break;
 			case DataTypeReference::otInt:
-				sprintf(buffer, "%s = %i", it->first.c_str(), *(it->second.getInt()));
+				sprintf(buffer, "%s = %i;", it->first.c_str(), *(it->second.getInt()));
 				break;
 			case DataTypeReference::otDouble:
-				sprintf(buffer, "%s = %f", it->first.c_str(), *(it->second.getDouble()));
+				sprintf(buffer, "%s = %f;", it->first.c_str(), *(it->second.getDouble()));
 				break;
 			}
 
 			data += buffer + platform::getLineEndings();
 		}
 	}
-
-	imago::SharedSettings::SharedSettings()
-	{
-		Contour_Eps1 = 1.130985;
-		Contour_Eps2 = 0.680156;		
-	}	
-
 
 	imago::RecognitionCaches::RecognitionCaches()
 	{
@@ -403,35 +389,16 @@ namespace imago
 		}
 	}
 
-	void imago::Settings::updateCluster(ClusterType ct)
+	void imago::Settings::selectBestCluster()
 	{
-		int longestSide = std::max(general.OriginalImageWidth, general.OriginalImageHeight);
+		// TODO: update
 
-		if (ct == ctDetermine)
-		{
-			if (general.ImageAlreadyBinarized)
-			{
-				ct = ctScanned;				
-			}
-			else
-			{
-				if (longestSide > prefilterCV.HighResPassBound * MaxImageDimensions_HW)
-					ct = ctHighResolution;
-				else
-					ct = ctHandwritten;
-			}
-		}
+		/*int longestSide = std::max(general.OriginalImageWidth, general.OriginalImageHeight);
+
+		// ...
 		
 		general.ClusterIndex = ct;
 
-		switch (ct)
-		{
-			case ctHighResolution: updateSettingsHighResolution(*this);
-				break;
-			case ctScanned: updateSettingsScanned(*this);
-				break;
-			case ctHandwritten: updateSettingsHandwritten(*this);
-				break;
-		}
+		}*/
 	}
 }

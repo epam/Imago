@@ -162,7 +162,8 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, imago
 
 	dumpVFS(vfs);
 
-	{
+	// unused now
+	/*{
 		// test config store
 		std::string data;
 		vars.saveToDataStream(data);
@@ -174,7 +175,7 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, imago
 		sprintf(filename, "config_%i.txt", vars.general.ClusterIndex);
 		vfs.appendData(filename, data);
 		vfs.storeOnDisk();
-	}
+	}*/
 
 	return result;
 }
