@@ -18,8 +18,6 @@ add_custom_command(TARGET imago_java POST_BUILD
 	               COMMAND "${CMAKE_COMMAND}" "-E" "make_directory" "${IMAGO_DLL_DIR}"
 	               WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 
-set(CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS_SKIP TRUE)
-include(InstallRequiredSystemLibraries)
 foreach(lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
 	add_custom_command(TARGET imago_java POST_BUILD
 	                   COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${lib}" "${IMAGO_DLL_DIR}/"	
@@ -30,3 +28,10 @@ add_custom_command(TARGET imago_java POST_BUILD
 	               COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${imago_dll_filename}" "${IMAGO_DLL_DIR}/"
 				   COMMAND "${Java_JAR_EXECUTABLE}" "uf" "${imago_jar_filename}" "com"
 				   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+
+install_jar(imago_java java)
+install(FILES lib/jna.jar DESTINATION java)
+
+#Should it be here?
+install_jar(imago_java ego/lib)
+install(FILES lib/jna.jar DESTINATION ego/lib)
