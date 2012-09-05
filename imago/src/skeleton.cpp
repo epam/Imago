@@ -50,7 +50,7 @@ void Skeleton::setInitialAvgBondLength(Settings& vars, double avg_length )
 	   mult = vars.skeleton.LongMul;
    
    _addVertexEps = mult * _avg_bond_length;
-   vars.estimation.AddVertexEps = _addVertexEps;
+//   vars.estimation.dynamic.AddVertexEps = _addVertexEps;
 }
 
 void Skeleton::recalcAvgBondLength()
@@ -1108,7 +1108,7 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 
 				double min = d1 < d2 ? d1 : d2;
 
-				double LineS = vars.estimation.LineThickness;
+				double LineS = vars.estimation.dynamic.LineThickness;
 				double blockS = LineS * vars.skeleton.ConnectBlockS;
 
 				Vec2d nearP1, nearP2;
@@ -1315,7 +1315,7 @@ void Skeleton::modifyGraph(Settings& vars)
 	   // analyze graph for vertex mess
 	Image temp(vars.general.ImageWidth, vars.general.ImageHeight);
 
-	double distTresh = vars.estimation.CapitalHeight;
+	double distTresh = vars.estimation.dynamic.CapitalHeight;
 
 	   if (distTresh > _avg_bond_length/vars.skeleton.DistTreshLimFactor)
 		   distTresh = _avg_bond_length/vars.skeleton.DistTreshLimFactor;
@@ -1367,7 +1367,7 @@ void Skeleton::modifyGraph(Settings& vars)
 	   // ---------------------------------------------------------
 
 
-	   vars.estimation.AvgBondLength = _avg_bond_length;
+	   vars.estimation.dynamic.AvgBondLength = _avg_bond_length;
    
    BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
    {

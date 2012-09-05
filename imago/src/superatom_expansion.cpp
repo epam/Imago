@@ -129,11 +129,15 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
 
       abbrs.push_back(Abbreviation("CHO", "*C=O").onright("CHO").onleft("OCH"));
 
+	  abbrs.push_back(Abbreviation("CO2Et", "CCOC(*)=O").onleft("EtO2C").onright("CO2Et"));
+
       // This should not be [O-][N+](*)=O by request
       abbrs.push_back(Abbreviation("NO2", "*N(=O)=O").onright("NO2").onleft("O2N"));	  
 
       // Two-sided abbreviations
       abbrs.push_back(Abbreviation("COOCH2", "[*:1]C(=O)OC[*:2]").add("COOCH2"));	  
+	  abbrs.push_back(Abbreviation("EtN", "CCN([*:1])[*:2]").add("NEt").add("EtN"));	  
+	  
 
 
       init = true;

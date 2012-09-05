@@ -170,8 +170,8 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, imago
 		imago::VirtualFS vfs;
 		// store only one file
 		char filename[imago::MAX_TEXT_LINE];		
-		srand ( time(NULL) ); // temp
-		sprintf(filename, "config_cluster%i_id%i.txt", vars.general.ClusterIndex, rand());
+		//srand ( time(NULL) ); // temp
+		sprintf(filename, "config_%i.txt", vars.general.ClusterIndex);
 		vfs.appendData(filename, data);
 		vfs.storeOnDisk();
 	}

@@ -21,10 +21,10 @@ void updateSettingsHighResolution(Settings &s)
 	FUZZ s.main.DissolvingsFactor = 9; // fuzzed, old value = 9
 	FUZZ s.main.WarningsRecalcTreshold = 2; // fuzzed, old value = 2
 
-	FUZZ s.estimation.CapitalHeight = 15.582445; // fuzzed, old value = 16.309366
-	FUZZ s.estimation.LineThickness = 5.870793; // fuzzed, old value = 5.873329
-	FUZZ s.estimation.AvgBondLength = 32.607258; // fuzzed, old value = 31.898315
-	FUZZ s.estimation.AddVertexEps = 5.178645; // fuzzed, old value = 5.204447
+//	FUZZ s.estimation.dynamic.CapitalHeight = 15.582445; // fuzzed, old value = 16.309366
+//	FUZZ s.estimation.dynamic.LineThickness = 5.870793; // fuzzed, old value = 5.873329
+//	FUZZ s.estimation.dynamic.AvgBondLength = 32.607258; // fuzzed, old value = 31.898315
+//	FUZZ s.estimation.dynamic.AddVertexEps = 5.178645; // fuzzed, old value = 5.204447
 	FUZZ s.estimation.MaxSymRatio = 0.985538; // fuzzed, old value = 0.999321
 	FUZZ s.estimation.MinSymRatio = 0.348109; // fuzzed, old value = 0.335394
 	FUZZ s.estimation.ParLinesEps = 0.557212; // fuzzed, old value = 0.559987

@@ -119,13 +119,13 @@ bool Separator::_bIsTextContext(const Settings& vars, SegmentDeque &layer_symbol
 	/*bool xsecSeparable = Algebra::rangesSeparable(rec.x, rec.x+rec.width, secNear->getX(), secNear->getX() + secNear->getWidth());
 	bool ysecSeparable = Algebra::rangesSeparable(rec.y, rec.y+rec.height, secNear->getY(), secNear->getX() + secNear->getHeight());
 */
-	if(xfirstSeparable &&  !yfirstSeparable && dist1 < vars.estimation.CapitalHeight)
+	if(xfirstSeparable &&  !yfirstSeparable && dist1 < vars.estimation.dynamic.CapitalHeight)
 		return true;
 
 	if(xfirstSeparable  && !yfirstSeparable &&
-		rec.height < vars.estimation.CapitalHeight + vars.separator.ltFactor1 * vars.estimation.LineThickness && 
-		rec.height > vars.estimation.CapitalHeight * vars.separator.capHeightMin &&
-		dist1 < vars.separator.capHeightMax * vars.estimation.CapitalHeight && vars.separator.extRatioMin > ((double)rec.width / (double)rec.height))
+		rec.height < vars.estimation.dynamic.CapitalHeight + vars.separator.ltFactor1 * vars.estimation.dynamic.LineThickness && 
+		rec.height > vars.estimation.dynamic.CapitalHeight * vars.separator.capHeightMin &&
+		dist1 < vars.separator.capHeightMax * vars.estimation.dynamic.CapitalHeight && vars.separator.extRatioMin > ((double)rec.width / (double)rec.height))
 		return true;
 	return false;
 }
@@ -242,8 +242,8 @@ int Separator::ClusterLines(const Settings& vars,Points2d& inputLines, IntVector
 		  double dist = Vec2d::distance(p1, p2);
 		  double dc1 = fabs(dist - c1);
 		  double dc2 = fabs(dist - c2);
-		  if(dc1 < dc2 && (dist < vars.estimation.CapitalHeight || 
-			  (dist < vars.estimation.CapitalHeight * vars.separator.getRatio2 && ratio < vars.estimation.MinSymRatio)))
+		  if(dc1 < dc2 && (dist < vars.estimation.dynamic.CapitalHeight || 
+			  (dist < vars.estimation.dynamic.CapitalHeight * vars.separator.getRatio2 && ratio < vars.estimation.MinSymRatio)))
 			  outClasses[i] = 0;
 		  else
 			  outClasses[i] = 1;
@@ -272,7 +272,7 @@ int Separator::ClusterLines(const Settings& vars,Points2d& inputLines, IntVector
 	if(count1 == 0 || count2 == 0)
 		return -1;
 
-	if(fabs(c1 - c2) < vars.estimation.LineThickness)
+	if(fabs(c1 - c2) < vars.estimation.dynamic.LineThickness)
 		return -1;
 
 	return 0;
@@ -284,7 +284,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 
 	Points2d lsegments;
 	
-	double line_thick = vars.estimation.LineThickness;
+	double line_thick = vars.estimation.dynamic.LineThickness;
     CvApproximator cvApprox;
 	
     GraphicsDetector gd(&cvApprox, line_thick * vars.separator.gdConst);
@@ -466,7 +466,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 		
 			
 	int sym_height_err = (int)vars.estimation.SymHeightErr;
-	int cap_height = (int)vars.estimation.CapitalHeight;		
+	int cap_height = (int)vars.estimation.dynamic.CapitalHeight;		
 	double adequate_ratio_max = vars.estimation.MaxSymRatio;
 	double adequate_ratio_min = vars.estimation.MinSymRatio;
 
@@ -685,7 +685,7 @@ int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark,  Segme
 		capital_height /= layer_symbols.size();
 	}
 	else
-		capital_height =  vars.estimation.CapitalHeight;
+		capital_height =  vars.estimation.dynamic.CapitalHeight;
 
 
 	if(mark == SEP_SYMBOL)
@@ -734,7 +734,7 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque &layer_symbol
 {
 	logEnterFunction();
 
-	int cap_height =(int) vars.estimation.CapitalHeight;
+	int cap_height =(int) vars.estimation.dynamic.CapitalHeight;
 
 	int sym_height_err = (int)vars.estimation.SymHeightErr;
     //double susp_seg_density = rs["SuspSegDensity"],
@@ -983,7 +983,7 @@ void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque 
       cap_height = _estimateCapHeight(vars, _heightRestricted);   
 
    if(cap_height > -1)
-		vars.estimation.CapitalHeight = cap_height;
+		vars.estimation.dynamic.CapitalHeight = cap_height;
 
    {
 	   int sym_height_err = (int)vars.estimation.SymHeightErr;
@@ -1024,10 +1024,10 @@ void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque 
 			hSymbols += (*it)->getHeight();
 		}
 
-		hSymbols = tempSymbols.size() > 0 ? hSymbols / tempSymbols.size() : (int)vars.estimation.CapitalHeight;
+		hSymbols = tempSymbols.size() > 0 ? hSymbols / tempSymbols.size() : (int)vars.estimation.dynamic.CapitalHeight;
 
-		if(!_heightRestricted || (_heightRestricted && hSymbols < vars.estimation.CapitalHeight))
-			vars.estimation.CapitalHeight = hSymbols;
+		if(!_heightRestricted || (_heightRestricted && hSymbols < vars.estimation.dynamic.CapitalHeight))
+			vars.estimation.dynamic.CapitalHeight = hSymbols;
 	   
 
 	  for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
@@ -1035,7 +1035,7 @@ void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque 
 		  Segment *s = *it;
 		  ClassifierResults cres;
 
-		  if(vars.estimation.CapitalHeight == -1)
+		  if(vars.estimation.dynamic.CapitalHeight == -1)
 		  {
 			layer_graphics.push_back(s);
 			continue;
@@ -1333,7 +1333,7 @@ int Separator::_getApproximationSegmentsCount(const Settings& vars, Segment *seg
 {
    Image tmp;
    CvApproximator cvApprox;
-   GraphicsDetector gd(&cvApprox, vars.estimation.LineThickness * vars.separator.gdConst);
+   GraphicsDetector gd(&cvApprox, vars.estimation.dynamic.LineThickness * vars.separator.gdConst);
    Points2d lsegments;
    tmp.copy(*seg);
    gd.detect(vars, tmp, lsegments);

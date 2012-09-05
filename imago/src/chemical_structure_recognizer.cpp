@@ -56,8 +56,8 @@ ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname )
 
 double maxHeightHelper(const Settings& vars, int lines)
 {
-	double maxHeight = (vars.lab_remover.HeightFactor * vars.estimation.CapitalHeight 
-		                    + (lines - 1) * vars.estimation.CapitalHeight
+	double maxHeight = (vars.lab_remover.HeightFactor * vars.estimation.dynamic.CapitalHeight 
+		                    + (lines - 1) * vars.estimation.dynamic.CapitalHeight
 						) * vars.separator.capHeightMax;
 	return maxHeight;
 }
@@ -68,10 +68,10 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 
 	bool result = false;
 	
-	getLogExt().append("Symbols height", vars.estimation.CapitalHeight);
+	getLogExt().append("Symbols height", vars.estimation.dynamic.CapitalHeight);
 
-	if (vars.estimation.CapitalHeight < vars.lab_remover.MinCapitalHeight || 
-		vars.estimation.CapitalHeight > vars.lab_remover.MaxCapitalHeight)
+	if (vars.estimation.dynamic.CapitalHeight < vars.lab_remover.MinCapitalHeight || 
+		vars.estimation.dynamic.CapitalHeight > vars.lab_remover.MaxCapitalHeight)
 	{
 		getLogExt().appendText("Unappropriate symbols height");
 		return result;
@@ -81,18 +81,18 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 	getLogExt().appendImage("img", img);
 	
 	const int min_cap_chars = vars.lab_remover.MinLabelChars;
-	double minWidth = min_cap_chars * (vars.estimation.MinSymRatio + vars.estimation.MaxSymRatio) / 2.0 * vars.estimation.CapitalHeight * vars.estimation.CapitalHeightError;
+	double minWidth = min_cap_chars * (vars.estimation.MinSymRatio + vars.estimation.MaxSymRatio) / 2.0 * vars.estimation.dynamic.CapitalHeight * vars.estimation.CapitalHeightError;
 	double maxHeight = maxHeightHelper(vars, vars.lab_remover.MaxLabelLines);
-	double minHeight = vars.estimation.CapitalHeight * vars.separator.capHeightMin;
+	double minHeight = vars.estimation.dynamic.CapitalHeight * vars.separator.capHeightMin;
 	double centerShiftMax = vars.lab_remover.CenterShiftMax;
-	int borderDistance = round(vars.estimation.CapitalHeight);
+	int borderDistance = round(vars.estimation.dynamic.CapitalHeight);
 	getLogExt().append("minWidth", minWidth);
 	getLogExt().append("maxHeight", maxHeight);
 	getLogExt().append("minHeight", minHeight);
 	getLogExt().append("borderDistance", borderDistance);
 
 	WeakSegmentator ws(img.getWidth(), img.getHeight());
-	ws.appendData(prefilter_cv::ImgAdapter(img, img), round(vars.estimation.CapitalHeight));
+	ws.appendData(prefilter_cv::ImgAdapter(img, img), round(vars.estimation.dynamic.CapitalHeight));
 
 	if (ws.SegmentPoints.size() < 2)
 	{
@@ -360,7 +360,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 			throw ImagoException("Empty image, nothing to recognize");
 		}
 
-		vars.estimation.LineThickness = estimateLineThickness(_img, vars.routines.LineThick_Grid);
+		vars.estimation.dynamic.LineThickness = estimateLineThickness(_img, vars.routines.LineThick_Grid);
 	  
 		getLogExt().appendImage("Cropped image", _img);		
 
@@ -465,7 +465,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 		{
 			LabelCombiner lc(vars, layer_symbols, layer_graphics, _cr);
 
-			if (vars.estimation.CapitalHeight > 0.0)
+			if (vars.estimation.dynamic.CapitalHeight > 0.0)
 				lc.extractLabels(mol.getLabels());
 			
 
@@ -497,7 +497,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 			else
 				approximator = new CvApproximator();
 
-			GraphicsDetector gd(approximator, vars.estimation.LineThickness * vars.csr.LineVectorizationFactor);
+			GraphicsDetector gd(approximator, vars.estimation.dynamic.LineThickness * vars.csr.LineVectorizationFactor);
 			gd.extractRingsCenters(vars, layer_graphics, ringCenters);
 			GraphExtractor::extract(vars, gd, layer_graphics, mol);
 

@@ -97,13 +97,15 @@ namespace imago
 		ASSIGN_REF(csr.UseDPApproximator);
 		ASSIGN_REF(csr.WeakSegmentatorDist);
 
-		ASSIGN_REF(estimation.AddVertexEps);
-		ASSIGN_REF(estimation.AvgBondLength);
-		ASSIGN_REF(estimation.CapitalHeight);
+//		ASSIGN_REF(estimation.dynamic.AddVertexEps); // unused
+		// no need to store:
+//		ASSIGN_REF(estimation.dynamic.AvgBondLength);
+//		ASSIGN_REF(estimation.dynamic.CapitalHeight);
+//		ASSIGN_REF(estimation.dynamic.LineThickness);
+
 		ASSIGN_REF(estimation.CapitalHeightError);
 		ASSIGN_REF(estimation.CharactersSpaceCoeff);
-		ASSIGN_REF(estimation.DoubleBondDist);
-		ASSIGN_REF(estimation.LineThickness);
+		ASSIGN_REF(estimation.DoubleBondDist);		
 		ASSIGN_REF(estimation.MaxSymbolHeightPercentsOfImage);
 		ASSIGN_REF(estimation.MaxSymRatio);
 		ASSIGN_REF(estimation.MinSymRatio);

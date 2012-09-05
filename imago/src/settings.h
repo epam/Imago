@@ -157,13 +157,18 @@ namespace imago
 
 	struct EstimationSettings // POD
 	{
+		struct DynamicEstimationSettings
+		{
+			// these variables will be updated while recognition process			
+			double AvgBondLength;
+			double CapitalHeight;
+			double LineThickness;
+			//double AddVertexEps; // unused
+		} dynamic;
+
 		int    DoubleBondDist;
-		int    SegmentVerEps;
-		double CapitalHeight;
-		double CapitalHeightError;
-		double LineThickness;
-		double AvgBondLength;
-		double AddVertexEps;
+		int    SegmentVerEps;		
+		double CapitalHeightError;		
 		double ParLinesEps;
 		double MaxSymRatio;
 		double MinSymRatio;

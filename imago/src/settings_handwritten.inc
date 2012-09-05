@@ -21,10 +21,10 @@ void updateSettingsHandwritten(Settings &s)
 	FUZZ s.main.DissolvingsFactor = 9; // fuzzed, old value = 9
 	FUZZ s.main.WarningsRecalcTreshold = 2; // fuzzed, old value = 2
 
-	FUZZ s.estimation.CapitalHeight = 14.631192; // fuzzed, old value = 15.169151
-	FUZZ s.estimation.LineThickness = 5.527422; // fuzzed, old value = 5.677534
-	FUZZ s.estimation.AvgBondLength = 33.744115; // fuzzed, old value = 33.627685
-	FUZZ s.estimation.AddVertexEps = 4.546128; // fuzzed, old value = 4.686013
+//	FUZZ s.estimation.dynamic.CapitalHeight = 14.631192; // fuzzed, old value = 15.169151
+//	FUZZ s.estimation.dynamic.LineThickness = 5.527422; // fuzzed, old value = 5.677534
+//	FUZZ s.estimation.dynamic.AvgBondLength = 33.744115; // fuzzed, old value = 33.627685
+//	FUZZ s.estimation.dynamic.AddVertexEps = 4.546128; // fuzzed, old value = 4.686013
 	FUZZ s.estimation.MaxSymRatio = 1.014766; // fuzzed, old value = 1.047183
 	FUZZ s.estimation.MinSymRatio = 0.321972; // fuzzed, old value = 0.315310
 	FUZZ s.estimation.ParLinesEps = 0.537234; // fuzzed, old value = 0.520771
