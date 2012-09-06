@@ -28,7 +28,7 @@ namespace imago
 
 	/// ------------------ cluster-independ settings ------------------ ///
 	
-	struct SharedSettings // POD, constants shared between imago library and other tools
+	struct SharedSettings // constants shared between imago library and other tools
 	{
 		double Contour_Eps1;
 		double Contour_Eps2;
@@ -418,7 +418,7 @@ namespace imago
 		void selectBestCluster();
 
 		// loads configuration from file
-		void forceSelectCluster(std::string& clusterFileName);
+		bool forceSelectCluster(const std::string& clusterFileName);
 
 		int _configVersion;
 		GeneralSettings general;

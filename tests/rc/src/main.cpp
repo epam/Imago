@@ -44,6 +44,21 @@ void dumpVFS(imago::VirtualFS& vfs)
 	}
 }
 
+void storeConfigCluster(imago::Settings& vars)
+{
+	// test config store
+	std::string data;
+	vars.saveToDataStream(data);
+
+	imago::VirtualFS vfs;
+	// store only one file
+	char filename[imago::MAX_TEXT_LINE];		
+	//srand ( time(NULL) ); // temp
+	sprintf(filename, "config_%i.txt", vars.general.ClusterIndex);
+	vfs.appendData(filename, data);
+	vfs.storeOnDisk();
+}
+
 struct RecognitionResult
 {
 	std::string molecule;
@@ -51,7 +66,7 @@ struct RecognitionResult
 	bool exceptions;
 };
 
-RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src)
+RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src, const std::string& config)
 {
 	RecognitionResult result;
 	result.molecule = "";
@@ -65,6 +80,16 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src)
 		img.copy(src);
 
 		imago::prefilterEntrypoint(vars, img);
+
+		if (!config.empty())
+		{
+			printf("Loading configuration cluster [%s]... ", config.c_str());
+			bool result = vars.forceSelectCluster(config);
+			if (result)
+				printf("OK\n");
+			else
+				printf("FAIL\n");
+		}
 
 		_csr.image2mol(vars, img, mol);
 		result.molecule = imago::expandSuperatoms(vars, mol);
@@ -84,7 +109,10 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src)
 }
 
 
-int performFileAction(imago::Settings& vars, const std::string& imageName, imago::FilterType defaultFilter)
+int performFileAction(imago::Settings& vars, 
+	                  const std::string& imageName, 
+					  const std::string& configName,
+					  imago::FilterType defaultFilter)
 {
 	int result = 0; // ok mark
 	imago::VirtualFS vfs;
@@ -114,23 +142,26 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, imago
 		if (vars.general.ExtractCharactersOnly)
 		{
 			imago::prefilterEntrypoint(vars, image);
+
+			// TODO: apply config here too
+
 			imago::ChemicalStructureRecognizer _csr;
 			_csr.extractCharacters(vars, image);
 		}
 		else
 		{
-			RecognitionResult result = recognizeImage(vars, image);
+			RecognitionResult result = recognizeImage(vars, image, configName);
 
 			if (vars.general.DefaultFilterType == imago::ftCV)
 			{
 				if (result.exceptions)
 				{
 					vars.general.DefaultFilterType = imago::ftStd;
-					result = recognizeImage(vars, image);
+					result = recognizeImage(vars, image, configName);
 					if (result.exceptions)
 					{
 						vars.general.DefaultFilterType = imago::ftAdaptive;
-						result = recognizeImage(vars, image);
+						result = recognizeImage(vars, image, configName);
 						if (result.exceptions)
 						{
 							throw imago::ImagoException("Recognition fails.");
@@ -140,7 +171,7 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, imago
 				else if (result.warnings > vars.main.WarningsRecalcTreshold)
 				{
 					vars.general.DefaultFilterType = imago::ftStd;
-					RecognitionResult r2 = recognizeImage(vars, image);
+					RecognitionResult r2 = recognizeImage(vars, image, configName);
 					if (!r2.exceptions && r2.warnings < result.warnings)
 						result = r2;
 				}
@@ -161,21 +192,6 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, imago
 	}
 
 	dumpVFS(vfs);
-
-	// unused now
-	/*{
-		// test config store
-		std::string data;
-		vars.saveToDataStream(data);
-
-		imago::VirtualFS vfs;
-		// store only one file
-		char filename[imago::MAX_TEXT_LINE];		
-		//srand ( time(NULL) ); // temp
-		sprintf(filename, "config_%i.txt", vars.general.ClusterIndex);
-		vfs.appendData(filename, data);
-		vfs.storeOnDisk();
-	}*/
 
 	return result;
 }
@@ -204,6 +220,7 @@ int main(int argc, char **argv)
 	{
 		printf("Usage: %s [-log] [-logvfs] [-characters] [-dir dir_name] [-pr] image_path \n", argv[0]);
 		printf("  -log: enables debug log output to ./log.html \n");
+		printf("  -config cfg_file: loads specified configuration cluster file \n");
 		printf("  -logvfs: stores log in single encoded file ./log_vfs.txt \n");
 		printf("  -characters: extracts only characters from image(s) and store in ./characters/ \n");
 		printf("  -dir dir_name: process every image from dir dir_name \n");
@@ -214,11 +231,13 @@ int main(int argc, char **argv)
 
 	std::string image = "";
 	std::string dir = "";
+	std::string config = "";
 
 	imago::Settings vars;
 	imago::FilterType filter = imago::ftCV;
 
 	bool next_arg_dir = false;
+	bool next_arg_config = false;
 
 	for (int c = 1; c < argc; c++)
 	{
@@ -243,12 +262,21 @@ int main(int argc, char **argv)
 
 		else if (param == "-dir")
 			next_arg_dir = true;
+
+		else if (param == "-config")
+			next_arg_config = true;
+
 		else if (param == "-characters")
 			vars.general.ExtractCharactersOnly = true;
 
 		else 
 		{
-			if (next_arg_dir)
+			if (next_arg_config)
+			{
+				config = param;
+				next_arg_config = false;
+			}
+			else if (next_arg_dir)
 			{
 				dir = param;
 				next_arg_dir = false;
@@ -276,14 +304,14 @@ int main(int argc, char **argv)
 			if (!files[u].empty() && !(files[u][0] == '.'))
 			{
 				std::string fullpath = dir + "/" + files[u];
-				performFileAction(vars, fullpath, filter);	
+				performFileAction(vars, fullpath, config, filter);	
 			}
 		}
 	}
 	else if (!image.empty())
 	{
-		return performFileAction(vars, image, filter);	
+		return performFileAction(vars, image, config, filter);	
 	}		
 	
-	return 0;
+	return 1; // "nothing to do" error
 }

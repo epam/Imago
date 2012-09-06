@@ -14,6 +14,8 @@
 
 #include "settings.h"
 #include "platform_tools.h"
+#include "log_ext.h"
+#include "scanner.h"
 #include <stdio.h>
 #include <algorithm>
 
@@ -335,13 +337,92 @@ namespace imago
 
 	bool imago::Settings::fillFromDataStream(const std::string& data)
 	{
+		logEnterFunction();
+
+		int ok_vars = 0, bad_vars = 0;
+
 		ReferenceAssignmentMap entries;
 		fillReferenceMap(entries);
-		return false;
+
+		std::vector<std::string> lines;
+		std::string buffer;
+		for (size_t u = 0; u < data.size(); u++)
+		{
+			char c = data[u];
+			if (c == 10) // LF
+			{
+				lines.push_back(buffer);
+				buffer = "";
+			}
+			else if (c > 32 && c != ';')
+			{
+				buffer += c;
+			}
+		}
+		if (!buffer.empty())
+			lines.push_back(buffer);
+
+		for (size_t u = 0; u < lines.size(); u++)
+		{
+			size_t p = lines[u].find('=');
+			if (p != std::string::npos)
+			{
+				std::string variable = lines[u].substr(0, p);
+				std::string value = lines[u].substr(p+1);
+				if (entries.find(variable) != entries.end())
+				{
+					// parse value
+					if (value.find('.') != std::string::npos) // double?
+					{
+						if (entries[variable].getType() == DataTypeReference::otDouble)
+						{
+							*entries[variable].getDouble() = atof(value.c_str());
+							ok_vars++;
+						}
+						else
+						{
+							getLogExt().append("Double value not expected for " + variable, value);
+							bad_vars++;
+						}
+					}
+					else
+					{
+						int v = atoi(value.c_str());
+						if (entries[variable].getType() == DataTypeReference::otInt)
+						{
+							*entries[variable].getInt() = v;
+							ok_vars++;
+						}
+						else if (entries[variable].getType() == DataTypeReference::otBool)
+						{
+							*entries[variable].getBool() = (v != 0);
+							ok_vars++;
+						}
+						else
+						{
+							getLogExt().append("Value not expected for " + variable, value);
+							bad_vars++;
+						}
+					}
+				}
+				else
+				{
+					getLogExt().append("Unknown variable from config", variable);
+					bad_vars++;
+				}
+			}
+		}
+
+		getLogExt().append("Loaded ok", ok_vars);
+		getLogExt().append("Errors", bad_vars);
+
+		return ok_vars > 0; // ? (bad_vars == 0)?
 	}
 
 	void imago::Settings::saveToDataStream(std::string& data)
 	{
+		logEnterFunction();
+
 		data = "";
 
 		ReferenceAssignmentMap entries;
@@ -389,8 +470,32 @@ namespace imago
 		}
 	}
 
+	bool imago::Settings::forceSelectCluster(const std::string& clusterFileName)
+	{		
+		logEnterFunction();
+		getLogExt().append("File", clusterFileName);
+
+		try
+		{
+			FileScanner input("%s", clusterFileName.c_str());
+
+			std::string stream;
+			input.readAll(stream);
+
+			return fillFromDataStream(stream);
+		}
+		catch(FileNotFoundException&)
+		{
+			getLogExt().append("Can not open config file", clusterFileName);
+		}
+
+		return false;
+	}
+
 	void imago::Settings::selectBestCluster()
 	{
+		logEnterFunction();
+
 		shared.Contour_Eps1 = 0.988044; 
 		shared.Contour_Eps2 = 0.628422;
 
