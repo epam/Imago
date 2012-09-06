@@ -23,6 +23,7 @@ if(UNIX OR APPLE)
 endif()
  
 #set(Boost_DEBUG ON)
+set(Boost_NO_SYSTEM_PATHS TRUE)
 set(Boost_ADDITIONAL_VERSIONS "1.49" "1.49.0")
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
