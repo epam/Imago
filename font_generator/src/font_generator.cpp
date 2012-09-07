@@ -19,13 +19,13 @@
 #include <boost/program_options.hpp>
 #include <boost/filesystem.hpp>
 #include <boost/foreach.hpp>
+#include <opencv2/opencv.hpp>
 
 #include "segment.h"
 #include "image_utils.h"
 #include "contour_extractor.h"
 #include "stl_fwd.h"
 #include "prefilter_cv.h"
-#include <opencv2\opencv.hpp>
 
 using std::string;
 using std::cout;
@@ -101,7 +101,7 @@ int main(int argc, char **argv)
       ("count", po::value<int>(&count)->default_value(25), "Count of descriptor pairs")
       ("output-name,O", po::value<string>(&output), "Output file name")
       ("output-contours-name,C", po::value<string>(&contours_output), "Contours output file name")
-	  ("output-templates-name,T", po::value<string>(&templates_output), "Templates output file name");
+      ("output-templates-name,T", po::value<string>(&templates_output), "Templates output file name");
 
    po::variables_map vm;
    po::store(po::parse_command_line(argc, argv, opts), vm);
