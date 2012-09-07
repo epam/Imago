@@ -92,8 +92,7 @@ namespace imago
 		ASSIGN_REF(csr.UseDPApproximator);
 		ASSIGN_REF(csr.WeakSegmentatorDist);
 
-//		ASSIGN_REF(estimation.dynamic.AddVertexEps); // unused
-		// no need to store:
+		// no need to store dynamic params:
 //		ASSIGN_REF(estimation.dynamic.AvgBondLength);
 //		ASSIGN_REF(estimation.dynamic.CapitalHeight);
 //		ASSIGN_REF(estimation.dynamic.LineThickness);
@@ -271,10 +270,9 @@ namespace imago
 		ASSIGN_REF(separator.testSlashLine1);
 		ASSIGN_REF(separator.testSlashLine2);
 		ASSIGN_REF(separator.UseVoteArray);
-
-		// SKIP THIS, CONSTANTS
-		// ASSIGN_REF(shared.Contour_Eps1);
-		// ASSIGN_REF(shared.Contour_Eps2);
+		
+		ASSIGN_REF(shared.Contour_Eps1);
+		ASSIGN_REF(shared.Contour_Eps2);
 
 		ASSIGN_REF(skeleton.BaseMult);
 		ASSIGN_REF(skeleton.BaseSmallErr);
@@ -496,6 +494,7 @@ namespace imago
 	{
 		logEnterFunction();
 
+		// TODO: think about more correct update of contour_eps vars
 		shared.Contour_Eps1 = 0.988044; 
 		shared.Contour_Eps2 = 0.628422;
 
