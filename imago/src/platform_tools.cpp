@@ -49,7 +49,7 @@ std::string platform::getLineEndings()
 #else // ------------------- POSIX -------------------
 
 #include <sys/stat.h>
-#include <errno.h>
+//#include <errno.h>
 
 int platform::MKDIR(const std::string& directory)
 {
