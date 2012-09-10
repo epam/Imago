@@ -67,7 +67,9 @@ CEXPORT void imagoSetSessionId( qword id )
    SessionManager::getInstance().setSID(id);
    indigoSetSessionId(id);
 
-   RecognitionContext *context = getCurrentContext(); 
+   RecognitionContext *context = getCurrentContext();
+   
+   context->vfs.clear();
    
    if (context == 0)
       setContextForSession(id, new RecognitionContext());
@@ -83,27 +85,39 @@ CEXPORT void imagoReleaseSessionId( qword id )
    SessionManager::getInstance().releaseSID(id);
 }
 
-CEXPORT int imagoGetConfigsCount()
+CEXPORT const char* imagoGetConfigsList()
 {  
-	// TODO: !
-	return 1; // imago::ctClustersTotalCount;
+   RecognitionContext *context = getCurrentContext();
+   
+   // TODO: fill configs list
+
+   return context->configs_list.c_str();
 }
 
-CEXPORT int imagoSetConfigNumber( const int number )
+CEXPORT int imagoSetConfig( const char *Name )
 {
    IMAGO_BEGIN;
 
    RecognitionContext *context = getCurrentContext();
-   // TODO: !
-   //context->vars.forceSelectCluster((ClusterType)number);
-   context->vars.selectBestCluster();
+
+   if (Name == NULL || strlen(Name) == 0)
+   {
+	   context->vars.selectBestCluster();
+   }
+   else
+   {
+	   bool loaded = context->vars.forceSelectCluster(Name);
+
+	   if (!loaded)
+		   throw ImagoException(std::string("Config not found: ") + Name);
+   }
 
    IMAGO_END;
 }
 
 CEXPORT int imagoSetFilter( const char *Name )
 {
-	IMAGO_BEGIN;
+   IMAGO_BEGIN;
 
    RecognitionContext *context = getCurrentContext();
    bool found = false;
@@ -137,11 +151,7 @@ CEXPORT int imagoFilterImage()
 {
    IMAGO_BEGIN;
    
-   RecognitionContext *context = getCurrentContext();
-   
-   //TODO(vs): Move to a better place!
-   context->vfs.clear();
-
+   RecognitionContext *context = getCurrentContext();   
    prefilterEntrypoint(context->vars, context->img);
 
    IMAGO_END;
@@ -355,9 +365,8 @@ CEXPORT int imagoGetSessionSpecificData( void **data )
 CEXPORT const char* imagoGetLastError()
 {
    RecognitionContext *context = getCurrentContext();
-   std::string &error_buf = context->error_buf;
 
-   return error_buf.c_str();
+   return context->error_buf.c_str();
 }
 
 CEXPORT int imagoGetLogCount( int *count )

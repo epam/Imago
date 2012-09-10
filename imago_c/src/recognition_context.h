@@ -36,6 +36,7 @@ namespace imago
       std::string molfile;
       std::string out_buf;
       std::string error_buf;
+	  std::string configs_list;
       Settings vars;
       VirtualFS vfs;
       void *session_specific_data;

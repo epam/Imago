@@ -335,9 +335,6 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 
    getLogExt().append("plus", plus);
 
-   //TODO: This can slowdown recognition process! Check this!
-   getLogExt().append("vars.estimation.dynamic.CapitalHeight", vars.estimation.dynamic.CapitalHeight);
-
    if (seg->getHeight() > vars.labels.heightRatio * vars.estimation.dynamic.CapitalHeight && (hwc == -1 || hwc < '0' || hwc > '9'))
       capital = true;
    else if (hwc == -1 && plus)

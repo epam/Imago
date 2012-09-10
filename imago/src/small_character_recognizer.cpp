@@ -82,7 +82,7 @@ char SmallCharRecognizer::Recognize(const Settings& vars, const Segment *seg)
 		CharRecord cr = (*crit);
 		double score = 0;
 
-		for(int i = 0; i < cr.templates.size(); i++)
+		for(size_t i = 0; i < cr.templates.size(); i++)
 		{
 			int val = cr.templates[i];
 			int tval = temp[i];

@@ -57,20 +57,19 @@ CEXPORT const char *imagoGetLastError();
  */
 CEXPORT qword imagoAllocSessionId();
 
-/* Set the ID of the instance you are working with from current thread */
+/* Set the ID of the instance you are working with from current thread. */
 CEXPORT void imagoSetSessionId( qword id );
 
-/* Release a previously allocated instance */
+/* Release a previously allocated instance. */
 CEXPORT void imagoReleaseSessionId( qword id );
 
 /* Set one of predefined configuration sets.
- * The given number must be nonnegative and less than the number of
- * available configuration sets. 
- * By default, the number is '-1' which means config auto-detect. */
-CEXPORT int imagoSetConfigNumber( const int number );
+ * The given name should be selected from imagoGetConfigsList() results
+ * Empty string as parameter means config auto-detection. */
+CEXPORT int imagoSetConfig( const char *name );
 
-/* Get the number of available predefined configuration sets. */
-CEXPORT int imagoGetConfigsCount();
+/* Get the list of available predefined configuration sets separated by comma. */
+CEXPORT const char* imagoGetConfigsList();
 
 /* Choose filter to process image before call imagoFilterImage()
  * name can be "std", "adaptive", "CV" or "passthru".
@@ -104,7 +103,7 @@ CEXPORT int imagoRecognize( int *warningsCountDataOut = NULL );
 CEXPORT int imagoSaveMolToBuffer( char **buf, int *buf_size );
 CEXPORT int imagoSaveMolToFile( const char *fileName );
 
-/* Process image filtering */
+/* Process image filtering. */
 CEXPORT int imagoFilterImage();
 
 /* Returns filtered image ink percentage (0.0 .. 1.0) */
@@ -116,6 +115,11 @@ CEXPORT int imagoGetPrefilteredImageSize( int *width, int *height );
 /* returns filtered image data */
 CEXPORT int imagoGetPrefilteredImage( unsigned char **data, int *width, int *height );
 
+/* returns count of files contained in log vfs. */
 CEXPORT int imagoGetLogCount( int *count );
+
+/* returns it's file name, length and content */
 CEXPORT int imagoGetLogRecord( int it, char **filename, int *lengths, char **data );
+
 #endif /* _imago_c_h */
+

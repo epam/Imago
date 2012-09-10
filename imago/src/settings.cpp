@@ -91,7 +91,11 @@ namespace imago
 		ASSIGN_REF(csr.Dissolve);
 		ASSIGN_REF(csr.LineVectorizationFactor);
 		ASSIGN_REF(csr.UseDPApproximator);
-		ASSIGN_REF(csr.WeakSegmentatorDist);
+		ASSIGN_REF(csr.WeakSegmentatorDist);		
+		ASSIGN_REF(csr.ReconnectMinBads);
+		ASSIGN_REF(csr.ReconnectSurelyBadCoef);
+		ASSIGN_REF(csr.ReconnectSurelyGoodCoef);
+		ASSIGN_REF(csr.ReconnectProbablyGoodCoef);
 
 		// no need to store dynamic params:
 //		ASSIGN_REF(estimation.dynamic.AvgBondLength);

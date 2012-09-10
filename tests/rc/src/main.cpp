@@ -66,6 +66,19 @@ struct RecognitionResult
 	bool exceptions;
 };
 
+void applyConfig(imago::Settings& vars, const std::string& config)
+{
+	if (!config.empty())
+	{
+		printf("Loading configuration cluster [%s]... ", config.c_str());
+		bool result = vars.forceSelectCluster(config);
+		if (result)
+			printf("OK\n");
+		else
+			printf("FAIL\n");
+	}
+}
+
 RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src, const std::string& config)
 {
 	RecognitionResult result;
@@ -80,18 +93,9 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src,
 		img.copy(src);
 
 		imago::prefilterEntrypoint(vars, img);
-
-		if (!config.empty())
-		{
-			printf("Loading configuration cluster [%s]... ", config.c_str());
-			bool result = vars.forceSelectCluster(config);
-			if (result)
-				printf("OK\n");
-			else
-				printf("FAIL\n");
-		}
-
+		applyConfig(vars, config);
 		_csr.image2mol(vars, img, mol);
+
 		result.molecule = imago::expandSuperatoms(vars, mol);
 		result.warnings = mol.getWarningsCount() + mol.getDissolvingsCount() / vars.main.DissolvingsFactor;
 
@@ -142,9 +146,7 @@ int performFileAction(imago::Settings& vars,
 		if (vars.general.ExtractCharactersOnly)
 		{
 			imago::prefilterEntrypoint(vars, image);
-
-			// TODO: apply config here too
-
+			applyConfig(vars, configName);
 			imago::ChemicalStructureRecognizer _csr;
 			_csr.extractCharacters(vars, image);
 		}

@@ -65,9 +65,13 @@ void ImageDrawUtils::putLineSegment( const Vec2i &p1, const Vec2i &p2, int color
    for (int x = P0.x; P0.x > P1.x ? x >= P1.x : x <= P1.x; x += xstep)
    {
       if (steep)
-         plot(y, x, color, userdata);  //TODO: To check or not to check?
+	  {
+         plot(y, x, color, userdata); 
+	  }
       else 
+	  {
          plot(x, y, color, userdata);
+	  }
 
       error -= deltay;
 

@@ -273,11 +273,11 @@ namespace imago
 
 		for (bad_info::iterator it = bad_parts.begin(); it != bad_parts.end(); it++)
 		{
-			AtomRefs todo;
+			AtomRefs group_items;
 			for (int offset_count = 0; offset_count < it->second; offset_count++)
-				todo.push_back(&sa.atoms[it->first + offset_count]);
+				group_items.push_back(&sa.atoms[it->first + offset_count]);
 
-			if (!optimizeAtomGroup(todo))
+			if (!optimizeAtomGroup(group_items))
 			{
 				// we can not optimize this part, just erase atoms from output
 				for (int offset_count = 0; offset_count < it->second; offset_count++)

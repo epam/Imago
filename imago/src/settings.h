@@ -312,6 +312,10 @@ namespace imago
 		double Dissolve;
 		double DeleteBadTriangles;		
 		double LineVectorizationFactor;
+		int    ReconnectMinBads; 
+		double ReconnectSurelyBadCoef; 
+		double ReconnectSurelyGoodCoef;
+		double ReconnectProbablyGoodCoef;
 	};
 
 	struct GraphExtractorSettings // POD

@@ -291,8 +291,10 @@ bool ChemicalStructureRecognizer::isReconnectSegmentsRequired(const Settings& va
 	getLogExt().append("Probably good", probably_good);
 	getLogExt().append("Surely good", surely_good);
 
-	// TODO: move coeffs to settings
-	bool result = (surely_bad > 5) && (2.0 * surely_bad > surely_good + probably_good / 2.0);
+	bool result = (surely_bad > vars.csr.ReconnectMinBads) && 
+		          (vars.csr.ReconnectSurelyBadCoef * surely_bad > 
+				  vars.csr.ReconnectSurelyGoodCoef * surely_good + 
+				  vars.csr.ReconnectProbablyGoodCoef * probably_good );
 
 	return result;
 }

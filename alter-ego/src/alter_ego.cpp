@@ -32,7 +32,7 @@ static qword id = 0;
       imagoLoadImageFromFile(file)
       imagoSetFilter(filter)
       imagoFilterImage()
-	     imagoSetConfigNumber(config)
+	     imagoSetConfig(config)
 		 imagoRecognize()
 	  imagoSaveMolToFile(output_name) / imagoSaveMolToBuffer(&buf, &size)
 	imagoReleaseSessionId(id)
@@ -96,8 +96,8 @@ int main( int argc, char **argv )
       EXIT(1);
    }
 
-//   ConfigClusterType imagoConfigNumber = ctDefault;
    std::string imagoFilterName = "default";
+   std::string imagoConfigName = "";
    int dropInkPercentage = -1;
 
    for (int i = 1; i < argc; i++)
@@ -111,18 +111,7 @@ int main( int argc, char **argv )
             fprintf(stderr, "expected value after -c\n");
             EXIT(1);
          }
-
-         std::string config_type = argv[i];
-		 // TODO
-         /*if (someLoadConfigFunction(config_type))
-         {
-            //
-         }
-         else*/
-         {
-            fprintf(stderr, "%s is not valid configuration name", config_type.c_str());
-            EXIT(1);
-         }         
+		 imagoConfigName = argv[i];
       }
       else if (strcmp(str, "-f") == 0)
       {
@@ -195,7 +184,7 @@ int main( int argc, char **argv )
       EXIT(1);
    }
 
-   int configs_count = imagoGetConfigsCount();   
+   std::string configs_list = imagoGetConfigsList();   
 
    // main process
 retry: // allowing some retries while process
@@ -225,13 +214,8 @@ retry: // allowing some retries while process
    }
 
    // update config cluster
-   // TODO:
-   /*
-   if (imagoConfigNumber != ctDefault)
-   {
-      CALL( imagoSetConfigNumber(imagoConfigNumber) );
-   }*/
-
+   CALL( imagoSetConfig(imagoConfigName.c_str()) );
+   
    int recognitionWarningsCount = 0;
    // call the recognition method from API
    bool good = imagoRecognize(&recognitionWarningsCount) > 0;
