@@ -172,7 +172,8 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
       minLength = bf.length;
    }
 
-   // TODO: more adaptive classifier required
+   // TODO: depends on hard-set constants (something more adaptive required here)
+
    if (maxLength > vars.mbond.MaxLen1)
 	   _multiBondErr = vars.mbond.mbe1;
    else if (maxLength > vars.mbond.MaxLen2)

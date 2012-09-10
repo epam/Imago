@@ -60,9 +60,6 @@ namespace imago
 		{
 			// ftPass, do nothing
 		}
-
-		// TODO: think about right place for that
-		vars.selectBestCluster();
 	}
 
 	namespace prefilter_cv
@@ -72,10 +69,6 @@ namespace imago
 			logEnterFunction();
 			
 			int maxdim = MaxImageDimensions;
-			
-			// TODO: think about
-			/*if (!binarized)
-				maxdim = MaxImageDimensions_HW;*/
 
 			int w = image.getWidth();
 			int h = image.getHeight();

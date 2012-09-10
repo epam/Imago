@@ -19,7 +19,7 @@
 #include <vector>
 
 #include "stl_fwd.h"
-#include "settings.h"
+#include "image.h"
 
 namespace imago
 {
@@ -31,11 +31,11 @@ namespace imago
       ContourExtractor();
       virtual ~ContourExtractor();
 
-      void getRawContour( const Image &i, Points2i &contour );
-      void getApproxContour(const Settings& vars,  const Image &i, Points2i &contour );
+      void getRawContour(const Image &i, Points2i &contour);
+      void getApproxContour(const Image &i, Points2i &contour, double eps1, double eps2);
 
    private:
-	   void _approximize(const Settings& vars,  Points2i &contour );
+	   void _approximize(Points2i &contour, double eps1, double eps2);
    };
 }
 

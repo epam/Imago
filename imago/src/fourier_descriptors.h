@@ -19,7 +19,6 @@
 #include "vec2d.h"
 #include "segment.h"
 #include "stl_fwd.h"
-#include "settings.h"
 
 namespace imago
 {
@@ -28,7 +27,7 @@ namespace imago
    class FourierDescriptors
    {
    public:
-      static void calculate( const Settings& vars, const Image *seg, int count, std::vector<double> &descriptors );      
+      static void calculate( const Image *seg, int count, std::vector<double> &descriptors, double eps1, double eps2 );      
       static void calculate( const Points2i &contour, int count, std::vector<double> &descriptor );
    };
 }

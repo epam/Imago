@@ -144,7 +144,7 @@ SymbolFeatures &Segment::getFeatures()
    return _features;
 }
 
-void Segment::initFeatures( const Settings& vars, int descriptorsCount ) const
+void Segment::initFeatures (int descriptorsCount, double eps1, double eps2) const
 {
    if (_features.init)
       if ((int)_features.descriptors.size() / 2 >=  descriptorsCount)
@@ -154,7 +154,7 @@ void Segment::initFeatures( const Settings& vars, int descriptorsCount ) const
 
    try
    {
-      FourierDescriptors::calculate(vars, this, descriptorsCount, _features.descriptors);
+      FourierDescriptors::calculate(this, descriptorsCount, _features.descriptors, eps1, eps2);
 
       //Searching for inner contours
       Segmentator::segmentate(*this, segments, 3, 255); //all white parts
@@ -190,7 +190,7 @@ void Segment::initFeatures( const Settings& vars, int descriptorsCount ) const
          if (seg != 0)
          {
             std::vector<double> &descr = _features.inner_descriptors[i++];
-            FourierDescriptors::calculate(vars, seg, descriptorsCount, descr);
+            FourierDescriptors::calculate(seg, descriptorsCount, descr, eps1, eps2);
          }
       }
       _features.recognizable = true;

@@ -40,7 +40,7 @@ void Skeleton::setInitialAvgBondLength(Settings& vars, double avg_length )
    _avg_bond_length = avg_length;
    double mult = vars.skeleton.BaseMult;
 
-   // TODO: depends on hard-set constants (some more adaptive here required)
+   // TODO: depends on hard-set constants (something more adaptive required here)
 
    if (_avg_bond_length < vars.skeleton.ShortBondLen)
 	   mult = vars.skeleton.ShortMul;
@@ -50,7 +50,6 @@ void Skeleton::setInitialAvgBondLength(Settings& vars, double avg_length )
 	   mult = vars.skeleton.LongMul;
    
    _addVertexEps = mult * _avg_bond_length;
-//   vars.estimation.dynamic.AddVertexEps = _addVertexEps;
 }
 
 void Skeleton::recalcAvgBondLength()
@@ -192,7 +191,7 @@ void Skeleton::_repairBroken(const Settings& vars)
    double coef;
    recalcAvgBondLength();
 
-   // TODO: depends on hard-set constants (some more adaptive here required)
+   // TODO: depends on hard-set constants (something more adaptive required here)
 
    double toSmallErr;
    if (_avg_bond_length > vars.skeleton.LongBondLen)

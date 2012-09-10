@@ -188,13 +188,11 @@ namespace imago
       double density = (double)sum / s;
 
 	  if (density > vars.utils.TestPlusDensity)
-   {
-	   getLogExt().append("[testPlus] Density", density);     
-   }
-
-      //TODO: write more convenient criteria
-      return (density > vars.utils.TestPlusDensity 
-		      && max_sq < vars.utils.TestPlusSq * s); 
+	  {
+		  getLogExt().append("[testPlus] Density", density);     
+	  }
+      
+      return (density > vars.utils.TestPlusDensity && max_sq < vars.utils.TestPlusSq * s); 
    }
 
    bool ImageUtils::testMinus(const Settings& vars, const Segment &img, int cap_height )

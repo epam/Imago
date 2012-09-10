@@ -206,18 +206,18 @@ namespace imago
       contour.push_back(Vec2i(contour[0]));
    }
 
-   void ContourExtractor::getApproxContour(const Settings& vars,  const Image &i, Points2i &contour )
+   void ContourExtractor::getApproxContour(const Image &i, Points2i &contour, double eps1, double eps2)
    {
       getRawContour(i, contour);
-      _approximize(vars, contour);
+      _approximize(contour, eps1, eps2);
    }
 
-   void ContourExtractor::_approximize(const Settings& vars,  Points2i &contour )
+   void ContourExtractor::_approximize(Points2i &contour, double eps1, double eps2)
    {
       for (int l = 0; l < 2; l++)
       {
          int i = 1;
-		 double epsilon = (l == 0) ? vars.shared.Contour_Eps1 : vars.shared.Contour_Eps2;
+		 double epsilon = (l == 0) ? eps1 : eps2;
 
          while (i < (int)contour.size() - 2)
          {

@@ -192,7 +192,7 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
    }
    else
    {
-	   seg.initFeatures(vars, _count);
+	   seg.initFeatures(_count, vars.characters.Contour_Eps1, vars.characters.Contour_Eps2);
 	   rec = recognize(vars, seg.getFeatures(), candidates, true);
 
 	   double radius;

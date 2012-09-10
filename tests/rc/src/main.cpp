@@ -77,6 +77,10 @@ void applyConfig(imago::Settings& vars, const std::string& config)
 		else
 			printf("FAIL\n");
 	}
+	else
+	{
+		vars.selectBestCluster();
+	}
 }
 
 RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src, const std::string& config)
@@ -289,8 +293,7 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-
-	// temporary workaround (cause it's thread insenisive now)
+	
 	imago::getLogExt().setLoggingEnabled(vars.general.LogEnabled);
 	
 	if (!dir.empty())

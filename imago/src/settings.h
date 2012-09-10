@@ -27,13 +27,6 @@ namespace imago
 	static const char* FilterName[4] = {"std", "adaptive", "CV", "passthru" };
 
 	/// ------------------ cluster-independ settings ------------------ ///
-	
-	struct SharedSettings // constants shared between imago library and other tools
-	{
-		double Contour_Eps1;
-		double Contour_Eps2;
-		SharedSettings();
-	};	
 
 	struct GeneralSettings
 	{
@@ -265,6 +258,7 @@ namespace imago
 	{
 		int PointsCompareDist;
 		int SingleDownCompareDist;
+		int MinimalSingleDownSegsCount;
 		double SingleDownEps;
 		double SingleDownAngleMax;
 		double SingleDownDistancesMax;
@@ -302,6 +296,11 @@ namespace imago
 		double DescriptorsEvenFactorWeak;
 		double X_Quality;		
 		double SmallLetterRecogThreshold;
+		double Contour_Eps1;
+		double Contour_Eps2;
+		double Contour_Eps1_generator;
+		double Contour_Eps2_generator;
+		int Filter_Threshold_generator;
 	};
 	
 	struct ChemicalStructureRecognizerSettings // POD
@@ -432,7 +431,6 @@ namespace imago
 		PrefilterCVSettings prefilterCV;
 		AdaptiveFilterSettings adaptive;
 		PrefilterSettings prefilter;
-		SharedSettings shared;
 
 		// other settings, should be updated
 		MoleculeSettings molecule;

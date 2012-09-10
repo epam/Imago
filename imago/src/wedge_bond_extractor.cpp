@@ -38,32 +38,40 @@ WedgeBondExtractor::WedgeBondExtractor( SegmentDeque &segs, Image &img ) : _segs
 }
 
 
-// WORKAROUND: but this variable should not change after initializtion
-static int __PointsCompareDist = 3; 
-
-bool WedgeBondExtractor::_pointsCompare(const SegCenter &c, const SegCenter &d )
+struct PointsComparator : public std::binary_function<WedgeBondExtractor::SegCenter,WedgeBondExtractor::SegCenter,bool>
 {
-   bool res;
+	int PointsCompareDist;
 
-   Vec2d a = c.center, b = d.center;
+	PointsComparator(int dist)
+	{
+		PointsCompareDist = dist;
+	}
 
-   if (a.x > b.x)  
-      res = true;
-   if (a.x < b.x) 
-      res = false;   
+	inline bool operator()(const WedgeBondExtractor::SegCenter& c, const WedgeBondExtractor::SegCenter& d)
+	{
+		Vec2d a = c.center, b = d.center;
 
-   if (fabs(a.x - b.x) <= __PointsCompareDist)
-   {
-      if (a.y > b.y)
-         res = true;
-      if (a.y < b.y)
-         res = false;
-      if (fabs(a.y - b.y) <= __PointsCompareDist)
-         res = false;
-   }
+		bool res;
 
-   return res;
-}
+		if (a.x > b.x)  
+			res = true;
+		if (a.x < b.x) 
+			res = false;   
+
+		if (fabs(a.x - b.x) <= PointsCompareDist)
+		{
+			if (a.y > b.y)
+				res = true;
+			if (a.y < b.y)
+				res = false;
+			if (fabs(a.y - b.y) <= PointsCompareDist)
+				res = false;
+		}
+
+		return res;
+	}
+};
+
 
 void WedgeBondExtractor::_fitSingleDownBorders( Vec2d &p1, Vec2d &p2, Vec2d &v1, Vec2d &v2 )
 {
@@ -161,11 +169,9 @@ int WedgeBondExtractor::singleDownFetch(const Settings& vars, Skeleton &g )
                }
             }
 
-			__PointsCompareDist = vars.wbe.PointsCompareDist;
-			std::sort(cur_points.begin(), cur_points.end(), _pointsCompare);
+			std::sort(cur_points.begin(), cur_points.end(), PointsComparator(vars.wbe.PointsCompareDist));
 
-            // Minimum segments count in single-down bond is 3, right?
-            if (cur_points.size() >= 3)
+            if ((int)cur_points.size() >= vars.wbe.MinimalSingleDownSegsCount)
             {
                std::vector<IntPair> same_dist_pairs;
                DoubleVector distances(cur_points.size() - 1);

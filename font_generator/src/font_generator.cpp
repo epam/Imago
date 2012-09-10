@@ -35,14 +35,11 @@ using std::ostream_iterator;
 namespace po = boost::program_options;
 namespace fs = boost::filesystem;
 
-void prefilter(imago::Segment& img)
+void prefilter(imago::Segment& img, int threshold)
 {
-	// TODO: use the same pfefilter as in main code to achieve better results
-	const int INK_TRESHOLD = 190;
-
 	for (int x = 0; x < img.getWidth(); x++)
 		for (int y = 0; y < img.getHeight(); y++)
-			if (img.getByte(x,y) < INK_TRESHOLD)
+			if (img.getByte(x,y) < threshold)
 				img.getByte(x,y) = 0;
 			else
 				img.getByte(x,y) = 255;
@@ -52,10 +49,10 @@ imago::SymbolFeatures calc_features(const fs::path &p, int count)
 {
    imago::Segment img;
    imago::ImageUtils::loadImageFromFile(img, "%s", p.string().c_str());
-   prefilter(img);
-   
+      
    imago::Settings vars;
-   img.initFeatures(vars, count);
+   prefilter(img, vars.characters.Filter_Threshold_generator);
+   img.initFeatures(count, vars.characters.Contour_Eps1_generator, vars.characters.Contour_Eps2_generator);
 
    return img.getFeatures();
 }
@@ -80,11 +77,12 @@ imago::Points2i calc_contours(const fs::path &p)
 {
    imago::Segment img;
    imago::ImageUtils::loadImageFromFile(img, "%s", p.string().c_str());
-   prefilter(img);
    
    imago::Settings vars;
+   prefilter(img, vars.characters.Filter_Threshold_generator);
+
    imago::Points2i contour;
-   imago::ContourExtractor().getApproxContour(vars, img, contour);
+   imago::ContourExtractor().getApproxContour(img, contour, vars.characters.Contour_Eps1_generator, vars.characters.Contour_Eps2_generator);
    return contour;
 }
 

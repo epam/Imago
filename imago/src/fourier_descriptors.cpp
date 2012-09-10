@@ -27,11 +27,10 @@
 
 using namespace imago;
 
-void FourierDescriptors::calculate( const Settings& vars, const Image *seg, int count,
-                                    std::vector<double> &d)
+void FourierDescriptors::calculate( const Image *seg, int count, std::vector<double> &d, double eps1, double eps2)
 {
    Points2i contour;
-   ContourExtractor().getApproxContour(vars, *seg, contour);
+   ContourExtractor().getApproxContour(*seg, contour, eps1, eps2);
    calculate(contour, count, d);
 }
 
@@ -39,8 +38,6 @@ void FourierDescriptors::calculate( const Points2i &contour, int count,
                                     std::vector<double> &d)
 {
    std::vector<double> &_desc = d;
-
-   //PngSaver(*seg).saveImage("output/poly2.png");
 
    _desc.clear();
 

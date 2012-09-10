@@ -54,11 +54,11 @@ LabelCombiner::LabelCombiner(Settings& vars, SegmentDeque &symbols_layer, Segmen
 
 int LabelCombiner::_findCapitalHeight(const Settings& vars)
 {
-	logEnterFunction();
+   logEnterFunction();
 
-   //TODO: If it belongs here then rewrite
    int mean_height = 0, seg_height, cap_height = -1, n=0;
    double sigma = 0, delta = 0, mean=0;
+
    BOOST_FOREACH(Segment *seg, _symbols_layer)
    {
 	   getLogExt().append("Height", seg->getHeight());
@@ -69,6 +69,7 @@ int LabelCombiner::_findCapitalHeight(const Settings& vars)
 	   mean += delta/n;
 	   sigma += delta*(seg->getHeight() - mean);
    }
+
    sigma = n > 1 ? sigma / (n-1) : 1;
    _capHeightStandardDeviation = sqrt(sigma);
    mean_height = (int)mean; //_symbols_layer.size();

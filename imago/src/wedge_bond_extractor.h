@@ -78,8 +78,7 @@ namespace imago
 
       void _fitSingleDownBorders( Vec2d &p1, Vec2d &p2, Vec2d &v1, Vec2d &v2 );
       static bool _intersectionFinderPlotCallBack( int x, int y, int color, void *userdata );	  
-      static bool _pointsCompare(const SegCenter &a, const SegCenter &b );
-
+      
       bool _isSingleUp(const Settings& vars, Skeleton &g, Skeleton::Edge &e );
       int _radiusFinder( const Vec2d &v );
       static bool _radiusFinderPlotCallback( int x, int y, int color, void *userdata );

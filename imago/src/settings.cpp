@@ -33,12 +33,6 @@ namespace imago
 		ClusterIndex = 0; // default;
 	}
 
-	imago::SharedSettings::SharedSettings()
-	{
-		Contour_Eps1 = 1.130985;
-		Contour_Eps2 = 0.680156;		
-	}	
-
 	imago::Settings::Settings()
 	{
 		#include "settings_defaults.inc"
@@ -86,6 +80,11 @@ namespace imago
 		ASSIGN_REF(characters.WriteVeryEasyFactor);
 		ASSIGN_REF(characters.X_Quality);
 		ASSIGN_REF(characters.SmallLetterRecogThreshold);
+		ASSIGN_REF(characters.Contour_Eps1);
+		ASSIGN_REF(characters.Contour_Eps2);
+		ASSIGN_REF(characters.Contour_Eps1_generator);
+		ASSIGN_REF(characters.Contour_Eps2_generator);
+		ASSIGN_REF(characters.Filter_Threshold_generator);
 
 		ASSIGN_REF(csr.DeleteBadTriangles);
 		ASSIGN_REF(csr.Dissolve);
@@ -276,9 +275,6 @@ namespace imago
 		ASSIGN_REF(separator.testSlashLine2);
 		ASSIGN_REF(separator.UseVoteArray);
 		
-		ASSIGN_REF(shared.Contour_Eps1);
-		ASSIGN_REF(shared.Contour_Eps2);
-
 		ASSIGN_REF(skeleton.BaseMult);
 		ASSIGN_REF(skeleton.BaseSmallErr);
 		ASSIGN_REF(skeleton.BrokenRepairAngleEps);
@@ -313,6 +309,7 @@ namespace imago
 		ASSIGN_REF(utils.TestPlusDensity);
 		ASSIGN_REF(utils.TestPlusSq);
 
+		ASSIGN_REF(wbe.MinimalSingleDownSegsCount);
 		ASSIGN_REF(wbe.PointsCompareDist);
 		ASSIGN_REF(wbe.SingleDownAngleMax);
 		ASSIGN_REF(wbe.SingleDownCompareDist);
@@ -499,18 +496,10 @@ namespace imago
 	{
 		logEnterFunction();
 
-		// TODO: think about more correct update of contour_eps vars
-		shared.Contour_Eps1 = 0.988044; 
-		shared.Contour_Eps2 = 0.628422;
-
-		// TODO: update
-
-		/*int longestSide = std::max(general.OriginalImageWidth, general.OriginalImageHeight);
-
-		// ...
-		
-		general.ClusterIndex = ct;
-
+		/* TODO: clusters auto-detection logic
+			int longestSide = std::max(general.OriginalImageWidth, general.OriginalImageHeight);
+			...
+			general.ClusterIndex = ct;
 		}*/
 	}
 }
