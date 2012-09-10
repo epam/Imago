@@ -121,5 +121,8 @@ CEXPORT int imagoGetLogCount( int *count );
 /* returns it's file name, length and content */
 CEXPORT int imagoGetLogRecord( int it, char **filename, int *lengths, char **data );
 
+/* clears all current vfs log content */
+CEXPORT int imagoClearLog();
+
 #endif /* _imago_c_h */
 

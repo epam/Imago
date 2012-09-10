@@ -68,9 +68,7 @@ CEXPORT void imagoSetSessionId( qword id )
    indigoSetSessionId(id);
 
    RecognitionContext *context = getCurrentContext();
-   
-   context->vfs.clear();
-   
+      
    if (context == 0)
       setContextForSession(id, new RecognitionContext());
 }
@@ -368,6 +366,17 @@ CEXPORT const char* imagoGetLastError()
 
    return context->error_buf.c_str();
 }
+
+CEXPORT int imagoClearLog( )
+{
+	IMAGO_BEGIN;
+
+	RecognitionContext *context = getCurrentContext();
+	context->vfs.clear();
+
+	IMAGO_END;
+}
+
 
 CEXPORT int imagoGetLogCount( int *count )
 {
