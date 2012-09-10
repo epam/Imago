@@ -15,7 +15,10 @@ if(NOT USE_SYSTEM_OPENCV)
 						WORKING_DIRECTORY ${OpenCV_DIR})
 	endif()
 
-	set(OpenCV_DIR "${OpenCV_DIR}/share/OpenCV")
+	if(NOT SYSTEM_NAME STREQUAL "Win")
+		set(OpenCV_DIR "${OpenCV_DIR}/share/OpenCV")
+	endif()
+
 	include("${OpenCV_DIR}/OpenCVConfig.cmake")
 	include_directories(${OpenCV_INCLUDE_DIRS})
 else()
