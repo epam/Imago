@@ -287,8 +287,8 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 	Points2d lines;
 	
 	double eps = (lnThickness / 2.0 > 2.0) ? (lnThickness / 2.0) : 2.0;
-	//gd.detect(seg, lines);
-	cvRetrieveContour(seg, lines, (int)eps); // TODO: round?
+	
+	cvRetrieveContour(seg, lines, round(eps)); 
 
 	Skeleton graph;
 	Vec2d lastPoint;

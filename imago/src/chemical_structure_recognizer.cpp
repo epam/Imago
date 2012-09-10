@@ -265,10 +265,10 @@ bool ChemicalStructureRecognizer::isReconnectSegmentsRequired(const Settings& va
 	getLogExt().append("Segments count", segments.size());
 	
 	double avg_fill = 0.0;
-	size_t surely_bad = 0;
-	size_t probably_bad = 0;
-	size_t probably_good = 0;
-	size_t surely_good = 0;
+	int surely_bad = 0;
+	int probably_bad = 0;
+	int probably_good = 0;
+	int surely_good = 0;
 
 	for (size_t u = 0; u < segments.size(); u++)
 	{

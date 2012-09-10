@@ -643,7 +643,10 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 
    for (size_t i = 0; i < visited.size(); i++)
    {
-      _bfs_state[round(visited[i].y) * w + round(visited[i].x)] = 0;
+	   int y = round(visited[i].y);
+	   int x = round(visited[i].x);
+	   if (y >= 0 && x >= 0 && y < _img.getHeight() && x < _img.getWidth())
+		   _bfs_state[y * w + x] = 0;
    }
 
    double square_ratio = S2 / S1;
