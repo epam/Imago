@@ -85,6 +85,7 @@ namespace imago
 		ASSIGN_REF(characters.WriteSurelyImpossibleFactor);
 		ASSIGN_REF(characters.WriteVeryEasyFactor);
 		ASSIGN_REF(characters.X_Quality);
+		ASSIGN_REF(characters.SmallLetterRecogThreshold);
 
 		ASSIGN_REF(csr.DeleteBadTriangles);
 		ASSIGN_REF(csr.Dissolve);

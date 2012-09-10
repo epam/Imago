@@ -26,6 +26,7 @@ characters.WriteProbablyImpossibleFactor = 1.029738;
 characters.WriteSurelyImpossibleFactor = 1.195352;
 characters.WriteVeryEasyFactor = 1.015028;
 characters.X_Quality = 0.104308;
+characters.SmallLetterRecogThreshold = 70.0;
 csr.DeleteBadTriangles = 2.009109;
 csr.Dissolve = 0.523496;
 csr.LineVectorizationFactor = 1.501167;

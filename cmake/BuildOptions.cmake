@@ -36,7 +36,7 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 include_directories(${INDIGO_INCLUDE_DIR})
 
-if(NOT UNIX)
+if(NOT UNIX OR APPLE)
 file(GLOB INDIGO_LIBS "${INDIGO_LIBS_DIR}/*${CMAKE_STATIC_LIBRARY_SUFFIX}")
 endif()
 

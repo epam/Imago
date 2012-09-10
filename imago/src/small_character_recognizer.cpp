@@ -21,7 +21,7 @@
 #include <cmath>
 #include <cfloat>
 #include <deque>
-#include <opencv2\opencv.hpp>
+#include <opencv2/opencv.hpp>
 
 #include "stl_fwd.h"
 #include "small_character_recognizer.h"
