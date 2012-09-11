@@ -48,7 +48,7 @@ def testAlterEgo(mol, image):
     else:
         execSuffix = ''
     beginTime = time()
-    os.system('alter_ego%s "%s" -o "%s"' % (execSuffix, image, resultMolFile))   
+    os.system('alter_ego/alter_ego%s "%s" -o "%s"' % (execSuffix, image, resultMolFile))   
     totalTime = time() - beginTime
     error = None
     try:
