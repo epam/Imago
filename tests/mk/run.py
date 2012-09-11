@@ -2,7 +2,7 @@ import sys
 import os                 
 sys.path.append(os.path.abspath(os.path.join(os.curdir, 'indigo')))
 from indigo import Indigo, IndigoException        
-from xml.etree.cElementTree import Element, tostring
+from xml.etree.ElementTree import Element, tostring
 from time import time
 
 indigo = Indigo()
