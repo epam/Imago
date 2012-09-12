@@ -1,8 +1,9 @@
 import sys
-import os                 
+import os      
+import shutil           
 sys.path.append(os.path.abspath(os.path.join(os.curdir, 'indigo')))
 from indigo import Indigo, IndigoException        
-from xml.etree.cElementTree import Element, tostring
+from xml.etree.ElementTree import Element, tostring
 from time import time
 
 indigo = Indigo()
@@ -48,7 +49,7 @@ def testAlterEgo(mol, image):
     else:
         execSuffix = ''
     beginTime = time()
-    os.system('alter_ego/alter_ego%s "%s" -o "%s"' % (execSuffix, image, resultMolFile))   
+    os.system(os.path.join('alter_ego', 'alter_ego%s "%s" -o "%s"' % (execSuffix, image, resultMolFile)))
     totalTime = time() - beginTime
     error = None
     try:
@@ -60,9 +61,9 @@ def testAlterEgo(mol, image):
             error = 'Imago'
         totalImages += 1  	
     except IndigoException, e:
-        sys.stderr.write('Indigo: ' + e.message + '\n')
+        sys.stderr.write('Indigo: ' + e.value + '\n')
         indigoFailedImages += 1
-        error = 'Indigo: ' + e.message
+        error = 'Indigo: ' + e.value
     finally:
         results.append(createTestCase(image, totalTime, error))
    
