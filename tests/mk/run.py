@@ -48,9 +48,8 @@ def testAlterEgo(mol, image):
         execSuffix = '.exe'
     else:
         execSuffix = ''
-    shutil.copyfile('alter_ego/alter_ego%s' % execSuffix, 'alter_ego%s' % execSuffix)
     beginTime = time()
-    os.system('alter_ego%s "%s" -o "%s"' % (execSuffix, image, resultMolFile))   
+    os.system(os.path.join('alter_ego', 'alter_ego%s "%s" -o "%s"' % (execSuffix, image, resultMolFile)))
     totalTime = time() - beginTime
     error = None
     try:
