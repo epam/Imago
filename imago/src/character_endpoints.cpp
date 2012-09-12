@@ -13,6 +13,8 @@
  ***************************************************************************/
 
 #include "character_endpoints.h"
+#include "log_ext.h"
+#include "segment_tools.h"
 
 namespace imago
 {
@@ -105,5 +107,58 @@ namespace imago
 			else if (endpoints_count < at(u).min || endpoints_count > at(u).max )
 				probably.push_back ( at(u).c );
 		}
+	}
+
+	bool EndpointsData::adjustByEndpointsInfo(const Settings& vars, const Segment& seg, RecognitionDistance& rec)
+	{
+		logEnterFunction();
+
+		bool result = false;
+
+		Points2i endpoints = SegmentTools::getEndpoints(seg);
+		SegmentTools::logEndpoints(seg, endpoints);
+
+		std::string probably, surely;
+		static EndpointsData endpointsHandler;
+
+		if ((int)endpoints.size() <= vars.characters.MaximalEndpointsUse)
+		{
+			endpointsHandler.getImpossibleToWrite(vars, endpoints.size(), probably, surely);
+			rec.adjust(vars.characters.WriteProbablyImpossibleFactor, probably);
+			rec.adjust(vars.characters.WriteSurelyImpossibleFactor, surely);
+			result = true;
+		}
+	
+		// easy-to-write adjust
+		switch(endpoints.size())
+		{
+		case 0:
+			rec.adjust(vars.characters.WriteVeryEasyFactor, "0oO");
+			result = true;
+			break;
+		case 1:
+			rec.adjust(vars.characters.WriteEasyFactor, "Ppe");
+			result = true;
+			break;
+		case 2:
+			rec.adjust(vars.characters.WriteEasyFactor, "ILNSsZz");
+			result = true;
+			break;
+		case 3:
+			rec.adjust(vars.characters.WriteVeryEasyFactor, "3");
+			rec.adjust(vars.characters.WriteEasyFactor, "F");
+			result = true;
+			break;
+		case 4:
+			rec.adjust(vars.characters.WriteEasyFactor, "fHK");
+			result = true;
+			break;
+		case 6:
+			rec.adjust(vars.characters.WriteEasyFactor, "^");
+			result = true;
+			break;
+		};
+
+		return result;
 	}
 }

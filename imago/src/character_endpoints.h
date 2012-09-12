@@ -18,7 +18,10 @@
 
 #include <vector>
 #include <string>
+#include "stl_fwd.h"
 #include "settings.h"
+#include "segment.h"
+#include "recognition_distance.h"
 
 namespace imago
 {
@@ -33,6 +36,10 @@ namespace imago
 	{
 	public:
 		EndpointsData();
+				
+		bool adjustByEndpointsInfo(const Settings& vars, const Segment& seg, RecognitionDistance& rec);
+
+	protected:
 		void getImpossibleToWrite(const Settings& vars, int endpointsCount, std::string& probably, std::string& surely) const;
 	};
 }

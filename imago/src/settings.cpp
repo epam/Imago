@@ -19,8 +19,6 @@
 #include <stdio.h>
 #include <algorithm>
 
-#define FUZZ ; // marker for constants allowed to adjust automatically
-
 namespace imago
 {
 	imago::GeneralSettings::GeneralSettings()

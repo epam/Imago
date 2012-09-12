@@ -81,7 +81,7 @@ int LabelCombiner::_findCapitalHeight(const Settings& vars)
 	  char c = 0;
       try
       {
-		  c = _cr.recognize(vars, *seg, CharacterRecognizer::all, &d);
+		  c = _cr.recognize(vars, *seg, CharacterRecognizer::all).getBest(&d);
       }
 	  catch(ImagoException &e)
       {

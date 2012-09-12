@@ -150,7 +150,7 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 	logEnterFunction();
 	getLogExt().appendSegmentWithYLine(vars, "segment with baseline", *seg, line_y);
 
-	RecognitionDistance pr = _cr.recognize_all(vars, *seg);
+	RecognitionDistance pr = _cr.recognize(vars, *seg);
 
 	// acquire image params
 	double underline = SegmentTools::getPercentageUnderLine(*seg, line_y);
@@ -317,7 +317,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 
    bool capital = false;
    int digit_small = -1;
-   RecognitionDistance rd = _cr.recognize_all(vars, *seg);
+   RecognitionDistance rd = _cr.recognize(vars, *seg);
    char hwc = rd.getBest();
 
    if(seg->getHeight() < 20 && seg->getHeight() < 20)
@@ -350,11 +350,11 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
          capital = true;
       else if (seg->getFeatures().recognizable)
       {
-         c_big = _cr.recognize(vars, *seg, CharacterRecognizer::upper, &d_big);
+		 c_big = _cr.recognize(vars, *seg, CharacterRecognizer::upper).getBest(&d_big);
 		 getLogExt().append("c_big", c_big);
-         c_small = _cr.recognize(vars, *seg, CharacterRecognizer::lower, &d_small);
+		 c_small = _cr.recognize(vars, *seg, CharacterRecognizer::lower).getBest(&d_small);
 		 getLogExt().append("c_small", c_small);
-         c_digit = _cr.recognize(vars, *seg, CharacterRecognizer::digits, &d_digit);
+		 c_digit = _cr.recognize(vars, *seg, CharacterRecognizer::digits).getBest(&d_digit);
 		 getLogExt().append("c_digit", c_digit);
 
          if (d_big < d_small + SMALL_EPS && d_big < d_digit + SMALL_EPS) // eps
@@ -402,7 +402,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
       else if (sym == 'O')
          ;
       else if (seg->getFeatures().recognizable)
-         sym = _cr.recognize(vars, *seg, letters); //TODO: Can use c_big here
+		  sym = _cr.recognize(vars, *seg, letters).getBest(); //TODO: Can use c_big here
       else
          sym = '?';
 
@@ -483,7 +483,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
             _predict(vars, seg, letters);
             if (seg->getFeatures().recognizable)
 			{
-				_cur_atom->addLabel(_cr.recognize_all(vars, *seg, letters));
+				_cur_atom->addLabel(_cr.recognize(vars, *seg, letters).getBest());
 			}
             /*else
                _cur_atom->label_second = '?';*/
@@ -510,7 +510,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
          {
 			 getLogExt().appendText("isotope");
             if (seg->getFeatures().recognizable)
-               index_val = _cr.recognize(vars, *seg, CharacterRecognizer::digits) - '0';
+				index_val = _cr.recognize(vars, *seg, CharacterRecognizer::digits).getBest() - '0';
             else
                index_val = 0;
             _cur_atom->isotope = _cur_atom->isotope * 10 + index_val;
@@ -537,7 +537,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
                   letters = "0123456789";
 
                if (seg->getFeatures().recognizable)
-                  tmp = _cr.recognize(vars, *seg, letters);
+				   tmp = _cr.recognize(vars, *seg, letters).getBest();
                else
                   tmp = 0; //TODO: what to do if charge is unrecognizable
             }
@@ -570,7 +570,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 
          if (seg->getFeatures().recognizable)
 		 {
-            index_val = _cr.recognize(vars, *seg, CharacterRecognizer::digits) - '0';
+			 index_val = _cr.recognize(vars, *seg, CharacterRecognizer::digits).getBest() - '0';
 			getLogExt().append("Index val", index_val);
 		 }
          else

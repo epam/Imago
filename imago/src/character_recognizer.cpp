@@ -49,7 +49,7 @@ const std::string CharacterRecognizer::like_bonds = "lL1iIVv";
 
 bool imago::CharacterRecognizer::isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp, char* result)
 {
-	RecognitionDistance rd = recognize_all(vars, seg, CharacterRecognizer::all, false);
+	RecognitionDistance rd = recognize(vars, seg, CharacterRecognizer::all, false);
 	
 	double best_dist;
 	char ch = rd.getBest(&best_dist);
@@ -76,7 +76,7 @@ bool imago::CharacterRecognizer::isPossibleCharacter(const Settings& vars, const
 	return false;
 }
 
-CharacterRecognizer::CharacterRecognizer( int k ) : _k(k)
+CharacterRecognizer::CharacterRecognizer( int classesCount ) : _classesCount(classesCount)
 {
    _mapping.resize(255, -1);
    std::string fontdata;
@@ -87,17 +87,17 @@ CharacterRecognizer::CharacterRecognizer( int k ) : _k(k)
       fontdata += _imago_fontdata[i];
 
    std::istringstream in(fontdata);
-   _loadData(in);
+   LoadData(in);
 }
 
-CharacterRecognizer::CharacterRecognizer( int k, const std::string &filename) : _k(k)
+CharacterRecognizer::CharacterRecognizer( int classesCount, const std::string &filename) : _classesCount(classesCount)
 {
    _mapping.resize(255, -1);
    std::ifstream in(filename.c_str());
    if (in == 0)
       throw FileNotFoundException(filename.c_str());
 
-   _loadData(in);
+   LoadData(in);
    in.close();
 }
 
@@ -157,7 +157,7 @@ double CharacterRecognizer::_compareFeatures(const Settings& vars,  const Symbol
    return sqrt(d);
 }
 
-RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, const Segment &seg, const std::string &candidates, bool can_adjust) const
+RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const Segment &seg, const std::string &candidates, bool can_adjust) const
 {
    logEnterFunction();
 
@@ -193,7 +193,7 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
    else
    {
 	   seg.initFeatures(_count, vars.characters.Contour_Eps1, vars.characters.Contour_Eps2);
-	   rec = recognize(vars, seg.getFeatures(), candidates, true);
+	   rec = _recognize(vars, seg.getFeatures(), candidates, true);
 
 	   double radius;
 	   Segment thinseg;
@@ -233,51 +233,16 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
 		}
 		else
 		{
-			Points2i endpoints = SegmentTools::getEndpoints(seg);
-
-			SegmentTools::logEndpoints(seg, endpoints);
-
-			std::string probably, surely;
 			static EndpointsData endpointsHandler;
-
-			if ((int)endpoints.size() <= vars.characters.MaximalEndpointsUse)
+			if (endpointsHandler.adjustByEndpointsInfo(vars, seg, rec))
 			{
-				endpointsHandler.getImpossibleToWrite(vars, endpoints.size(), probably, surely);
-				rec.adjust(vars.characters.WriteProbablyImpossibleFactor, probably);
-				rec.adjust(vars.characters.WriteSurelyImpossibleFactor, surely);
+				getLogExt().appendMap("Adjusted (result) distance map", rec);
+				if (vars.caches.PCacheAdjusted)
+				{
+				   (*vars.caches.PCacheAdjusted)[segHash] = rec;
+				   getLogExt().appendText("Filled cache: adjusted");
+			   }
 			}
-	
-			// easy-to-write adjust
-			switch(endpoints.size())
-			{
-			case 0:
-				rec.adjust(vars.characters.WriteVeryEasyFactor, "0oO");
-				break;
-			case 1:
-				rec.adjust(vars.characters.WriteEasyFactor, "Ppe");
-				break;
-			case 2:
-				rec.adjust(vars.characters.WriteEasyFactor, "ILNSsZz");
-				break;
-			case 3:
-				rec.adjust(vars.characters.WriteVeryEasyFactor, "3");
-				rec.adjust(vars.characters.WriteEasyFactor, "F");
-				break;
-			case 4:
-				rec.adjust(vars.characters.WriteEasyFactor, "fHK");
-				break;
-			case 6:
-				rec.adjust(vars.characters.WriteEasyFactor, "^");
-				break;
-			};
-
-		   getLogExt().appendMap("Adjusted (result) distance map", rec);
-
-		   if (vars.caches.PCacheAdjusted)
-		   {
-			   (*vars.caches.PCacheAdjusted)[segHash] = rec;
-			   getLogExt().appendText("Filled cache: adjusted");
-		   }
 		}
 	}
 
@@ -290,15 +255,8 @@ RecognitionDistance CharacterRecognizer::recognize_all(const Settings& vars, con
    return rec;
 }
 
-char CharacterRecognizer::recognize(const Settings& vars,  const Segment &seg,
-                                     const std::string &candidates,
-                                     double *dist ) const
-{
-   return recognize_all(vars, seg, candidates).getBest(dist);
-}
 
-
- RecognitionDistance CharacterRecognizer::recognize(const Settings& vars,  const SymbolFeatures &features,
+ RecognitionDistance CharacterRecognizer::_recognize(const Settings& vars,  const SymbolFeatures &features,
                                                         const std::string &candidates, bool full_range) const
 {
    if (!_loaded)
@@ -318,13 +276,13 @@ char CharacterRecognizer::recognize(const Settings& vars,  const Segment &seg,
 		 if (d > 1000.0) // avoid to add some trash
 			 continue;
 
-         if (full_range || (int)nearest.size() < _k)
+		 if (full_range || (int)nearest.size() < _classesCount)
             nearest.push_back(boost::make_tuple(c, i, d));
          else
          {
             double far = boost::get<2>(nearest[0]), f;
             int far_ind = 0;
-            for (int j = 1; j < _k; j++)
+            for (int j = 1; j < _classesCount; j++)
             {
                if ((f = boost::get<2>(nearest[j])) > far)
                {
@@ -374,34 +332,3 @@ char CharacterRecognizer::recognize(const Settings& vars,  const Segment &seg,
    return result;
 }
 
-void CharacterRecognizer::_loadData( std::istream &in )
-{
-   int fonts_count, letters_count;
-   in >> _count >> letters_count;
-   _classes.resize(letters_count);
-   for (int i = 0; i < letters_count; i++)
-   {
-      SymbolClass &cls = _classes[i];
-      in >> cls.sym >> fonts_count;
-      _mapping[cls.sym] = i;
-      cls.shapes.resize(fonts_count);
-      for (int j = 0; j < fonts_count; j++)
-      {
-         SymbolFeatures &sf = cls.shapes[j];
-         in >> sf.inner_contours_count;
-         sf.descriptors.resize(2 * _count);
-         for (int k = 0; k < 2 * _count; k++)
-            in >> sf.descriptors[k];
-
-         sf.inner_descriptors.resize(sf.inner_contours_count);
-         for (int k = 0; k < sf.inner_contours_count; k++)
-         {
-            sf.inner_descriptors[k].resize(2 * _count);
-            for (int l = 0; l < 2 * _count; l++)
-               in >> sf.inner_descriptors[k][l];
-         }
-      }
-   }
-
-   _loaded = true;
-}

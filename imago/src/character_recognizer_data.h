@@ -18,6 +18,7 @@
 
 #include <vector>
 #include "symbol_features.h"
+#include <istream>
 
 namespace imago
 {
@@ -31,6 +32,8 @@ namespace imago
 			std::vector<SymbolFeatures> shapes;
 		};
       CharacterRecognizerData(): _loaded(false) {};
+
+	  void LoadData( std::istream &in );
 
    protected:
 	   bool _loaded;

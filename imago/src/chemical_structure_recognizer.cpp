@@ -209,7 +209,7 @@ void ChemicalStructureRecognizer::storeSegments(const Settings& vars, SegmentDeq
 
 	BOOST_FOREACH( Segment *s, layer_symbols )
 	{
-		RecognitionDistance rd = getCharacterRecognizer().recognize_all(vars, *s, CharacterRecognizer::all, true);
+		RecognitionDistance rd = getCharacterRecognizer().recognize(vars, *s, CharacterRecognizer::all, true);
 		double dist = 0.0;
 		char res = rd.getBest(&dist);
 		double qual = rd.getQuality();
