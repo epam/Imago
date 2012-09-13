@@ -368,19 +368,22 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
             
             if (c_small == 's' && c_digit == '2')
             {
-               if (d_small < d_digit)
+               if (d_small + SMALL_EPS < d_digit)
                   capital = true;
                else
                   capital = false;
             }
             else
             {
-               if (c_small == 'o' || c_small == 'c' || c_small == 'i' ||
-                   c_small == 'p' || c_small == 'u' ||
-                   c_small == 'v' || c_small == 'w')
-                  capital = true;
-               else
-                  capital = false;
+				if (d_small + SMALL_EPS < d_digit)
+				{					
+				   if (c_small == 'o' || c_small == 'c' || c_small == 'i' ||
+					   c_small == 'p' || c_small == 'u' ||
+					   c_small == 'v' || c_small == 'w')
+					  capital = true;
+				   else
+					  capital = false;
+				}
             }
          }
       }
