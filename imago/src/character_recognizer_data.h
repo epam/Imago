@@ -24,16 +24,17 @@ namespace imago
 {
    class CharacterRecognizerData
    {
-   public:
+   public:	   
+      struct SymbolClass
+      {
+		  char sym;
+		  std::vector<SymbolFeatures> shapes;
+      };
 
-		struct SymbolClass
-		{
-			char sym;
-			std::vector<SymbolFeatures> shapes;
-		};
-      CharacterRecognizerData(): _loaded(false) {};
+      CharacterRecognizerData();
 
 	  void LoadData( std::istream &in );
+	  void ClearData();
 
    protected:
 	   bool _loaded;

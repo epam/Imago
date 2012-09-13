@@ -35,7 +35,7 @@
 #include "character_endpoints.h"
 #include "prefilter.h" // line thickness estimation, isCircle
 #include "settings.h"
-
+#include "fonts_list.h"
 
 
 using namespace imago;
@@ -78,21 +78,24 @@ bool imago::CharacterRecognizer::isPossibleCharacter(const Settings& vars, const
 
 CharacterRecognizer::CharacterRecognizer( int classesCount ) : _classesCount(classesCount)
 {
-   _mapping.resize(255, -1);
-   std::string fontdata;
-   const char *_imago_fontdata[] = {
-       #include "imago.font.inc"
-   };
-   for (int i = 0; _imago_fontdata[i] != 0; ++i)
-      fontdata += _imago_fontdata[i];
+   logEnterFunction();
 
-   std::istringstream in(fontdata);
-   LoadData(in);
+   FontEntries fe = getFontsList();
+
+   for (size_t u = 0; u < fe.size(); u++)
+   { 
+	   getLogExt().append("Load font", fe[u].name);
+	   std::istringstream in(fe[u].data);
+	   LoadData(in);
+   }
 }
 
 CharacterRecognizer::CharacterRecognizer( int classesCount, const std::string &filename) : _classesCount(classesCount)
 {
-   _mapping.resize(255, -1);
+   logEnterFunction();
+
+   getLogExt().append("Load font file", filename);
+
    std::ifstream in(filename.c_str());
    if (in == 0)
       throw FileNotFoundException(filename.c_str());

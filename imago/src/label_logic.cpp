@@ -37,10 +37,6 @@ LabelLogic::~LabelLogic()
 
 void LabelLogic::setSuperatom( Superatom *satom )
 {
-   //Uncomment if you want to follow the standarts
-   //if (was_super && !was_charge)
-   //   throw ERROR("Unexpected symbol position (isotope or charge)");
-
 	_cur_atom = NULL;
    _satom = satom;
    _addAtom();
@@ -48,10 +44,10 @@ void LabelLogic::setSuperatom( Superatom *satom )
    was_super = was_letter = was_charge = 0;
 }
 
-const static char *comb[28] = //"Constants", not config but name ?
+const static char *comb[28] = // TODO: move to config
 {
-/*A*/   "lcmsur",//tgl
-/*B*/   "aehkrnzou", //i
+/*A*/   "lcmsur",
+/*B*/   "aehkrnzou", 
 /*C*/   "aoldrsef",
 /*D*/   "by",
 /*E*/   "turs",
@@ -76,7 +72,7 @@ const static char *comb[28] = //"Constants", not config but name ?
 /*X*/   "e",
 /*Y*/   "b",
 /*Z*/   "nr",
-		"ABCEFGHIKLMNOPQRSTUVWYZX$%^&#=", //XD //K removed in "handwriting"
+		"ABCEFGHIKLMNOPQRSTUVWYZX$%^&#=",
         "abcdeghiklmnoprstuyz",
 };
 
@@ -141,9 +137,6 @@ std::string substract(const std::string& fullset, const std::string& reduction)
 	return result;
 }
 
-/*double calc_ratio(double max_amplitude, double value, double zero_point)
-{
-}*/
 
 void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 {
@@ -391,7 +384,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 
    getLogExt().append("capital", capital);
    
-   if (capital) //seg->getHeight() > cap_height_error * _cap_height)
+   if (capital)
    {
       //Check for tall small letters
       _predict(vars, seg, letters);
@@ -501,8 +494,6 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
          was_super = 1;
          if (was_charge)
          {
-            //_postProcess();
-
             _addAtom();
 
             was_charge = 0;
