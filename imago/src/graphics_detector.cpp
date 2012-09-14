@@ -31,7 +31,6 @@
 #include "log_ext.h"
 #include "output.h"
 #include "weak_segmentator.h"
-#include "prefilter.h" // isCircle
 #include "settings.h"
 
 using namespace imago;
@@ -237,7 +236,7 @@ void GraphicsDetector::extractRingsCenters(const Settings& vars, SegmentDeque &s
 			getLogExt().appendSegment("Ring?", tmp);
          
 			double radius;
-			if (isCircle(vars, tmp, radius))
+			if (ImageUtils::isThinCircle(vars, tmp, radius))
 			{
 				bool valid = true;
 

@@ -38,8 +38,7 @@
 #include "log_ext.h"
 #include "label_logic.h"
 #include "approximator.h"
-#include "prefilter_cv.h"
-#include "prefilter.h" // line thickness estimation
+#include "prefilter_basic.h"
 #include "pixel_boundings.h"
 #include "weak_segmentator.h"
 #include "platform_tools.h"
@@ -362,7 +361,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 			throw ImagoException("Empty image, nothing to recognize");
 		}
 
-		vars.estimation.dynamic.LineThickness = estimateLineThickness(_img, vars.routines.LineThick_Grid);
+		vars.estimation.dynamic.LineThickness = ImageUtils::estimateLineThickness(_img, vars.routines.LineThick_Grid);
 	  
 		getLogExt().appendImage("Cropped image", _img);		
 
@@ -377,7 +376,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 			// use filter
 			Image temp_img;
 			temp_img.copy(_img);
-			prefilter_cv::prefilterCV(vars, temp_img);
+			prefilter_cv::prefilterBasic(vars, temp_img);
 
 			SegmentDeque temp;
 			segmentate(vars, temp_img, temp);

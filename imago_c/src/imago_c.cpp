@@ -119,14 +119,16 @@ CEXPORT int imagoSetFilter( const char *Name )
 
    RecognitionContext *context = getCurrentContext();
    bool found = false;
-   for (int i = ftStd; i <= ftPass; i++)
+   
+   // TODO: update
+   /*for (int i = ftStd; i <= ftPass; i++)
    {
 	   if (strcmp(Name, FilterName[i]) == 0)
 	   {
 		   context->vars.general.DefaultFilterType = (FilterType)i;
 		   found = true;
 	   }
-   }
+   }*/
 
 	if (!found)
 		throw ImagoException(std::string("Filter not found: ") + Name);

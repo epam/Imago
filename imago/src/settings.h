@@ -23,20 +23,17 @@ namespace imago
 {
 	static const int MaxImageDimensions = 2400;
 
-	enum FilterType { ftStd = 0, ftAdaptive = 1, ftCV = 2, ftPass = 3 };
-	static const char* FilterName[4] = {"std", "adaptive", "CV", "passthru" };
-
 	/// ------------------ cluster-independ settings ------------------ ///
 
 	struct GeneralSettings
 	{
-		FilterType DefaultFilterType; // filled with ftCV by default		
 		bool   LogEnabled;
 		bool   LogVFSEnabled;		
 		bool   ExtractCharactersOnly;
 		bool   UseProbablistics;		
 		bool   ImageAlreadyBinarized;
 		int    ClusterIndex;
+		int    FilterIndex;
 		int    OriginalImageWidth;
 		int    OriginalImageHeight;
 		int    ImageWidth;

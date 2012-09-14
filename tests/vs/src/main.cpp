@@ -4,7 +4,7 @@
 #include "chemical_structure_recognizer.h"
 #include "image_utils.h"
 #include "superatom_expansion.h"
-#include "prefilter_cv.h"
+#include "prefilter_entry.h"
 #include "output.h"
 #include "molecule.h"
 

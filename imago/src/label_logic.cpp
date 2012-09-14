@@ -558,7 +558,8 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 	  else if (med > line_y - vars.labels.medHeightFactor * vars.estimation.dynamic.CapitalHeight)
       {
 		  getLogExt().appendText("subscript2");
-		  //If subscript will appear before any letter, do some BADABUM
+		  
+		  // the subscript shouldn't appear before any letter
 		  if (_cur_atom->getLabelFirst() == 0)
             throw LabelException("Unexpected symbol position (subscript instaed of capital)");
 

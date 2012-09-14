@@ -25,7 +25,7 @@
 #include "image_utils.h"
 #include "contour_extractor.h"
 #include "stl_fwd.h"
-#include "prefilter_cv.h"
+#include "prefilter_basic.h"
 
 using std::string;
 using std::cout;

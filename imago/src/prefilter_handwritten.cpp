@@ -15,6 +15,7 @@
 #include <opencv2/opencv.hpp>
 #include <boost/foreach.hpp>
 
+#include "prefilter_handwritten.h"
 #include "image.h"
 #include "log_ext.h"
 #include "exception.h"
@@ -25,7 +26,7 @@
 #include "stat_utils.h"
 #include "thin_filter2.h"
 #include "segment.h"
-#include "prefilter.h"
+#include "image_utils.h"
 #include "segment_tools.h"
 
 namespace imago
@@ -139,22 +140,6 @@ namespace imago
 	};
 
 
-struct _AngRadius
-{
-   float ang;
-   float radius;
-};
-
-static int _cmp_ang (const void *p1, const void *p2)
-{
-   const _AngRadius &f1 = *(const _AngRadius *)p1;
-   const _AngRadius &f2 = *(const _AngRadius *)p2;
-
-   if (f1.ang < f2.ang)
-      return -1;
-   return 1;
-}
-
 inline static void _blur (Image &img, int radius)
 {
    int w = img.getWidth(), h = img.getHeight();
@@ -237,24 +222,6 @@ void _removeSpots (const Settings& vars, Image &img, int validcolor, int max_siz
          }
       if (npoints > 0) // (can not be zero)
       {
-         /*float avg_x = sum_x / (float)npoints;
-         float avg_y = sum_y / (float)npoints;
-         float radius = 0;
-         float disp = 0;
-
-         for (i = 0; i < sw; i++)
-            for (j = 0; j < sh; j++)
-            {
-               byte val = seg->getByte(i, j);
-               if (val == 0)
-               {
-                  float sqrdist = (i - avg_x) * (i - avg_x) + (j - avg_y) * (j - avg_y);
-                  if (radius < sqrt(sqrdist))
-                     radius = sqrt(sqrdist);
-                  disp += sqrdist;
-               }
-            }
-            disp /= npoints;*/
          if (npoints < max_size)
          {
             #ifdef DEBUG
@@ -277,64 +244,6 @@ void _removeSpots (const Settings& vars, Image &img, int validcolor, int max_siz
    segments.clear();
 }
 
-
-double estimateLineThickness(Image &bwimg, int grid)
-{
-	int w = bwimg.getWidth();
-	int h = bwimg.getHeight();
-	int d = grid;
-
-	IntVector lthick;
-
-	if(w < d)
-		d = std::max<int>(w >>1, 1) ; 
-	{
-		int startseg = -1;
-		for(int i = 0; i < w ; i += d)
-		{
-			for(int j = 0; j < h; j++)
-			{
-				byte val = bwimg.getByte(i, j);
-				if(val == 0 && (startseg == -1))
-					startseg = j;
-				if((val > 0 || j==(h-1)) && startseg != -1)
-				{
-					lthick.push_back(j - startseg + 1);
-					startseg = -1;
-				}
-			}
-		}
-	}
-
-	if(h > d)
-		d = grid;
-	else
-		d = std::max<int>(h >>1, 1) ; 
-
-	{
-		int startseg = -1;
-		for(int j = 0; j< h; j+=d)
-		{
-			for(int i = 0; i < w; i++)
-			{
-				byte val = bwimg.getByte(i, j);
-				if(val == 0 && (startseg == -1))
-					startseg = i;
-				if((val > 0 || i==(w-1)) && startseg != -1)
-				{
-					lthick.push_back(i - startseg + 1);
-					startseg = -1;
-				}
-			}
-		}
-	}
-	std::sort(lthick.begin(), lthick.end());
-	double thickness = 0;
-	if(lthick.size() > 0)
-		thickness = StatUtils::interMean(lthick.begin(), lthick.end());
-	
-	return thickness;
-}
 
 void CombineWeakStrong(SegmentDeque &weak_segments, SegmentDeque &strong_segments, Image &image)//const Image &weakimg, const Image &strongimg
 {
@@ -747,7 +656,7 @@ bool isSplash(const Settings& vars, Segment *s, double lineSize)
 	if(s->getWidth() < lineSize && s->getHeight() < lineSize)
 		return true;
 	s->extract(0, 0, s->getWidth(), s->getHeight(), img);
-	double ls = estimateLineThickness(img, vars.routines.LineThick_Grid);
+	double ls = ImageUtils::estimateLineThickness(img, vars.routines.LineThick_Grid);
 	if(ls > vars.prefilter.MaxLSSplah * lineSize || ls < 1.0)
 		return true;
 	return false;
@@ -760,9 +669,9 @@ bool SegCompare (Segment *i, Segment *j)
 	return (area1 < area2); 
 }
 
-void prefilterStd(Settings& vars, Image &image )
+bool prefilterHandwritten(Settings& vars, Image &image )
 {
-	logEnterFunction();
+   logEnterFunction();
 
    Image raw, cimg;
    
@@ -778,7 +687,7 @@ void prefilterStd(Settings& vars, Image &image )
    p.strongThresh = true;
    prefilterKernel(vars, raw, image, p);
 
-   double lineThickness = estimateLineThickness(image, vars.routines.LineThick_Grid);
+   double lineThickness = ImageUtils::estimateLineThickness(image, vars.routines.LineThick_Grid);
 
    if(lineThickness < 1)
 	   throw ImagoException("Image prefiltering failed");
@@ -940,125 +849,9 @@ void prefilterStd(Settings& vars, Image &image )
    weak_segments.clear();
    image.copy(cimg);
 
-}
-	
-bool isCircle (const Settings& vars, Image &seg, double &radius, bool asChar)
-{
-	logEnterFunction();
-
-   int w = seg.getWidth();
-   int h = seg.getHeight();
-   int i, j;
-   float centerx = 0, centery = 0;
-   int npoints = 0;
-
-   for (j = 0; j < h; j++)
-   {
-      for (i = 0; i < w; i++)
-      {
-         if (seg.getByte(i, j) == 0)
-         {
-            centerx += i;
-            centery += j;
-            npoints++;
-         }
-      }
-   }
-
-   if (npoints == 0)
-      throw ImagoException("Empty fragment");
-
-   centerx /= npoints;
-   centery /= npoints;
-
-   _AngRadius *points = new _AngRadius[npoints + 1];
-   int k = 0;
-   float avg_radius = 0;
-
-   for (i = 0; i < w; i++)
-      for (j = 0; j < h; j++)
-      {
-         if (seg.getByte(i, j) == 0)
-         {
-            float radius = sqrt((i - centerx) * (i - centerx) +
-                                (j - centery) * (j - centery));
-            points[k].radius = radius;
-            avg_radius += radius;
-            float cosine = (i - centerx) / radius;
-            float sine = (centery - j) / radius;
-            float ang = (float)atan2(sine, cosine);
-            if (ang < 0)
-               ang += TWO_PI;
-            points[k].ang = ang;
-            k++;
-         }
-      }
-
-   qsort(points, npoints, sizeof(_AngRadius), _cmp_ang);
-   
-   points[npoints].ang = points[0].ang + TWO_PI;
-   points[npoints].radius = points[0].radius;
-
-   for (i = 0; i < npoints; i++)
-   {
-      float gap = points[i + 1].ang - points[i].ang;
-      float r1 = fabs(points[i].radius);
-      float r2 = fabs(points[i + 1].radius);
-      float gapr = 1.f;
-
-	  if (r1 > r2 && r2 > EPS)
-         gapr = r1 / r2;
-      else if (r2 < r1 && r1 > EPS)
-         gapr = r2 / r1;
-
-	  double c = asChar ? vars.routines.Circle_AsCharFactor : 1.0;
-
-	  if (gapr > vars.routines.Circle_GapRadiusMax * c)
-      {
-		  getLogExt().append("Radius gap", gapr);
-         delete[] points;
-         return false;
-      }
-
-      if (gap > vars.routines.Circle_GapAngleMax * c && gap < 2 * PI - vars.routines.Circle_GapAngleMax * c)
-      {
-		  getLogExt().append("C-like gap", gap);
-         delete[] points;
-         return false;
-      }
-   }
-
-   avg_radius /= npoints;
-
-   if (avg_radius < vars.routines.Circle_MinRadius)
-   {
-	   getLogExt().append("Degenerated circle", avg_radius);
-      delete[] points;
-      return false;
-   }
-
-   float disp = 0;
-
-   for (i = 0; i < npoints; i++)
-      disp += (points[i].radius - avg_radius) * (points[i].radius - avg_radius);
-
-   disp /= npoints;
-   float ratio = sqrt(disp) / avg_radius;
-
-   #ifdef DEBUG
-   printf("avgr %.3f dev %.3f ratio %.3f\n",
-          avg_radius, sqrt(disp), ratio);
-   #endif
-
-   getLogExt().append("avg_radius", avg_radius);
-   radius = avg_radius;
-   getLogExt().append("Ratio", ratio);
-
-   delete[] points;
-   if (ratio > vars.routines.Circle_MaxDeviation)
-      return false; // not a circle
    return true;
 }
+	
 
 }
 

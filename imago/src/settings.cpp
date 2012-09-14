@@ -27,8 +27,7 @@ namespace imago
 		UseProbablistics = false;
 		OriginalImageWidth = OriginalImageHeight = ImageWidth = ImageHeight = 0;
 		ImageAlreadyBinarized = false; // we don't know yet
-		DefaultFilterType = ftCV;
-		ClusterIndex = 0; // default;
+		ClusterIndex = 0; // default
 	}
 
 	imago::Settings::Settings()
@@ -44,6 +43,7 @@ namespace imago
 
 		ASSIGN_REF(_configVersion);
 		ASSIGN_REF(general.ClusterIndex);
+		ASSIGN_REF(general.ImageAlreadyBinarized);
 
 		// DO NOT FORGET TO ADD REFERENCES TO ALL NEW VARIABLES HERE!
 				

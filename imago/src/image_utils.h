@@ -53,6 +53,9 @@ namespace imago
 
       static void putSegment( Image &img, const Segment &seg, bool careful = true );
       static void cutSegment( Image &img, const Segment &seg, bool forceCut = false, byte val = 255 );
+
+	  static bool isThinCircle(const Settings& vars, Image &seg, double &radius, bool asChar = false);
+	  static double estimateLineThickness(Image &bwimg, int grid);
    };
 }
 

@@ -12,6 +12,10 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
+#pragma once
+#ifndef _fonts_list_h
+#define _fonts_list_h
+
 #include <string>
 #include <vector>
 
@@ -33,3 +37,5 @@ namespace imago
 
 	FontEntries getFontsList();
 }
+
+#endif // _fonts_list_h

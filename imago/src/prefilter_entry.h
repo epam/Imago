@@ -13,20 +13,21 @@
  ***************************************************************************/
 
 #pragma once
-#ifndef _prefilter_h_
-#define _prefilter_h_
+#ifndef _prefilter_entry_h
+#define _prefilter_entry_h
 
-#include <vector>
-#include "settings.h"
 #include "image.h"
+#include "settings.h"
 
 namespace imago
 {
-   void prefilterStd(Settings& vars, Image &image );
-
-   // NOTE: the input image must be thinned
-   bool isCircle(const Settings& vars, Image &seg, double &radius, bool asChar = false);
-
-   double estimateLineThickness(Image &bwimg, int grid);
+	// selects first OK prefilter
+	bool prefilterEntrypoint(Settings& vars, Image& raw);
+	
+	// iterates trough next filters
+	bool applyNextPrefilter(Settings& vars, Image& raw);
 }
-#endif /* _prefilter_h_ */
+
+#endif //_prefilter_entry_h
+
+

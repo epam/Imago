@@ -13,38 +13,16 @@
  ***************************************************************************/
 
 #pragma once
-#ifndef _filters_list_h
-#define _filters_list_h
+#ifndef _prefilter_handwritten_h_
+#define _prefilter_handwritten_h_
 
-#include <string>
 #include <vector>
-#include "image.h"
 #include "settings.h"
+#include "image.h"
 
 namespace imago
 {
-	struct FilterEntryDefinition
-	{
-		typedef bool(*ConditionFunction)(const Image&);
-		typedef bool(*FilterFunction)(Settings&, Image&);
-
-		std::string name;
-		std::string update_config_string;
-		int priority;
-		ConditionFunction condition;
-		FilterFunction routine;
-		
-		FilterEntryDefinition(const std::string& _name, int _priority, FilterFunction _f, 
-			                  const std::string& _config = "", ConditionFunction _c = NULL);
-	};
-
-	class FilterEntries : public std::vector<FilterEntryDefinition>
-	{
-	public:
-		FilterEntries();
-	};
-
-	FilterEntries getFiltersList();
+   bool prefilterHandwritten(Settings& vars, Image &image);
 }
 
-#endif // _filters_list_h
+#endif /* _prefilter_handwritten_h_ */

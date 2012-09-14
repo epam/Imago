@@ -33,7 +33,6 @@
 #include "log_ext.h"
 #include "recognition_tree.h"
 #include "character_endpoints.h"
-#include "prefilter.h" // line thickness estimation, isCircle
 #include "settings.h"
 #include "fonts_list.h"
 
@@ -203,7 +202,7 @@ RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const S
 	   thinseg.copy(seg);
 	   ThinFilter2 tf(thinseg);
 	   tf.apply();
-	   if (isCircle(vars, thinseg, radius, true))
+	   if (ImageUtils::isThinCircle(vars, thinseg, radius, true))
 	   {
 		   if (radius < vars.estimation.dynamic.CapitalHeight * vars.separator.capHeightMax)
 		   {

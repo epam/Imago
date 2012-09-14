@@ -34,10 +34,7 @@
 #include "log_ext.h"
 #include "recognition_tree.h"
 #include "character_endpoints.h"
-#include "prefilter.h" // line thickness estimation, isCircle
 #include "settings.h"
-
-
 
 using namespace imago;
 

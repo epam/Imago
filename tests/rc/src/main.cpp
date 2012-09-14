@@ -19,7 +19,7 @@
 #include "molfile_saver.h"
 #include "log_ext.h"
 #include "molecule.h"
-#include "prefilter_cv.h"
+#include "prefilter_entry.h"
 #include "superatom_expansion.h"
 #include "output.h"
 #include "settings.h"
@@ -89,38 +89,57 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src,
 	result.molecule = "";
 	result.exceptions = false;
 	result.warnings = 0;
-	try
+	
+	imago::ChemicalStructureRecognizer _csr;
+	imago::Molecule mol;
+
+	for (int iter = 0; ; iter++)
 	{
-		imago::ChemicalStructureRecognizer _csr;
-		imago::Molecule mol;
-		imago::Image img;
-		img.copy(src);
+		bool good = false;
 
-		imago::prefilterEntrypoint(vars, img);
-		applyConfig(vars, config);
-		_csr.image2mol(vars, img, mol);
+		try
+		{
+			imago::Image img;
+			img.copy(src);
 
-		result.molecule = imago::expandSuperatoms(vars, mol);
-		result.warnings = mol.getWarningsCount() + mol.getDissolvingsCount() / vars.main.DissolvingsFactor;
+			if (iter == 0)
+			{
+				if (!imago::prefilterEntrypoint(vars, img))
+					break;
+			}
+			else
+			{
+				if (!imago::applyNextPrefilter(vars, img))
+					break;
+			}
 
-		printf("Filter [%s] done, warnings: %u.\n", imago::FilterName[vars.general.DefaultFilterType], result.warnings);
-	}
-	catch (std::exception &e)
-	{
-		result.exceptions = true;
-		printf("Filter [%s] exception \"%s\".\n", imago::FilterName[vars.general.DefaultFilterType], e.what());
-#ifdef _DEBUG
-		throw;
-#endif
-	}
+			applyConfig(vars, config);
+			_csr.image2mol(vars, img, mol);
+
+			result.molecule = imago::expandSuperatoms(vars, mol);
+			result.warnings = mol.getWarningsCount() + mol.getDissolvingsCount() / vars.main.DissolvingsFactor;
+
+			good = result.warnings < vars.main.WarningsRecalcTreshold;
+			printf("Filter [%u] done, warnings: %u, good: %u.\n", vars.general.FilterIndex, result.warnings, good);
+		}
+		catch (std::exception &e)
+		{
+			result.exceptions = true;
+			printf("Filter [%u] exception \"%s\".\n", vars.general.FilterIndex, e.what());
+	#ifdef _DEBUG
+			throw;
+	#endif
+		}
+
+		if (good)
+			break;
+	} // for
+
 	return result;
 }
 
 
-int performFileAction(imago::Settings& vars, 
-	                  const std::string& imageName, 
-					  const std::string& configName,
-					  imago::FilterType defaultFilter)
+int performFileAction(imago::Settings& vars, const std::string& imageName, const std::string& configName)
 {
 	int result = 0; // ok mark
 	imago::VirtualFS vfs;
@@ -145,8 +164,6 @@ int performFileAction(imago::Settings& vars,
 
 		imago::ImageUtils::loadImageFromFile(image, imageName.c_str());
 
-		vars.general.DefaultFilterType = defaultFilter;
-
 		if (vars.general.ExtractCharactersOnly)
 		{
 			imago::prefilterEntrypoint(vars, image);
@@ -156,33 +173,7 @@ int performFileAction(imago::Settings& vars,
 		}
 		else
 		{
-			RecognitionResult result = recognizeImage(vars, image, configName);
-
-			if (vars.general.DefaultFilterType == imago::ftCV)
-			{
-				if (result.exceptions)
-				{
-					vars.general.DefaultFilterType = imago::ftStd;
-					result = recognizeImage(vars, image, configName);
-					if (result.exceptions)
-					{
-						vars.general.DefaultFilterType = imago::ftAdaptive;
-						result = recognizeImage(vars, image, configName);
-						if (result.exceptions)
-						{
-							throw imago::ImagoException("Recognition fails.");
-						}
-					}
-				} 
-				else if (result.warnings > vars.main.WarningsRecalcTreshold)
-				{
-					vars.general.DefaultFilterType = imago::ftStd;
-					RecognitionResult r2 = recognizeImage(vars, image, configName);
-					if (!r2.exceptions && r2.warnings < result.warnings)
-						result = r2;
-				}
-			}
-		
+			RecognitionResult result = recognizeImage(vars, image, configName);		
 			imago::FileOutput fout("molecule.mol");
 			fout.writeString(result.molecule);
 		}
@@ -240,7 +231,6 @@ int main(int argc, char **argv)
 	std::string config = "";
 
 	imago::Settings vars;
-	imago::FilterType filter = imago::ftCV;
 
 	bool next_arg_dir = false;
 	bool next_arg_config = false;
@@ -253,15 +243,6 @@ int main(int argc, char **argv)
 			vars.general.LogEnabled = true;
 		else if (param == "-logvfs")
 			vars.general.LogVFSEnabled = true;
-
-		else if (param == "-adaptive")
-			filter = imago::ftAdaptive;
-		else if (param == "-cv")
-			filter = imago::ftCV;
-		else if (param == "-std")
-			filter = imago::ftStd;
-		else if (param == "-pass")
-			filter = imago::ftPass;
 
 		else if (param == "-pr" || param == "-probablistic")
 			vars.general.UseProbablistics = true;
@@ -309,13 +290,13 @@ int main(int argc, char **argv)
 			if (!files[u].empty() && !(files[u][0] == '.'))
 			{
 				std::string fullpath = dir + "/" + files[u];
-				performFileAction(vars, fullpath, config, filter);	
+				performFileAction(vars, fullpath, config);	
 			}
 		}
 	}
 	else if (!image.empty())
 	{
-		return performFileAction(vars, image, config, filter);	
+		return performFileAction(vars, image, config);	
 	}		
 	
 	return 1; // "nothing to do" error
