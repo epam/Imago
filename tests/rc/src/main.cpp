@@ -59,13 +59,6 @@ void storeConfigCluster(imago::Settings& vars)
 	vfs.storeOnDisk();
 }
 
-struct RecognitionResult
-{
-	std::string molecule;
-	int warnings;
-	bool exceptions;
-};
-
 void applyConfig(imago::Settings& vars, const std::string& config)
 {
 	if (!config.empty())
@@ -83,13 +76,16 @@ void applyConfig(imago::Settings& vars, const std::string& config)
 	}
 }
 
+struct RecognitionResult
+{
+	std::string molecule;
+	int warnings;
+};
+
 RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src, const std::string& config)
 {
-	RecognitionResult result;
-	result.molecule = "";
-	result.exceptions = false;
-	result.warnings = 0;
-	
+	std::vector<RecognitionResult> results;
+		
 	imago::ChemicalStructureRecognizer _csr;
 	imago::Molecule mol;
 
@@ -116,15 +112,16 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src,
 			applyConfig(vars, config);
 			_csr.image2mol(vars, img, mol);
 
+			RecognitionResult result;
 			result.molecule = imago::expandSuperatoms(vars, mol);
 			result.warnings = mol.getWarningsCount() + mol.getDissolvingsCount() / vars.main.DissolvingsFactor;
+			results.push_back(result);
 
-			good = result.warnings < vars.main.WarningsRecalcTreshold;
+			good = result.warnings <= vars.main.WarningsRecalcTreshold;
 			printf("Filter [%u] done, warnings: %u, good: %u.\n", vars.general.FilterIndex, result.warnings, good);
 		}
 		catch (std::exception &e)
 		{
-			result.exceptions = true;
 			printf("Filter [%u] exception \"%s\".\n", vars.general.FilterIndex, e.what());
 	#ifdef _DEBUG
 			throw;
@@ -135,6 +132,16 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src,
 			break;
 	} // for
 
+	RecognitionResult result;
+	result.warnings = 999;
+	// select the best one
+	for (size_t u = 0; u < results.size(); u++)
+	{
+		if (results[u].warnings < result.warnings)
+		{
+			result = results[u];
+		}
+	}
 	return result;
 }
 
