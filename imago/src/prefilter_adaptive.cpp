@@ -332,7 +332,7 @@ namespace imago
 
 		for (int y = 0; y < output.getHeight(); y++)
 			for (int x = 0; x < output.getWidth(); x++)
-				output.getByte(x, y) = (output.getByte(x, y) < 255) ? 0 : 255;
+				output.getByte(x, y) = (output.getByte(x, y) < 127) ? 0 : 255;
 
 		SegmentTools::fixBrokenPixels(output);
 	}

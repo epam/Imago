@@ -31,6 +31,8 @@
 #include "settings.h"
 #include "failsafe_png.h"
 #include "recognition_context.h"
+#include "prefilter_entry.h"
+#include "filters_list.h"
 
 #define IMAGO_BEGIN try {                                                    
 
@@ -44,11 +46,6 @@
                        return 0;                                             \
                     }                                                        \
                     return 1;
-
-namespace imago
-{
-   void prefilterEntrypoint(Settings& vars, Image& raw);
-}
 
 using namespace imago;
 
@@ -120,18 +117,19 @@ CEXPORT int imagoSetFilter( const char *Name )
    RecognitionContext *context = getCurrentContext();
    bool found = false;
    
-   // TODO: update
-   /*for (int i = ftStd; i <= ftPass; i++)
+   FilterEntries entries = getFiltersList();
+
+   for (size_t i = 0; i < entries.size(); i++)
    {
-	   if (strcmp(Name, FilterName[i]) == 0)
+	   if (strcmp(Name, entries[i].name.c_str()) == 0)
 	   {
-		   context->vars.general.DefaultFilterType = (FilterType)i;
+		   context->vars.general.FilterIndex = i;
 		   found = true;
 	   }
-   }*/
+   }
 
-	if (!found)
-		throw ImagoException(std::string("Filter not found: ") + Name);
+   if (!found)
+	   throw ImagoException(std::string("Filter not found: ") + Name);
 
    IMAGO_END;
 }

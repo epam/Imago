@@ -25,7 +25,7 @@ namespace imago
 	bool prefilterEntrypoint(Settings& vars, Image& raw);
 	
 	// iterates trough next filters
-	bool applyNextPrefilter(Settings& vars, Image& raw);
+	bool applyNextPrefilter(Settings& vars, Image& raw, bool iterateNext = true);
 }
 
 #endif //_prefilter_entry_h

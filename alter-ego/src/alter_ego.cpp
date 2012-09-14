@@ -50,8 +50,8 @@ void printHelp( const char *exe_name )
       "    -h                Display this help message\n"
       "    -o <outfile.mol>  If not mentioned molecule will be stored in <infile.mol>\n" 
 	  "                          use \"-o -\" for saving the molecule to the standard output\n"
-	  "    -f <filter>       Force-select filter type: \"std\", \"adaptive\", \"CV\", \"passthru\"\n"
-	  "                          by default the best result of std and CV is used (recommended)\n"
+	  "    -f <filter>       Force-select filter type: \"prefilter_binarized\", \"prefilter_basic\", \"...\"\n"
+	  "                          by default the best result of possible ones will be selected\n"
 	  "    -c <config_file>  Force-select configuration cluster\n"
 	  "    -l                Enable logging (slowdowns process, disabled by default)\n"
 	  "    -i <value>        Drop images with ink percentage greater that value\n"
@@ -96,7 +96,7 @@ int main( int argc, char **argv )
       EXIT(1);
    }
 
-   std::string imagoFilterName = "default";
+   std::string imagoFilterIdName = "";
    std::string imagoConfigName = "";
    int dropInkPercentage = -1;
 
@@ -120,7 +120,7 @@ int main( int argc, char **argv )
             fprintf(stderr, "expected value after -f\n");
             EXIT(1);
          }
-         imagoFilterName = argv[i];
+         imagoFilterIdName = argv[i];
       }
       else if (strcmp(str, "-i") == 0)
       {
@@ -193,9 +193,9 @@ retry: // allowing some retries while process
    CALL( imagoLoadImageFromFile(in_file_name) ); 
 
    // setup filter
-   if (imagoFilterName != "default")
+   if (!imagoFilterIdName.empty())
    {
-      CALL( imagoSetFilter(imagoFilterName.c_str()) );
+      CALL( imagoSetFilter(imagoFilterIdName.c_str()) );
    }
 
    // call filter   
@@ -203,14 +203,14 @@ retry: // allowing some retries while process
 
    if (dropInkPercentage > 0)
    {
-      double ink = 0.0;
-      CALL ( imagoGetInkPercentage(&ink) );
-      ink *= 100.0;
-      if (ink > dropInkPercentage)
-      {
-         fprintf(stderr, "Error: image fill percentage (%f) is greater than max specified (%i).\n", ink, dropInkPercentage);
-         EXIT(3);
-      }
+	   double ink = 0.0;
+	   CALL ( imagoGetInkPercentage(&ink) );
+	   ink *= 100.0;
+	   if (ink > dropInkPercentage)
+	   {
+		   fprintf(stderr, "Error: image fill percentage (%f) is greater than max specified (%i).\n", ink, dropInkPercentage);
+		   EXIT(3);
+	   }
    }
 
    // update config cluster
@@ -222,18 +222,18 @@ retry: // allowing some retries while process
 
    if (recognitionWarningsCount > 0)
    {
-      fprintf(stderr, "Warnings for filter '%s': %i\n", imagoFilterName.c_str(), recognitionWarningsCount);
+	   fprintf(stderr, "Warnings for filter '%s': %i\n", imagoFilterIdName.c_str(), recognitionWarningsCount);
    }
 
    if (!good)
    {
-      fprintf(stderr, "Error: %s\n", imagoGetLastError());
+	   fprintf(stderr, "Error: %s\n", imagoGetLastError());
    }
 
-   if ((!good || recognitionWarningsCount > WARNINGS_TRESHOLD) && imagoFilterName == "default")
+   if ((!good || recognitionWarningsCount > WARNINGS_TRESHOLD) && imagoFilterIdName.empty())
    {
-      imagoFilterName = "std";
-      goto retry;
+	   imagoFilterIdName = "prefilter_handwritten";
+	   goto retry;
    }
 
 

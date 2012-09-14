@@ -15,19 +15,22 @@ namespace imago
 		vars.general.ImageHeight = vars.general.OriginalImageHeight = raw.getHeight();
 
 		vars.general.ImageAlreadyBinarized = false;
-		vars.general.FilterIndex = -1;
+		vars.general.FilterIndex = 0;
 
 		prefilter_cv::resampleImage(raw);		
 
-		return applyNextPrefilter(vars, raw);
+		return applyNextPrefilter(vars, raw, false);
 	}
 
-	bool applyNextPrefilter(Settings& vars, Image& raw)
+	bool applyNextPrefilter(Settings& vars, Image& raw, bool iterateNext)
 	{
 		logEnterFunction();
 		bool result = false;
 
-		vars.general.FilterIndex++;
+		if (iterateNext)
+		{
+			vars.general.FilterIndex++;
+		}
 
 		FilterEntries filters = getFiltersList();
 
