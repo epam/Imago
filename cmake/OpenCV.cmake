@@ -11,7 +11,7 @@ if(NOT USE_SYSTEM_OPENCV)
 					      STATUS opencv_status SHOW_PROGRESS)
 		endif()
 		execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${OpenCV_DIR})
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ${THIRD_PARTY_DIR}/${OpenCV_FILENAME}
+		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf ${THIRD_PARTY_DIR}/${OpenCV_FILENAME}
 						WORKING_DIRECTORY ${OpenCV_DIR})
 	endif()
 

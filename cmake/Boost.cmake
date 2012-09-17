@@ -28,7 +28,7 @@ if(NOT USE_SYSTEM_BOOST)
 			endif()
 		endif()
 		execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${BOOST_INCLUDEDIR})
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ${THIRD_PARTY_DIR}/${BOOST_HEADERS_FILENAME}
+		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf ${THIRD_PARTY_DIR}/${BOOST_HEADERS_FILENAME}
 						WORKING_DIRECTORY ${BOOST_INCLUDEDIR})
 	endif()
 	if(NOT EXISTS ${BOOST_LIBRARYDIR})
@@ -40,7 +40,7 @@ if(NOT USE_SYSTEM_BOOST)
 
 		endif()
 		execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${BOOST_LIBRARYDIR})
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ${THIRD_PARTY_DIR}/${BOOST_LIBS_FILENAME}
+		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf ${THIRD_PARTY_DIR}/${BOOST_LIBS_FILENAME}
 						WORKING_DIRECTORY ${BOOST_LIBRARYDIR})
 	endif()
 endif()

@@ -15,7 +15,7 @@ if(NOT USE_SYSTEM_INDIGO)
 					      STATUS indigo_headers_status SHOW_PROGRESS)
 		endif()
 		execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${INDIGO_INCLUDE_DIR})
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ${THIRD_PARTY_DIR}/${INDIGO_HEADERS_FILENAME}
+		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf ${THIRD_PARTY_DIR}/${INDIGO_HEADERS_FILENAME}
 						WORKING_DIRECTORY ${INDIGO_INCLUDE_DIR})
 	endif()
 
@@ -27,7 +27,7 @@ if(NOT USE_SYSTEM_INDIGO)
 					      STATUS indigo_libs_status SHOW_PROGRESS)
 		endif()
 		execute_process(COMMAND ${CMAKE_COMMAND} -E make_directory ${INDIGO_LIBS_DIR})
-		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xvf ${THIRD_PARTY_DIR}/${INDIGO_LIBS_FILENAME}
+		execute_process(COMMAND ${CMAKE_COMMAND} -E tar xf ${THIRD_PARTY_DIR}/${INDIGO_LIBS_FILENAME}
 						WORKING_DIRECTORY ${INDIGO_LIBS_DIR})
 	endif()
 
