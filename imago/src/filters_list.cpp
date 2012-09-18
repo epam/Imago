@@ -20,7 +20,9 @@ namespace imago
 			                            "general.ImageAlreadyBinarized = 1;"));	
 		push_back(FilterEntryDefinition("prefilter_basic",       1,   prefilter_cv::prefilterBasic));
 		push_back(FilterEntryDefinition("prefilter_handwritten", 2,   prefilterHandwritten));
-		push_back(FilterEntryDefinition("prefilter_adaptive",    3,   prefilterAdaptive));		
+		
+		// TOO SLOW, better skip
+		// push_back(FilterEntryDefinition("prefilter_adaptive",    3,   prefilterAdaptive));		
 	}
 
 	FilterEntries getFiltersList()

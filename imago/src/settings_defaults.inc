@@ -148,6 +148,7 @@ prefilter.UnsharpAmount = 3.773667;
 prefilter.UnsharpSize = 7;
 prefilter.WienerSize = 5;
 prefilterCV.AdditionPercentage = 0.051748;
+prefilterCV.BinarizerFrameGap = 3;
 prefilterCV.BorderPartProportion = 41;
 prefilterCV.HighResPassBound = 0.750000;
 prefilterCV.MaxBadToGoodRatio = 8;

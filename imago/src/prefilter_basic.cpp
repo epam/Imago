@@ -87,11 +87,25 @@ namespace imago
 				getLogExt().appendText("image is binarized");
 				if (others_count > 0)
 				{
+					int gap = vars.prefilterCV.BinarizerFrameGap;
 					getLogExt().appendText("Fixup other colors");
 					for (int y = 0; y < image.getHeight(); y++)
+					{
 						for (int x = 0; x < image.getWidth(); x++)
-							if (image.getByte(x, y) != 255)
-								image.getByte(x, y) = 0;
+						{
+							if (image.getByte(x, y) != 255 && image.getByte(x,y) != 0)
+							{
+								if (x > gap && y > gap && x + gap < image.getWidth() && y + gap < image.getHeight())
+								{
+									image.getByte(x, y) = 0;
+								}
+								else
+								{
+									image.getByte(x, y) = 255;
+								}
+							}
+						}
+					}
 				}
 
 				// this code allows to crop image in rectangular border

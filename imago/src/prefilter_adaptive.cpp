@@ -100,8 +100,8 @@ namespace imago
 			for (int x = crop.x1(); x < crop.x2(); x++)
 				if (ws == NULL || !ws->alreadyExplored(x - crop.x1(), y - crop.y1()))
 					distHist.addData(getMaximalIntensityDiff(x, y));
-		getLogExt().appendText("Accessed all pixels data");
-		unsigned char result = distHist.getValueMoreThan(inkTresh);		
+		getLogExt().append("Ink treshold", inkTresh);
+		unsigned char result = distHist.getValueMoreThan(inkTresh);
 		getLogExt().append("Intensity diff bound", (int)result);
 		return result;
 	}

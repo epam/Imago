@@ -58,6 +58,7 @@ namespace imago
 		int    WeakBinarizeSize;
 		int    MinGoodPixelsCount2;
 		int    MaxBadToGoodRatio2;
+		int    BinarizerFrameGap;
 		double StrongBinarizeTresh;
 		double WeakBinarizeTresh;		
 		double AdditionPercentage;
