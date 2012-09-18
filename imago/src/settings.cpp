@@ -501,9 +501,5 @@ namespace imago
 			general.ClusterIndex = ct;
 		}*/
 
-		if (!general.ImageAlreadyBinarized)
-		{
-			#include "settings_handwritten.inc"
-		}
 	}
 }

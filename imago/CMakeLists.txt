@@ -15,22 +15,6 @@ file(APPEND "src/imago.font.inc" "0\n")
 
 
 
-if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/imago_handwritten.font")
-	message(WARNING "Font file_handwritten missing")
-
-endif()
-if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/imago_handwritten.font.inc")
-	file(REMOVE "src/imago_handwritten.font.inc")
-endif()
-
-file(STRINGS "src/imago_handwritten.font" FONT_STRINGS)
-foreach(line IN LISTS FONT_STRINGS)
-	file(APPEND "src/imago_handwritten.font.inc" "\"${line}\\n\",\n")
-endforeach()
-file(APPEND "src/imago_handwritten.font.inc" "0\n")
-
-
-
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/src/templates")
 	message(WARNING "Font file missing")
 endif()

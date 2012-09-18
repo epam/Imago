@@ -22,8 +22,6 @@ else()
 
 if(SYSTEM_NAME STREQUAL "Windows")
 	# windows only tools
-	add_subdirectory(tools/constfuzzer)
-	add_subdirectory(tools/timelimit)
 	add_subdirectory(tools/calculate_probability_matrices)
 endif()
 	add_subdirectory(imago_c)

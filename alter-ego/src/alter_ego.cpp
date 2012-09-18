@@ -230,9 +230,9 @@ retry: // allowing some retries while process
 	   fprintf(stderr, "Error: %s\n", imagoGetLastError());
    }
 
-   if ((!good || recognitionWarningsCount > WARNINGS_TRESHOLD) && imagoFilterIdName.empty())
+   if ((!good || recognitionWarningsCount > WARNINGS_TRESHOLD) && imagoFilterIdName != "prefilter_basic")
    {
-	   imagoFilterIdName = "prefilter_handwritten";
+	   imagoFilterIdName = "prefilter_basic";
 	   goto retry;
    }
 
