@@ -22,6 +22,9 @@
  * ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
  * OTHER DEALINGS IN THE SOFTWARE.
  *
+ * Oct  2, 2012, Rostislav Chutkov
+ * Added d_type member support
+ *
  * Dec 15, 2009, John Cunningham
  * Added rewinddir member function
  *
@@ -62,10 +65,15 @@
 #include <string.h>
 #include <assert.h>
 
+const unsigned char DT_DIR = 4;
+const unsigned char DT_REG = 8;
+const unsigned char DT_UNKNOWN = 0;
 
 typedef struct dirent
 {
    char d_name[MAX_PATH + 1]; /* current dir entry (multi-byte char string) */
+   unsigned char  d_type;     /* type of file; not supported
+                                   by all file system types */
    WIN32_FIND_DATAA data;     /* file attributes */
 }  dirent;
 
@@ -168,6 +176,12 @@ static struct dirent *readdir(DIR *dirp)
       }
    }
 
+   dirp->current.d_type = DT_UNKNOWN;
+   if (dirp->current.data.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY)
+	   dirp->current.d_type = DT_DIR;
+   else if ((dirp->current.data.dwFileAttributes & FILE_ATTRIBUTE_DEVICE) == 0)
+	   dirp->current.d_type = DT_REG;
+
    /* copy as a multibyte character string */
    STRNCPY ( dirp->current.d_name,
              dirp->current.data.cFileName,
@@ -197,7 +211,6 @@ static int closedir(DIR *dirp)
    free (dirp);
    return 0;
 }
-
 
 /*****************************************************************************
  * Resets the position of the directory stream to which dirp refers to the

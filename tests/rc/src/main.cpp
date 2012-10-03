@@ -32,6 +32,8 @@
 #include <errno.h>
 #endif
 
+typedef std::vector<std::string> strings;
+
 void dumpVFS(imago::VirtualFS& vfs)
 {
 	if (!vfs.empty())
@@ -200,36 +202,127 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, const
 	return result;
 }
 
+int performMachineLearning(imago::Settings& vars, const strings& imageSet, const std::string& configName)
+{
+	int result = 0; // ok mark
+	try
+	{
+		for (size_t u = 0; u < imageSet.size(); u++)
+		{
+			printf("Image: %s\n", imageSet[u].c_str());
+		}
+	}
+	catch (std::exception &e)
+	{
+		result = 2; // error mark
+		puts(e.what());
+#ifdef _DEBUG
+		throw;
+#endif
+	}
 
-int getdir(const std::string& dir, std::vector<std::string> &files)
+	return result;
+}
+
+
+int getdir(const std::string& dir, strings &files, bool recursive)
 {
     DIR *dp;
     struct dirent *dirp;
-    if((dp  = opendir(dir.c_str())) == NULL) 
+	
+	strings todo;
+
+    if((dp = opendir(dir.c_str())) == NULL) 
     {
         return errno;
     }
 
     while ((dirp = readdir(dp)) != NULL) 
     {
-        files.push_back(std::string(dirp->d_name));
+		if (dirp->d_type == DT_REG)
+		{
+			files.push_back(dir + "/" + std::string(dirp->d_name));
+		}
+		else if (recursive && dirp->d_type == DT_DIR)
+		{
+			if (dirp->d_name[0] != '.')
+			{
+				todo.push_back(dir + "/" + dirp->d_name);				
+			}
+		}
     }
     closedir(dp);
+
+	for (size_t u = 0; u < todo.size(); u++)
+	{
+		getdir(todo[u], files, recursive);
+	}
+
     return 0;
+}
+
+bool isSupportedImageType(const std::string& filename)
+{
+	size_t idx = filename.rfind('.');
+	if (idx != std::string::npos)
+	{
+		std::string ext = filename.substr(idx+1);
+		std::transform(ext.begin(), ext.end(), ext.begin(), toupper);
+
+		// from OpenCV documentation:
+		if (ext == "BMP"  ||  
+			ext == "DIB"  ||
+			ext == "JPEG" || 
+			ext == "JPG"  ||
+			ext == "JPE"  ||
+			ext == "PNG"  || 
+			ext == "PBM"  ||
+			ext == "PGM"  ||
+			ext == "PPM"  ||
+			ext == "SR"   ||
+			ext == "RAS"  ||
+			ext == "TIFF" ||
+			ext == "TIF") // nice vertical lines
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+void filterOnlyImages(strings& files)
+{
+	strings out; // O(N)
+
+	for (size_t u = 0; u < files.size(); u++)
+	{
+		if (isSupportedImageType(files[u]))
+		{
+			out.push_back(files[u]);
+		}
+	}
+
+	files = out;
 }
 
 int main(int argc, char **argv)
 {
 	if (argc <= 1)
 	{
-		printf("Usage: %s [-log] [-logvfs] [-characters] [-dir dir_name] [-pr] image_path \n", argv[0]);
-		printf("  -log: enables debug log output to ./log.html \n");
-		printf("  -config cfg_file: loads specified configuration cluster file \n");
-		printf("  -logvfs: stores log in single encoded file ./log_vfs.txt \n");
+		printf("Usage: %s [option]* [batches] [mode] [image_path] \n", argv[0]);				
+		printf("\n  MODE SWITCHES: \n");
+		printf("  image_path: full path to image to recognize (may be omitted if other switch is specified) \n");
 		printf("  -characters: extracts only characters from image(s) and store in ./characters/ \n");
+		printf("  -learn dir_name: process machine learning for specified collection \n");
+		printf("\n  OPTION SWITCHES: \n");
+		printf("  -config cfg_file: use specified configuration cluster file \n");		
+		printf("  -log: enables debug log output to ./log.html \n");
+		printf("  -logvfs: stores log in single encoded file ./log_vfs.txt \n");		
+		printf("  -pr: use probablistic separator (experimental) \n");
+		printf("\n  BATCHES: \n");
 		printf("  -dir dir_name: process every image from dir dir_name \n");
-		printf("  -pr: use probablistic separator \n");
-		printf("  image_path: full path to image to recognize (may be omitted if -dir specified) \n");
+		printf("    -rec: process directory recursively \n");
+		printf("    -images: skip non-supported files from directory \n");				
 		return 0;
 	}
 
@@ -241,13 +334,22 @@ int main(int argc, char **argv)
 
 	bool next_arg_dir = false;
 	bool next_arg_config = false;
+	
+	bool recursive = false;
+	bool pass = false;
+	bool learning = false;
+	bool filter = false;
 
 	for (int c = 1; c < argc; c++)
 	{
 		std::string param = argv[c];
+
+		if (param.empty())
+			continue;
 		
 		if (param == "-l" || param == "-log")
 			vars.general.LogEnabled = true;
+
 		else if (param == "-logvfs")
 			vars.general.LogVFSEnabled = true;
 
@@ -256,6 +358,18 @@ int main(int argc, char **argv)
 
 		else if (param == "-dir")
 			next_arg_dir = true;
+
+		else if (param == "-rec" || param == "-r")
+			recursive = true;
+
+		else if (param == "-images" || param == "-i")
+			filter = true;
+
+		else if (param == "-learn" || param == "-optimize")
+			learning = true;
+
+		else if (param == "-pass")
+			pass = true;
 
 		else if (param == "-config")
 			next_arg_config = true;
@@ -277,7 +391,15 @@ int main(int argc, char **argv)
 			}
 			else
 			{
-				image = param;
+				if (param[0] == '-' && param.find('.') == std::string::npos)
+				{
+					printf("Unknown option: '%s'\n", param.c_str());
+					return 1;
+				}
+				else
+				{
+					image = param;
+				}
 			}
 		}
 	}
@@ -286,18 +408,31 @@ int main(int argc, char **argv)
 	
 	if (!dir.empty())
 	{
-		std::vector<std::string> files;
-		if (getdir(dir, files) != 0)
+		strings files;
+		
+		if (getdir(dir, files, recursive) != 0)
 		{
 			printf("Error: can't get the content of directory \"%s\"\n", dir.c_str());
 			return 2;
 		}
-		for (size_t u = 0; u < files.size(); u++)
+
+		if (filter || learning)
 		{
-			if (!files[u].empty() && !(files[u][0] == '.'))
+			filterOnlyImages(files);
+		}
+
+		if (learning)
+		{			
+			return performMachineLearning(vars, files, config);
+		}
+		else
+		{
+			for (size_t u = 0; u < files.size(); u++)
 			{
-				std::string fullpath = dir + "/" + files[u];
-				performFileAction(vars, fullpath, config);	
+				if (pass)
+					printf("Skipped file '%s'\n", files[u].c_str());
+				else
+					performFileAction(vars, files[u], config);	
 			}
 		}
 	}
