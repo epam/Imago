@@ -12,6 +12,11 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
+#include <string>
+#include <vector>
+#include <map>
+#include <algorithm>
+
 #include "comdef.h"
 #include "virtual_fs.h"
 #include "image_utils.h"
@@ -22,17 +27,10 @@
 #include "prefilter_entry.h"
 #include "superatom_expansion.h"
 #include "output.h"
+#include "scanner.h"
 #include "settings.h"
+#include "file_helpers.h"
 #include <time.h>
-
-#ifdef _WIN32
-#include "dirent.h"
-#else
-#include <dirent.h>
-#include <errno.h>
-#endif
-
-typedef std::vector<std::string> strings;
 
 void dumpVFS(imago::VirtualFS& vfs)
 {
@@ -148,7 +146,8 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src,
 }
 
 
-int performFileAction(imago::Settings& vars, const std::string& imageName, const std::string& configName)
+int performFileAction(imago::Settings& vars, const std::string& imageName, const std::string& configName,
+	                  const std::string& outputName = "molecule.mol")
 {
 	int result = 0; // ok mark
 	imago::VirtualFS vfs;
@@ -183,7 +182,7 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, const
 		else
 		{
 			RecognitionResult result = recognizeImage(vars, image, configName);		
-			imago::FileOutput fout("molecule.mol");
+			imago::FileOutput fout(outputName.c_str());
 			fout.writeString(result.molecule);
 		}
 
@@ -202,14 +201,74 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, const
 	return result;
 }
 
+struct LearningContext
+{
+	bool valid;
+
+	double similarity;
+	imago::Settings vars;
+	
+	double best_similarity;
+	imago::Settings best_vars;
+	
+	std::string reference_file;
+	
+	// TODO: reference molecule
+	// std::string reference_data;
+	
+	double stability;
+	double average_time;
+	int attempts;
+
+	LearningContext()
+	{
+		valid = false;
+		similarity = best_similarity = 0.0;
+		stability = 1.0;
+		average_time = 0.0;
+		attempts = 0;
+	}
+};
+
+typedef std::map<std::string, LearningContext*> LearningBase;
+
 int performMachineLearning(imago::Settings& vars, const strings& imageSet, const std::string& configName)
 {
 	int result = 0; // ok mark
 	try
 	{
+		LearningBase base;
+
 		for (size_t u = 0; u < imageSet.size(); u++)
+		{			
+			const std::string& file = imageSet[u];
+
+			LearningContext* ctx = new LearningContext();
+			if (getReferenceFileName(file, ctx->reference_file))
+			{
+				try
+				{
+					imago::FileScanner fsc(ctx->reference_file.c_str());
+					
+					ctx->valid = true;
+				}
+				catch (imago::FileNotFoundException&)
+				{
+					printf("[ERROR] Can not open reference file: %s\n", ctx->reference_file.c_str());
+				}
+			}
+			else
+			{
+				printf("[ERROR] Can not obtain reference filename for: %s\n", file.c_str());
+			}
+
+			base[file] = ctx;
+		}
+
+		// delete all stuff
+		for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
 		{
-			printf("Image: %s\n", imageSet[u].c_str());
+			delete it->second;
 		}
 	}
 	catch (std::exception &e)
@@ -224,86 +283,6 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 	return result;
 }
 
-
-int getdir(const std::string& dir, strings &files, bool recursive)
-{
-    DIR *dp;
-    struct dirent *dirp;
-	
-	strings todo;
-
-    if((dp = opendir(dir.c_str())) == NULL) 
-    {
-        return errno;
-    }
-
-    while ((dirp = readdir(dp)) != NULL) 
-    {
-		if (dirp->d_type == DT_REG)
-		{
-			files.push_back(dir + "/" + std::string(dirp->d_name));
-		}
-		else if (recursive && dirp->d_type == DT_DIR)
-		{
-			if (dirp->d_name[0] != '.')
-			{
-				todo.push_back(dir + "/" + dirp->d_name);				
-			}
-		}
-    }
-    closedir(dp);
-
-	for (size_t u = 0; u < todo.size(); u++)
-	{
-		getdir(todo[u], files, recursive);
-	}
-
-    return 0;
-}
-
-bool isSupportedImageType(const std::string& filename)
-{
-	size_t idx = filename.rfind('.');
-	if (idx != std::string::npos)
-	{
-		std::string ext = filename.substr(idx+1);
-		std::transform(ext.begin(), ext.end(), ext.begin(), toupper);
-
-		// from OpenCV documentation:
-		if (ext == "BMP"  ||  
-			ext == "DIB"  ||
-			ext == "JPEG" || 
-			ext == "JPG"  ||
-			ext == "JPE"  ||
-			ext == "PNG"  || 
-			ext == "PBM"  ||
-			ext == "PGM"  ||
-			ext == "PPM"  ||
-			ext == "SR"   ||
-			ext == "RAS"  ||
-			ext == "TIFF" ||
-			ext == "TIF") // nice vertical lines
-		{
-			return true;
-		}
-	}
-	return false;
-}
-
-void filterOnlyImages(strings& files)
-{
-	strings out; // O(N)
-
-	for (size_t u = 0; u < files.size(); u++)
-	{
-		if (isSupportedImageType(files[u]))
-		{
-			out.push_back(files[u]);
-		}
-	}
-
-	files = out;
-}
 
 int main(int argc, char **argv)
 {
@@ -410,7 +389,7 @@ int main(int argc, char **argv)
 	{
 		strings files;
 		
-		if (getdir(dir, files, recursive) != 0)
+		if (getDirectoryContent(dir, files, recursive) != 0)
 		{
 			printf("Error: can't get the content of directory \"%s\"\n", dir.c_str());
 			return 2;
@@ -430,9 +409,14 @@ int main(int argc, char **argv)
 			for (size_t u = 0; u < files.size(); u++)
 			{
 				if (pass)
+				{
 					printf("Skipped file '%s'\n", files[u].c_str());
+				}
 				else
-					performFileAction(vars, files[u], config);	
+				{
+					std::string output = files[u] + ".result.mol";
+					performFileAction(vars, files[u], config, output);	
+				}
 			}
 		}
 	}
