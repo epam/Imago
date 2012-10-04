@@ -30,7 +30,10 @@
 #include "scanner.h"
 #include "settings.h"
 #include "file_helpers.h"
-#include <time.h>
+#include "platform_tools.h"
+
+static std::string similarity_tool = "";
+static bool verbose = true;
 
 void dumpVFS(imago::VirtualFS& vfs)
 {
@@ -53,7 +56,6 @@ void storeConfigCluster(imago::Settings& vars)
 	imago::VirtualFS vfs;
 	// store only one file
 	char filename[imago::MAX_TEXT_LINE];		
-	//srand ( time(NULL) ); // temp
 	sprintf(filename, "config_%i.txt", vars.general.ClusterIndex);
 	vfs.appendData(filename, data);
 	vfs.storeOnDisk();
@@ -63,12 +65,18 @@ void applyConfig(imago::Settings& vars, const std::string& config)
 {
 	if (!config.empty())
 	{
-		printf("Loading configuration cluster [%s]... ", config.c_str());
+		if (verbose)
+			printf("Loading configuration cluster [%s]... ", config.c_str());
+
 		bool result = vars.forceSelectCluster(config);
-		if (result)
-			printf("OK\n");
-		else
-			printf("FAIL\n");
+
+		if (verbose)
+		{
+			if (result)
+				printf("OK\n");
+			else
+				printf("FAIL\n");
+		}
 	}
 	else
 	{
@@ -118,11 +126,15 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src,
 			results.push_back(result);
 
 			good = result.warnings <= vars.main.WarningsRecalcTreshold;
-			printf("Filter [%u] done, warnings: %u, good: %u.\n", vars.general.FilterIndex, result.warnings, good);
+			
+			if (verbose)
+				printf("Filter [%u] done, warnings: %u, good: %u.\n", vars.general.FilterIndex, result.warnings, good);
 		}
 		catch (std::exception &e)
 		{
-			printf("Filter [%u] exception \"%s\".\n", vars.general.FilterIndex, e.what());
+			if (verbose)
+				printf("Filter [%u] exception \"%s\".\n", vars.general.FilterIndex, e.what());
+
 	#ifdef _DEBUG
 			throw;
 	#endif
@@ -154,11 +166,13 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, const
 
 	if (vars.general.ExtractCharactersOnly)
 	{
-		printf("Characters extraction from image \"%s\"\n", imageName.c_str());
+		if (verbose)
+			printf("Characters extraction from image \"%s\"\n", imageName.c_str());
 	}
 	else
 	{
-		printf("Recognition of image \"%s\"\n", imageName.c_str());
+		if (verbose)
+			printf("Recognition of image \"%s\"\n", imageName.c_str());
 	}
 
 	try
@@ -206,16 +220,14 @@ struct LearningContext
 	bool valid;
 
 	double similarity;
-	imago::Settings vars;
+	std::string vars;
 	
 	double best_similarity;
-	imago::Settings best_vars;
+	std::string best_vars;
 	
 	std::string reference_file;
-	
-	// TODO: reference molecule
-	// std::string reference_data;
-	
+	std::string output_file;
+		
 	double stability;
 	double average_time;
 	int attempts;
@@ -230,31 +242,66 @@ struct LearningContext
 	}
 };
 
-typedef std::map<std::string, LearningContext*> LearningBase;
+typedef std::map<std::string, LearningContext> LearningBase;
+
+std::string quote(const std::string input)
+{
+	std::string result = input;
+	if (!result.empty() && result[0] != '\"')
+		result = '\"' + result + '\"';
+	return result;
+}
+
+double getSimilarity(const LearningContext& ctx)
+{
+	if (!similarity_tool.empty())
+	{
+		std::string params = quote(ctx.output_file) + " " + quote(ctx.reference_file);
+		int retVal = platform::CALL(similarity_tool, params);
+		if (retVal >= 0 && retVal <= 100)
+			return retVal;
+		else
+			throw imago::FileNotFoundException("Failed to call similarity tool " 
+			          + similarity_tool + " (" + imago::ImagoException::str(retVal) + ")");
+	}
+	else
+	{
+		// internal comparison
+		// TODO
+	}
+
+	return 0.0;
+}
 
 int performMachineLearning(imago::Settings& vars, const strings& imageSet, const std::string& configName)
 {
 	int result = 0; // ok mark
+
+	std::string start_config;
+	vars.saveToDataStream(start_config);
+
 	try
 	{
 		LearningBase base;
 
+		// step 0: prepare learning base
+		printf("Learning: filling learning base for %u images\n", imageSet.size());
 		for (size_t u = 0; u < imageSet.size(); u++)
 		{			
 			const std::string& file = imageSet[u];
 
-			LearningContext* ctx = new LearningContext();
-			if (getReferenceFileName(file, ctx->reference_file))
+			LearningContext ctx;
+			if (getReferenceFileName(file, ctx.reference_file))
 			{
 				try
 				{
-					imago::FileScanner fsc(ctx->reference_file.c_str());
+					imago::FileScanner fsc(ctx.reference_file.c_str());
 					
-					ctx->valid = true;
+					ctx.valid = true;
 				}
 				catch (imago::FileNotFoundException&)
 				{
-					printf("[ERROR] Can not open reference file: %s\n", ctx->reference_file.c_str());
+					printf("[ERROR] Can not open reference file: %s\n", ctx.reference_file.c_str());
 				}
 			}
 			else
@@ -262,14 +309,62 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 				printf("[ERROR] Can not obtain reference filename for: %s\n", file.c_str());
 			}
 
+			// TODO: probably is better to place them in some temp folder
+			ctx.output_file = file + ".temp.mol";
+
 			base[file] = ctx;
 		}
 
-		// delete all stuff
+		// step 1: get initial results
+		printf("Learning: getting initial results for %u images\n", base.size());
+		int counter = 0;
 		for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
 		{
-			delete it->second;
+			counter++;
+
+			printf("Image (%u/%u): %s... ", counter, base.size(), it->first.c_str());
+
+			if (!it->second.valid)
+			{
+				printf("skipped\n");
+			}
+			else
+			{				
+				imago::Settings temp_vars;				
+				temp_vars.fillFromDataStream(start_config);
+				
+				unsigned int start_time = platform::TICKS();
+				
+				verbose = false;
+				if (performFileAction(temp_vars, it->first, "", it->second.output_file) == 0)
+				{
+					it->second.stability = 1.0;
+				}
+				else
+				{
+					it->second.stability = 0.0;
+				}
+				verbose = true; // TODO: restore old value
+
+				unsigned int end_time = platform::TICKS();
+
+				it->second.best_vars = it->second.vars = start_config;
+				it->second.attempts = 1;
+				it->second.average_time = end_time - start_time;
+				try
+				{
+					it->second.best_similarity = it->second.similarity = getSimilarity(it->second);
+					printf("%g (%g ms)\n", it->second.similarity, it->second.average_time);
+				}
+				catch(imago::FileNotFoundException &e)
+				{
+					printf("%s\n", e.what());
+					it->second.valid = false;
+				}
+			}
 		}
+
+		
 	}
 	catch (std::exception &e)
 	{
@@ -313,6 +408,7 @@ int main(int argc, char **argv)
 
 	bool next_arg_dir = false;
 	bool next_arg_config = false;
+	bool next_arg_sim_tool = false;
 	
 	bool recursive = false;
 	bool pass = false;
@@ -337,6 +433,9 @@ int main(int argc, char **argv)
 
 		else if (param == "-dir")
 			next_arg_dir = true;
+
+		else if (param == "-similarity")
+			next_arg_sim_tool = true;
 
 		else if (param == "-rec" || param == "-r")
 			recursive = true;
@@ -368,6 +467,11 @@ int main(int argc, char **argv)
 				dir = param;
 				next_arg_dir = false;
 			}
+			else if (next_arg_sim_tool)
+			{
+				similarity_tool = param;
+				next_arg_sim_tool = false;
+			}
 			else
 			{
 				if (param[0] == '-' && param.find('.') == std::string::npos)
@@ -391,7 +495,7 @@ int main(int argc, char **argv)
 		
 		if (getDirectoryContent(dir, files, recursive) != 0)
 		{
-			printf("Error: can't get the content of directory \"%s\"\n", dir.c_str());
+			printf("[ERROR] Can't get the content of directory \"%s\"\n", dir.c_str());
 			return 2;
 		}
 

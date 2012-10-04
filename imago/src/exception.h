@@ -38,7 +38,7 @@ namespace imago
 		ImagoException(const std::string& error) : std::runtime_error(error) { }
 		ImagoException(int errorCode) : std::runtime_error(str(errorCode)) { }
 		
-		std::string str(int x)
+		static std::string str(int x)
 		{
 			char buffer[32];
 			sprintf(buffer, "%i", x);

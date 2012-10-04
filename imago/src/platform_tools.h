@@ -20,10 +20,20 @@
 
 namespace platform
 {
-	int MKDIR(const std::string& directory);
-	unsigned int TICKS();
-	unsigned int MEM_AVAIL();
-	std::string getLineEndings();
+	// returns error code
+	int MKDIR(const std::string& directory); 
+
+	// current time ticks in milliseconds
+	unsigned int TICKS(); 
+
+	// current available memory in kilobytes
+	unsigned int MEM_AVAIL(); 
+
+	// platform-depent line ending string
+	std::string getLineEndings(); 
+
+	 // returns 'return-code' or negative error code
+	int CALL(const std::string& executable, const std::string& parameters, int timelimit = 0);
 }
 
 #endif //_platform_tools_h

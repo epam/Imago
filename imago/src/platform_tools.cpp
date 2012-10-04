@@ -46,6 +46,83 @@ std::string platform::getLineEndings()
 	return "\r\n";
 }
 
+int platform::CALL(const std::string& executable, const std::string& parameters, int timelimit)
+{	
+    int result = 0; 
+
+    /* - NOTE - You should check here to see if the exe even exists */ 
+
+    /* Add a space to the beginning of the Parameters */ 
+	std::string Parameters = parameters;
+    if (Parameters.size() != 0) 
+    { 
+        if (Parameters[0] != ' ') 
+        { 
+            Parameters.insert(0, " "); 
+        } 
+    } 
+
+    /* The first parameter needs to be the exe itself */ 
+    std::string sTempStr = executable; 
+    size_t iPos = sTempStr.find_last_of("\\"); 
+    sTempStr.erase(0, iPos + 1); 
+    Parameters = sTempStr.append(Parameters); 
+
+     /* CreateProcessW can modify Parameters thus we allocate needed memory */ 
+    char* pcharParam = new char[Parameters.size() + 1]; 
+    if (pcharParam == 0) 
+    { 
+        return -1; // MALLOC FAIL
+    } 
+    strcpy_s(pcharParam, Parameters.size() + 1, Parameters.c_str()); 
+
+    /* CreateProcess API initialization */ 
+    STARTUPINFO siStartupInfo; 
+    PROCESS_INFORMATION piProcessInfo; 
+    memset(&siStartupInfo, 0, sizeof(siStartupInfo)); 
+    memset(&piProcessInfo, 0, sizeof(piProcessInfo)); 
+    siStartupInfo.cb = sizeof(siStartupInfo); 
+
+    if (CreateProcess(executable.c_str(), 
+		              pcharParam, 0, 0, false, 
+					  CREATE_DEFAULT_ERROR_MODE, 0, 0, 
+					  &siStartupInfo, &piProcessInfo) != false) 
+    { 
+        DWORD dwStartTime = GetTickCount();
+		if (timelimit == 0)
+			timelimit = INFINITE;
+        DWORD dwExitCode = WaitForSingleObject(piProcessInfo.hProcess, timelimit); 
+		
+		if (WAIT_TIMEOUT == dwExitCode)
+		{
+			//printf("...timelimit exceeded\n");
+
+			result = -2; // TIMEOUT
+			TerminateProcess(piProcessInfo.hProcess, 0);
+		}
+		else
+		{
+			//printf("...process exited (%i ms)\n", GetTickCount() - dwStartTime);
+
+			result = dwExitCode;
+		}
+    } 
+    else 
+    { 
+		result = -3; // CREATE PROCESS FAILED
+    } 
+
+    /* Free memory */ 
+    delete[] pcharParam; 
+    pcharParam = 0; 
+
+    /* Release handles */ 
+    CloseHandle(piProcessInfo.hProcess); 
+    CloseHandle(piProcessInfo.hThread); 
+
+    return result; 
+}
+
 #else // ------------------- POSIX -------------------
 
 #include <sys/stat.h>
@@ -62,6 +139,11 @@ unsigned int platform::TICKS()
 }
 
 unsigned int platform::MEM_AVAIL()
+{
+	return 0; // TODO
+}
+
+int platform::CALL(const std::string& executable, const std::string& parameters, int timelimit)
 {
 	return 0; // TODO
 }
