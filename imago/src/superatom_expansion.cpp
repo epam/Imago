@@ -105,6 +105,7 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       abbrs.push_back(Abbreviation("iPrO", "CC(C)O*").onright("OiPr", "Oi-Pr").onleft("iPrO", "i-PrO"));
       abbrs.push_back(Abbreviation("COOH", "OC(*)=O").onright("COOH", "CO2H").onleft("HOOC", "HO2C"));
       abbrs.push_back(Abbreviation("Ph", "*C1=CC=CC=C1").onright("Ph").onleft("Ph"));
+      abbrs.push_back(Abbreviation("OPh", "*OC1=CC=CC=C1").onright("OPh").onleft("PhO"));
       abbrs.push_back(Abbreviation("CF3", "FC(F)(F)*").onright("CF3").onleft("F3C"));
       abbrs.push_back(Abbreviation("ONO", "*ON=O").onright("ONO").onleft("ONO"));
       abbrs.push_back(Abbreviation("CN", "*C#N").onright("CN").onleft("NC"));
@@ -122,23 +123,43 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       abbrs.push_back(Abbreviation("PO3H2", "OP(O)(*)=O").onright("PO3H2").onleft("H2O3P"));
       abbrs.push_back(Abbreviation("ONO2", "*ON(=O)=O").onright("ONO2").onleft("O2NO"));
       abbrs.push_back(Abbreviation("OTMS", "C[Si](C)(C)O*").onright("OTMS").onleft("TMSO"));
-      abbrs.push_back(Abbreviation("COOMe", "COC(*)=O").onright("COOMe").onleft("MeOOC"));
+      abbrs.push_back(Abbreviation("COOMe", "COC(*)=O").onright("COOMe").onright("CO2Me").onleft("MeOOC").onleft("MeO2C"));
       abbrs.push_back(Abbreviation("BzO", "*OC(=O)C1=CC=CC=C1").onright("OBz").onleft("BzO"));
       abbrs.push_back(Abbreviation("AcO", "CC(=O)O*").onright("OAc").onleft("AcO"));
       abbrs.push_back(Abbreviation("NHBoc", "CC(C)(C)OC(=O)N*").onright("NHBoc").onleft("BocHN"));
 
       abbrs.push_back(Abbreviation("CHO", "*C=O").onright("CHO").onleft("OCH"));
+      abbrs.push_back(Abbreviation("MeO", "*OC").onright("OMe").onleft("MeO"));
+      abbrs.push_back(Abbreviation("Me", "*C").onright("Me").onleft("Me"));
+      abbrs.push_back(Abbreviation("EtO", "CCO*").onright("OEt").onleft("EtO"));
+      abbrs.push_back(Abbreviation("CHCH3", "CC*").onright("CHCH3"));
+      abbrs.push_back(Abbreviation("CH2CH3", "CC*").onright("CH2CH3"));
+      abbrs.push_back(Abbreviation("Et", "CC*").onright("Et").onleft("Et"));
+      abbrs.push_back(Abbreviation("SMe", "CS*").onright("SMe").onleft("MeS"));
+      abbrs.push_back(Abbreviation("RO2C", "COC(*)=O").onleft("RO2C"));
 
-	  abbrs.push_back(Abbreviation("CO2Et", "CCOC(*)=O").onleft("EtO2C").onright("CO2Et"));
+      // TODO: Fix issue that SO2NH2 is recognized as SO2NH22
+      abbrs.push_back(Abbreviation("SO2NH2", "NS(*)(=O)=O").onright("SO2NH2").onright("SO2NH22").onleft("H2NO2S"));
+
+      abbrs.push_back(Abbreviation("Et2N", "CCN(*)CC").onleft("Et2N").onright("Et2N"));
+      abbrs.push_back(Abbreviation("CO2Et", "CCOC(*)=O").onleft("EtO2C").onright("CO2Et"));
+      abbrs.push_back(Abbreviation("CO2CH3", "COC(*)=O").onright("CO2CH3"));
+      abbrs.push_back(Abbreviation("OCF3", "FC(F)(F)O*").onright("OCF3").onleft("F3CO"));
+      abbrs.push_back(Abbreviation("H3CO2S", "CS(*)(=O)=O").onleft("H3CO2S"));
+      abbrs.push_back(Abbreviation("NHCH3", "CN*").onleft("H3CHN").onright("NHCH3"));
+      abbrs.push_back(Abbreviation("CH2OMe", "COC*").onleft("MeOH2C").onright("CH2OMe"));
+      abbrs.push_back(Abbreviation("SO2Me", "CS(*)(=O)=O").onright("SO2Me"));
+      abbrs.push_back(Abbreviation("NHMe", "CN*").onright("NHMe").onright("MeHN"));
 
       // This should not be [O-][N+](*)=O by request
       abbrs.push_back(Abbreviation("NO2", "*N(=O)=O").onright("NO2").onleft("O2N"));	  
 
       // Two-sided abbreviations
       abbrs.push_back(Abbreviation("COOCH2", "[*:1]C(=O)OC[*:2]").add("COOCH2"));	  
-	  abbrs.push_back(Abbreviation("EtN", "CCN([*:1])[*:2]").add("NEt").add("EtN"));	  
-	  
-
+      abbrs.push_back(Abbreviation("EtN", "CCN([*:1])[*:2]").add("NEt").add("EtN"));	  
+      abbrs.push_back(Abbreviation("CH2CH2", "[*:1]CC[*:2]").add("CH2CH2"));	  
+      abbrs.push_back(Abbreviation("CF2O", "FC(F)([*:1])O[*:2]").add("CF2O"));
+      abbrs.push_back(Abbreviation("SO2NH", "[*:1]S(=O)(=O)N[*:2]").add("SO2NH"));
 
       init = true;
    }
