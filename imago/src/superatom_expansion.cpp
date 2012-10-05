@@ -236,7 +236,9 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       else
       {
          if (indigoIsPseudoatom(item))
-            printf("Unknown superatom: %s\n", symbol.c_str());
+		 {
+            //printf("Unknown superatom: %s\n", symbol.c_str());
+		 }
          indigoFree(item);
       }
    }

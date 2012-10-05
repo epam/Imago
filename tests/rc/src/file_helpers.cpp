@@ -14,8 +14,6 @@ bool getReferenceFileName(const std::string& image, std::string& output)
 {
 	output = image;
 
-	//printf("Image %s\n", image.c_str());
-
 	// get last slash position
 	size_t pos_slash = image.rfind('/');
 	size_t temp = image.rfind('\\');
@@ -35,8 +33,6 @@ bool getReferenceFileName(const std::string& image, std::string& output)
 	{
 		return false;
 	}
-
-	//printf("Pos dot %u, pos slash %u\n", pos_dot, pos_slash);
 
 	output = image.substr(0, pos_dot) + ".mol";
 	return true;

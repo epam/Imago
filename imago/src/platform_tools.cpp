@@ -104,7 +104,9 @@ int platform::CALL(const std::string& executable, const std::string& parameters,
 		{
 			//printf("...process exited (%i ms)\n", GetTickCount() - dwStartTime);
 
-			result = dwExitCode;
+			DWORD exitCode;
+			result = GetExitCodeProcess(piProcessInfo.hProcess, &exitCode);
+			result = exitCode;
 		}
     } 
     else 

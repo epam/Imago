@@ -14,18 +14,13 @@
 
 #pragma once
 
-#ifndef _file_helpers_h_
-#define _file_helpers_h_
+#ifndef _similarity_tools_h
+#define _similarity_tools_h
 
+#include "learning_context.h"
 #include <string>
-#include <vector>
 
-typedef std::vector<std::string> strings;
+void   setExternalSimilarityTool(const std::string& executable, const std::string& param = "");
+double getSimilarity(const LearningContext& ctx);
 
-bool getReferenceFileName(const std::string& image, std::string& output);
-int  getDirectoryContent(const std::string& dir, strings &files, bool recursive);
-bool isSupportedImageType(const std::string& filename);
-void filterOnlyImages(strings& files);
-
-
-#endif // _file_helpers_h_
+#endif // _similarity_tools_h

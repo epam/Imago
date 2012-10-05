@@ -16,6 +16,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <time.h>
 
 #include "comdef.h"
 #include "virtual_fs.h"
@@ -29,11 +30,18 @@
 #include "output.h"
 #include "scanner.h"
 #include "settings.h"
-#include "file_helpers.h"
 #include "platform_tools.h"
 
-static std::string similarity_tool = "";
+#include "file_helpers.h"
+#include "learning_context.h"
+#include "similarity_tools.h"
+
+
 static bool verbose = true;
+
+
+const int LEARNING_MAX_CONFIGS = 200;
+const int LEARNING_TOP_USE = 2;
 
 void dumpVFS(imago::VirtualFS& vfs)
 {
@@ -215,156 +223,289 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, const
 	return result;
 }
 
-struct LearningContext
+std::string modifyConfig(const std::string& config, const LearningBase& learning)
 {
-	bool valid;
+	imago::Settings vars;
+	vars.fillFromDataStream(config);
 
-	double similarity;
-	std::string vars;
-	
-	double best_similarity;
-	std::string best_vars;
-	
-	std::string reference_file;
-	std::string output_file;
-		
-	double stability;
-	double average_time;
-	int attempts;
+	srand ( (unsigned int)time (NULL));
 
-	LearningContext()
+	imago::ReferenceAssignmentMap rmap;
+	vars._fillReferenceMap(rmap);
+
+	int changed = 0;
+
+	for (imago::ReferenceAssignmentMap::const_iterator it = rmap.begin(); it != rmap.end(); it++)
 	{
-		valid = false;
-		similarity = best_similarity = 0.0;
-		stability = 1.0;
-		average_time = 0.0;
-		attempts = 0;
+		double rand05 = (double)(rand() % RAND_MAX) / (double)RAND_MAX; // [0..0.5)
+		double rand11 = (rand05 - 0.5) * 2.0; // [-1..1)
+
+		switch (it->second.getType())
+		{
+		case imago::DataTypeReference::otBool:
+			{
+			bool& value = *(it->second.getBool());
+			bool new_value = rand05 >= 0.5;
+			if (value != new_value)
+			{
+				value = new_value;
+				changed++;
+			}
+			}
+			break;
+
+		case imago::DataTypeReference::otInt:
+			{
+			int& value = *(it->second.getInt());
+			int new_value = (int)(value + value * rand11 * 0.05); // +-5%
+			if (value != new_value)
+			{
+				value = new_value;
+				changed++;
+			}
+			}
+			break;
+
+		case imago::DataTypeReference::otDouble:
+			{
+			double& value = *(it->second.getDouble());
+			double new_value = value + value * rand11 * 0.05; // +-5%
+			if (value != new_value)
+			{
+				value = new_value;
+				changed++;
+			}
+			}
+			break;
+		}
 	}
-};
 
-typedef std::map<std::string, LearningContext> LearningBase;
+	printf("Learning: Config modified, changed %u values\n", changed);
 
-std::string quote(const std::string input)
-{
-	std::string result = input;
-	if (!result.empty() && result[0] != '\"')
-		result = '\"' + result + '\"';
-	return result;
+	std::string output;
+	vars.saveToDataStream(output);
+	return output;
 }
 
-double getSimilarity(const LearningContext& ctx)
+
+void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::string& image_name, bool init = false)
 {
-	if (!similarity_tool.empty())
+	imago::Settings temp_vars;				
+	temp_vars.fillFromDataStream(res.config);
+				
+	unsigned int start_time = platform::TICKS();
+				
+	verbose = false;
+	int action_error = performFileAction(temp_vars, image_name, "", ctx.output_file);
+	verbose = true; // TODO: restore old value
+		
+	unsigned int end_time = platform::TICKS();		
+	double work_time = end_time - start_time;
+	
+	double similarity = 0.0;
+
+	try
 	{
-		std::string params = quote(ctx.output_file) + " " + quote(ctx.reference_file);
-		int retVal = platform::CALL(similarity_tool, params);
-		if (retVal >= 0 && retVal <= 100)
-			return retVal;
-		else
-			throw imago::FileNotFoundException("Failed to call similarity tool " 
-			          + similarity_tool + " (" + imago::ImagoException::str(retVal) + ")");
+		similarity = getSimilarity(ctx);
+				
+		res.average_score += similarity;
+		res.average_time += work_time;
+
+		if (similarity >= 100.0 - imago::EPS)
+		{
+			res.ok_count++;
+		}
+
+		if (init)
+			printf("%g (%g ms)\n", similarity, work_time);
+	}
+	catch(imago::FileNotFoundException &e)
+	{
+		printf("%s\n", e.what());
+		ctx.valid = false;
+	}
+
+	ctx.vars = res.config;
+	ctx.similarity = similarity;
+	
+	if (init)
+	{
+		ctx.attempts = 1;
+		ctx.stability = (action_error == 0) ? 1.0 : 0.0;
+		ctx.best_vars = res.config;
+		ctx.best_similarity = similarity;
+		ctx.average_time = work_time;
 	}
 	else
 	{
-		// internal comparison
-		// TODO
+		ctx.stability = (((action_error == 0) ? 1.0 : 0.0) + ctx.stability * ctx.attempts) / (ctx.attempts + 1);
+		ctx.average_time = (work_time + ctx.average_time * ctx.attempts) / (ctx.attempts + 1);
+		if (ctx.similarity > ctx.best_similarity)
+		{
+			ctx.best_similarity = ctx.similarity;
+			ctx.best_vars = ctx.vars;
+		}
+		ctx.attempts++;
 	}
+}
 
-	return 0.0;
+bool updateResult(LearningResultRecord& result_record, LearningHistory& history)
+{
+	if (result_record.valid_count)
+	{
+		result_record.average_score /= result_record.valid_count;
+		result_record.average_time /= result_record.valid_count;
+		printf("Learning: result: %u vaild, %u ok, %g average score, %g ms average time\n",
+			result_record.valid_count, result_record.ok_count, 
+			result_record.average_score, result_record.average_time);
+		history.push_back(result_record);
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 int performMachineLearning(imago::Settings& vars, const strings& imageSet, const std::string& configName)
 {
 	int result = 0; // ok mark
-
-	std::string start_config;
-	vars.saveToDataStream(start_config);
-
+	
 	try
 	{
 		LearningBase base;
+		LearningHistory history;
 
 		// step 0: prepare learning base
-		printf("Learning: filling learning base for %u images\n", imageSet.size());
-		for (size_t u = 0; u < imageSet.size(); u++)
-		{			
-			const std::string& file = imageSet[u];
-
-			LearningContext ctx;
-			if (getReferenceFileName(file, ctx.reference_file))
-			{
-				try
-				{
-					imago::FileScanner fsc(ctx.reference_file.c_str());
-					
-					ctx.valid = true;
-				}
-				catch (imago::FileNotFoundException&)
-				{
-					printf("[ERROR] Can not open reference file: %s\n", ctx.reference_file.c_str());
-				}
-			}
-			else
-			{
-				printf("[ERROR] Can not obtain reference filename for: %s\n", file.c_str());
-			}
-
-			// TODO: probably is better to place them in some temp folder
-			ctx.output_file = file + ".temp.mol";
-
-			base[file] = ctx;
-		}
-
-		// step 1: get initial results
-		printf("Learning: getting initial results for %u images\n", base.size());
-		int counter = 0;
-		for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
 		{
-			counter++;
+			printf("Learning: filling learning base for %u images\n", imageSet.size());
+			for (size_t u = 0; u < imageSet.size(); u++)
+			{			
+				const std::string& file = imageSet[u];
 
-			printf("Image (%u/%u): %s... ", counter, base.size(), it->first.c_str());
-
-			if (!it->second.valid)
-			{
-				printf("skipped\n");
-			}
-			else
-			{				
-				imago::Settings temp_vars;				
-				temp_vars.fillFromDataStream(start_config);
-				
-				unsigned int start_time = platform::TICKS();
-				
-				verbose = false;
-				if (performFileAction(temp_vars, it->first, "", it->second.output_file) == 0)
+				LearningContext ctx;
+				if (getReferenceFileName(file, ctx.reference_file))
 				{
-					it->second.stability = 1.0;
+					try
+					{
+						imago::FileScanner fsc(ctx.reference_file.c_str());
+					
+						ctx.valid = true;
+					}
+					catch (imago::FileNotFoundException&)
+					{
+						printf("[ERROR] Can not open reference file: %s\n", ctx.reference_file.c_str());
+					}
 				}
 				else
 				{
-					it->second.stability = 0.0;
+					printf("[ERROR] Can not obtain reference filename for: %s\n", file.c_str());
 				}
-				verbose = true; // TODO: restore old value
 
-				unsigned int end_time = platform::TICKS();
+				// TODO: probably is better to place them in some temp folder
+				ctx.output_file = file + ".temp.mol";
 
-				it->second.best_vars = it->second.vars = start_config;
-				it->second.attempts = 1;
-				it->second.average_time = end_time - start_time;
-				try
+				base[file] = ctx;
+			}
+		} // end of step 0
+
+		// step 1: get initial results
+		{
+			printf("Learning: getting initial results for %u images\n", base.size());
+		
+			int counter = 0;
+			LearningResultRecord result_record;
+			vars.saveToDataStream(result_record.config);
+
+			for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
+			{
+				counter++;
+
+				printf("Image (%u/%u): %s... ", counter, base.size(), it->first.c_str());
+
+				if (!it->second.valid)
 				{
-					it->second.best_similarity = it->second.similarity = getSimilarity(it->second);
-					printf("%g (%g ms)\n", it->second.similarity, it->second.average_time);
+					printf("skipped\n");
 				}
-				catch(imago::FileNotFoundException &e)
-				{
-					printf("%s\n", e.what());
-					it->second.valid = false;
+				else
+				{				
+					result_record.valid_count++;					
+					runSingleItem(it->second, result_record, it->first, true /*init*/);
 				}
 			}
-		}
 
+			if (!updateResult(result_record, history))
+			{
+				printf("[ERROR] No valid entries!\n");
+				return 5;
+			}
+			
+		} // end of step 1
 		
+		volatile bool work_continue = true;
+		for (int work_iteration = 1; work_continue; work_iteration++)
+		{
+			// arrange configs by 
+			std::sort(history.begin(), history.end());
+			
+			// remove the worst ones [non-optimal]
+			while (history.size() >= LEARNING_MAX_CONFIGS)
+				history.erase(history.begin());
+
+			// check all N top configs
+			int limit = (int)history.size() - LEARNING_TOP_USE;
+			bool ok = false;
+			int cfg_counter = 0;
+			int cfg_best_idx = history.size() - 1;
+			for (int cfg_id = cfg_best_idx; cfg_id >= 0 && cfg_id >= limit; cfg_id--)
+			{
+				cfg_counter++;
+				printf("Learning: Work iteration %u:%u, selected the start config with score %g\n", work_iteration, cfg_counter, history[cfg_id].average_score);
+				std::string base_config = history[cfg_id].config;
+
+				LearningResultRecord res;
+				res.config = modifyConfig(base_config, base);
+
+				// now recheck the config
+				for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
+				{
+					if (it->second.valid)
+					{									
+						res.valid_count++;
+						try
+						{
+							runSingleItem(it->second, res, it->first);
+						}
+						catch(...)
+						{
+							// TODO
+						}
+					}
+				}
+				
+				// update result entry
+				if (updateResult(res, history))
+				{
+					ok = true;
+				}
+
+				if (history[cfg_best_idx] < res)
+				{
+					printf("Learning: Got better result (%g), saving\n", res.average_score);
+					imago::VirtualFS vfs;
+					char filename[imago::MAX_TEXT_LINE];		
+					sprintf(filename, "config_%g.txt", res.average_score);
+					vfs.appendData(filename, res.config);
+					vfs.storeOnDisk();
+				}
+			}
+
+			if (!ok)
+			{
+				printf("Learning: no more learning success, exiting.\n");
+				work_continue = false;
+			}			
+		}
 	}
 	catch (std::exception &e)
 	{
@@ -403,12 +544,15 @@ int main(int argc, char **argv)
 	std::string image = "";
 	std::string dir = "";
 	std::string config = "";
+	std::string sim_tool = "";
+	std::string sim_param = "";
 
 	imago::Settings vars;
 
 	bool next_arg_dir = false;
 	bool next_arg_config = false;
 	bool next_arg_sim_tool = false;
+	bool next_arg_sim_param = false;
 	
 	bool recursive = false;
 	bool pass = false;
@@ -436,6 +580,9 @@ int main(int argc, char **argv)
 
 		else if (param == "-similarity")
 			next_arg_sim_tool = true;
+
+		else if (param == "-sparam")
+			next_arg_sim_param = true;		
 
 		else if (param == "-rec" || param == "-r")
 			recursive = true;
@@ -469,8 +616,13 @@ int main(int argc, char **argv)
 			}
 			else if (next_arg_sim_tool)
 			{
-				similarity_tool = param;
+				sim_tool = param;
 				next_arg_sim_tool = false;
+			}
+			else if (next_arg_sim_param)
+			{
+				sim_param = param;
+				next_arg_sim_param = false;
 			}
 			else
 			{
@@ -486,6 +638,8 @@ int main(int argc, char **argv)
 			}
 		}
 	}
+
+	setExternalSimilarityTool(sim_tool, sim_param);
 	
 	imago::getLogExt().setLoggingEnabled(vars.general.LogEnabled);
 	

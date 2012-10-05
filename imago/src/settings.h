@@ -449,8 +449,7 @@ namespace imago
 		ProbabilitySettings p_estimator;
 		LabelRemoverSettings lab_remover;		
 
-	private:
-		void fillReferenceMap(ReferenceAssignmentMap& result);
+		void _fillReferenceMap(ReferenceAssignmentMap& result);
 	};
 }
 

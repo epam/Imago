@@ -35,7 +35,7 @@ namespace imago
 		#include "settings_defaults.inc"
 	}
 	
-	void imago::Settings::fillReferenceMap(ReferenceAssignmentMap& entries)
+	void imago::Settings::_fillReferenceMap(ReferenceAssignmentMap& entries)
 	{
 		#define STRINGIZE_NX(A)   #A
 		#define STRINGIZE(A)      STRINGIZE_NX(A)
@@ -341,7 +341,7 @@ namespace imago
 		int ok_vars = 0, bad_vars = 0;
 
 		ReferenceAssignmentMap entries;
-		fillReferenceMap(entries);
+		_fillReferenceMap(entries);
 
 		std::vector<std::string> lines;
 		std::string buffer;
@@ -425,7 +425,7 @@ namespace imago
 		data = "";
 
 		ReferenceAssignmentMap entries;
-		fillReferenceMap(entries);		
+		_fillReferenceMap(entries);		
 		
 		for (ReferenceAssignmentMap::const_iterator it = entries.begin(); it != entries.end(); it++)
 		{			
