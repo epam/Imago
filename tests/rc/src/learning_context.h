@@ -35,7 +35,10 @@ struct LearningContext
 	std::string output_file;
 		
 	double stability;
+
+	double time;
 	double average_time;
+
 	int attempts;
 
 	LearningContext()
@@ -43,7 +46,7 @@ struct LearningContext
 		valid = false;
 		similarity = best_similarity = 0.0;
 		stability = 1.0;
-		average_time = 0.0;
+		time = average_time = 0.0;
 		attempts = 0;
 	}
 };

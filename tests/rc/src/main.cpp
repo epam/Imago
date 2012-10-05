@@ -41,7 +41,9 @@ static bool verbose = true;
 
 
 const int LEARNING_MAX_CONFIGS = 200;
-const int LEARNING_TOP_USE = 2;
+const int LEARNING_TOP_USE = 3;
+const double LEARNING_ABNORMAL_TIME = 3000; // ms
+const int LEARNING_VERBOSE_TIME = 5000; // ms
 
 void dumpVFS(imago::VirtualFS& vfs)
 {
@@ -223,7 +225,7 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, const
 	return result;
 }
 
-std::string modifyConfig(const std::string& config, const LearningBase& learning)
+std::string modifyConfig(const std::string& config, const LearningBase& learning, int iteration)
 {
 	imago::Settings vars;
 	vars.fillFromDataStream(config);
@@ -235,6 +237,8 @@ std::string modifyConfig(const std::string& config, const LearningBase& learning
 
 	int changed = 0;
 
+	double multiplier = 0.1 / log(double(iteration) + 1.79);
+
 	for (imago::ReferenceAssignmentMap::const_iterator it = rmap.begin(); it != rmap.end(); it++)
 	{
 		double rand05 = (double)(rand() % RAND_MAX) / (double)RAND_MAX; // [0..0.5)
@@ -242,7 +246,7 @@ std::string modifyConfig(const std::string& config, const LearningBase& learning
 
 		switch (it->second.getType())
 		{
-		case imago::DataTypeReference::otBool:
+		/*case imago::DataTypeReference::otBool: // TODO: temp
 			{
 			bool& value = *(it->second.getBool());
 			bool new_value = rand05 >= 0.5;
@@ -264,12 +268,12 @@ std::string modifyConfig(const std::string& config, const LearningBase& learning
 				changed++;
 			}
 			}
-			break;
+			break;*/
 
 		case imago::DataTypeReference::otDouble:
 			{
 			double& value = *(it->second.getDouble());
-			double new_value = value + value * rand11 * 0.05; // +-5%
+			double new_value = value + value * rand11 * multiplier; // +- // TODO
 			if (value != new_value)
 			{
 				value = new_value;
@@ -280,7 +284,7 @@ std::string modifyConfig(const std::string& config, const LearningBase& learning
 		}
 	}
 
-	printf("Learning: Config modified, changed %u values\n", changed);
+	printf("Learning: Config modified, changed %u values, multiplier: %g\n", changed, multiplier);
 
 	std::string output;
 	vars.saveToDataStream(output);
@@ -327,6 +331,7 @@ void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::s
 
 	ctx.vars = res.config;
 	ctx.similarity = similarity;
+	ctx.time = work_time;
 	
 	if (init)
 	{
@@ -464,21 +469,43 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 				std::string base_config = history[cfg_id].config;
 
 				LearningResultRecord res;
-				res.config = modifyConfig(base_config, base);
+				res.config = modifyConfig(base_config, base, work_iteration);
 
 				// now recheck the config
+				unsigned int last_out_time = platform::TICKS();
+				int counter = 0;
+
 				for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
 				{
+					counter++;
+
 					if (it->second.valid)
 					{									
 						res.valid_count++;
 						try
 						{
+							double avg_time = it->second.average_time;
 							runSingleItem(it->second, res, it->first);
+							if (it->second.time > 2.0 * avg_time &&
+								it->second.time > LEARNING_ABNORMAL_TIME) // TODO
+							{
+								printf("Process takes too much time (%g vs %g) on image (%s), probably bad constants set, ignoring\n",
+									   it->second.time, 
+									   avg_time,
+									   it->first.c_str());
+								ok = true; // Temporary, TODO
+								goto break_iteration;
+							}
 						}
 						catch(...)
 						{
 							// TODO
+						}
+
+						if (platform::TICKS() - last_out_time > LEARNING_VERBOSE_TIME)
+						{
+							printf("Image (%u/%u): %s... %g\n", counter, base.size(), it->first.c_str(), it->second.similarity);
+							last_out_time = platform::TICKS();
 						}
 					}
 				}
@@ -491,13 +518,15 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 
 				if (history[cfg_best_idx] < res)
 				{
-					printf("Learning: Got better result (%g), saving\n", res.average_score);
+					printf("Learning: --- Got better result (%g), saving\n", res.average_score);
 					imago::VirtualFS vfs;
 					char filename[imago::MAX_TEXT_LINE];		
 					sprintf(filename, "config_%g.txt", res.average_score);
 					vfs.appendData(filename, res.config);
 					vfs.storeOnDisk();
 				}
+
+				break_iteration: continue;
 			}
 
 			if (!ok)
