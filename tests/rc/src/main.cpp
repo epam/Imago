@@ -35,23 +35,6 @@
 static std::string similarity_tool = "";
 static bool verbose = true;
 
-// Temporary missing source code solution
-bool getReferenceFileName(const std::string& image, std::string& output)
-{
-   return false;
-}
-int  getDirectoryContent(const std::string& dir, strings &files, bool recursive)
-{
-   return 0;
-}
-bool isSupportedImageType(const std::string& filename)
-{
-   return false;
-}
-void filterOnlyImages(strings& files)
-{
-}
-
 void dumpVFS(imago::VirtualFS& vfs)
 {
 	if (!vfs.empty())
