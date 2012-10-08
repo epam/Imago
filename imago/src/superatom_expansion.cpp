@@ -118,10 +118,6 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       abbrs.push_back(Abbreviation("OCH3", "CO[*]").onright("OCH3").onleft("H3CO").onleft("CH3O"));
 
 	   abbrs.push_back(Abbreviation("COOCH3", "COC([*])=O").onright("COOCH3"));
-	   abbrs.push_back(Abbreviation("SO2", "[*:2]OS([*:1])=O").add("SO2"));
-	   abbrs.push_back(Abbreviation("CH2CH", "[*:1]CC([*:2])[*:3]").add("CH2CH"));
-	   abbrs.push_back(Abbreviation("OCH", "[*:1]OC([*:2])[*:3]").add("OCH"));
-	   abbrs.push_back(Abbreviation("CO", "[*:1]C([*:2])=O").add("CO"));
 
       abbrs.push_back(Abbreviation("SO3H", "OS(*)(=O)=O").onright("SO3H").onleft("HO3S"));
       abbrs.push_back(Abbreviation("SO2H", "OS(*)=O").onright("SO2H").onleft("HO2S"));
@@ -134,7 +130,7 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       abbrs.push_back(Abbreviation("NHBoc", "CC(C)(C)OC(=O)N*").onright("NHBoc").onleft("BocHN"));
 
       // TODO: Fix issue that Boc is recognized as BC
-      abbrs.push_back(Abbreviation("Boc", "CC(C)(C)OC(*)=O").onright("Boc").onleft("Boc"));
+      abbrs.push_back(Abbreviation("Boc", "CC(C)(C)OC(*)=O").onright("Boc").onleft("Boc").onright("BC").onleft("BC"));
 
       abbrs.push_back(Abbreviation("CHO", "*C=O").onright("CHO").onleft("OCH"));
       abbrs.push_back(Abbreviation("MeO", "*OC").onright("OMe").onleft("MeO"));
@@ -164,6 +160,14 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       abbrs.push_back(Abbreviation("OCH2CO2Et", "CCOC(=O)CO*").onright("OCH2CO2Et"));
       abbrs.push_back(Abbreviation("OCH2CO2H", "OC(=O)CO*").onright("OCH2CO2H"));
       abbrs.push_back(Abbreviation("SF5", "FS(F)(F)(F)(F)*").onleft("F5S").onright("SF5"));
+      abbrs.push_back(Abbreviation("COCH3", "CC(*)=O").onright("COCH3"));
+      abbrs.push_back(Abbreviation("SO2Cl", "ClS(*)(=O)=O").onleft("ClO2S").onright("SO2Cl"));
+      abbrs.push_back(Abbreviation("Me2N", "CN(C)*").onleft("Me2N").onright("NMe2"));
+      abbrs.push_back(Abbreviation("SCH3", "CS*").onleft("H3CS").onright("SCH3"));
+      abbrs.push_back(Abbreviation("NO", "*N=O").onleft("ON").onright("NO"));
+      abbrs.push_back(Abbreviation("PPh2", "*P(C1=CC=CC=C1)C1=CC=CC=C1").onleft("Ph2P").onright("PPh2"));
+      abbrs.push_back(Abbreviation("Bn", "*CC1=CC=CC=C1").onleft("Bn").onright("Bn"));
+      abbrs.push_back(Abbreviation("OHC", "*C=O").onleft("OHC").onright("CHO"));
 
       // This should not be [O-][N+](*)=O by request
       abbrs.push_back(Abbreviation("NO2", "*N(=O)=O").onright("NO2").onleft("O2N"));	  
@@ -176,6 +180,12 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       abbrs.push_back(Abbreviation("SO2NH", "[*:1]S(=O)(=O)N[*:2]").add("SO2NH"));
       abbrs.push_back(Abbreviation("NCH3", "CN([*:1])[*:2]").add("NCH3"));
       abbrs.push_back(Abbreviation("CO2", "[*:1]C(=O)O[*:2]").add("CO2").add("COO"));
+	   abbrs.push_back(Abbreviation("SO2", "[*:1]S([*:2])(=O)=O").add("SO2"));
+	   abbrs.push_back(Abbreviation("OCH", "[*:1]OC([*:2])[*:3]").add("OCH"));
+	   abbrs.push_back(Abbreviation("CO", "[*:1]C([*:2])=O").add("CO"));
+
+      // Three-sided abbreviations
+      abbrs.push_back(Abbreviation("CH2CH", "[*:1]CC([*:2])[*:3]").add("CH2CH"));
       
 
       init = true;
