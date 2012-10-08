@@ -192,6 +192,8 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
    int mol = indigoLoadMoleculeFromString(molString.c_str());
    //printf("***$%d\n", mol);
 
+   //fprintf(stderr, "[iRef: %u] ", indigoCountReferences());
+
    if (mol == -1)
    {
       fprintf(stderr, "%s\n", indigoGetLastError());
@@ -399,6 +401,7 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
    //puts(newMolfile.c_str());
    //indigoFree(subm);
    //indigoFree(mol);
+
    return newMolfile;
 }
 

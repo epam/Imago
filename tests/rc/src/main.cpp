@@ -16,6 +16,7 @@
 #include <vector>
 #include <map>
 #include <algorithm>
+#include <iterator>
 #include <time.h>
 
 #include "comdef.h"
@@ -36,14 +37,18 @@
 #include "learning_context.h"
 #include "similarity_tools.h"
 
+#include <Windows.h> // temp!
 
-static bool verbose = true;
+static bool  verbose = true;
+static int   hardTimeLimit = 5000; // ms
 
-
-const int LEARNING_MAX_CONFIGS = 200;
-const int LEARNING_TOP_USE = 3;
-const double LEARNING_ABNORMAL_TIME = 3000; // ms
-const int LEARNING_VERBOSE_TIME = 5000; // ms
+const int    LEARNING_TOP_USE = 3;
+const int    LEARNING_MAX_CONFIGS = 20;
+const double LEARNING_ABNORMAL_TIME = 2500; // ms
+const int    LEARNING_VERBOSE_TIME = 5000; // ms
+const double LEARNING_MULTIPLIER_BASE = 0.1; // 10%
+const double LEARNING_LOG_START = 1.79; // log()
+const double LEARNING_QUICKCHECK_BASE_PERCENT = 0.1; // 10%
 
 void dumpVFS(imago::VirtualFS& vfs)
 {
@@ -237,7 +242,7 @@ std::string modifyConfig(const std::string& config, const LearningBase& learning
 
 	int changed = 0;
 
-	double multiplier = 0.1 / log(double(iteration) + 1.79);
+	double multiplier = LEARNING_MULTIPLIER_BASE / log(double(iteration) + LEARNING_LOG_START);
 
 	for (imago::ReferenceAssignmentMap::const_iterator it = rmap.begin(); it != rmap.end(); it++)
 	{
@@ -273,7 +278,7 @@ std::string modifyConfig(const std::string& config, const LearningBase& learning
 		case imago::DataTypeReference::otDouble:
 			{
 			double& value = *(it->second.getDouble());
-			double new_value = value + value * rand11 * multiplier; // +- // TODO
+			double new_value = value + value * rand11 * multiplier;
 			if (value != new_value)
 			{
 				value = new_value;
@@ -291,6 +296,22 @@ std::string modifyConfig(const std::string& config, const LearningBase& learning
 	return output;
 }
 
+struct RunContext
+{
+	bool* _threadActive;
+	int* _actionResult;
+	imago::Settings* _vars;
+	const std::string* _name;
+	const std::string* _output;
+};
+
+DWORD WINAPI threadedProcessCall(LPVOID lpParameter)
+{
+	RunContext* ctx = (RunContext*) lpParameter;
+	*ctx->_actionResult = performFileAction(*ctx->_vars, *ctx->_name, "", *ctx->_output);
+	*ctx->_threadActive = false;
+	return 0;
+}
 
 void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::string& image_name, bool init = false)
 {
@@ -300,7 +321,35 @@ void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::s
 	unsigned int start_time = platform::TICKS();
 				
 	verbose = false;
-	int action_error = performFileAction(temp_vars, image_name, "", ctx.output_file);
+
+	bool threadActive = true;
+	int action_error = 1000; // timeout error
+
+	RunContext threadCtx;
+	threadCtx._threadActive = &threadActive;
+	threadCtx._actionResult = &action_error;
+	threadCtx._name = &image_name;
+	threadCtx._output = &ctx.output_file;
+	threadCtx._vars = &temp_vars;	
+
+	DWORD threadId = 0;
+	HANDLE hThread = CreateThread(NULL, NULL, threadedProcessCall, &threadCtx, 0, &threadId); // TODO
+
+	bool timelimit = false;
+	while (threadActive)
+	{
+		Sleep(1); // TODO
+		if ((int)(platform::TICKS() - start_time) > hardTimeLimit)
+		{
+			TerminateThread(hThread, 0);
+			threadActive = false;
+			timelimit = true;
+			printf("Timelimit exceeded %u ms\n", hardTimeLimit);			
+		}
+	}
+    
+    CloseHandle(hThread); // TODO
+
 	verbose = true; // TODO: restore old value
 		
 	unsigned int end_time = platform::TICKS();		
@@ -310,7 +359,10 @@ void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::s
 
 	try
 	{
-		similarity = getSimilarity(ctx);
+		similarity = timelimit ? 0.0 : getSimilarity(ctx);
+
+		if (timelimit && init)
+			ctx.valid = false; // not valid for learning
 				
 		res.average_score += similarity;
 		res.average_time += work_time;
@@ -326,7 +378,8 @@ void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::s
 	catch(imago::FileNotFoundException &e)
 	{
 		printf("%s\n", e.what());
-		ctx.valid = false;
+		if (init)
+			ctx.valid = false;
 	}
 
 	ctx.vars = res.config;
@@ -418,15 +471,13 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 		{
 			printf("Learning: getting initial results for %u images\n", base.size());
 		
-			int counter = 0;
+			int visual_counter = 0;
 			LearningResultRecord result_record;
 			vars.saveToDataStream(result_record.config);
 
 			for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
 			{
-				counter++;
-
-				printf("Image (%u/%u): %s... ", counter, base.size(), it->first.c_str());
+				printf("Image (%u/%u): %s... ", ++visual_counter, base.size(), it->first.c_str());
 
 				if (!it->second.valid)
 				{
@@ -451,7 +502,7 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 		for (int work_iteration = 1; work_continue; work_iteration++)
 		{
 			// arrange configs by 
-			std::sort(history.begin(), history.end());
+			std::stable_sort(history.begin(), history.end());
 			
 			// remove the worst ones [non-optimal]
 			while (history.size() >= LEARNING_MAX_CONFIGS)
@@ -459,7 +510,6 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 
 			// check all N top configs
 			int limit = (int)history.size() - LEARNING_TOP_USE;
-			bool ok = false;
 			int cfg_counter = 0;
 			int cfg_best_idx = history.size() - 1;
 			for (int cfg_id = cfg_best_idx; cfg_id >= 0 && cfg_id >= limit; cfg_id--)
@@ -472,53 +522,95 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 				res.config = modifyConfig(base_config, base, work_iteration);
 
 				// now recheck the config
-				unsigned int last_out_time = platform::TICKS();
-				int counter = 0;
+				unsigned int last_out_time = platform::TICKS();				
 
+				// LEARNING_QUICKCHECK_BASE_PERCENT
+				std::vector<LearningBase::iterator> indexes;
 				for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
 				{
-					counter++;
+					indexes.push_back(it);					
+				}
+				std::random_shuffle(indexes.begin(), indexes.end());
 
-					if (it->second.valid)
-					{									
-						res.valid_count++;
-						try
-						{
-							double avg_time = it->second.average_time;
-							runSingleItem(it->second, res, it->first);
-							if (it->second.time > 2.0 * avg_time &&
-								it->second.time > LEARNING_ABNORMAL_TIME) // TODO
+				int qc_pos = int(LEARNING_QUICKCHECK_BASE_PERCENT * (double)(indexes.size()));
+				
+				for (int subset = 0; subset < 2; subset++)
+				{
+					size_t start_idx = 0; 
+					size_t end_idx = indexes.size();
+
+					bool quick_check = subset == 0;
+
+					if (quick_check)
+					{
+						end_idx = qc_pos;
+						printf("[Learning] Quick pre-check (%u images)...\n", end_idx - start_idx);
+						
+					}
+					else
+					{
+						start_idx = qc_pos;
+						printf("[Learning] Full check (%u images)...\n", end_idx - start_idx);
+					}
+					
+					double delta = 0.0;
+
+					for (size_t pos = start_idx; pos < end_idx; pos++)
+					{
+						LearningBase::iterator& it = indexes[pos];
+
+						if (it->second.valid)
+						{									
+							res.valid_count++;
+							try
 							{
-								printf("Process takes too much time (%g vs %g) on image (%s), probably bad constants set, ignoring\n",
-									   it->second.time, 
-									   avg_time,
-									   it->first.c_str());
-								ok = true; // Temporary, TODO
-								goto break_iteration;
+								double avg_time = it->second.average_time;
+								double prev_value = it->second.best_similarity;
+								runSingleItem(it->second, res, it->first);
+								if (quick_check &&
+									it->second.time > 2.0 * avg_time &&
+									it->second.time > LEARNING_ABNORMAL_TIME) // TODO
+								{
+									printf("Process takes too much time (%g vs %g) on image (%s), probably bad constants set, ignoring\n",
+										   it->second.time, 
+										   avg_time,
+										   it->first.c_str());									
+									goto break_iteration;
+								}
+								double now_value = it->second.similarity;
+								delta += now_value - prev_value;
+							}
+							catch(...)
+							{
+								printf("Some exception in performMachineLearning() loop\n");
+								// TODO: handle?
+							}
+
+							if (platform::TICKS() - last_out_time > LEARNING_VERBOSE_TIME)
+							{
+								printf("Image (%u/%u): %s... %g\n", pos+1, end_idx - start_idx, it->first.c_str(), it->second.similarity);
+								last_out_time = platform::TICKS();
 							}
 						}
-						catch(...)
-						{
-							// TODO
-						}
+					}
 
-						if (platform::TICKS() - last_out_time > LEARNING_VERBOSE_TIME)
-						{
-							printf("Image (%u/%u): %s... %g\n", counter, base.size(), it->first.c_str(), it->second.similarity);
-							last_out_time = platform::TICKS();
-						}
+					printf("[Learning] Got delta: %g\n", delta);
+					if (quick_check && delta < 0.0)
+					{
+						printf("[Learning] New results are probably worser, skipping\n");
+						goto break_iteration;
 					}
 				}
 				
 				// update result entry
 				if (updateResult(res, history))
 				{
-					ok = true;
+					// ok = true;
 				}
 
 				if (history[cfg_best_idx] < res)
 				{
-					printf("Learning: --- Got better result (%g), saving\n", res.average_score);
+					printf("Learning: --- Got better result (%g, %u OK), saving\n", res.average_score, res.ok_count);
 					imago::VirtualFS vfs;
 					char filename[imago::MAX_TEXT_LINE];		
 					sprintf(filename, "config_%g.txt", res.average_score);
@@ -529,11 +621,11 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 				break_iteration: continue;
 			}
 
-			if (!ok)
+			/*if (!ok)
 			{
 				printf("Learning: no more learning success, exiting.\n");
 				work_continue = false;
-			}			
+			}*/			
 		}
 	}
 	catch (std::exception &e)

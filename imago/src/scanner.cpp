@@ -319,7 +319,7 @@ void Scanner::readAll( std::string &arr )
    for (int i = 0; i < length(); i++)
       arr[i] = res[i];
 
-   delete res;
+   delete []res;
 }
 
 bool Scanner::isSingleLine( Scanner &scanner )
