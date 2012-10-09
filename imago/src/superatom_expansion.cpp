@@ -216,6 +216,11 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
 
    while (item = indigoNext(iter))
    {
+      if (!indigoIsPseudoatom(item))
+      {
+         indigoFree(item);
+         continue;
+      }
       //printf("$$$%d\n", item);
       if (item == -1)
          throw LogicException(indigoGetLastError());
@@ -246,9 +251,9 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       else
       {
          if (indigoIsPseudoatom(item))
-		 {
+         {
             //printf("Unknown superatom: %s\n", symbol.c_str());
-		 }
+         }
          indigoFree(item);
       }
    }
