@@ -37,7 +37,9 @@
 #include "learning_context.h"
 #include "similarity_tools.h"
 
-#include <Windows.h> // temp!
+#ifdef _WIN32
+#include <Windows.h>
+#endif
 
 static bool  verbose = true;
 static int   hardTimeLimit = 5000; // ms
@@ -49,6 +51,7 @@ const int    LEARNING_VERBOSE_TIME = 5000; // ms
 const double LEARNING_MULTIPLIER_BASE = 0.1; // 10%
 const double LEARNING_LOG_START = 1.79; // log()
 const double LEARNING_QUICKCHECK_BASE_PERCENT = 0.1; // 10%
+const double LEARNING_WORST_DELTA_ALLOWED = -1.0; // 1%
 
 void dumpVFS(imago::VirtualFS& vfs)
 {
@@ -305,6 +308,12 @@ struct RunContext
 	const std::string* _output;
 };
 
+
+#ifndef _WIN32
+#define WINAPI
+#define LPVOID void*
+#endif
+
 DWORD WINAPI threadedProcessCall(LPVOID lpParameter)
 {
 	RunContext* ctx = (RunContext*) lpParameter;
@@ -332,23 +341,30 @@ void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::s
 	threadCtx._output = &ctx.output_file;
 	threadCtx._vars = &temp_vars;	
 
-	DWORD threadId = 0;
-	HANDLE hThread = CreateThread(NULL, NULL, threadedProcessCall, &threadCtx, 0, &threadId); // TODO
-
 	bool timelimit = false;
-	while (threadActive)
+
+#ifdef _WIN32 // TODO
 	{
-		Sleep(1); // TODO
-		if ((int)(platform::TICKS() - start_time) > hardTimeLimit)
+		DWORD threadId = 0;
+		HANDLE hThread = CreateThread(NULL, NULL, threadedProcessCall, (LPVOID)&threadCtx, 0, &threadId);
+		
+		while (threadActive)
 		{
-			TerminateThread(hThread, 0);
-			threadActive = false;
-			timelimit = true;
-			printf("Timelimit exceeded %u ms\n", hardTimeLimit);			
+			Sleep(1); 
+			if ((int)(platform::TICKS() - start_time) > hardTimeLimit)
+			{
+				TerminateThread(hThread, 0);
+				threadActive = false;
+				timelimit = true;
+				printf("Timelimit exceeded %u ms\n", hardTimeLimit);			
+			}
 		}
-	}
     
-    CloseHandle(hThread); // TODO
+		CloseHandle(hThread);
+	}
+#else
+	threadedProcessCall((LPVOID)&threadCtx);
+#endif
 
 	verbose = true; // TODO: restore old value
 		
@@ -360,9 +376,6 @@ void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::s
 	try
 	{
 		similarity = timelimit ? 0.0 : getSimilarity(ctx);
-
-		if (timelimit && init)
-			ctx.valid = false; // not valid for learning
 				
 		res.average_score += similarity;
 		res.average_time += work_time;
@@ -381,6 +394,9 @@ void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::s
 		if (init)
 			ctx.valid = false;
 	}
+
+	if (timelimit && init)
+		ctx.valid = false; // not valid for learning
 
 	ctx.vars = res.config;
 	ctx.similarity = similarity;
@@ -502,6 +518,7 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 		for (int work_iteration = 1; work_continue; work_iteration++)
 		{
 			// arrange configs by 
+			printf("Work iteration: %u\n", work_iteration);
 			std::stable_sort(history.begin(), history.end());
 			
 			// remove the worst ones [non-optimal]
@@ -512,6 +529,11 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 			int limit = (int)history.size() - LEARNING_TOP_USE;
 			int cfg_counter = 0;
 			int cfg_best_idx = history.size() - 1;
+			
+			int cfg_cmp_idx = cfg_best_idx - LEARNING_TOP_USE + 1;
+			if (cfg_cmp_idx < 0)
+				cfg_cmp_idx = 0;
+
 			for (int cfg_id = cfg_best_idx; cfg_id >= 0 && cfg_id >= limit; cfg_id--)
 			{
 				cfg_counter++;
@@ -565,7 +587,7 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 							try
 							{
 								double avg_time = it->second.average_time;
-								double prev_value = it->second.best_similarity;
+								double prev_value = (it->second.best_similarity + it->second.similarity) / 2.0;
 								runSingleItem(it->second, res, it->first);
 								if (quick_check &&
 									it->second.time > 2.0 * avg_time &&
@@ -594,8 +616,13 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 						}
 					}
 
+					if (end_idx - start_idx > 0)
+					{
+						delta /= (end_idx - start_idx);
+					}
+
 					printf("[Learning] Got delta: %g\n", delta);
-					if (quick_check && delta < 0.0)
+					if (quick_check && delta < LEARNING_WORST_DELTA_ALLOWED)
 					{
 						printf("[Learning] New results are probably worser, skipping\n");
 						goto break_iteration;
@@ -608,7 +635,7 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 					// ok = true;
 				}
 
-				if (history[cfg_best_idx] < res)
+				if (history[cfg_cmp_idx] < res)
 				{
 					printf("Learning: --- Got better result (%g, %u OK), saving\n", res.average_score, res.ok_count);
 					imago::VirtualFS vfs;
@@ -616,6 +643,10 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 					sprintf(filename, "config_%g.txt", res.average_score);
 					vfs.appendData(filename, res.config);
 					vfs.storeOnDisk();
+				}
+				else
+				{
+					printf("Result is not interesting\n");
 				}
 
 				break_iteration: continue;
