@@ -26,10 +26,10 @@ struct LearningContext
 	bool valid;
 
 	double similarity;
-	std::string vars;
+	//std::string vars;
 	
-	double best_similarity;
-	std::string best_vars;
+	double best_similarity_achieved;
+	//std::string best_vars;
 	
 	std::string reference_file;
 	std::string output_file;
@@ -44,7 +44,7 @@ struct LearningContext
 	LearningContext()
 	{
 		valid = false;
-		similarity = best_similarity = 0.0;
+		similarity = best_similarity_achieved = 0.0;
 		stability = 1.0;
 		time = average_time = 0.0;
 		attempts = 0;
