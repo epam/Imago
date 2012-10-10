@@ -346,205 +346,253 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 	Image &_img = _origImage;
 
 	bool captions_removed = false;
-	restart:
 
-	try
+restart:
+
 	{
-		mol.clear();
-     		
-		_img.crop();
-		vars.general.ImageWidth = _img.getWidth();
-		vars.general.ImageHeight = _img.getHeight();
-
-		if (!_img.isInit())
-		{
-			throw ImagoException("Empty image, nothing to recognize");
-		}
-
-		vars.estimation.dynamic.LineThickness = ImageUtils::estimateLineThickness(_img, vars.routines.LineThick_Grid);
-	  
-		getLogExt().appendImage("Cropped image", _img);		
-
 		SegmentDeque segments;
-		segmentate(vars, _img, segments);
-		
-		bool reconnect = isReconnectSegmentsRequired(vars, _img, segments);
-		if (reconnect)
-		{
-			getLogExt().appendText("Reconnection procedure apply");
-			
-			// use filter
-			Image temp_img;
-			temp_img.copy(_img);
-			prefilter_cv::prefilterBasic(vars, temp_img);
-
-			SegmentDeque temp;
-			segmentate(vars, temp_img, temp);
-
-			if (temp.size() > 0)
-			{
-				/*BOOST_FOREACH( Segment *s, segments )
-					delete s;
-				segments.clear();*/
-				SegmentDeque temp1, temp2;
-				ClearSegments(segments, temp1, temp2);
-
-				segments = temp;
-			}			
-		}
-
-		if (segments.size() == 0)
-		{
-			throw ImagoException("Empty image, nothing to recognize");
-		}
-
-		WedgeBondExtractor wbe(segments, _img);
-		{
-			int sdb_count = wbe.singleDownFetch(vars, mol);
-			getLogExt().append("Single-down bonds found", sdb_count);
-		}
-	  
-		Separator sep(segments, _img);
-
 		SegmentDeque layer_symbols, layer_graphics;
-		sep.Separate(vars, _cr, layer_symbols, layer_graphics);
 
-		getLogExt().append("Symbols", layer_symbols.size());
-		getLogExt().append("Graphics", layer_graphics.size());
-
-		if (vars.general.ImageAlreadyBinarized && !captions_removed)
+		try
 		{
-			if (removeMoleculeCaptions(vars, _img, layer_symbols, layer_graphics))
+			if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+
+			mol.clear();
+     		
+			_img.crop();
+			vars.general.ImageWidth = _img.getWidth();
+			vars.general.ImageHeight = _img.getHeight();
+
+			if (!_img.isInit())
 			{
-				captions_removed = true;
-				// TODO: this is completely performance waste! 
-				// ...but quite easily than trying to filter skeleton
-				getLogExt().appendText("Restart!!!");
-				ClearSegments(segments, layer_symbols, layer_graphics);
-				goto restart;
-			}
-		}
-
-		if (layer_graphics.size() == 0 && layer_symbols.size() == 1)
-		{
-			getLogExt().appendText("HACK: No graphics detected, assume symbols are graphics");
-			layer_graphics = layer_symbols;
-			layer_symbols.clear();
-		}
-
-		if (getLogExt().loggingEnabled())
-		{
-			Image symbols, graphics;
-
-			symbols.emptyCopy(_img);
-			graphics.emptyCopy(_img);
-
-			BOOST_FOREACH( Segment *s, layer_symbols )
-			{
-				getLogExt().append("draw symbol", (void*)s);
-				getLogExt().append("data ptr", (void*)s->getData());
-				ImageUtils::putSegment(symbols, *s, true);
+				throw ImagoException("Empty image, nothing to recognize");
 			}
 
-			BOOST_FOREACH( Segment *s, layer_graphics )
+			vars.estimation.dynamic.LineThickness = ImageUtils::estimateLineThickness(_img, vars.routines.LineThick_Grid);
+	  
+			getLogExt().appendImage("Cropped image", _img);		
+		
+			segmentate(vars, _img, segments);
+		
+			bool reconnect = isReconnectSegmentsRequired(vars, _img, segments);
+			if (reconnect)
 			{
-				getLogExt().append("draw graphics", (void*)s);
-				ImageUtils::putSegment(graphics, *s, true);
-			}
-
-			getLogExt().appendImage("Letters", symbols);
-			getLogExt().appendImage("Graphics", graphics);
-		}
-
-		if (vars.general.ExtractCharactersOnly)
-		{
-			storeSegments(vars, layer_symbols, layer_graphics);
-			return;
-		}
-
-		if (!layer_symbols.empty())
-		{
-			LabelCombiner lc(vars, layer_symbols, layer_graphics, _cr);
-
-			if (vars.estimation.dynamic.CapitalHeight > 0.0)
-				lc.extractLabels(mol.getLabels());
+				getLogExt().appendText("Reconnection procedure apply");
 			
+				// use filter
+				Image temp_img;
+				temp_img.copy(_img);
+				prefilter_cv::prefilterBasic(vars, temp_img);
+
+				SegmentDeque temp;
+				segmentate(vars, temp_img, temp);
+
+				if (temp.size() > 0)
+				{
+					SegmentDeque temp1, temp2;
+					ClearSegments(segments, temp1, temp2);
+
+					segments = temp;
+				}			
+			}
+
+			if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+
+			if (segments.size() == 0)
+			{
+				throw ImagoException("Empty image, nothing to recognize");
+			}
+
+			WedgeBondExtractor wbe(segments, _img);
+			{
+				int sdb_count = wbe.singleDownFetch(vars, mol);
+				getLogExt().append("Single-down bonds found", sdb_count);
+			}
+
+			if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+	  
+			Separator sep(segments, _img);
+		
+			sep.Separate(vars, _cr, layer_symbols, layer_graphics);
+
+			if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+
+			getLogExt().append("Symbols", layer_symbols.size());
+			getLogExt().append("Graphics", layer_graphics.size());
+
+			if (vars.general.ImageAlreadyBinarized && !captions_removed)
+			{
+				if (removeMoleculeCaptions(vars, _img, layer_symbols, layer_graphics))
+				{
+					captions_removed = true;
+					// TODO: this is completely performance waste! 
+					// ...but quite easily than trying to filter skeleton
+					getLogExt().appendText("Restart!!!");
+					ClearSegments(segments, layer_symbols, layer_graphics);
+					goto restart;
+				}
+			}
+
+			if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+
+			if (layer_graphics.size() == 0 && layer_symbols.size() == 1)
+			{
+				getLogExt().appendText("HACK: No graphics detected, assume symbols are graphics");
+				layer_graphics = layer_symbols;
+				layer_symbols.clear();
+			}
 
 			if (getLogExt().loggingEnabled())
 			{
-				Image symbols;
+				Image symbols, graphics;
+
 				symbols.emptyCopy(_img);
+				graphics.emptyCopy(_img);
+
 				BOOST_FOREACH( Segment *s, layer_symbols )
-				ImageUtils::putSegment(symbols, *s, true);
-				getLogExt().appendImage("Symbols with layer_symbols added", symbols);
+				{
+					getLogExt().append("draw symbol", (void*)s);
+					getLogExt().append("data ptr", (void*)s->getData());
+					ImageUtils::putSegment(symbols, *s, true);
+				}
+
+				BOOST_FOREACH( Segment *s, layer_graphics )
+				{
+					getLogExt().append("draw graphics", (void*)s);
+					ImageUtils::putSegment(graphics, *s, true);
+				}
+
+				getLogExt().appendImage("Letters", symbols);
+				getLogExt().appendImage("Graphics", graphics);
 			}
 
-			getLogExt().append("Found superatoms", mol.getLabels().size());
-		}
-		else
-		{
-			getLogExt().appendText("No symbols found");
-		}
-
-		Points2d ringCenters;
-
-		getLogExt().appendText("Before line vectorization");
-
-		{
-			BaseApproximator* approximator = NULL;
-
-			if (vars.csr.UseDPApproximator)
-				approximator = new DPApproximator();
-			else
-				approximator = new CvApproximator();
-
-			GraphicsDetector gd(approximator, vars.estimation.dynamic.LineThickness * vars.csr.LineVectorizationFactor);
-			gd.extractRingsCenters(vars, layer_graphics, ringCenters);
-			GraphExtractor::extract(vars, gd, layer_graphics, mol);
-
-			delete approximator;
-		}
-
-		wbe.singleUpFetch(vars, mol);
-
-		while (mol._dissolveShortEdges(vars.csr.Dissolve, true));
-
-		mol.deleteBadTriangles(vars.csr.DeleteBadTriangles);
-      
-		if (!layer_symbols.empty())
-		{         
-			LabelLogic ll(_cr);
-			std::deque<Label> unmapped_labels;
-                 
-			BOOST_FOREACH(Label &l, mol.getLabels())
+			if (vars.general.ExtractCharactersOnly)
 			{
-				ll.recognizeLabel(vars, l);
+				storeSegments(vars, layer_symbols, layer_graphics);
+				return;
 			}
-         
-			getLogExt().appendText("Label recognizing");
-         
-			mol.mapLabels(vars, unmapped_labels);
 
-			GraphicsDetector().analyzeUnmappedLabels(unmapped_labels, ringCenters);
-			getLogExt().append("Found rings", ringCenters.size());
+			if (!layer_symbols.empty())
+			{
+				LabelCombiner lc(vars, layer_symbols, layer_graphics, _cr);
+
+				if (vars.estimation.dynamic.CapitalHeight > 0.0)
+					lc.extractLabels(mol.getLabels());
+			
+				if (vars.checkTimeLimit())
+					throw ImagoException("Timelimit exceeded");
+
+				if (getLogExt().loggingEnabled())
+				{
+					Image symbols;
+					symbols.emptyCopy(_img);
+					BOOST_FOREACH( Segment *s, layer_symbols )
+					{
+						ImageUtils::putSegment(symbols, *s, true);
+					}
+					getLogExt().appendImage("Symbols with layer_symbols added", symbols);
+				}
+
+				getLogExt().append("Found superatoms", mol.getLabels().size());
+			}
+			else
+			{
+				getLogExt().appendText("No symbols found");
+			}
+
+			Points2d ringCenters;
+
+			getLogExt().appendText("Before line vectorization");
+
+			if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+
+			{
+				BaseApproximator* approximator = NULL;
+
+				if (vars.csr.UseDPApproximator)
+					approximator = new DPApproximator();
+				else
+					approximator = new CvApproximator();
+
+				GraphicsDetector gd(approximator, vars.estimation.dynamic.LineThickness * vars.csr.LineVectorizationFactor);
+				gd.extractRingsCenters(vars, layer_graphics, ringCenters);
+				GraphExtractor::extract(vars, gd, layer_graphics, mol);
+
+				delete approximator;
+			}
+
+			if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+
+			wbe.singleUpFetch(vars, mol);
+
+			while (mol._dissolveShortEdges(vars.csr.Dissolve, true))
+			{
+				if (vars.checkTimeLimit())
+					throw ImagoException("Timelimit exceeded");
+			}
+
+			mol.deleteBadTriangles(vars.csr.DeleteBadTriangles);
+      
+			if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+
+			if (!layer_symbols.empty())
+			{         
+				LabelLogic ll(_cr);
+				std::deque<Label> unmapped_labels;
+                 
+				BOOST_FOREACH(Label &l, mol.getLabels())
+				{
+					if (vars.checkTimeLimit())
+						throw ImagoException("Timelimit exceeded");
+					ll.recognizeLabel(vars, l);				
+				}
+         
+				getLogExt().appendText("Label recognizing");
+         
+				mol.mapLabels(vars, unmapped_labels);
+
+				if (vars.checkTimeLimit())
+					throw ImagoException("Timelimit exceeded");
+
+				GraphicsDetector().analyzeUnmappedLabels(unmapped_labels, ringCenters);
+				getLogExt().append("Found rings", ringCenters.size());
+			}
+			else
+			{
+				getLogExt().appendText("Layer_symbols is empty!");
+			}
+
+			if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+
+			mol.aromatize(ringCenters);
+			//mol._connectBridgedBonds();
+
+			if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+
+			wbe.fixStereoCenters(mol);
+		
+			if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+
+			ClearSegments(segments, layer_symbols, layer_graphics);
+
+			getLogExt().appendText("Recognition finished");
 		}
-		else
+		catch (ImagoException&)
 		{
-			getLogExt().appendText("Layer_symbols is empty!");
+			ClearSegments(segments, layer_symbols, layer_graphics);
+			throw;
 		}
-
-		mol.aromatize(ringCenters);
-		//mol._connectBridgedBonds();
-
-		wbe.fixStereoCenters(mol);      
-
-		ClearSegments(segments, layer_symbols, layer_graphics);
-
-		getLogExt().appendText("Recognition finished");
-	}
-	catch (ImagoException&)
-	{
-		throw;
 	}
 }
 

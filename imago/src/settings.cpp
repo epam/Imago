@@ -28,6 +28,7 @@ namespace imago
 		OriginalImageWidth = OriginalImageHeight = ImageWidth = ImageHeight = 0;
 		ImageAlreadyBinarized = false; // we don't know yet
 		ClusterIndex = 0; // default
+		StartTime = TimeLimit = 0;
 	}
 
 	imago::Settings::Settings()
@@ -488,6 +489,25 @@ namespace imago
 			getLogExt().append("Can not open config file", clusterFileName);
 		}
 
+		return false;
+	}
+
+	bool imago::Settings::checkTimeLimit() const
+	{
+		if (!general.TimeLimit || !general.StartTime)
+			return false;
+		else
+			return (int)(platform::TICKS() - general.StartTime) > general.TimeLimit;
+	}
+
+	bool imago::Settings::checkTimeLimit()
+	{
+		if (general.TimeLimit)
+		{
+			if (!general.StartTime)
+				general.StartTime = platform::TICKS();
+			return (int)(platform::TICKS() - general.StartTime) > general.TimeLimit;
+		}
 		return false;
 	}
 

@@ -365,6 +365,8 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 
 	do
 	{
+		if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
 		i++;
 		if(i == symInds.size())
 			break;
@@ -396,6 +398,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 		int j = 0;
 		
 		do{
+			if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
 
 			added = false;
 			if(pq.empty())
@@ -470,8 +473,10 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 	double adequate_ratio_max = vars.estimation.MaxSymRatio;
 	double adequate_ratio_min = vars.estimation.MinSymRatio;
 
-		for(size_t i=0;i< symbRects.size(); i++)
+	for(size_t i=0;i< symbRects.size(); i++)
 	{
+		if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
 		bool isTextContext = _bIsTextContext(vars, layer_symbols, symbRects[i]);
 
 		if(LineCount[i] < 2 && (!isTextContext || (symbRects[i].width / symbRects[i].height) > adequate_ratio_min ))
@@ -525,9 +530,10 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 
 		for(SegmentDeque::iterator it = segs.begin(); it!=segs.end(); it++)
 		{
-
 			for(size_t n = 0; n < RectPoints[i].size(); n++)
 			{
+				if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
 				Vec2d pt = RectPoints[i][n];
 				int dx = round(pt.x - left);
 				int dy = round(pt.y - top);
@@ -569,6 +575,8 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 		{
 			for(size_t k = 0; k < linesegs.size() / 2; k++)
 			{
+				if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
 				Vec2d p1 = linesegs[2 * k];
 				Vec2d p2 = linesegs[2 * k + 1];
 				double xmin = p1.x > p2.x ? p2.x : p1.x;
@@ -734,7 +742,9 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque &layer_symbol
 {
 	logEnterFunction();
 
-	int cap_height =(int) vars.estimation.dynamic.CapitalHeight;
+	if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
+	int cap_height = (int)vars.estimation.dynamic.CapitalHeight;
 
 	int sym_height_err = (int)vars.estimation.SymHeightErr;
     //double susp_seg_density = rs["SuspSegDensity"],
@@ -998,6 +1008,9 @@ void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque 
 	   
 		for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
 		{
+			if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+
 			ClassifierResults cres;
 			Segment *s = *it;
 			ClassifySegment(vars, tempSymbols, rec, s, cres);
@@ -1032,6 +1045,9 @@ void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque 
 
 	  for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
 	  {
+		  if (vars.checkTimeLimit())
+			  throw ImagoException("Timelimit exceeded");
+
 		  Segment *s = *it;
 		  ClassifierResults cres;
 

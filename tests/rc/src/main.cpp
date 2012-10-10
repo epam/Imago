@@ -37,10 +37,6 @@
 #include "learning_context.h"
 #include "similarity_tools.h"
 
-#ifdef _WIN32
-#include <Windows.h>
-#endif
-
 static bool  verbose = true;
 static int   hardTimeLimit = 5000; // ms
 
@@ -118,6 +114,8 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src,
 	for (int iter = 0; ; iter++)
 	{
 		bool good = false;
+
+		vars.general.StartTime = 0;
 
 		try
 		{
@@ -299,75 +297,19 @@ std::string modifyConfig(const std::string& config, const LearningBase& learning
 	return output;
 }
 
-struct RunContext
-{
-	bool* _threadActive;
-	int* _actionResult;
-	imago::Settings* _vars;
-	const std::string* _name;
-	const std::string* _output;
-};
-
-
-#ifndef _WIN32
-#define WINAPI
-#define LPVOID void*
-#endif
-
-DWORD WINAPI threadedProcessCall(LPVOID lpParameter)
-{
-	RunContext* ctx = (RunContext*) lpParameter;
-	*ctx->_actionResult = performFileAction(*ctx->_vars, *ctx->_name, "", *ctx->_output);
-	*ctx->_threadActive = false;
-	return 0;
-}
-
 void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::string& image_name, bool init = false)
 {
 	imago::Settings temp_vars;				
 	temp_vars.fillFromDataStream(res.config);
+	temp_vars.general.TimeLimit = hardTimeLimit;
 				
 	unsigned int start_time = platform::TICKS();
 				
 	verbose = false;
-
-	bool threadActive = true;
-	int action_error = 1000; // timeout error
-
-	RunContext threadCtx;
-	threadCtx._threadActive = &threadActive;
-	threadCtx._actionResult = &action_error;
-	threadCtx._name = &image_name;
-	threadCtx._output = &ctx.output_file;
-	threadCtx._vars = &temp_vars;	
-
-	bool timelimit = false;
-
-#ifdef _WIN32 // TODO
-	{
-		DWORD threadId = 0;
-		HANDLE hThread = CreateThread(NULL, NULL, threadedProcessCall, (LPVOID)&threadCtx, 0, &threadId);
-		
-		while (threadActive)
-		{
-			Sleep(1); 
-			if ((int)(platform::TICKS() - start_time) > hardTimeLimit)
-			{
-				TerminateThread(hThread, 0);
-				threadActive = false;
-				timelimit = true;
-				printf("Timelimit exceeded %u ms\n", hardTimeLimit);			
-			}
-		}
-    
-		CloseHandle(hThread);
-	}
-#else
-	threadedProcessCall((LPVOID)&threadCtx);
-#endif
-
+	int action_error = performFileAction(temp_vars, image_name, "", ctx.output_file);	
 	verbose = true; // TODO: restore old value
 		
+	bool timelimit = temp_vars.checkTimeLimit();
 	unsigned int end_time = platform::TICKS();		
 	double work_time = end_time - start_time;
 	
@@ -610,7 +552,7 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 
 							if (platform::TICKS() - last_out_time > LEARNING_VERBOSE_TIME)
 							{
-								printf("Image (%u/%u): %s... %g\n", pos+1, end_idx - start_idx, it->first.c_str(), it->second.similarity);
+								printf("Image (%u/%u): %s... %g\n", pos+1 - start_idx, end_idx - start_idx, it->first.c_str(), it->second.similarity);
 								last_out_time = platform::TICKS();
 							}
 						}
@@ -700,6 +642,7 @@ int main(int argc, char **argv)
 	std::string sim_param = "";
 
 	imago::Settings vars;
+	vars.general.TimeLimit = 15000;
 
 	bool next_arg_dir = false;
 	bool next_arg_config = false;

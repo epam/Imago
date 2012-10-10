@@ -143,6 +143,9 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 
       BGL_FORALL_EDGES(e, _g, SkeletonGraph)
       {
+		  if (vars.checkTimeLimit())
+			  throw ImagoException("Timelimit exceeded");
+
          double d1, d2;
          d1 = d2 = DIST_INF;
 
@@ -187,6 +190,8 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
       {
          for (int k = j + 1; k < s; k++)
          {
+			 if (vars.checkTimeLimit())
+			  throw ImagoException("Timelimit exceeded");
             Skeleton::Vertex a, b;
             Skeleton::Vertex c, d;
             a = nearest[j];

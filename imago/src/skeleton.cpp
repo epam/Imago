@@ -365,7 +365,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
          neighbors_e.assign(b_e, e_e);
 		 if(neighbors_e.size() > 1)
 			 for (size_t i = 0; i < neighbors_e.size(); i++)
-			 {
+			 {				 
 				 if(neighbors_e[i] != beg)
 				 {
 					 Edge ee = boost::edge(neighbors_e[i], end, _g).first; // order is significant for taking edge with eqval direction
@@ -535,6 +535,8 @@ bool Skeleton::_dissolveIntermediateVertices (const Settings& vars)
    
    for (; vi != vi_end; ++vi)
    {
+	   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
       const Vertex &vertex = *vi;
 
       std::deque<Vertex> neighbors;
@@ -641,6 +643,8 @@ void Skeleton::_findMultiple(const Settings& vars)
       int end = toProcess.size();
       for (int ii = 0; ii < end; ii++)
       {
+		  if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
          Edge i = toProcess[ii];
          if (used[i])
             continue;
@@ -668,6 +672,8 @@ void Skeleton::_findMultiple(const Settings& vars)
 
                BGL_FORALL_EDGES(k, _g, SkeletonGraph)
                {
+				   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
                   if (k == i || k == j ||
                       boost::get(types, k).type != SINGLE ||
                       used[k])
@@ -796,6 +802,8 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
 
 		for(it = singles.begin(); it != singles.end(); it++)
 		{
+			if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
 			Vec2d midOfSingle;
 
 			p1= getBondBegin(toProcess[i]);
@@ -1060,6 +1068,8 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 			bool found_kFactor = false;
 			for(size_t i=0 ; i < kFactor.size() ; i++)
 			{
+				if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
 				if(fabs(slope - kFactor[i]) < vars.skeleton.SlopeFact1 ||
 					fabs(fabs(slope - kFactor[i]) - PI)< vars.skeleton.SlopeFact2)
 				{
@@ -1099,6 +1109,8 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 
 			for(int l = k + 1;l<gr_count;l++)
 			{
+				if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
 				Vec2d sp1 = getVertexPos(getBondBegin(edge_groups_k[i][l]));
 				Vec2d sp2 = getVertexPos(getBondEnd(edge_groups_k[i][l]));
 
@@ -1222,13 +1234,19 @@ void Skeleton::modifyGraph(Settings& vars)
 
    recalcAvgBondLength();
 
+   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
    getLogExt().appendSkeleton(vars, "init", _g);
 
    _joinVertices(vars.skeleton.JoinVerticiesConst);
 
+   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
    recalcAvgBondLength();
 
    _vertices_big_degree.clear();
+
+   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
    
    BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
    {
@@ -1242,12 +1260,16 @@ void Skeleton::modifyGraph(Settings& vars)
    getLogExt().appendSkeleton(vars, "after join verticies", _g);
 
    while (_dissolveShortEdges(vars.skeleton.DissolveConst))
-      ;
+   {
+	   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+   }
 
    getLogExt().appendSkeleton(vars, "after dissolve short edges", _g);
 
    while (_dissolveIntermediateVertices(vars))
-      ;
+   {
+	   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+   }
    //_repairBroken();
 
    recalcAvgBondLength();
@@ -1261,17 +1283,23 @@ void Skeleton::modifyGraph(Settings& vars)
     _findMultiple(vars);
     //while (_dissolveIntermediateVertices())
     //   ;
+
+	if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
     
 	getLogExt().appendSkeleton(vars, "after find multiple", _g);
 
 	_connectBridgedBonds(vars);
+
+	if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
 
 	getLogExt().appendSkeleton(vars, "after connecting bridge bonds", _g);
 
     recalcAvgBondLength();
    
 	while (_dissolveShortEdges(vars.skeleton.Dissolve2Const))
-      ;
+	{
+		if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+	}
 
 	getLogExt().appendSkeleton(vars, "after dissolve edges 2", _g);
 
@@ -1331,6 +1359,8 @@ void Skeleton::modifyGraph(Settings& vars)
 		   {
 			   BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
 			   {
+				   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+
 				   if (v != beg && v != end)
 				   {
 					   Vec2d pos = boost::get(boost::vertex_pos, _g, v);

@@ -300,6 +300,9 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 		imago::Skeleton::Vertex vStart1 = vStart;
 	   for (size_t i = 1; i < lines.size() ; i++)
 	   {
+		   if (vars.checkTimeLimit())
+				throw ImagoException("Timelimit exceeded");
+
 		   imago::Skeleton::Vertex vEnd = graph.addVertex(lines[i]);
 		   try
 		   {
@@ -358,6 +361,9 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 
 	do
 	{
+		if (vars.checkTimeLimit())
+			throw ImagoException("Timelimit exceeded");
+
 		double min_angle = 2*PI;
 		
 			//add contour
@@ -379,6 +385,9 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 			//find adjacent vertex to vert2  with minimum angle with (vert1, vert2) edge
 			for(vit2 = neighbours2.begin(); vit2 != neighbours2.end(); vit2++)
 			{
+				if (vars.checkTimeLimit())
+					throw ImagoException("Timelimit exceeded");
+
 				Skeleton::Vertex v = *(vit2);
 
 				if(v == vert1)

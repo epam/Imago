@@ -38,6 +38,8 @@ namespace imago
 		int    OriginalImageHeight;
 		int    ImageWidth;
 		int    ImageHeight;
+		int    StartTime;
+		int    TimeLimit;		
 		GeneralSettings();
 	};
 
@@ -421,6 +423,10 @@ namespace imago
 
 		// loads configuration from file
 		bool forceSelectCluster(const std::string& clusterFileName);
+
+		// returns true if timelimit occures
+		bool checkTimeLimit();
+		bool checkTimeLimit() const;
 
 		int _configVersion;
 		GeneralSettings general;
