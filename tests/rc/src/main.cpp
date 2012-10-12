@@ -32,37 +32,38 @@
 #include "scanner.h"
 #include "settings.h"
 #include "platform_tools.h"
-
 #include "file_helpers.h"
 #include "learning_context.h"
 #include "similarity_tools.h"
 
-static bool  verbose = true;
-static int   hardTimeLimit = 5000; // ms
 
-const int    LEARNING_TOP_USE = 3;
-const int    LEARNING_MAX_CONFIGS = 20;
-const double LEARNING_ABNORMAL_TIME = 2500; // ms
-const int    LEARNING_VERBOSE_TIME = 5000; // ms
-const double LEARNING_MULTIPLIER_BASE = 0.1; // 10%
-const double LEARNING_LOG_START = 2.79; // log()
-const double LEARNING_QUICKCHECK_BASE_PERCENT = 0.1; // 10%
-const int    LEARNING_QUICKCHECK_MAX_COUNT = 10;
-const double LEARNING_WORST_DELTA_ALLOWED = -1.0; // 1%
+static int   LEARNING_VAR_TIMELIMIT = 10000;         /* ms, maximal time to process single image */
+const double LEARNING_ABNORMAL_TIME = 2500;          /* ms, time to assume there's something wrong */ 
+const double LEARNING_SUSPICIOUS_TIME_FACTOR = 2.0;  /* abs, if current time > average * this_const then probably constant set is bad */
+const int    LEARNING_MAX_CONFIGS = 20;              /* abs, maximal configs stored in history */
+const int    LEARNING_TOP_USE = 3;                   /* abs, maximal best configs count to branch from them */
+const int    LEARNING_VERBOSE_TIME = 15000;          /* ms, print on screen progress every such time */
+const double LEARNING_MULTIPLIER_BASE = 0.1;         /* %, constants variation threshold */
+const double LEARNING_LOG_START = 2.79;              /* abs, constants variation logarithmic base */
+const double LEARNING_QUICKCHECK_BASE_PERCENT = 0.1; /* %, target percent of whole images set to perform the quickcheck */
+const int    LEARNING_QUICKCHECK_MAX_COUNT = 10;     /* abs, maximal count of quickcheck subset */
+const double LEARNING_WORST_DELTA_ALLOWED = -1.0;    /* %, worst similarity delta (in average) allowed for further checks */
+const double LEARNING_SUSPICIOUS_DELTA_FACTOR = 2.0; /* abs, factor for current similarity delta allowed */
 
-void dumpVFS(imago::VirtualFS& vfs)
+
+void dumpVFS(imago::VirtualFS& vfs, const std::string& filename)
 {
+	// store all the vfs contents in one single file (including html, images, etc)
 	if (!vfs.empty())
 	{
-		imago::FileOutput flogdump("log_vfs.txt");
-		std::vector<char> logdata;
-		// store all the vfs contents in one single file (including html, images, etc)
-		vfs.getData(logdata);
-		flogdump.write(&logdata.at(0), logdata.size());
+		imago::FileOutput filedump(filename.c_str());
+		std::vector<char> data;		
+		vfs.getData(data); 
+		filedump.write(&data.at(0), data.size());
 	}
 }
 
-void applyConfig(imago::Settings& vars, const std::string& config)
+void applyConfig(bool verbose, imago::Settings& vars, const std::string& config)
 {
 	if (!config.empty())
 	{
@@ -91,7 +92,7 @@ struct RecognitionResult
 	int warnings;
 };
 
-RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src, const std::string& config)
+RecognitionResult recognizeImage(bool verbose, imago::Settings& vars, const imago::Image& src, const std::string& config)
 {
 	std::vector<RecognitionResult> results;
 		
@@ -120,7 +121,7 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src,
 					break;
 			}
 
-			applyConfig(vars, config);
+			applyConfig(verbose, vars, config);
 			_csr.image2mol(vars, img, mol);
 
 			RecognitionResult result;
@@ -136,7 +137,7 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src,
 		catch (std::exception &e)
 		{
 			if (verbose)
-				printf("Filter [%u] exception \"%s\".\n", vars.general.FilterIndex, e.what());
+				printf("Filter [%u] exception '%s'.\n", vars.general.FilterIndex, e.what());
 
 	#ifdef _DEBUG
 			throw;
@@ -148,7 +149,7 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src,
 	} // for
 
 	RecognitionResult result;
-	result.warnings = 999;
+	result.warnings = 999; // just big number to override
 	// select the best one
 	for (size_t u = 0; u < results.size(); u++)
 	{
@@ -161,7 +162,7 @@ RecognitionResult recognizeImage(imago::Settings& vars, const imago::Image& src,
 }
 
 
-int performFileAction(imago::Settings& vars, const std::string& imageName, const std::string& configName,
+int performFileAction(bool verbose, imago::Settings& vars, const std::string& imageName, const std::string& configName,
 	                  const std::string& outputName = "molecule.mol")
 {
 	int result = 0; // ok mark
@@ -170,12 +171,12 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, const
 	if (vars.general.ExtractCharactersOnly)
 	{
 		if (verbose)
-			printf("Characters extraction from image \"%s\"\n", imageName.c_str());
+			printf("Characters extraction from image '%s'\n", imageName.c_str());
 	}
 	else
 	{
 		if (verbose)
-			printf("Recognition of image \"%s\"\n", imageName.c_str());
+			printf("Recognition of image '%s'\n", imageName.c_str());
 	}
 
 	try
@@ -192,13 +193,13 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, const
 		if (vars.general.ExtractCharactersOnly)
 		{
 			imago::prefilterEntrypoint(vars, image);
-			applyConfig(vars, configName);
+			applyConfig(verbose, vars, configName);
 			imago::ChemicalStructureRecognizer _csr;
 			_csr.extractCharacters(vars, image);
 		}
 		else
 		{
-			RecognitionResult result = recognizeImage(vars, image, configName);		
+			RecognitionResult result = recognizeImage(verbose, vars, image, configName);		
 			imago::FileOutput fout(outputName.c_str());
 			fout.writeString(result.molecule);
 		}
@@ -213,7 +214,7 @@ int performFileAction(imago::Settings& vars, const std::string& imageName, const
 #endif
 	}
 
-	dumpVFS(vfs);
+	dumpVFS(vfs, "log_vfs.txt");
 
 	return result;
 }
@@ -288,17 +289,14 @@ void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::s
 {
 	imago::Settings temp_vars;				
 	temp_vars.fillFromDataStream(res.config);
-	temp_vars.general.TimeLimit = hardTimeLimit;
+	temp_vars.general.TimeLimit = LEARNING_VAR_TIMELIMIT;
 				
-	unsigned int start_time = platform::TICKS();
-				
-	verbose = false;
-	int action_error = performFileAction(temp_vars, image_name, "", ctx.output_file);	
-	verbose = true; // TODO: restore old value
-			
+	unsigned int start_time = platform::TICKS();				
+	int action_error = performFileAction(false, temp_vars, image_name, "", ctx.output_file);				
 	unsigned int end_time = platform::TICKS();		
+
 	double work_time = end_time - start_time;
-	bool timelimit = work_time > hardTimeLimit;
+	bool timelimit = work_time > LEARNING_VAR_TIMELIMIT;
 	
 	double similarity = 0.0;
 
@@ -315,7 +313,16 @@ void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::s
 		}
 
 		if (init)
-			printf("%g (%g ms)\n", similarity, work_time);
+		{
+			if (timelimit)
+			{
+				printf("TL: %g ms\n", work_time);
+			}
+			else
+			{
+				printf("%g (%g ms)\n", similarity, work_time);
+			}
+		}
 	}
 	catch(imago::FileNotFoundException &e)
 	{
@@ -375,7 +382,7 @@ bool storeConfig(const LearningResultRecord& res, const std::string& prefix = ""
 	}
 	catch (imago::ImagoException &e)
 	{
-		printf("storeConfig exception: %s\n", e.what());
+		printf("storeConfig exception: '%s'\n", e.what());
 		return false;
 	}
 	return true;
@@ -408,12 +415,12 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 					}
 					catch (imago::FileNotFoundException&)
 					{
-						printf("[ERROR] Can not open reference file: %s\n", ctx.reference_file.c_str());
+						printf("[ERROR] Can not open reference file: '%s'\n", ctx.reference_file.c_str());
 					}
 				}
 				else
 				{
-					printf("[ERROR] Can not obtain reference filename for: %s\n", file.c_str());
+					printf("[ERROR] Can not obtain reference filename for: '%s'\n", file.c_str());
 				}
 
 				// TODO: probably is better to place them in some temp folder
@@ -440,9 +447,12 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 					printf("skipped\n");
 				}
 				else
-				{				
-					result_record.valid_count++;					
+				{									
 					runSingleItem(it->second, result_record, it->first, true /*init*/);
+					if (it->second.valid)
+					{
+						result_record.valid_count++;
+					}
 				}
 			}
 
@@ -483,14 +493,17 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 				// now recheck the config
 				unsigned int last_out_time = platform::TICKS();				
 
-				std::vector<LearningBase::iterator> indexes;
+				std::vector<LearningBase::iterator> valid_indexes;
 				for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
 				{
-					indexes.push_back(it);					
+					if (it->second.valid)
+					{
+						valid_indexes.push_back(it);					
+					}
 				}
-				std::random_shuffle(indexes.begin(), indexes.end());
+				std::random_shuffle(valid_indexes.begin(), valid_indexes.end());
 
-				int qc_pos = int(LEARNING_QUICKCHECK_BASE_PERCENT * (double)(indexes.size()));
+				int qc_pos = int(LEARNING_QUICKCHECK_BASE_PERCENT * (double)(valid_indexes.size()));
 				if (qc_pos == 0)
 					qc_pos = 1;
 				if (qc_pos > LEARNING_QUICKCHECK_MAX_COUNT)
@@ -501,7 +514,7 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 				for (int subset = 0; subset < 2; subset++)
 				{					
 					size_t start_idx = 0; 
-					size_t end_idx = indexes.size();
+					size_t end_idx = valid_indexes.size();
 
 					bool quick_check = subset == 0;
 
@@ -523,48 +536,45 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 
 					for (size_t idx = start_idx; idx < end_idx; idx++)
 					{
-						LearningBase::iterator& it = indexes[idx];
+						LearningBase::iterator& it = valid_indexes[idx];
 
 						int pos = idx-start_idx + 1;
 
-						if (it->second.valid)
-						{									
-							res.valid_count++;
-							try
+						res.valid_count++;
+						try
+						{
+							double avg_time = it->second.average_time;
+							runSingleItem(it->second, res, it->first);
+							if (quick_check &&
+								it->second.time > LEARNING_SUSPICIOUS_TIME_FACTOR * avg_time &&
+								it->second.time > LEARNING_ABNORMAL_TIME)
 							{
-								double avg_time = it->second.average_time;
-								runSingleItem(it->second, res, it->first);
-								if (quick_check &&
-									it->second.time > 2.0 * avg_time &&
-									it->second.time > LEARNING_ABNORMAL_TIME) // TODO: think about
+								printf("Process takes too much time (%g vs %g) on image ('%s'), probably bad constants set, ignoring\n", it->second.time, avg_time, it->first.c_str());									
+								goto break_iteration;
+							}
+							delta += (it->second.similarity - it->second.best_similarity_achieved) / (double)(count);
+						}
+						catch(...)
+						{
+							printf("Some exception in performMachineLearning() loop\n");
+							// TODO: handle?
+						}
+
+						if (platform::TICKS() - last_out_time > LEARNING_VERBOSE_TIME)
+						{
+							last_out_time = platform::TICKS();
+							printf("Image (%u/%u): %s... %g\n", pos, count, it->first.c_str(), it->second.similarity);
+							if (!quick_check && pos > qc_pos) // count of processed is greater than pre-test collection
+							{
+								printf("[Learning] Current delta: %g; current OK count: %u\n", delta, res.ok_count);
+								if (delta < LEARNING_SUSPICIOUS_DELTA_FACTOR * LEARNING_WORST_DELTA_ALLOWED)
 								{
-									printf("Process takes too much time (%g vs %g) on image (%s), probably bad constants set, ignoring\n", it->second.time, avg_time, it->first.c_str());									
+									printf("[Learning] New results are probably worser, skipping\n");
 									goto break_iteration;
 								}
-								delta += (it->second.similarity - it->second.best_similarity_achieved) / (double)(count);
 							}
-							catch(...)
-							{
-								printf("Some exception in performMachineLearning() loop\n");
-								// TODO: handle?
-							}
-
-							if (platform::TICKS() - last_out_time > LEARNING_VERBOSE_TIME)
-							{
-								last_out_time = platform::TICKS();
-								printf("Image (%u/%u): %s... %g\n", pos, count, it->first.c_str(), it->second.similarity);
-								if (!quick_check && pos > (int)start_idx) // TODO: think about
-								{
-									printf("[Learning] Current delta: %g\n", delta);
-									if (delta < 2*LEARNING_WORST_DELTA_ALLOWED) // TODO: think about
-									{
-										printf("[Learning] New results are probably worser, skipping\n");
-										goto break_iteration;
-									}
-								}
-							}
-						}
-					}
+						} // if LEARNING_VERBOSE_TIME
+					} // for idx
 					
 					printf("[Learning] Got delta: %g\n", delta);
 					if (quick_check && delta < LEARNING_WORST_DELTA_ALLOWED)
@@ -591,8 +601,8 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 				}
 
 				break_iteration: continue;
-			}
-		}
+			} // for cfg_id
+		} // while
 	}
 	catch (std::exception &e)
 	{
@@ -621,6 +631,7 @@ int main(int argc, char **argv)
 		printf("  -log: enables debug log output to ./log.html \n");
 		printf("  -logvfs: stores log in single encoded file ./log_vfs.txt \n");		
 		printf("  -pr: use probablistic separator (experimental) \n");
+		printf("  -tl time_in_ms: timelimit per single image process (default is %u) \n", LEARNING_VAR_TIMELIMIT);
 		printf("\n  BATCHES: \n");
 		printf("  -dir dir_name: process every image from dir dir_name \n");
 		printf("    -rec: process directory recursively \n");
@@ -628,24 +639,25 @@ int main(int argc, char **argv)
 		return 0;
 	}
 
+	imago::Settings vars;
+	vars.general.TimeLimit = LEARNING_VAR_TIMELIMIT;
+
 	std::string image = "";
 	std::string dir = "";
 	std::string config = "";
 	std::string sim_tool = "";
 	std::string sim_param = "";
 
-	imago::Settings vars;
-	vars.general.TimeLimit = 15000;
-
 	bool next_arg_dir = false;
 	bool next_arg_config = false;
 	bool next_arg_sim_tool = false;
 	bool next_arg_sim_param = false;
-	
-	bool recursive = false;
-	bool pass = false;
-	bool learning = false;
-	bool filter = false;
+	bool next_arg_tl = false;	
+
+	bool mode_recursive = false;
+	bool mode_pass = false;
+	bool mode_learning = false;
+	bool mode_filter = false;
 
 	for (int c = 1; c < argc; c++)
 	{
@@ -666,23 +678,26 @@ int main(int argc, char **argv)
 		else if (param == "-dir")
 			next_arg_dir = true;
 
+		else if (param == "-tl")
+			next_arg_tl = true;
+
 		else if (param == "-similarity")
 			next_arg_sim_tool = true;
 
 		else if (param == "-sparam")
 			next_arg_sim_param = true;		
 
-		else if (param == "-rec" || param == "-r")
-			recursive = true;
+		else if (param == "-r" || param == "-rec")
+			mode_recursive = true;
 
-		else if (param == "-images" || param == "-i")
-			filter = true;
+		else if (param == "-i" || param == "-images")
+			mode_filter = true;
 
 		else if (param == "-learn" || param == "-optimize")
-			learning = true;
+			mode_learning = true;
 
 		else if (param == "-pass")
-			pass = true;
+			mode_pass = true;
 
 		else if (param == "-config")
 			next_arg_config = true;
@@ -712,6 +727,11 @@ int main(int argc, char **argv)
 				sim_param = param;
 				next_arg_sim_param = false;
 			}
+			else if (next_arg_tl)
+			{
+				LEARNING_VAR_TIMELIMIT = vars.general.TimeLimit = atoi(param.c_str());
+				next_arg_tl = false;
+			}
 			else
 			{
 				if (param[0] == '-' && param.find('.') == std::string::npos)
@@ -721,7 +741,15 @@ int main(int argc, char **argv)
 				}
 				else
 				{
-					image = param;
+					if (image.empty())
+					{
+						image = param;
+					}
+					else
+					{
+						printf("Image file is already specified ('%s'), the second definition unallowed ('%s')\n", image.c_str(), param.c_str());
+						return 1;
+					}
 				}
 			}
 		}
@@ -735,40 +763,40 @@ int main(int argc, char **argv)
 	{
 		strings files;
 		
-		if (getDirectoryContent(dir, files, recursive) != 0)
+		if (getDirectoryContent(dir, files, mode_recursive) != 0)
 		{
-			printf("[ERROR] Can't get the content of directory \"%s\"\n", dir.c_str());
+			printf("[ERROR] Can't get the content of directory '%s'\n", dir.c_str());
 			return 2;
 		}
 
-		if (filter || learning)
+		if (mode_filter || mode_learning)
 		{
 			filterOnlyImages(files);
 		}
 
-		if (learning)
+		if (mode_learning)
 		{			
 			return performMachineLearning(vars, files, config);
 		}
-		else
+		else // process or pass
 		{
 			for (size_t u = 0; u < files.size(); u++)
 			{
-				if (pass)
+				if (mode_pass)
 				{
 					printf("Skipped file '%s'\n", files[u].c_str());
 				}
 				else
 				{
 					std::string output = files[u] + ".result.mol";
-					performFileAction(vars, files[u], config, output);	
+					performFileAction(true, vars, files[u], config, output);	
 				}
 			}
 		}
 	}
-	else if (!image.empty())
+	else if (!image.empty()) // process single file
 	{
-		return performFileAction(vars, image, config);	
+		return performFileAction(true, vars, image, config);	
 	}		
 	
 	return 1; // "nothing to do" error

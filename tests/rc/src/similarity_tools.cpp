@@ -38,6 +38,7 @@ double getSimilarity(const LearningContext& ctx)
 	}
 	else
 	{
+		// internal similarity function
 		return ((double)(rand() % RAND_MAX) / (double)RAND_MAX); // TODO: temp
 	}
 
