@@ -142,15 +142,14 @@ double CharacterRecognizer::_compareDescriptors(const Settings& vars,  const std
 double CharacterRecognizer::_compareFeatures(const Settings& vars,  const SymbolFeatures &f1,
                                               const SymbolFeatures &f2 )
 {
+	if (f1.inner_contours_count != f2.inner_contours_count)
+      return DBL_MAX;
 
    double d = _compareDescriptors(vars, f1.descriptors, f2.descriptors);
 
    if (f1.inner_contours_count == -1 || f2.inner_contours_count == -1)
       return sqrt(d);
 
-   if (f1.inner_contours_count != f2.inner_contours_count)
-      return DBL_MAX;
-   
    for (int i = 0; i < f1.inner_contours_count; i++)
       if (f1.inner_descriptors[i].size() != 0 &&
           f2.inner_descriptors[i].size() != 0)

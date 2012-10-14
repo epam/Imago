@@ -66,7 +66,7 @@ namespace imago{
 
 		  void Equalize(int n);
 
-		  static ComplexContour RetrieveContour(const Settings& vars, Image& seg);
+		  static ComplexContour RetrieveContour(const Settings& vars, Image& seg); 
 
 		  ComplexNumber NormDot(ComplexContour c)
 		  {
