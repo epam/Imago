@@ -46,7 +46,7 @@ const int    LEARNING_VERBOSE_TIME = 15000;          /* ms, print on screen prog
 const double LEARNING_MULTIPLIER_BASE = 0.1;         /* %, constants variation threshold */
 const double LEARNING_LOG_START = 2.79;              /* abs, constants variation logarithmic base */
 const double LEARNING_QUICKCHECK_BASE_PERCENT = 0.1; /* %, target percent of whole images set to perform the quickcheck */
-const int    LEARNING_QUICKCHECK_MAX_COUNT = 10;     /* abs, maximal count of quickcheck subset */
+const int    LEARNING_QUICKCHECK_MAX_COUNT = 30;     /* abs, maximal count of quickcheck subset */
 const double LEARNING_WORST_DELTA_ALLOWED = -1.0;    /* %, worst similarity delta (in average) allowed for further checks */
 const double LEARNING_SUSPICIOUS_DELTA_FACTOR = 2.0; /* abs, factor for current similarity delta allowed */
 
