@@ -23,6 +23,9 @@ namespace imago
 {
 	static const int MaxImageDimensions = 2400;
 
+
+	#pragma pack (push, 1)
+
 	/// ------------------ cluster-independ settings ------------------ ///
 
 	struct GeneralSettings
@@ -398,6 +401,10 @@ namespace imago
 		double LogisticScale;
 		double LogisticLocation;		
 	};
+
+	#pragma pack (pop)
+
+
 
 	struct RecognitionCaches // caches for character recognizer, etc
 	{

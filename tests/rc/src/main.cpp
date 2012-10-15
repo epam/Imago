@@ -388,6 +388,23 @@ bool storeConfig(const LearningResultRecord& res, const std::string& prefix = ""
 	return true;
 }
 
+bool checkMemoryFail()
+{
+	try
+	{
+		char* data = new char[1024 * 1024 * 32]; // 32MB
+		if (data != NULL)
+		{
+			delete []data;
+			return false; // no fails
+		}
+	}
+	catch(...)
+	{
+	}
+	return true;
+}
+
 int performMachineLearning(imago::Settings& vars, const strings& imageSet, const std::string& configName)
 {
 	int result = 0; // ok mark
@@ -483,6 +500,12 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 
 			for (int cfg_id = cfg_best_idx; cfg_id >= 0 && cfg_id >= limit; cfg_id--)
 			{
+				if (checkMemoryFail())
+				{
+					printf("Out of memory, process exit\n");
+					return 77;
+				}
+
 				cfg_counter++;
 				printf("[Learning] Work iteration %u:%u, selected the start config with score %g\n", work_iteration, cfg_counter, history[cfg_id].average_score);
 				std::string base_config = history[cfg_id].config;

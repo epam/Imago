@@ -17,6 +17,7 @@
 #include "log_ext.h"
 #include "scanner.h"
 #include <stdio.h>
+#include <string.h> // memset
 #include <algorithm>
 
 namespace imago
@@ -33,7 +34,71 @@ namespace imago
 
 	imago::Settings::Settings()
 	{
+		const char pattern = 0x6F;
+
+		{ // initial fill
+			#define APPLY(x) memset(&x, pattern, sizeof(x));
+
+			APPLY(prefilterCV);
+			APPLY(adaptive);
+			APPLY(prefilter);
+			APPLY(molecule);
+			APPLY(estimation);
+			APPLY(main);
+			APPLY(mbond);
+			APPLY(skeleton);
+			APPLY(routines);
+			APPLY(weak_seg);
+			APPLY(wbe);
+			APPLY(characters);
+			APPLY(csr);
+			APPLY(graph);
+			APPLY(utils);
+			APPLY(separator);
+			APPLY(labels);
+			APPLY(lcomb);
+			APPLY(p_estimator);
+			APPLY(lab_remover);
+
+			#undef APPLY
+		}
+
 		#include "settings_defaults.inc"
+
+		{ // validation
+			#define APPLY(x) \
+				for (int n = 0; n < sizeof(x); n += 4) \
+					if ( ((char*)(&x))[n+0] == pattern && ((char*)(&x))[n+1] == pattern && \
+					     ((char*)(&x))[n+2] == pattern && ((char*)(&x))[n+3] == pattern) \
+			{ \
+			    printf("Uninitialized settings data in '%s' at offset %u\n", (#x), n);  \
+				throw new ImagoException("Uninitialized settings data at offset " + ImagoException::str(n)); \
+		    }
+
+
+			APPLY(prefilterCV);
+			APPLY(adaptive);
+			APPLY(prefilter);
+			APPLY(molecule);
+			APPLY(estimation);
+			APPLY(main);
+			APPLY(mbond);
+			APPLY(skeleton);
+			APPLY(routines);
+			APPLY(weak_seg);
+			APPLY(wbe);
+			APPLY(characters);
+			APPLY(csr);
+			APPLY(graph);
+			APPLY(utils);
+			APPLY(separator);
+			APPLY(labels);
+			APPLY(lcomb);
+			APPLY(p_estimator);
+			APPLY(lab_remover);
+
+			#undef APPLY
+		}
 	}
 	
 	void imago::Settings::_fillReferenceMap(ReferenceAssignmentMap& entries)
@@ -89,16 +154,17 @@ namespace imago
 		ASSIGN_REF(csr.Dissolve);
 		ASSIGN_REF(csr.LineVectorizationFactor);
 		ASSIGN_REF(csr.UseDPApproximator);
-		ASSIGN_REF(csr.WeakSegmentatorDist);		
+		ASSIGN_REF(csr.WeakSegmentatorDist);				
 		ASSIGN_REF(csr.ReconnectMinBads);
 		ASSIGN_REF(csr.ReconnectSurelyBadCoef);
 		ASSIGN_REF(csr.ReconnectSurelyGoodCoef);
 		ASSIGN_REF(csr.ReconnectProbablyGoodCoef);
+		ASSIGN_REF(csr.StableDecorner);
 
 		// no need to store dynamic params:
-//		ASSIGN_REF(estimation.dynamic.AvgBondLength);
-//		ASSIGN_REF(estimation.dynamic.CapitalHeight);
-//		ASSIGN_REF(estimation.dynamic.LineThickness);
+		ASSIGN_REF(estimation.dynamic.AvgBondLength);
+		ASSIGN_REF(estimation.dynamic.CapitalHeight);
+		ASSIGN_REF(estimation.dynamic.LineThickness);
 
 		ASSIGN_REF(estimation.CapitalHeightError);
 		ASSIGN_REF(estimation.CharactersSpaceCoeff);
