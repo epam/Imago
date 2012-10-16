@@ -47,9 +47,18 @@ const double LEARNING_MULTIPLIER_BASE = 0.1;         /* %, constants variation t
 const double LEARNING_LOG_START = 2.79;              /* abs, constants variation logarithmic base */
 const double LEARNING_QUICKCHECK_BASE_PERCENT = 0.1; /* %, target percent of whole images set to perform the quickcheck */
 const int    LEARNING_QUICKCHECK_MAX_COUNT = 30;     /* abs, maximal count of quickcheck subset */
-const double LEARNING_WORST_DELTA_ALLOWED = -1.0;    /* %, worst similarity delta (in average) allowed for further checks */
-const double LEARNING_SUSPICIOUS_DELTA_FACTOR = 2.0; /* abs, factor for current similarity delta allowed */
 
+double getWorstAllowedDelta(int imagesCount = 0)  /* %, worst similarity delta (in average) allowed for further checks */
+{
+	if (imagesCount < LEARNING_QUICKCHECK_MAX_COUNT)
+		return -1.0;
+	else if (imagesCount < 100)
+		return -0.7;
+	else if (imagesCount < 1000)
+		return -0.5;
+	else
+		return -0.25;
+}
 
 void dumpVFS(imago::VirtualFS& vfs, const std::string& filename)
 {
@@ -388,6 +397,27 @@ bool storeConfig(const LearningResultRecord& res, const std::string& prefix = ""
 	return true;
 }
 
+bool storeLearningProgress(const LearningBase& base, const LearningHistory& history)
+{
+	FILE* f;
+	fprintf(f, "BASE\n");
+	for (LearningBase::const_iterator it = base.begin(); it != base.end(); it++)
+	{		
+		fprintf(f, "%s\n", it->first.c_str());
+		fprintf(f, "%s\n", it->second.reference_file.c_str());
+		fprintf(f, "%s\n", it->second.output_file.c_str());
+		fprintf(f, "%u %u %g %g %g %g %g\n", it->second.valid, it->second.attempts, 
+			            it->second.average_time, it->second.time,
+			            it->second.best_similarity_achieved, it->second.similarity, 
+						it->second.stability);
+	}
+	fprintf(f, "HISTORY\n");
+	for (LearningHistory::const_iterator it = history.begin(); it != history.end(); it++)
+	{
+		fprintf(f, "%u %u %g %g\n", it->valid_count, it->ok_count, it->average_score, it->average_time);
+	}
+}
+
 bool checkMemoryFail()
 {
 	try
@@ -590,7 +620,7 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 							if (!quick_check && pos > qc_pos) // count of processed is greater than pre-test collection
 							{
 								printf("[Learning] Current delta: %g; current OK count: %u\n", delta, res.ok_count);
-								if (delta < LEARNING_SUSPICIOUS_DELTA_FACTOR * LEARNING_WORST_DELTA_ALLOWED)
+								if (delta < getWorstAllowedDelta(count))
 								{
 									printf("[Learning] New results are probably worser, skipping\n");
 									goto break_iteration;
@@ -600,7 +630,7 @@ int performMachineLearning(imago::Settings& vars, const strings& imageSet, const
 					} // for idx
 					
 					printf("[Learning] Got delta: %g\n", delta);
-					if (quick_check && delta < LEARNING_WORST_DELTA_ALLOWED)
+					if (quick_check && delta < getWorstAllowedDelta(count))
 					{
 						printf("[Learning] Quickcheck results are worser, skipping\n");
 						goto break_iteration;

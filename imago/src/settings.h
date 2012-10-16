@@ -22,10 +22,7 @@
 namespace imago
 {
 	static const int MaxImageDimensions = 2400;
-
-
-	#pragma pack (push, 1)
-
+	
 	/// ------------------ cluster-independ settings ------------------ ///
 
 	struct GeneralSettings
@@ -46,7 +43,26 @@ namespace imago
 		GeneralSettings();
 	};
 
+	struct DynamicEstimationSettings
+	{		
+		double AvgBondLength;
+		double CapitalHeight;
+		double LineThickness;
+		DynamicEstimationSettings();
+	};
+
+	struct RecognitionCaches // caches for character recognizer, etc
+	{
+		RecognitionDistanceCacheType* PCacheClean;   
+		RecognitionDistanceCacheType* PCacheAdjusted;
+
+		RecognitionCaches();
+		virtual ~RecognitionCaches();
+	};	
+
 	/// ------------------ cluster-depending settings ------------------ ///
+
+	#pragma pack (push, 1)
 
 	// DO NOT FORGET TO ADD REFERENCES TO ALL NEW VARIABLES IN SETTINGS.CPP:fillReferenceMap()
 
@@ -130,20 +146,6 @@ namespace imago
 
 	struct EstimationSettings // POD
 	{
-		struct DynamicEstimationSettings
-		{
-			// these variables will be updated while recognition process			
-			double AvgBondLength;
-			double CapitalHeight;
-			double LineThickness;
-			
-			DynamicEstimationSettings()
-			{
-				// default filling
-				AvgBondLength = CapitalHeight = LineThickness = -1.0;
-			}
-		} dynamic;
-
 		int    DoubleBondDist;
 		int    SegmentVerEps;		
 		double CapitalHeightError;		
@@ -404,16 +406,7 @@ namespace imago
 
 	#pragma pack (pop)
 
-
-
-	struct RecognitionCaches // caches for character recognizer, etc
-	{
-		RecognitionDistanceCacheType* PCacheClean;   
-		RecognitionDistanceCacheType* PCacheAdjusted;
-
-		RecognitionCaches();
-		virtual ~RecognitionCaches();
-	};
+	/// ------------------ end of cluster-depending settings ------------------ ///
 
 	struct Settings
 	{
@@ -435,15 +428,16 @@ namespace imago
 		bool checkTimeLimit();
 		bool checkTimeLimit() const;
 
+		// general settings and caches - shouldn't be loaded from config
 		int _configVersion;
 		GeneralSettings general;
+		DynamicEstimationSettings dynamic;
 		RecognitionCaches caches;
 
+		// other settings, should be updated
 		PrefilterCVSettings prefilterCV;
 		AdaptiveFilterSettings adaptive;
-		PrefilterSettings prefilter;
-
-		// other settings, should be updated
+		PrefilterSettings prefilter;		
 		MoleculeSettings molecule;
 		EstimationSettings estimation;
 		MainSettings main;

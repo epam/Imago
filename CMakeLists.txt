@@ -35,6 +35,5 @@ endif()
 		message("Java is not found!")
 	endif()
 
-	add_subdirectory(tests/vs)
-	add_subdirectory(tests/rc)
+	add_subdirectory(imago_console)
 endif()

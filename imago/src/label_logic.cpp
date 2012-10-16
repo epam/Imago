@@ -108,7 +108,7 @@ void LabelLogic::_predict(const Settings& vars, const Segment *seg, std::string 
          letters.erase(letters.begin() + 7); //cuz of Al
 	  }
 
-	  if (seg->getHeight() <= vars.labels.capHeightError * vars.estimation.dynamic.CapitalHeight)
+	  if (seg->getHeight() <= vars.labels.capHeightError * vars.dynamic.CapitalHeight)
 	  {
 		  getLogExt().appendText("Too small height branch");
          letters.clear();
@@ -147,7 +147,7 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 
 	// acquire image params
 	double underline = SegmentTools::getPercentageUnderLine(*seg, line_y);
-	double ratio = (double)SegmentTools::getRealHeight(*seg) / vars.estimation.dynamic.CapitalHeight;
+	double ratio = (double)SegmentTools::getRealHeight(*seg) / vars.dynamic.CapitalHeight;
 
 	{ // adjust using image params
 		getLogExt().append("Percentage under baseline", underline);
@@ -328,7 +328,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 
    getLogExt().append("plus", plus);
 
-   if (seg->getHeight() > vars.labels.heightRatio * vars.estimation.dynamic.CapitalHeight && (hwc == -1 || hwc < '0' || hwc > '9'))
+   if (seg->getHeight() > vars.labels.heightRatio * vars.dynamic.CapitalHeight && (hwc == -1 || hwc < '0' || hwc > '9'))
       capital = true;
    else if (hwc == -1 && plus)
       capital = false;
@@ -468,8 +468,8 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
       int med = bottom - seg->getHeight() / 2;
 	  getLogExt().append("med", med);
       //small letter
-      if (bottom >= (line_y - sameLineEps * vars.estimation.dynamic.CapitalHeight) &&
-          bottom <= (line_y + sameLineEps * vars.estimation.dynamic.CapitalHeight) &&
+      if (bottom >= (line_y - sameLineEps * vars.dynamic.CapitalHeight) &&
+          bottom <= (line_y + sameLineEps * vars.dynamic.CapitalHeight) &&
           (digit_small == -1 || digit_small == 1))
       {
 		  getLogExt().appendText("small");
@@ -488,7 +488,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
             throw LabelException("Unexpected symbol position (small instead of capital)");
       }
       //superscript
-      else if (med < line_y - vars.labels.medHeightFactor * vars.estimation.dynamic.CapitalHeight && digit_small == 0)
+      else if (med < line_y - vars.labels.medHeightFactor * vars.dynamic.CapitalHeight && digit_small == 0)
       {
 		  getLogExt().appendText("superscript");
          was_super = 1;
@@ -519,7 +519,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
             {
                tmp = '+';
             }
-			else if (ImageUtils::testMinus(vars, *seg, (int)vars.estimation.dynamic.CapitalHeight)) //testMinus
+			else if (ImageUtils::testMinus(vars, *seg, (int)vars.dynamic.CapitalHeight)) //testMinus
             {
                tmp = '-';
             }
@@ -555,7 +555,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
          }
       }
       //subscript
-	  else if (med > line_y - vars.labels.medHeightFactor * vars.estimation.dynamic.CapitalHeight)
+	  else if (med > line_y - vars.labels.medHeightFactor * vars.dynamic.CapitalHeight)
       {
 		  getLogExt().appendText("subscript2");
 		  

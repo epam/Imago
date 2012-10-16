@@ -240,7 +240,7 @@ void GraphicsDetector::extractRingsCenters(const Settings& vars, SegmentDeque &s
 			{
 				bool valid = true;
 
-				if (radius < vars.estimation.dynamic.CapitalHeight)
+				if (radius < vars.dynamic.CapitalHeight)
 				{
 					getLogExt().append("Radius too small", radius);
 					valid = false;

@@ -40,7 +40,7 @@ LabelCombiner::LabelCombiner(Settings& vars, SegmentDeque &symbols_layer, Segmen
 	{
 		//vars.estimation.CapitalHeight = _findCapitalHeight(vars);
 
-		if (vars.estimation.dynamic.CapitalHeight > 0.0)
+		if (vars.dynamic.CapitalHeight > 0.0)
 		{
 			_labels.clear();
 			_locateLabels(vars);
@@ -132,8 +132,8 @@ void LabelCombiner::_locateLabels(const Settings& vars)
    SegmentsGraph::edge_iterator ei, ei_end, next;
    boost::tie(ei, ei_end) = boost::edges(seg_graph);
 
-   double distance_constraint = vars.estimation.dynamic.CapitalHeight * vars.lcomb.MaximalDistanceFactor;
-   double distance_constraint_y = vars.estimation.dynamic.CapitalHeight * vars.lcomb.MaximalYDistanceFactor;
+   double distance_constraint = vars.dynamic.CapitalHeight * vars.lcomb.MaximalDistanceFactor;
+   double distance_constraint_y = vars.dynamic.CapitalHeight * vars.lcomb.MaximalYDistanceFactor;
 
    boost::property_map<segments_graph::SegmentsGraph, boost::vertex_seg_ptr_t>::
 	   type img_ptrs = boost::get(boost::vertex_seg_ptr, seg_graph);
@@ -190,7 +190,7 @@ void LabelCombiner::_fillLabelInfo(const Settings& vars, Label &l )
    for (int i = 0, first_cap = -1; i < size; i++)
    {
 	   if (first_cap < 0 && symbols[i]->getHeight() > 
-		   vars.estimation.CapitalHeightError * vars.lcomb.FillLabelFactor1 * vars.estimation.dynamic.CapitalHeight)
+		   vars.estimation.CapitalHeightError * vars.lcomb.FillLabelFactor1 * vars.dynamic.CapitalHeight)
       {
          first_cap = i;
          first_line_y = symbols[i]->getY() + symbols[i]->getHeight();
@@ -201,7 +201,7 @@ void LabelCombiner::_fillLabelInfo(const Settings& vars, Label &l )
       {
 		  int mid = round(symbols[i]->getY() + vars.lcomb.FillLabelFactor2 * symbols[i]->getHeight());
 
-		  if (mid - first_line_y > vars.estimation.dynamic.CapitalHeight * vars.estimation.CharactersSpaceCoeff)
+		  if (mid - first_line_y > vars.dynamic.CapitalHeight * vars.estimation.CharactersSpaceCoeff)
          {
             new_line_sep = i;
             break;
@@ -230,7 +230,7 @@ void LabelCombiner::_fillLabelInfo(const Settings& vars, Label &l )
       l.multi_begin = new_line_sep;
       for (int i = new_line_sep; i < size; i++)
       {
-		  if (symbols[i]->getHeight() > vars.estimation.CapitalHeightError * vars.estimation.dynamic.CapitalHeight)
+		  if (symbols[i]->getHeight() > vars.estimation.CapitalHeightError * vars.dynamic.CapitalHeight)
          {
             l.multi_line_y = symbols[i]->getY() + symbols[i]->getHeight();
             break;
@@ -288,7 +288,7 @@ bool LabelCombiner::needsProcessing(Settings& vars)
 	bool retVal = false;
 	SegmentDeque sym_segment2graphics;
 
-	double cap_height_limit = vars.estimation.dynamic.CapitalHeight + _capHeightStandardDeviation;
+	double cap_height_limit = vars.dynamic.CapitalHeight + _capHeightStandardDeviation;
 
 	// find sym that is graphic
 	BOOST_FOREACH(Label l, _labels)

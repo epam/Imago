@@ -1119,7 +1119,7 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 
 				double min = d1 < d2 ? d1 : d2;
 
-				double LineS = vars.estimation.dynamic.LineThickness;
+				double LineS = vars.dynamic.LineThickness;
 				double blockS = LineS * vars.skeleton.ConnectBlockS;
 
 				Vec2d nearP1, nearP2;
@@ -1342,7 +1342,7 @@ void Skeleton::modifyGraph(Settings& vars)
 	   // analyze graph for vertex mess
 	Image temp(vars.general.ImageWidth, vars.general.ImageHeight);
 
-	double distTresh = vars.estimation.dynamic.CapitalHeight;
+	double distTresh = vars.dynamic.CapitalHeight;
 
 	   if (distTresh > _avg_bond_length/vars.skeleton.DistTreshLimFactor)
 		   distTresh = _avg_bond_length/vars.skeleton.DistTreshLimFactor;
@@ -1396,7 +1396,7 @@ void Skeleton::modifyGraph(Settings& vars)
 	   // ---------------------------------------------------------
 
 
-	   vars.estimation.dynamic.AvgBondLength = _avg_bond_length;
+	   vars.dynamic.AvgBondLength = _avg_bond_length;
    
    BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
    {

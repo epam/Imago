@@ -88,7 +88,7 @@ void MolfileSaver::_writeCtab(const Settings& vars)
    char label[3] = {0, 0, 0};
    double bond_length;
 
-   bond_length = vars.estimation.dynamic.AvgBondLength;
+   bond_length = vars.dynamic.AvgBondLength;
 
    BGL_FORALL_VERTICES(v, graph, Skeleton::SkeletonGraph)
    {

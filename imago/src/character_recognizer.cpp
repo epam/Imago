@@ -204,7 +204,7 @@ RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const S
 	   tf.apply();
 	   if (ImageUtils::isThinCircle(vars, thinseg, radius, true))
 	   {
-		   if (radius < vars.estimation.dynamic.CapitalHeight * vars.separator.capHeightMax)
+		   if (radius < vars.dynamic.CapitalHeight * vars.separator.capHeightMax)
 		   {
 			   double v = vars.characters.PossibleCharacterDistanceWeak;
 			   // the small-O has very low probability, so ignore it

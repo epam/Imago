@@ -1,5 +1,5 @@
 include_directories(
-  ../../imago/src
+  ../imago/src
   )
 
 file(GLOB SRC src/*.cpp)
@@ -7,5 +7,5 @@ file(GLOB SRC src/*.cpp)
 FILE(GLOB HEADERS "src/*.h")
 list(APPEND SRC ${HEADERS})
 
-add_executable(test.rc ${SRC})
-target_link_libraries(test.rc imago)
+add_executable(imago_console ${SRC})
+target_link_libraries(imago_console imago)

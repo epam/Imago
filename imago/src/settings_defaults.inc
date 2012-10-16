@@ -259,6 +259,3 @@ weak_seg.RectangularCropAreaTreshold = 0.345990;
 weak_seg.RectangularCropFitTreshold = 0.903191;
 weak_seg.RefineWidth = 0.791488;
 weak_seg.SubpixelDraw = 0.458313;
-estimation.dynamic.AvgBondLength = -1.0;
-estimation.dynamic.CapitalHeight = -1.0;
-estimation.dynamic.LineThickness = -1.0;

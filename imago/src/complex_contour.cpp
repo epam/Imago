@@ -282,7 +282,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 {
 	logEnterFunction();
 	std::vector<ComplexNumber> contours;
-	double lnThickness = vars.estimation.dynamic.LineThickness;
+	double lnThickness = vars.dynamic.LineThickness;
 
 	Points2d lines;
 	

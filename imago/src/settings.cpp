@@ -22,6 +22,12 @@
 
 namespace imago
 {
+	imago::DynamicEstimationSettings::DynamicEstimationSettings()
+	{
+		// default filling
+		AvgBondLength = CapitalHeight = LineThickness = -1.0;
+	}
+
 	imago::GeneralSettings::GeneralSettings()
 	{
 		LogEnabled = LogVFSEnabled = ExtractCharactersOnly = false;
@@ -67,7 +73,7 @@ namespace imago
 
 		{ // validation
 			#define APPLY(x) \
-				for (int n = 0; n < sizeof(x); n += 4) \
+				for (int n = 0; (n+3) < sizeof(x); n += 4) \
 					if ( ((char*)(&x))[n+0] == pattern && ((char*)(&x))[n+1] == pattern && \
 					     ((char*)(&x))[n+2] == pattern && ((char*)(&x))[n+3] == pattern) \
 			{ \
@@ -124,8 +130,6 @@ namespace imago
 		ASSIGN_REF(adaptive.MinimalLineThickness);
 		ASSIGN_REF(adaptive.WindowSizeFactor);
 
-		// this->caches SKIP
-
 		ASSIGN_REF(characters.DefaultFourierClassesUse);
 		ASSIGN_REF(characters.DescriptorsEvenFactorStrong);
 		ASSIGN_REF(characters.DescriptorsEvenFactorWeak);
@@ -161,11 +165,6 @@ namespace imago
 		ASSIGN_REF(csr.ReconnectProbablyGoodCoef);
 		ASSIGN_REF(csr.StableDecorner);
 
-		// no need to store dynamic params:
-		ASSIGN_REF(estimation.dynamic.AvgBondLength);
-		ASSIGN_REF(estimation.dynamic.CapitalHeight);
-		ASSIGN_REF(estimation.dynamic.LineThickness);
-
 		ASSIGN_REF(estimation.CapitalHeightError);
 		ASSIGN_REF(estimation.CharactersSpaceCoeff);
 		ASSIGN_REF(estimation.DoubleBondDist);		
@@ -175,8 +174,6 @@ namespace imago
 		ASSIGN_REF(estimation.ParLinesEps);
 		ASSIGN_REF(estimation.SegmentVerEps);
 		ASSIGN_REF(estimation.SymHeightErr);
-
-		// this->general SKIP
 
 		ASSIGN_REF(graph.MinimalDistTresh);
 		ASSIGN_REF(graph.RatioSub);

@@ -458,7 +458,7 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
    {
       Image img;
       img.copy(_img);
-	  _bond_length = vars.estimation.dynamic.AvgBondLength;
+	  _bond_length = vars.dynamic.AvgBondLength;
 
       _bfs_state.resize(_img.getWidth() * _img.getHeight());
       IntVector iqm_thick;
