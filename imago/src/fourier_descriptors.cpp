@@ -34,7 +34,7 @@ void FourierDescriptors::calculate( const Image *seg, int count, std::vector<dou
    calculate(contour, count, d);
 }
 
-void FourierDescriptors::calculate( const Points2i &contour, int count,
+void FourierDescriptors::calculate( const Points2i& contour, int count,
                                     std::vector<double> &d)
 {
    std::vector<double> &_desc = d;
@@ -51,6 +51,15 @@ void FourierDescriptors::calculate( const Points2i &contour, int count,
       length += Vec2d::distance(contour[i - 1], contour[i]);
    }
 
+   std::vector<double> cummulative_sum;
+   double cumsum = .0;
+   
+   for(size_t i = 1; i < contour.size(); i++)
+   {
+	   cumsum += Vec2d::distance( contour[i - 1], contour[i]);
+	   cummulative_sum.push_back(cumsum);
+   }
+
    for (int i = 1; i <= count; i++)
    {
       double lk, phi;
@@ -58,12 +67,8 @@ void FourierDescriptors::calculate( const Points2i &contour, int count,
 
       for (size_t k = 1; k < contour.size(); k++)
       {
-         lk = 0;
-         for (size_t j = 1; j <= k; j++)
-         {
-            lk += Vec2d::distance(contour[j - 1], contour[j]);
-         }
-
+         lk = cummulative_sum[k - 1];
+         
          p1 = contour[k - 1];
          p2 = contour[k];
 

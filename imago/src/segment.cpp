@@ -177,7 +177,7 @@ void Segment::initFeatures (int descriptorsCount, double eps1, double eps2) cons
          }
          else
          {
-            total++;
+			 total++;
          }
       }
 
@@ -187,7 +187,7 @@ void Segment::initFeatures (int descriptorsCount, double eps1, double eps2) cons
       i = 0;
       BOOST_FOREACH(Segment * &seg, segments)
       {
-         if (seg != 0)
+		  if (seg != 0)
          {
             std::vector<double> &descr = _features.inner_descriptors[i++];
             FourierDescriptors::calculate(seg, descriptorsCount, descr, eps1, eps2);

@@ -330,7 +330,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 	}
 
 	Skeleton::SkeletonGraph _g = graph.getGraph();
-	getLogExt().appendSkeleton(vars, "after join vertices", _g);
+	//getLogExt().appendSkeleton(vars, "after join vertices", _g);
 	Skeleton::Vertex vert1 = *(_g.m_vertices.begin());
 	Skeleton::Vertex vert2;
 	Skeleton::Vertex vertIt = vert1;
