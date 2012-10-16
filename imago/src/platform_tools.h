@@ -32,8 +32,11 @@ namespace platform
 	// platform-depent line ending string
 	std::string getLineEndings(); 
 
-	 // returns 'return-code' or negative error code
+	// returns 'return-code' or negative error code
 	int CALL(const std::string& executable, const std::string& parameters, int timelimit = 0);
+
+	// returns true if memory allocation of 'amount' MB is failed. memory is released instantly.
+	bool checkMemoryFail(int amount = 32);
 }
 
 #endif //_platform_tools_h

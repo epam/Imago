@@ -22,10 +22,12 @@
 
 typedef std::vector<std::string> strings;
 
-bool getReferenceFileName(const std::string& image, std::string& output);
-int  getDirectoryContent(const std::string& dir, strings &files, bool recursive);
-bool isSupportedImageType(const std::string& filename);
-void filterOnlyImages(strings& files);
-
+namespace file_helpers
+{
+	bool getReferenceFileName(const std::string& image, std::string& output);
+	int  getDirectoryContent(const std::string& dir, strings &files, bool recursive);
+	bool isSupportedImageType(const std::string& filename);
+	void filterOnlyImages(strings& files);
+}
 
 #endif // _file_helpers_h_

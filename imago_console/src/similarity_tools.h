@@ -17,10 +17,13 @@
 #ifndef _similarity_tools_h
 #define _similarity_tools_h
 
-#include "learning_context.h"
 #include <string>
+#include "learning_context.h"
 
-void   setExternalSimilarityTool(const std::string& executable, const std::string& param = "");
-double getSimilarity(const LearningContext& ctx);
+namespace similarity_tools
+{
+	void   setExternalSimilarityTool(const std::string& executable, const std::string& param = "");
+	double getSimilarity(const LearningContext& ctx);
+}
 
 #endif // _similarity_tools_h

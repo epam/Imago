@@ -14,6 +14,25 @@
 
 #include "platform_tools.h"
 
+
+bool platform::checkMemoryFail(int amount)
+{
+	try
+	{
+		char* data = new char[1024 * 1024 * amount];
+		if (data != NULL)
+		{
+			delete []data;
+			return false; // no fails
+		}
+	}
+	catch(...)
+	{
+	}
+	return true;
+}
+
+
 #ifdef _WIN32 // ------------------- Windows -------------------
 #include <direct.h>
 #include <Windows.h>
@@ -156,3 +175,4 @@ std::string platform::getLineEndings()
 }
 
 #endif
+
