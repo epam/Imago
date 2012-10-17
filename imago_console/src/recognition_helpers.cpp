@@ -154,7 +154,7 @@ namespace recognition_helpers
 			{
 				RecognitionResult result = recognizeImage(verbose, vars, image, configName);		
 				imago::FileOutput fout(outputName.c_str());
-				fout.writeString(result.molecule);
+				fout.writeString(result.molecule.c_str());
 			}
 
 		}

@@ -227,6 +227,26 @@ void Scanner::skipSpace()
       skip(1);
 }
 
+void Scanner::readBinaryString( std::string &out)
+{
+   char c;
+
+   out.clear();
+
+   while (!isEOF())
+   {  
+      c = readChar();
+
+      if (c == '\0')
+      {
+		  break;
+      }
+
+      out.push_back(c);
+   }
+}
+
+
 void Scanner::readString( std::string &out, bool append_zero )
 {
    char c;
@@ -293,6 +313,16 @@ float Scanner::readBinaryFloat()
 
    return res;
 }
+
+double Scanner::readBinaryDouble()
+{
+   double res;
+
+   read(sizeof(double), &res);
+
+   return res;
+}
+
 
 short Scanner::readPackedShort()
 {

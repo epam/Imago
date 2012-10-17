@@ -38,6 +38,7 @@ namespace imago
       virtual byte readByte();
       virtual void readAll( std::string &arr );
 
+	  void readBinaryString( std::string &out );
       void readString( std::string &out, bool append_zero );
 
       char  readChar();
@@ -45,12 +46,11 @@ namespace imago
       int   readBinaryInt();
       dword readBinaryDword();
       float readBinaryFloat();
+	  double readBinaryDouble();
       short readPackedShort();
 
       bool  skipString();
       void  readCharsFix( int n, char *chars_out );
-      //float readFloatFix( int digits );
-      //int   readIntFix( int digits );
       void  skipSpace();
 
       double readDouble();

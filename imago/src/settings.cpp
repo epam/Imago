@@ -78,9 +78,8 @@ namespace imago
 					     ((char*)(&x))[n+2] == pattern && ((char*)(&x))[n+3] == pattern) \
 			{ \
 			    printf("Uninitialized settings data in '%s' at offset %u\n", (#x), n);  \
-				throw new ImagoException("Uninitialized settings data at offset " + ImagoException::str(n)); \
+				throw ImagoException("Uninitialized settings data at offset " + ImagoException::str(n)); \
 		    }
-
 
 			APPLY(prefilterCV);
 			APPLY(adaptive);
@@ -417,7 +416,7 @@ namespace imago
 				lines.push_back(buffer);
 				buffer = "";
 			}
-			else if (c > 32 && c != ';')
+			else if (c > 32)
 			{
 				buffer += c;
 			}
@@ -427,11 +426,23 @@ namespace imago
 
 		for (size_t u = 0; u < lines.size(); u++)
 		{
-			size_t p = lines[u].find('=');
+			std::string line = lines[u];
+
+			// cut lines after ';'
+			{
+				size_t p1 = line.find(';');
+				if (p1 != std::string::npos)
+					line = line.substr(0, p1);				
+			}
+
+			size_t p = line.find('=');
 			if (p != std::string::npos)
 			{
-				std::string variable = lines[u].substr(0, p);
-				std::string value = lines[u].substr(p+1);
+				std::string variable = line.substr(0, p);
+				std::string value = line.substr(p+1);
+
+				// printf("[%s][%s]\n", variable.c_str(), value.c_str());
+
 				if (entries.find(variable) != entries.end())
 				{
 					// parse value

@@ -98,6 +98,16 @@ int main(int argc, char **argv)
 		else if (param == "-learn" || param == "-optimize")
 			mode_learning = true;
 
+		else if (param == "-learnd")
+		{
+			mode_learning = true;
+			mode_recursive = true;
+			mode_filter = true;
+			next_arg_dir = true;
+			sim_tool = "C:\\python27\\python.exe";
+			sim_param = "C:\\imago-testing\\similarity\\compare-molecules.py";
+		}
+
 		else if (param == "-pass")
 			mode_pass = true;
 

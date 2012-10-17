@@ -36,11 +36,11 @@ namespace imago
 
       void writeByte( byte value );
       void writeChar( char value );
-      void writeDouble( double value );
+      void writeBinaryDouble( double value );
       void writeBinaryInt( int value );
+      void writeBinaryString( const char *string );
+
       void writeString( const char *string );
-      void writeString( const std::string &s );
-      void writeStringZ( const char *string );
       void writeStringCR( const char *string );
       void writeCR();
 

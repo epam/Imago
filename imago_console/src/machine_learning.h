@@ -29,7 +29,8 @@ namespace machine_learning
 	void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::string& image_name, int timelimit_value, bool init = false);
 	bool updateResult(LearningResultRecord& result_record, LearningHistory& history);
 	bool storeConfig(const LearningResultRecord& res, const std::string& prefix = "");
-	bool storeLearningProgress(const LearningBase& base, const LearningHistory& history);
+	bool readLearningProgress(LearningBase& base, LearningHistory& history, bool quiet = false, const std::string& filename = "learning_progress.dat");
+	bool storeLearningProgress(const LearningBase& base, const LearningHistory& history, const std::string& filename = "learning_progress.dat");
 	int performMachineLearning(imago::Settings& vars, const strings& imageSet, const std::string& configName);
 }
 

@@ -35,6 +35,7 @@ struct LearningContext
 	std::string output_file;
 		
 	double stability;
+	double score_stability;
 
 	double time;
 	double average_time;
@@ -45,7 +46,7 @@ struct LearningContext
 	{
 		valid = false;
 		similarity = best_similarity_achieved = 0.0;
-		stability = 1.0;
+		score_stability = stability = 1.0;
 		time = average_time = 0.0;
 		attempts = 0;
 	}
@@ -60,6 +61,7 @@ struct LearningResultRecord
 	double average_score;
 	int ok_count;
 	int valid_count;
+	int work_iteration;
 
 	bool operator<(const LearningResultRecord& second) const
 	{
@@ -71,7 +73,7 @@ struct LearningResultRecord
 	LearningResultRecord()
 	{
 		average_time = average_score = 0.0;
-		ok_count = valid_count = 0;		
+		work_iteration = ok_count = valid_count = 0;		
 	}
 };
 

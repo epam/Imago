@@ -5,6 +5,7 @@
 #include "recognition_helpers.h"
 #include "similarity_tools.h"
 #include "scanner.h"
+#include "output.h"
 #include "virtual_fs.h"
 
 namespace machine_learning
@@ -30,7 +31,6 @@ namespace machine_learning
 		else
 			return -0.25;
 	}
-
 
 	std::string modifyConfig(const std::string& config, const LearningBase& learning, int iteration)
 	{
@@ -98,72 +98,78 @@ namespace machine_learning
 		return output;
 	}
 
-
 	void runSingleItem(LearningContext& ctx, LearningResultRecord& res, const std::string& image_name, int timelimit_value, bool init)
 	{
-		imago::Settings temp_vars;				
-		temp_vars.fillFromDataStream(res.config);
-		temp_vars.general.TimeLimit = timelimit_value;
-				
-		unsigned int start_time = platform::TICKS();				
-		int action_error = recognition_helpers::performFileAction(false, temp_vars, image_name, "", ctx.output_file);				
-		unsigned int end_time = platform::TICKS();		
+		int action_error = 0;
+		double cur_work_time = 0.0;
+		double cur_similarity = 0.0;
 
-		double work_time = end_time - start_time;
-		bool timelimit = work_time > timelimit_value;
-	
-		double similarity = 0.0;
-
-		try
 		{
-			similarity = timelimit ? 0.0 : similarity_tools::getSimilarity(ctx);
-				
-			res.average_score += similarity;
-			res.average_time += work_time;
+			imago::Settings temp_vars;				
+			temp_vars.fillFromDataStream(res.config);
+			temp_vars.general.TimeLimit = timelimit_value;				
+			
+			unsigned int start_time = platform::TICKS();				
+			action_error = recognition_helpers::performFileAction(false, temp_vars, image_name, "", ctx.output_file);				
+			unsigned int end_time = platform::TICKS();		
+			cur_work_time = end_time - start_time;
+		}		
 
-			if (similarity >= 100.0 - imago::EPS)
-			{
-				res.ok_count++;
-			}
-
+		if (cur_work_time > timelimit_value)
+		{
 			if (init)
 			{
-				if (timelimit)
-				{
-					printf("TL: %g ms\n", work_time);
-				}
-				else
-				{
-					printf("%g (%g ms)\n", similarity, work_time);
-				}
+				printf("TL: %g ms\n", cur_work_time);
+				ctx.valid = false; // not valid for learning
 			}
-		}
-		catch(imago::FileNotFoundException &e)
-		{
-			printf("%s\n", e.what());
-			if (init)
-				ctx.valid = false;
-		}
-
-		if (timelimit && init)
-			ctx.valid = false; // not valid for learning
-
-		ctx.similarity = similarity;
-		ctx.time = work_time;
-	
-		if (init)
-		{
-			ctx.attempts = 1;
-			ctx.stability = (action_error == 0) ? 1.0 : 0.0;
-			ctx.best_similarity_achieved = similarity;
-			ctx.average_time = work_time;
 		}
 		else
 		{
-			ctx.stability = (((action_error == 0) ? 1.0 : 0.0) + ctx.stability * ctx.attempts) / (ctx.attempts + 1);
-			ctx.average_time = (work_time + ctx.average_time * ctx.attempts) / (ctx.attempts + 1);
+			try
+			{
+				cur_similarity = similarity_tools::getSimilarity(ctx);
+				if (init)
+				{
+					printf("%g (%g ms)\n", cur_similarity, cur_work_time);
+				}
+			}
+			catch(imago::FileNotFoundException &e)
+			{
+				printf("%s\n", e.what());
+				if (init)
+					ctx.valid = false;
+			}
+		}
+
+		res.average_score += cur_similarity;
+		res.average_time += cur_work_time;
+
+		if (cur_similarity >= 100.0 - imago::EPS)
+		{
+			res.ok_count++;
+		}
+			
+		double cur_stability = (action_error == 0) ? 1.0 : 0.0;
+
+		if (init)
+		{
+			ctx.attempts = 1;
+			ctx.stability = cur_stability;
+			ctx.score_stability = 1.0;
+			ctx.best_similarity_achieved = cur_similarity;
+			ctx.average_time = cur_work_time;
+		}
+		else
+		{
+			double cur_score_stability = (imago::absolute(ctx.similarity - cur_similarity) < imago::EPS) ? 1.0 : 0.0;
+			ctx.stability = (cur_stability + ctx.stability * ctx.attempts) / (ctx.attempts + 1);
+			ctx.score_stability = (cur_score_stability + ctx.score_stability * ctx.attempts) / (ctx.attempts + 1);
+			ctx.average_time = (cur_work_time + ctx.average_time * ctx.attempts) / (ctx.attempts + 1);			
 			ctx.attempts++;
 		}
+
+		ctx.similarity = cur_similarity;
+		ctx.time = cur_work_time;
 	}
 
 	bool updateResult(LearningResultRecord& result_record, LearningHistory& history)
@@ -202,37 +208,107 @@ namespace machine_learning
 		return true;
 	}
 
-	bool storeLearningProgress(const LearningBase& base, const LearningHistory& history)
+	const int LEARNING_PROGRESSFILE_MAGIC = 57005;
+
+	bool readLearningProgress(LearningBase& base, LearningHistory& history, bool quiet, const std::string& filename)
 	{
-		FILE* f = fopen("learning_progress.txt", "w");
-		if (f != NULL)
+		try
 		{
-			fprintf(f, "BASE\n");
+			imago::FileScanner fi("%s", filename.c_str());
+
+			if (fi.readBinaryInt() != LEARNING_PROGRESSFILE_MAGIC)
+				throw imago::ImagoException("Wrong progress file header");
+			int base_count = fi.readBinaryInt();
+
+			for (int i = 0; i < base_count; i++)
+			{	
+				std::string name;
+				fi.readBinaryString(name);
+				LearningContext temp;
+				fi.readBinaryString(temp.reference_file);
+				fi.readBinaryString(temp.output_file);
+				temp.valid = fi.readBinaryInt() != 0;
+				temp.attempts = fi.readBinaryInt();
+				temp.average_time = fi.readBinaryDouble();
+				temp.time = fi.readBinaryDouble();
+				temp.best_similarity_achieved = fi.readBinaryDouble();
+				temp.similarity = fi.readBinaryDouble();
+				temp.stability = fi.readBinaryDouble();
+				temp.score_stability = fi.readBinaryDouble();
+				base[name] = temp;
+			}			
+
+			if (fi.readBinaryInt() != LEARNING_PROGRESSFILE_MAGIC)
+				throw imago::ImagoException("Progress file is probably damaged");
+			int history_count = fi.readBinaryInt();
+
+			for (int i = 0; i < history_count; i++)
+			{
+				LearningResultRecord res;
+				res.work_iteration = fi.readBinaryInt();
+				res.valid_count = fi.readBinaryInt();
+				res.ok_count = fi.readBinaryInt();
+				res.average_score = fi.readBinaryDouble();
+				res.average_time = fi.readBinaryDouble();
+				fi.readBinaryString(res.config);
+				history.push_back(res);
+			}
+
+			if (fi.readBinaryInt() != LEARNING_PROGRESSFILE_MAGIC)
+				throw imago::ImagoException("Progress file has bad ending");
+
+			return true;
+		}
+		catch (imago::ImagoException &e)
+		{
+			if (!quiet)
+			{
+				printf("readLearningProgress exception: '%s'\n", e.what());
+			}
+		}
+		return false;
+	}
+
+	bool storeLearningProgress(const LearningBase& base, const LearningHistory& history, const std::string& filename)
+	{
+		try
+		{
+			imago::FileOutput fo("%s", filename.c_str());
+			fo.writeBinaryInt(LEARNING_PROGRESSFILE_MAGIC);
+			fo.writeBinaryInt(base.size());
 			for (LearningBase::const_iterator it = base.begin(); it != base.end(); it++)
 			{		
-				fprintf(f, "%s\n", it->first.c_str());
-				fprintf(f, "%s\n", it->second.reference_file.c_str());
-				fprintf(f, "%s\n", it->second.output_file.c_str());
-				fprintf(f, "%u %u %g %g %g %g %g\n", it->second.valid, it->second.attempts, 
-								it->second.average_time, it->second.time,
-								it->second.best_similarity_achieved, it->second.similarity, 
-								it->second.stability);
-			}
-			fprintf(f, "HISTORY\n");
-			fflush(f);
+				fo.writeBinaryString(it->first.c_str());
+				fo.writeBinaryString(it->second.reference_file.c_str());
+				fo.writeBinaryString(it->second.output_file.c_str());
+				fo.writeBinaryInt(it->second.valid);
+				fo.writeBinaryInt(it->second.attempts);
+				fo.writeBinaryDouble(it->second.average_time);
+				fo.writeBinaryDouble(it->second.time);
+				fo.writeBinaryDouble(it->second.best_similarity_achieved);
+				fo.writeBinaryDouble(it->second.similarity);
+				fo.writeBinaryDouble(it->second.stability);
+				fo.writeBinaryDouble(it->second.score_stability);
+			}			
+			fo.writeBinaryInt(LEARNING_PROGRESSFILE_MAGIC);
+			fo.writeBinaryInt(history.size());
 			for (LearningHistory::const_iterator it = history.begin(); it != history.end(); it++)
 			{
-				fprintf(f, "%u %u %g %g\n", it->valid_count, it->ok_count, it->average_score, it->average_time);
-				imago::VirtualFS temp;
-				std::vector<char> temp_line;
-				temp.appendData("config", it->config);
-				temp.getData(temp_line);
-				temp_line.push_back(0); // terminator
-				fprintf(f, "%s\n", &temp_line.at(0));
+				fo.writeBinaryInt(it->work_iteration);
+				fo.writeBinaryInt(it->valid_count);
+				fo.writeBinaryInt(it->ok_count);
+				fo.writeBinaryDouble(it->average_score);
+				fo.writeBinaryDouble(it->average_time);
+				fo.writeBinaryString(it->config.c_str());
 			}
-			fprintf(f, "END\n");
-			fclose(f);
+			fo.writeBinaryInt(LEARNING_PROGRESSFILE_MAGIC);
+			printf("[Learning] Temporary learning progress is stored.\n");
 			return true;
+		}
+		catch (imago::ImagoException &e)
+		{
+			printf("storeLearningProgress exception: '%s'\n", e.what());
+			printf("[Learning] Failed to store temporary learning progress!\n");
 		}
 		return false;
 	}
@@ -246,9 +322,35 @@ namespace machine_learning
 		{
 			LearningBase base;
 			LearningHistory history;
+			int work_iteration = 1;
+			
+			bool progress_loaded = false;
 
-			// step 0: prepare learning base
+			if (readLearningProgress(base, history, true))
 			{
+				printf("[Learning] Loaded previous progress (%u, %u)\n", base.size(), history.size());
+
+				if (base.size() != imageSet.size())
+				{
+					printf("[Learning] But image set is changed, recalculation is required\n");
+				}
+				else
+				{
+					// estimate work_iteration
+					for (LearningHistory::const_iterator it = history.begin(); it != history.end(); it++)
+						if (it->work_iteration > work_iteration)
+							work_iteration = it->work_iteration;
+					printf("[Learning] Estimated start work iteration: %u\n", work_iteration);
+					progress_loaded = true;
+				}
+			}
+			
+			if (!progress_loaded)
+			{
+				base.clear();
+				history.clear();
+
+				// step 0: prepare learning base
 				printf("[Learning] filling learning base for %u images\n", imageSet.size());
 				for (size_t u = 0; u < imageSet.size(); u++)
 				{			
@@ -259,7 +361,7 @@ namespace machine_learning
 					{
 						try
 						{
-							imago::FileScanner fsc(ctx.reference_file.c_str());
+							imago::FileScanner fsc("%s", ctx.reference_file.c_str());
 					
 							ctx.valid = true;
 						}
@@ -278,10 +380,8 @@ namespace machine_learning
 
 					base[file] = ctx;
 				}
-			} // end of step 0
-
-			// step 1: get initial results
-			{
+				
+				// step 1: get initial results
 				printf("[Learning] getting initial results for %u images\n", base.size());
 		
 				int visual_counter = 0;
@@ -306,18 +406,21 @@ namespace machine_learning
 					}
 				}
 
-				if (!updateResult(result_record, history))
+				if (updateResult(result_record, history))
+				{
+					storeConfig(result_record, "base");
+					storeLearningProgress(base, history);
+				}
+				else
 				{
 					printf("[ERROR] No valid entries!\n");
 					return 5;
-				}
-
-				storeConfig(result_record, "base");
-			
-			} // end of step 1
+				}				
+				// end of step 1
+			} // end if
 		
 			volatile bool work_continue = true;
-			for (int work_iteration = 1; work_continue; work_iteration++)
+			for (; work_continue; work_iteration++)
 			{
 				// arrange configs by OK count, then by similarity
 				std::stable_sort(history.begin(), history.end());
@@ -339,20 +442,12 @@ namespace machine_learning
 						return 77;
 					}
 
-					if (storeLearningProgress(base, history))
-					{
-						printf("Temporary learning progress is stored.\n");
-					}
-					else
-					{
-						printf("Failed to store temporary learning progress!\n");
-					}
-
 					cfg_counter++;
 					printf("[Learning] Work iteration %u:%u, selected the start config with score %g\n", work_iteration, cfg_counter, history[cfg_id].average_score);
 					std::string base_config = history[cfg_id].config;
 
 					LearningResultRecord res;
+					res.work_iteration = work_iteration;
 					res.config = modifyConfig(base_config, base, work_iteration);
 
 					// now recheck the config
@@ -449,7 +544,10 @@ namespace machine_learning
 						}
 					}
 				
-					updateResult(res, history);
+					if (updateResult(res, history))
+					{
+						storeLearningProgress(base, history);
+					}
 
 					if (history[cfg_best_idx] < res)
 					{
@@ -480,6 +578,5 @@ namespace machine_learning
 
 		return result;
 	}
-
 
 }

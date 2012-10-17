@@ -38,7 +38,7 @@ void Output::writeChar( char value )
    write(&value, sizeof(char));
 }
 
-void Output::writeDouble( double value )
+void Output::writeBinaryDouble( double value )
 {
    write(&value, sizeof(double));
 }
@@ -55,12 +55,7 @@ void Output::writeString( const char *string )
    write(string, n);
 }
 
-void Output::writeString( const std::string &s )
-{
-   writeString(s.c_str());
-}
-
-void Output::writeStringZ( const char *string )
+void Output::writeBinaryString( const char *string )
 {
    writeString(string);
    writeByte(0);
