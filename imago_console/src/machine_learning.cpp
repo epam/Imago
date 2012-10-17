@@ -19,17 +19,23 @@ namespace machine_learning
 	const double LEARNING_LOG_START = 2.79;              /* abs, constants variation logarithmic base */
 	const double LEARNING_QUICKCHECK_BASE_PERCENT = 0.1; /* %, target percent of whole images set to perform the quickcheck */
 	const int    LEARNING_QUICKCHECK_MAX_COUNT = 30;     /* abs, maximal count of quickcheck subset */
+	const double LEARNING_PERCENT_OF_CONSTS_TO_CHANGE = 0.1; /* % */
 
 	double getWorstAllowedDelta(int imagesCount)  /* %, worst similarity delta (in average) allowed for further checks */
 	{
 		if (imagesCount < LEARNING_QUICKCHECK_MAX_COUNT)
-			return -1.0;
+			return -0.3;
 		else if (imagesCount < 100)
-			return -0.7;
+			return -0.2;
 		else if (imagesCount < 1000)
-			return -0.5;
+			return -0.15;
 		else
-			return -0.25;
+			return -0.1;
+	}
+
+	double frand()
+	{
+		return (double)(rand() % RAND_MAX) / (double)RAND_MAX; // [0..1)
 	}
 
 	std::string modifyConfig(const std::string& config, const LearningBase& learning, int iteration)
@@ -48,44 +54,55 @@ namespace machine_learning
 
 		for (imago::ReferenceAssignmentMap::const_iterator it = rmap.begin(); it != rmap.end(); it++)
 		{
-			double rand05 = (double)(rand() % RAND_MAX) / (double)RAND_MAX; // [0..0.5)
-			double rand11 = (rand05 - 0.5) * 2.0; // [-1..1)
+			if (frand() > LEARNING_PERCENT_OF_CONSTS_TO_CHANGE)
+				continue;
+
+			double rand_11 = (frand() - 0.5) * 2.0; // [-1..1)
+			double rand_mp = rand_11 * multiplier;
 
 			switch (it->second.getType())
 			{
-			/*case imago::DataTypeReference::otBool: // TODO: temp
+			case imago::DataTypeReference::otBool: 
 				{
-				bool& value = *(it->second.getBool());
-				bool new_value = rand05 >= 0.5;
-				if (value != new_value)
-				{
-					value = new_value;
-					changed++;
-				}
+					bool& value = *(it->second.getBool());
+					bool new_value = rand_11 >= 0.0;
+					if (value != new_value)
+					{
+						value = new_value;
+						changed++;
+					}
 				}
 				break;
 
 			case imago::DataTypeReference::otInt:
 				{
-				int& value = *(it->second.getInt());
-				int new_value = (int)(value + value * rand11 * 0.05); // +-5%
-				if (value != new_value)
-				{
-					value = new_value;
-					changed++;
+					int& value = *(it->second.getInt());
+					double addition = value * rand_mp;
+					if (imago::absolute(addition) < 1.0)
+					{
+						if (addition < 0.0)
+							addition = -1.0;
+						else
+							addition = +1.0;
+					}
+					int new_value = (int)(value + addition);
+					if (value != new_value)
+					{
+						value = new_value;
+						changed++;
+					}
 				}
-				}
-				break;*/
+				break;
 
 			case imago::DataTypeReference::otDouble:
 				{
-				double& value = *(it->second.getDouble());
-				double new_value = value + value * rand11 * multiplier;
-				if (value != new_value)
-				{
-					value = new_value;
-					changed++;
-				}
+					double& value = *(it->second.getDouble());
+					double new_value = value + value * rand_mp;
+					if (value != new_value)
+					{
+						value = new_value;
+						changed++;
+					}
 				}
 				break;
 			}
