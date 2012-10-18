@@ -36,13 +36,13 @@
 
 #define IMAGO_BEGIN try {                                                    
 
-#define IMAGO_END   } catch ( ImagoException &e )                                 \
+#define IMAGO_END   } catch ( ImagoException &e )                            \
                     {                                                        \
                        RecognitionContext *context = getCurrentContext();    \
                        std::string &error_buf = context->error_buf;          \
                        error_buf.erase();                                    \
                        ArrayOutput aout(error_buf);                          \
-                       aout.writeStringZ(e.what());                          \
+                       aout.writeBinaryString(e.what());                     \
                        return 0;                                             \
                     }                                                        \
                     return 1;
@@ -284,7 +284,7 @@ CEXPORT int imagoSaveMolToFile( const char *FileName )
    
    {
 	   FileOutput fout(FileName);
-	   fout.writeString(context->molfile);
+	   fout.writeString(context->molfile.c_str());
    }
 
    IMAGO_END;
