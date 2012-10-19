@@ -20,11 +20,12 @@ namespace machine_learning
 	const double LEARNING_QUICKCHECK_BASE_PERCENT = 0.1; /* %, target percent of whole images set to perform the quickcheck */
 	const int    LEARNING_QUICKCHECK_MAX_COUNT = 30;     /* abs, maximal count of quickcheck subset */
 	const double LEARNING_PERCENT_OF_CONSTS_TO_CHANGE = 0.1; /* % */
+	const double LEARNING_MAX_BAD_COUNT_ADDITION = 0.05; /* % */
 
 	double getWorstAllowedDelta(int imagesCount)  /* %, worst similarity delta (in average) allowed for further checks */
 	{
 		if (imagesCount < LEARNING_QUICKCHECK_MAX_COUNT)
-			return -0.3;
+			return -imago::EPS;
 		else if (imagesCount < 100)
 			return -0.2;
 		else if (imagesCount < 1000)
@@ -450,6 +451,7 @@ namespace machine_learning
 			{
 				// arrange configs by OK count, then by similarity
 				std::stable_sort(history.begin(), history.end());
+				int current_best_bad_count = history[0].valid_count - history[0].ok_count;
 			
 				// remove the worst ones [non-optimal]
 				while (history.size() >= LEARNING_MAX_CONFIGS)
@@ -484,7 +486,9 @@ namespace machine_learning
 					{
 						for (size_t j = i + 1; j < valid_indexes.size(); j++)
 						{
-							if (valid_indexes[i]->second.score_stability > valid_indexes[j]->second.score_stability)
+							// TODO: check condition
+							if (valid_indexes[i]->second.attempts > 2 * valid_indexes[j]->second.attempts ||
+								valid_indexes[i]->second.score_stability > valid_indexes[j]->second.score_stability)
 							{
 								LearningBase::iterator temp = valid_indexes[i];
 								valid_indexes[i] = valid_indexes[j];
@@ -493,6 +497,11 @@ namespace machine_learning
 						}
 					}
 					printf("Done.\n");
+					
+					printf("Starting indexes: ");
+					for (size_t i = 0; i < 20; i++)
+						printf("%u ", std::distance(base.begin(), valid_indexes[i]));
+					printf("\n");
 
 					int qc_pos = int(LEARNING_QUICKCHECK_BASE_PERCENT * (double)(valid_indexes.size()));
 					if (qc_pos == 0)
@@ -554,23 +563,31 @@ namespace machine_learning
 							if (platform::TICKS() - last_out_time > LEARNING_VERBOSE_TIME)
 							{
 								last_out_time = platform::TICKS();
-								printf("Image (%u/%u): %s... %g\n", pos, count, it->first.c_str(), it->second.similarity);
-								if (!quick_check && pos > qc_pos) // count of processed is greater than pre-test collection
-								{
-									printf("[Learning] Current delta: %g; current OK count: %u\n", delta, res.ok_count);
-									if (delta < getWorstAllowedDelta(count))
-									{
-										printf("[Learning] New results are probably worser, skipping\n");
-										goto break_iteration;
-									}
-								}
+								printf("Image (%u/%u): %s... %g\n", pos, count, it->first.c_str(), it->second.similarity);								
+								printf("[Learning] Current delta: %g; current OK count: %u\n", delta, res.ok_count);
 							} // if LEARNING_VERBOSE_TIME
+
+							if (!quick_check && pos > qc_pos) // count of processed is greater than pre-test collection
+							{								
+								if (delta < getWorstAllowedDelta(count))
+								{
+									printf("[Learning] New results are probably worser, skipping\n");
+									goto break_iteration;
+								}
+
+								int bad = res.valid_count - res.ok_count;
+								if (bad > (1.0 + LEARNING_MAX_BAD_COUNT_ADDITION) * current_best_bad_count)
+								{
+									printf("[Learning] Already have %u bad images, but maximal expected is %u\n", bad, current_best_bad_count);
+									goto break_iteration;
+								}
+							}
 						} // for idx
 					
 						printf("[Learning] Got delta: %g\n", delta);
 						if (quick_check && delta < getWorstAllowedDelta(count))
 						{
-							printf("[Learning] Quickcheck results are worser, skipping\n");
+							printf("[Learning] Quickcheck results are not interesting.\n");
 							goto break_iteration;
 						}
 					}
@@ -588,6 +605,13 @@ namespace machine_learning
 						// commit best_similarity_achieved:
 						for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
 							it->second.best_similarity_achieved = it->second.similarity;
+
+						if (res.valid_count == res.ok_count)
+						{
+							printf("[Learning] Everything is done.\n");
+							work_continue = false;
+							break;
+						}
 					}
 					else
 					{
