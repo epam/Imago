@@ -150,7 +150,7 @@ namespace machine_learning
 					printf("%g (%g ms)\n", cur_similarity, cur_work_time);
 				}
 			}
-			catch(imago::FileNotFoundException &e)
+			catch(imago::ImagoException &e)
 			{
 				printf("%s\n", e.what());
 				if (init)

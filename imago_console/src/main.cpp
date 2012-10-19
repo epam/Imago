@@ -104,8 +104,6 @@ int main(int argc, char **argv)
 			mode_recursive = true;
 			mode_filter = true;
 			next_arg_dir = true;
-			sim_tool = "C:\\python27\\python.exe";
-			sim_param = "C:\\imago-testing\\similarity\\compare-molecules.py";
 		}
 
 		else if (param == "-pass")
