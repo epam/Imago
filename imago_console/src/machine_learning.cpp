@@ -499,7 +499,7 @@ namespace machine_learning
 					printf("Done.\n");
 					
 					printf("Starting indexes: ");
-					for (size_t i = 0; i < 20; i++)
+					for (size_t i = 0; i < valid_indexes.size() && i < 18; i++)
 						printf("%u ", std::distance(base.begin(), valid_indexes[i]));
 					printf("\n");
 
