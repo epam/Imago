@@ -436,7 +436,16 @@ namespace machine_learning
 				// end of step 1
 			} // end if
 		
-			volatile bool work_continue = true;
+			std::vector<LearningBase::iterator> valid_indexes;
+			for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
+			{
+				if (it->second.valid)
+				{
+					valid_indexes.push_back(it);					
+				}
+			}
+
+			volatile bool work_continue = valid_indexes.size() > 0;
 			for (; work_continue; work_iteration++)
 			{
 				// arrange configs by OK count, then by similarity
@@ -468,17 +477,22 @@ namespace machine_learning
 					res.config = modifyConfig(base_config, base, work_iteration);
 
 					// now recheck the config
-					unsigned int last_out_time = platform::TICKS();				
-
-					std::vector<LearningBase::iterator> valid_indexes;
-					for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
+					unsigned int last_out_time = platform::TICKS();					
+					
+					printf("[Learning] Sorting by stability... ");
+					for (size_t i = 0; i < valid_indexes.size(); i++)
 					{
-						if (it->second.valid)
+						for (size_t j = i + 1; j < valid_indexes.size(); j++)
 						{
-							valid_indexes.push_back(it);					
+							if (valid_indexes[i]->second.score_stability > valid_indexes[j]->second.score_stability)
+							{
+								LearningBase::iterator temp = valid_indexes[i];
+								valid_indexes[i] = valid_indexes[j];
+								valid_indexes[j] = temp;
+							}
 						}
 					}
-					std::random_shuffle(valid_indexes.begin(), valid_indexes.end());
+					printf("Done.\n");
 
 					int qc_pos = int(LEARNING_QUICKCHECK_BASE_PERCENT * (double)(valid_indexes.size()));
 					if (qc_pos == 0)
