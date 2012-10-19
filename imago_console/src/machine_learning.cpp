@@ -14,13 +14,14 @@ namespace machine_learning
 	const double LEARNING_SUSPICIOUS_TIME_FACTOR = 2.0;  /* abs, if current time > average * this_const then probably constant set is bad */
 	const int    LEARNING_MAX_CONFIGS = 20;              /* abs, maximal configs stored in history */
 	const int    LEARNING_TOP_USE = 3;                   /* abs, maximal best configs count to branch from them */
-	const int    LEARNING_VERBOSE_TIME = 15000;          /* ms, print on screen progress every such time */
-	const double LEARNING_MULTIPLIER_BASE = 0.1;         /* %, constants variation threshold */
+	const int    LEARNING_VERBOSE_TIME = 15000;          /* ms, print on screen progress every such time */	
 	const double LEARNING_LOG_START = 2.79;              /* abs, constants variation logarithmic base */
 	const double LEARNING_QUICKCHECK_BASE_PERCENT = 0.1; /* %, target percent of whole images set to perform the quickcheck */
 	const int    LEARNING_QUICKCHECK_MAX_COUNT = 30;     /* abs, maximal count of quickcheck subset */
-	const double LEARNING_PERCENT_OF_CONSTS_TO_CHANGE = 0.1; /* % */
-	const double LEARNING_MAX_BAD_COUNT_ADDITION = 0.05; /* % */
+	const double LEARNING_PART_CONSTS_TO_CHANGE = 0.1;   /* %, maximal count of constants to adjust */
+	const double LEARNING_MAX_BAD_COUNT_ADDITION = 0.05; /* %, threshold of maximal new bad images before iteration skip */
+	const int    LEARNING_MAX_ZERO_DELTA_COUNT = 3;      /* abs, count of 0 delta before restart iterations */
+	      double LEARNING_MULTIPLIER_BASE = 0.1;         /* %, constants variation threshold */
 
 	double getWorstAllowedDelta(int imagesCount)  /* %, worst similarity delta (in average) allowed for further checks */
 	{
@@ -55,7 +56,7 @@ namespace machine_learning
 
 		for (imago::ReferenceAssignmentMap::const_iterator it = rmap.begin(); it != rmap.end(); it++)
 		{
-			if (frand() > LEARNING_PERCENT_OF_CONSTS_TO_CHANGE)
+			if (frand() > LEARNING_PART_CONSTS_TO_CHANGE)
 				continue;
 
 			double rand_11 = (frand() - 0.5) * 2.0; // [-1..1)
@@ -445,6 +446,7 @@ namespace machine_learning
 					valid_indexes.push_back(it);					
 				}
 			}
+			int zero_deltas = 0;
 
 			volatile bool work_continue = valid_indexes.size() > 0;
 			for (; work_continue; work_iteration++)
@@ -585,10 +587,32 @@ namespace machine_learning
 						} // for idx
 					
 						printf("[Learning] Got delta: %g\n", delta);
+						
 						if (quick_check && delta < getWorstAllowedDelta(count))
 						{
 							printf("[Learning] Quickcheck results are not interesting.\n");
 							goto break_iteration;
+						}
+
+						if (!quick_check)
+						{
+							if (imago::absolute(delta) < imago::EPS)
+							{
+								zero_deltas++;
+								if (zero_deltas >= LEARNING_MAX_ZERO_DELTA_COUNT)
+								{
+									double v = LEARNING_MULTIPLIER_BASE * 1.1;
+									printf("[Learning] Got %u zero-deltas in a row, "
+										   "work iterations reset (multiplier %g -> %g)\n", zero_deltas, LEARNING_MULTIPLIER_BASE, v);
+									LEARNING_MULTIPLIER_BASE = v;
+									zero_deltas = 0;
+									work_iteration = 1;								
+								}
+							}
+							else
+							{
+								zero_deltas = 0;
+							}
 						}
 					}
 				
