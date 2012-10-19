@@ -3,6 +3,8 @@
 #include "exception.h"
 #include "platform_tools.h"
 
+#include "indigo.h"
+
 namespace similarity_tools
 {
 
@@ -25,6 +27,7 @@ namespace similarity_tools
 
 	double getSimilarity(const LearningContext& ctx)
 	{
+      double result = 0.0;
 		if (!similarity_tool_exe.empty())
 		{
 			std::string params = quote(ctx.output_file) + " " + quote(ctx.reference_file);
@@ -41,10 +44,34 @@ namespace similarity_tools
 		}
 		else
 		{
-			// internal similarity function
-			return ((double)(rand() % RAND_MAX) / (double)RAND_MAX); // TODO: temp
+         int outm = indigoLoadMoleculeFromFile(ctx.output_file.c_str());
+         if (outm == -1)
+         {
+            indigoFreeAllObject();
+				throw imago::IOException("Failed to load " + ctx.output_file + ":" + indigoGetLastError());
+         }
+         int refm = indigoLoadMoleculeFromFile(ctx.reference_file.c_str());
+         if (refm == -1)
+         {
+            indigoFreeAllObject();
+				throw imago::IOException("Failed to load " + ctx.reference_file + ":" + indigoGetLastError());
+         }
+
+         indigoNormalize(refm, "");
+         indigoNormalize(outm, "");
+
+         float sim1 = indigoSimilarity(refm, outm, "normalized-edit");
+         indigoAromatize(refm);
+         indigoAromatize(outm);
+
+         float sim2 = indigoSimilarity(refm, outm, "normalized-edit");
+
+         result = 100.0 * std::max(sim1, sim2);
+
+         // Clear all the objects used by Indigo
+         indigoFreeAllObject();
 		}
 
-		return 0.0;
+		return result;
 	}
 }
