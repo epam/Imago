@@ -108,6 +108,25 @@ namespace imago
 					}
 				}
 
+				if (black_count > 2 * white_count) // TODO
+				{
+					getLogExt().appendText("image is inversed");
+					for (int y = 0; y < image.getHeight(); y++)
+					{
+						for (int x = 0; x < image.getWidth(); x++)
+						{
+							if (image.getByte(x,y) == 0)
+							{
+								image.getByte(x, y) = 255;
+							}
+							else
+							{
+								image.getByte(x, y) = 0;
+							}
+						}
+					}
+				}
+
 				// this code allows to crop image in rectangular border
 				// useful only for 1 image from Image2Structure set
 				// but works quite fast.
