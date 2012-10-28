@@ -18,6 +18,8 @@
 #include "boost/graph/iteration_macros.hpp"
 #include "boost/foreach.hpp"
 
+#include "cv.h"
+
 #include "comdef.h"
 #include "log_ext.h"
 #include "image.h"
@@ -493,20 +495,16 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
 
 bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton::Edge &e1 )
 {
+	logEnterFunction();
+	
    Bond bond = g.getBondInfo(e1);
 
    if (bond.type != SINGLE)
       return false;
 
-   int r = _thicknesses[g.getBondEnd(e1)];
-
-   if (_thicknesses[g.getBondBegin(e1)] / _mean_thickness > vars.wbe.SingleUpRatioEps)
-   {
-      // This bond is just thick
-   }
-
    Vec2d bb = g.getVertexPos(g.getBondBegin(e1));
    Vec2d ee = g.getVertexPos(g.getBondEnd(e1));
+
 
    double coef = vars.wbe.SingleUpDefCoeff;
    if (_bond_length < vars.wbe.SingleUpIncLengthTresh)
@@ -516,45 +514,23 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
       return false;
    
    Vec2d b(bb), e(ee);
-   b.interpolate(ee, bb, vars.wbe.SingleUpInterpolateEps);
-   e.interpolate(bb, ee, vars.wbe.SingleUpInterpolateEps);
+   b.interpolate(bb, ee, vars.wbe.SingleUpInterpolateEps);
+   e.interpolate(ee, bb, vars.wbe.SingleUpInterpolateEps);
    b.x = round(b.x);
    b.y = round(b.y);
    e.x = round(e.x);
    e.y = round(e.y);
+   Vec2d n;
+   n.diff(e, b);
+   n = n.getNormalized();
+   int size = round(abs(n.x * (e.x - b.x)+ n.y * (e.y - b.y)));
+   std::vector<int> profile(size);
 
    int w = _img.getWidth();
    int h = _img.getHeight();
 
-   double dist2line0, dist2line1, dist2line2;
-   double min_d11, min_d12, min_d21, min_d22;
-   min_d11 = min_d12 = min_d21 = min_d22 = DIST_INF;
-
-   double a1, a2, b1, b2;
-   Vec2d pa1, pa2, pb1, pb2;
-   a1 = a2 = b1 = b2 = 0;
-
-   double A0, B0, C0; // line through b & e
-   double A1, B1, C1; // line orthogonal (A,B,C) through b
-   double A2, B2, C2; // line orthogonal (A,B,C) through e
-   double t;
-   
-   A0 = b.y - e.y;
-   B0 = e.x - b.x;
-   t = sqrt(A0 * A0 + B0 * B0);
-   A0 /= t; B0 /= t;
-   C0 = b.x * e.y - e.x * b.y;
-   C0 /= t;
-
-   A1 = -B0; B1 = A0;
-   C1 = -A1 * b.x - B1 * b.y;
-
-   A2 = -B0; B2 = A0;
-   C2 = -A2 * e.x - B2 * e.y;
-
    Points2d visited;
    std::deque<Vec2d> queue;
-   bool border;
 
    queue.push_back(b);
    while (!queue.empty())
@@ -563,7 +539,6 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 
       queue.pop_front();
 
-      border = false;
       visited.push_back(cur);
 
       double dp = Vec2d::distance(cur, e);
@@ -572,14 +547,11 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
       {
          for (int j = round(cur.y) - 1; j <= round(cur.y) + 1; j++)
          {
-            if (i == cur.x && j == cur.y)
+            if (i == round(cur.x) && j == round(cur.y))
                continue;
 
             if (i < 0 || j < 0 || i >= w || j >= h)
                continue;
-
-            if (_img.getByte(i, j) == 255)
-               border = true;
 
             if (_img.getByte(i, j) != 255 && !_bfs_state[j * w + i])
             {
@@ -589,64 +561,52 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
                {
                   queue.push_back(v);
                   _bfs_state[j * w + i] = 1;
+
+				  int indx = round(n.x * (i - b.x) + n.y * (j - b.y));
+				  if(indx > -1 && indx < profile.size())
+					  profile[indx]++;
                }
             }
          }
       }
 
-      if (border)
-      {
-         dist2line0 = A0 * cur.x + B0 * cur.y + C0;
-         dist2line1 = fabs(A1 * cur.x + B1 * cur.y + C1);
-         dist2line2 = fabs(A2 * cur.x + B2 * cur.y + C2);
-
-         if (dist2line0 >= 0)
-         {
-            if (dist2line1 < min_d11)
-            {
-               min_d11 = dist2line1;
-               a1 = dist2line0;
-               pa1.copy(cur);
-            }
-
-            if (dist2line2 < min_d21)
-            {
-               min_d21 = dist2line2;
-               a2 = dist2line0;
-               pa2.copy(cur);
-            }
-         }
-         else
-         {
-            if (dist2line1 < min_d12)
-            {
-               min_d12 = dist2line1;
-               b1 = -dist2line0;
-               pb1.copy(cur);
-            }
-
-            if (dist2line2 < min_d22)
-            {
-               min_d22 = dist2line2;
-               b2 = -dist2line0;
-               pb2.copy(cur);
-            }
-         }
-      }
+	  
+   }
+   getLogExt().appendVector("profile ", profile);
+   
+   double y_mean = 0, x_mean = 0;
+   int psize = profile.size() - 1;
+   
+   for(size_t i = 1; i < profile.size(); i++)
+   {
+	   
+	   if( profile[i] == 0)
+		   psize--;
+	   else
+	   {
+		   x_mean += i;
+		   y_mean += profile[i];
+	   }
    }
 
-   Vec2d p1(pa1);
-   Vec2d p2(pa2);
-   Vec2d p3(pb2);
-   Vec2d p4(pb1);
+   y_mean /= psize;
+   x_mean /= psize;
 
-   double S1 = fabs(p1.x * p2.y - p2.x * p1.y +
-                   p2.x * p3.y - p3.x * p2.y +
-                   p3.x * p4.y - p4.x * p3.y +
-                   p4.x * p1.y - p1.x * p4.y) * 0.5; // average
+   double Sxx=0, Sxy=0;
+   for(size_t i = 1; i < profile.size(); i++)
+   {
+	   if(profile[i] != 0 )
+	   {
+		   double xx = i - x_mean;
+		   double xy = (profile[i] - y_mean) * (i - x_mean);
+		   Sxx += xx * xx;
+		   Sxy += xy;
+	   }
+   }
 
-   double S2 = visited.size() / vars.wbe.SingleUpS2Divisor;
-
+   double b_coeff = Sxy / Sxx;
+   getLogExt().append("Slope coefficient", b_coeff);
+   
    for (size_t i = 0; i < visited.size(); i++)
    {
 	   int y = round(visited[i].y);
@@ -655,36 +615,14 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 		   _bfs_state[y * w + x] = 0;
    }
 
-   double square_ratio = S2 / S1;
+   if( abs(b_coeff) > 0.1)
+	   return true;
+   else
+	   if( y_mean / (double)_mean_thickness > 1.5)
+		   return true;
+	   return false;
 
-   a1 += b1; a2 += b2;
-   double a_min = std::min(a1, a2), a_max = std::max(a1, a2);
-
-   if (a_min < vars.wbe.SingleUpMinATresh)
-      return false;
-
-   double thick_ratio = a_max / a_min;
-   double angle = 0;
-   {
-      Vec2d n1, n2;
-      n1.diff(pa1, pa2);
-      n2.diff(pb1, pb2);
-      try
-      {
-         angle = Vec2d::angle(n1, n2);
-      }
-      catch (ImagoException &e)
-      {
-		  getLogExt().append("_isSingleUp ignored exception", e.what());
-      }
-   }
-
-   if (thick_ratio < vars.wbe.SingleUpRatioEps ||
-	   square_ratio < vars.wbe.SingleUpSquareRatio ||
-	   angle < vars.wbe.SingleUpAngleTresh)
-      return false;
-
-   return true;
+   
 }
 
 WedgeBondExtractor::~WedgeBondExtractor()
