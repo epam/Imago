@@ -115,6 +115,25 @@ namespace recognition_helpers
 	}
 
 
+	int performFilterTest(imago::Settings& vars, const std::string& imageName)
+	{
+		int result = 0; // ok mark
+		try
+		{
+			imago::Image image;
+			imago::ImageUtils::loadImageFromFile(image, imageName.c_str());
+			if (!imago::prefilterEntrypoint(vars, image))
+				return 2;
+			imago::ImageUtils::saveImageToFile(image, (imageName + ".filtered.png").c_str());
+		}
+		catch (std::exception &e)
+		{
+			puts(e.what());
+			result = 1;
+		}
+		return result;
+	}
+
 	int performFileAction(bool verbose, imago::Settings& vars, const std::string& imageName, const std::string& configName,
 						  const std::string& outputName)
 	{

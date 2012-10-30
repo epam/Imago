@@ -56,6 +56,9 @@ namespace machine_learning
 
 		for (imago::ReferenceAssignmentMap::const_iterator it = rmap.begin(); it != rmap.end(); it++)
 		{
+			if (it->first.empty() || it->first[0] == '_')
+				continue; // ignore special fields
+
 			if (frand() > LEARNING_PART_CONSTS_TO_CHANGE)
 				continue;
 

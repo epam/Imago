@@ -41,6 +41,7 @@ int main(int argc, char **argv)
 		printf("  -tl time_in_ms: timelimit per single image process (default is %u) \n", vars.general.TimeLimit);
 		printf("  -similarity tool [-sparam additional_parameters]: override the default comparison method \n");
 		printf("  -pass: don't process images, only print their filenames \n");
+		printf("  -override config_string: override config by applying specified string \n");
 		printf("\n BATCHES: \n");
 		printf("  -dir dir_name: process every image from dir dir_name \n");
 		printf("    -rec: process directory recursively \n");
@@ -57,12 +58,14 @@ int main(int argc, char **argv)
 	std::string sim_param = "";
 	std::string molfile1 = "";
 	std::string molfile2 = "";
+	std::string override_cfg = "";
 
 	bool next_arg_dir = false;
 	bool next_arg_config = false;
 	bool next_arg_sim_tool = false;
 	bool next_arg_sim_param = false;
 	bool next_arg_tl = false;	
+	bool next_arg_override_cfg = false;
 	int next_arg_compare = 0; // two args
 
 	bool mode_recursive = false;
@@ -70,6 +73,7 @@ int main(int argc, char **argv)
 	bool mode_learning = false;
 	bool mode_filter = false;
 	bool mode_retcode = false;
+	bool mode_test_filter_only = false;
 
 	for (int c = 1; c < argc; c++)
 	{
@@ -113,6 +117,12 @@ int main(int argc, char **argv)
 
 		else if (param == "-retcode")
 			mode_retcode = true;
+
+		else if (param == "-filter")
+			mode_test_filter_only = true;
+
+		else if (param == "-override")
+			next_arg_override_cfg = true;
 
 		else if (param == "-learnd")
 		{
@@ -170,6 +180,13 @@ int main(int argc, char **argv)
 				vars.general.TimeLimit = atoi(param.c_str());
 				next_arg_tl = false;
 			}
+			else if (next_arg_override_cfg)
+			{
+				if (!override_cfg.empty())
+					override_cfg += "\n";
+				override_cfg += param;
+				next_arg_override_cfg = false;
+			}
 			else
 			{
 				if (param[0] == '-' && param.find('.') == std::string::npos)
@@ -193,11 +210,18 @@ int main(int argc, char **argv)
 		}
 	}
 
-	similarity_tools::setExternalSimilarityTool(sim_tool, sim_param);
-	
 	imago::getLogExt().setLoggingEnabled(vars.general.LogEnabled);
-	
-	if (!molfile1.empty() && !molfile2.empty())
+
+	similarity_tools::setExternalSimilarityTool(sim_tool, sim_param);
+
+	if (!override_cfg.empty())
+		vars.fillFromDataStream(override_cfg);	
+
+	if (mode_test_filter_only)
+	{
+		return recognition_helpers::performFilterTest(vars, image);
+	}
+	else if (!molfile1.empty() && !molfile2.empty())
 	{
 		// compare mode
 		LearningContext temp;

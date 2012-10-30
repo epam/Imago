@@ -36,6 +36,8 @@ namespace recognition_helpers
 	RecognitionResult recognizeImage(bool verbose, imago::Settings& vars, const imago::Image& src,
 		                             const std::string& config);
 
+	int performFilterTest(imago::Settings& vars, const std::string& imageName);
+
 	int performFileAction(bool verbose, imago::Settings& vars, const std::string& imageName, 
 		                  const std::string& configName, const std::string& outputName = "molecule.mol");
 
