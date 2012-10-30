@@ -28,10 +28,10 @@ import java.util.*;
 public class Imago {
 
     public enum Filters {
-        STD("std"),
-        ADAPTIVE("adaptive"),
-        CV("CV"),
-        PASSTHRU("passthru");
+        STD("prefilter_basic"),  // could be updated according filters_list.cpp
+        ADAPTIVE("prefilter_adaptive"),
+        CV("prefilter_basic"),
+        PASSTHRU("prefilter_binarized");
         
         private String filterName;
         Filters(String name) {
@@ -87,14 +87,14 @@ public class Imago {
         _lib.imagoSetLogging(0);
     }
 
-    public void setConfig(int num) {
+    public void setConfig(String config) {
         setSessionID();
-        checkResult(_lib.imagoSetConfigNumber(num));
+        checkResult(_lib.imagoSetConfig(config));
     }
 
-    public int getConfigsCount() {
+    public String getConfigsList() {
         setSessionID();
-        return _lib.imagoGetConfigsCount();
+        return _lib.imagoGetConfigsList();
     }
     
     public void setFilter(Filters filter) {

@@ -25,8 +25,8 @@ public interface ImagoLib extends Library {
     void imagoSetSessionId(long id);
     void imagoReleaseSessionId(long id);
     
-    int imagoSetConfigNumber(int number);
-    int imagoGetConfigsCount();
+    int imagoSetConfig(String config);
+    String imagoGetConfigsList();
 
     int imagoSetFilter(String filter);
 

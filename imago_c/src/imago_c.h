@@ -71,8 +71,9 @@ CEXPORT int imagoSetConfig( const char *name );
 /* Get the list of available predefined configuration sets separated by comma. */
 CEXPORT const char* imagoGetConfigsList();
 
-/* Choose filter to process image before call imagoFilterImage()
- * name can be "std", "adaptive", "CV" or "passthru".
+/* Choose the filter to process image before call imagoFilterImage()
+ * name can be "prefilter_binarized", "prefilter_basic", or something else.
+ * For the exact information see the filters_list.cpp file.
  * By default, filter from current config will be used. */
 CEXPORT int imagoSetFilter( const char *name );
 

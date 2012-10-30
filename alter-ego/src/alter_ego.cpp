@@ -43,9 +43,6 @@ const int WARNINGS_TRESHOLD = 9;
 void printHelp( const char *exe_name )
 {
    fprintf(stderr, "Usage: %s [Options] <infile.png>\n\n"
-      "Common usage examples:\n\n"
-      "%s -n my-image.png\n"
-      "%s my-image.png -o 1.mol -p recognized_molecules\n\n"
       "Options:\n"
       "    -h                Display this help message\n"
       "    -o <outfile.mol>  If not mentioned molecule will be stored in <infile.mol>\n" 
