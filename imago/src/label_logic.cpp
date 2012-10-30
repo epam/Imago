@@ -283,8 +283,8 @@ bool LabelLogic::_multiLetterSubst(char sym)
 		_cur_atom->setLabel("N");
 		_addAtom();
 		_cur_atom->setLabel("H");
-		_cur_atom->count = 2;
-		was_letter = 0;
+		//_cur_atom->count = 2;
+		was_letter = 1;
 		return true;
 	case '=':
 		// special chars to ignore

@@ -27,20 +27,26 @@ int main(int argc, char **argv)
 	if (argc <= 1)
 	{
 		printf("Usage: %s [option]* [batches] [mode] [image_path] \n", argv[0]);				
-		printf("\n  MODE SWITCHES: \n");
+		printf("\n MODE SWITCHES: \n");
 		printf("  image_path: full path to image to recognize (may be omitted if other switch is specified) \n");
 		printf("  -characters: extracts only characters from image(s) and store in ./characters/ \n");
 		printf("  -learn dir_name: process machine learning for specified collection \n");
-		printf("\n  OPTION SWITCHES: \n");
+		printf("  -compare molfile1 molfile2: calculate similarity between molfiles \n");
+		printf("    -retcode: returns similarity 0..100 in ERRORLEVEL \n");
+		printf("\n OPTION SWITCHES: \n");
 		printf("  -config cfg_file: use specified configuration cluster file \n");		
 		printf("  -log: enables debug log output to ./log.html \n");
 		printf("  -logvfs: stores log in single encoded file ./log_vfs.txt \n");		
 		printf("  -pr: use probablistic separator (experimental) \n");
 		printf("  -tl time_in_ms: timelimit per single image process (default is %u) \n", vars.general.TimeLimit);
-		printf("\n  BATCHES: \n");
+		printf("  -similarity tool [-sparam additional_parameters]: override the default comparison method \n");
+		printf("  -pass: don't process images, only print their filenames \n");
+		printf("\n BATCHES: \n");
 		printf("  -dir dir_name: process every image from dir dir_name \n");
 		printf("    -rec: process directory recursively \n");
 		printf("    -images: skip non-supported files from directory \n");				
+		printf("\n SHORTCUTS: \n");
+		printf("  -learnd dir_name: -learn -dir dir_name -images \n");
 		return 0;
 	}
 
@@ -49,17 +55,21 @@ int main(int argc, char **argv)
 	std::string config = "";
 	std::string sim_tool = "";
 	std::string sim_param = "";
+	std::string molfile1 = "";
+	std::string molfile2 = "";
 
 	bool next_arg_dir = false;
 	bool next_arg_config = false;
 	bool next_arg_sim_tool = false;
 	bool next_arg_sim_param = false;
 	bool next_arg_tl = false;	
+	int next_arg_compare = 0; // two args
 
 	bool mode_recursive = false;
 	bool mode_pass = false;
 	bool mode_learning = false;
 	bool mode_filter = false;
+	bool mode_retcode = false;
 
 	for (int c = 1; c < argc; c++)
 	{
@@ -89,6 +99,9 @@ int main(int argc, char **argv)
 		else if (param == "-sparam")
 			next_arg_sim_param = true;		
 
+		else if (param == "-compare")
+			next_arg_compare = 2; // expected two params
+
 		else if (param == "-r" || param == "-rec")
 			mode_recursive = true;
 
@@ -97,6 +110,9 @@ int main(int argc, char **argv)
 
 		else if (param == "-learn" || param == "-optimize")
 			mode_learning = true;
+
+		else if (param == "-retcode")
+			mode_retcode = true;
 
 		else if (param == "-learnd")
 		{
@@ -117,7 +133,19 @@ int main(int argc, char **argv)
 
 		else 
 		{
-			if (next_arg_config)
+			if (next_arg_compare)
+			{
+				if (next_arg_compare == 2)
+				{
+					molfile1 = param;
+				}
+				else if (next_arg_compare == 1)
+				{
+					molfile2 = param;
+				}
+				next_arg_compare--;
+			}			
+			else if (next_arg_config)
 			{
 				config = param;
 				next_arg_config = false;
@@ -169,8 +197,34 @@ int main(int argc, char **argv)
 	
 	imago::getLogExt().setLoggingEnabled(vars.general.LogEnabled);
 	
-	if (!dir.empty())
+	if (!molfile1.empty() && !molfile2.empty())
 	{
+		// compare mode
+		LearningContext temp;
+		temp.output_file = molfile1;
+		temp.reference_file = molfile2;
+		try
+		{
+			double res = similarity_tools::getSimilarity(temp);
+			if (mode_retcode)
+			{
+				return (int)(res + imago::EPS);
+			}
+			else
+			{
+				printf("Similarity: %g\n", res);
+			}
+		}
+		catch(imago::ImagoException &e)
+		{
+			printf("%s\n", e.what());			
+		}
+		return 0;
+	}	
+	else if (!dir.empty())
+	{
+		// dir mode
+
 		strings files;
 		
 		if (file_helpers::getDirectoryContent(dir, files, mode_recursive) != 0)
@@ -204,8 +258,9 @@ int main(int argc, char **argv)
 			}
 		}
 	}
-	else if (!image.empty()) // process single file
+	else if (!image.empty())
 	{
+		// single item mode
 		return recognition_helpers::performFileAction(true, vars, image, config);	
 	}		
 	
