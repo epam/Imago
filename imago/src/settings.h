@@ -274,10 +274,12 @@ namespace imago
 		double SingleUpIncLengthTresh;
 		double SingleUpInterpolateEps;
 		double SingleUpMagicAddition;
-		double SingleUpS2Divisor;
-		double SingleUpMinATresh;
-		double SingleUpSquareRatio;
-		double SingleUpAngleTresh;
+		//double SingleUpS2Divisor;
+		//double SingleUpMinATresh;
+		//double SingleUpSquareRatio;
+		//double SingleUpAngleTresh;
+		double SingleUpSlopeThresh;
+		double SingleUpThickThresh;
 		double SomeTresh;
 	};
 

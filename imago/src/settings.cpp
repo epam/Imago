@@ -378,16 +378,14 @@ namespace imago
 		ASSIGN_REF(wbe.SingleDownDistancesMax);
 		ASSIGN_REF(wbe.SingleDownEps);
 		ASSIGN_REF(wbe.SingleDownLengthMax);
-		ASSIGN_REF(wbe.SingleUpAngleTresh);
+		ASSIGN_REF(wbe.SingleUpSlopeThresh);
+		ASSIGN_REF(wbe.SingleUpThickThresh);
 		ASSIGN_REF(wbe.SingleUpDefCoeff);
 		ASSIGN_REF(wbe.SingleUpIncCoeff);
 		ASSIGN_REF(wbe.SingleUpIncLengthTresh);
 		ASSIGN_REF(wbe.SingleUpInterpolateEps);
 		ASSIGN_REF(wbe.SingleUpMagicAddition);
-		ASSIGN_REF(wbe.SingleUpMinATresh);
 		ASSIGN_REF(wbe.SingleUpRatioEps);
-		ASSIGN_REF(wbe.SingleUpS2Divisor);
-		ASSIGN_REF(wbe.SingleUpSquareRatio);
 		ASSIGN_REF(wbe.SomeTresh);
 
 		ASSIGN_REF(weak_seg.MinDistanceDraw);

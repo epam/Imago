@@ -525,9 +525,11 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
    n = n.getNormalized();
    int size = round(abs(n.x * (e.x - b.x)+ n.y * (e.y - b.y)));
    std::vector<int> profile(size);
-
+   
    int w = _img.getWidth();
    int h = _img.getHeight();
+   Image img(w, h);
+   img.fillWhite();
 
    Points2d visited;
    std::deque<Vec2d> queue;
@@ -561,7 +563,7 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
                {
                   queue.push_back(v);
                   _bfs_state[j * w + i] = 1;
-
+				  img.getByte(i, j) = 0;
 				  int indx = round(n.x * (i - b.x) + n.y * (j - b.y));
 				  if(indx > -1 && indx < profile.size())
 					  profile[indx]++;
@@ -573,7 +575,8 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 	  
    }
    getLogExt().appendVector("profile ", profile);
-   
+   getLogExt().appendImage("image profile", img);
+
    double y_mean = 0, x_mean = 0;
    int psize = profile.size() - 1;
    
@@ -589,10 +592,15 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 	   }
    }
 
+
+   if( psize < profile.size() / 4 )
+	   return false;
+
    y_mean /= psize;
    x_mean /= psize;
 
    double Sxx=0, Sxy=0;
+   double max_val = 0;
    for(size_t i = 1; i < profile.size(); i++)
    {
 	   if(profile[i] != 0 )
@@ -601,6 +609,8 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 		   double xy = (profile[i] - y_mean) * (i - x_mean);
 		   Sxx += xx * xx;
 		   Sxy += xy;
+		   if(max_val < profile[i])
+			   max_val = profile[i];
 	   }
    }
 
@@ -615,14 +625,13 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 		   _bfs_state[y * w + x] = 0;
    }
 
-   if( abs(b_coeff) > 0.1)
+   if( abs(b_coeff) > vars.wbe.SingleUpSlopeThresh && max_val > vars.dynamic.LineThickness)
 	   return true;
    else
-	   if( y_mean / (double)_mean_thickness > 1.5)
+	   if( y_mean / vars.dynamic.LineThickness > vars.wbe.SingleUpThickThresh)
 		   return true;
-	   return false;
-
-   
+	   
+   return false;
 }
 
 WedgeBondExtractor::~WedgeBondExtractor()
