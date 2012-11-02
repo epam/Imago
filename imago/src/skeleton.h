@@ -33,6 +33,7 @@ namespace imago
       AROMATIC,
       SINGLE_UP,
       SINGLE_DOWN,
+	  ARROW,
       UNKNOWN
    };
 

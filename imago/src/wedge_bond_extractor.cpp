@@ -32,6 +32,7 @@
 #include "vec2d.h"
 #include "wedge_bond_extractor.h"
 #include "settings.h"
+#include "algebra.h"
 
 using namespace imago;
 
@@ -632,6 +633,52 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 		   return true;
 	   
    return false;
+}
+
+void WedgeBondExtractor::fetchArrows(const Settings& vars, Skeleton &g )
+{
+	Skeleton::SkeletonGraph &graph = g.getGraph();
+	BGL_FORALL_EDGES(e, graph, Skeleton::SkeletonGraph)
+	{
+		BondType edge_type = g.getBondType(e);
+		if(edge_type == BondType::SINGLE_UP)
+		{
+			Skeleton::Vertex b = g.getBondBegin(e);
+			Skeleton::Vertex e_v = g.getBondEnd(e);
+			int b_deg = boost::degree(b, graph);
+			int e_deg = boost::degree(e_v, graph);
+			int min_deg = b_deg < e_deg ? b_deg : e_deg;
+			int max_deg = b_deg > e_deg ? b_deg : e_deg;
+
+			if(min_deg == 1  && max_deg == 2)
+			{
+				Skeleton::Vertex v = b;
+				if(e_deg == 2)
+					v = e_v;
+				std::deque<Skeleton::Vertex> neighbors;
+				boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b_e, e_e;
+				boost::tie(b_e, e_e) = boost::adjacent_vertices(v, graph);
+				neighbors.assign(b_e, e_e);
+
+				for(size_t i = 0; i < neighbors.size(); i++)
+				{
+					if(neighbors[i] != b && neighbors[i] != e_v && 
+						boost::degree(neighbors[i], graph) == 1)
+					{
+						Skeleton::Edge edge = boost::edge(neighbors[i], v, graph).first;
+						if(g.getBondType(edge) == BondType::SINGLE && 
+							Algebra::SegmentsOnSameLine(vars, g.getVertexPos(neighbors[i]), g.getVertexPos(v), 
+																g.getVertexPos(v), g.getVertexPos(b_deg == 1 ? b : e_v)))
+						{//arrow found TODO: do smth
+							g.removeBond(edge);
+							g.removeBond(v, (b_deg == 1 ? b : e_v));
+							g.addBond(neighbors[i], (b_deg == 1 ? b : e_v), BondType::ARROW, true);
+						}
+					}
+				}
+			}
+		}
+	}
 }
 
 WedgeBondExtractor::~WedgeBondExtractor()

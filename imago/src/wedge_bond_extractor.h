@@ -84,6 +84,8 @@ namespace imago
       static bool _radiusFinderPlotCallback( int x, int y, int color, void *userdata );
       static int _doubleCompare( const void *a, const void *b );
 
+	  void fetchArrows(const Settings& vars, Skeleton &g );
+
       struct _Configuration
       {
          char label_first;
