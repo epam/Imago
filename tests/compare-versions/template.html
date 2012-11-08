@@ -23,7 +23,18 @@ function ensureImageGalleryUpdated (objects)
 {
 	if (needUpdateImageGallery)
 	{
-		$('.gal:visible').colorbox({rel:'gal',width:'90%',height:'90%',transition:"none"});
+		$('.gal:visible').colorbox({
+			rel:'gal',
+			width:'90%',
+			height:'90%',
+			transition:"none",
+			title: function() {
+				var id = $(this).attr('id');
+				var molid = 'm' + id.substring(1);
+				var molref = $("#" + molid);
+				return $(this).attr('title') + "  " + '<a href=' + molref.attr('href') + ' download>mol</a>';
+			}
+		});
 		needUpdateImageGallery = false;
 	}
 }

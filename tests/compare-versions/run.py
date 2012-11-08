@@ -49,7 +49,7 @@ imgLastId = 0
 def getImgId ():
     global imgLastId
     imgLastId += 1
-    return "i{id}".format(id=imgLastId)
+    return "{id}".format(id=imgLastId)
       
 def loadMolecule (file):
     all = None
@@ -106,6 +106,27 @@ def subprocess_execute(command, outputfile, timeout):
 
         return returncode   
 
+def renderCollection (img_name, molfile):
+    if os.path.exists(img_name):
+        return img_name
+
+    # Render the image
+    try:
+        collection = loadMoleculeArray(molfile)
+        if collection is not None:
+            nwidth = min(collection.count(), 4)
+            if nwidth > 1:
+                indigo.setOption("render-grid-title-property", "index")
+            else:
+                indigo.setOption("render-grid-title-property", "")
+                
+            renderer.renderGridToFile(collection, None, nwidth, img_name)
+        else:
+            return None
+    except IndigoException as ex:
+        print("IndigoException in rendering: " + str(ex))
+        return None
+        
 class ItemVersion:
     def __init__ (self, base):
         self.base = base
@@ -124,28 +145,7 @@ class ItemVersion:
     def getTimeFile (self):
         return self.timefile
     def getRenderedFile (self):
-        img_name = self.imgfile
-        if os.path.exists(img_name):
-            return img_name
-        
-        # Render the image
-        try:
-            collection = loadMoleculeArray(self.getMolFile())
-            if collection is not None:
-                nwidth = min(collection.count(), 4)
-                if nwidth > 1:
-                    indigo.setOption("render-grid-title-property", "index")
-                else:
-                    indigo.setOption("render-grid-title-property", "")
-                    
-                renderer.renderGridToFile(collection, None, nwidth, img_name)
-            else:
-                return None
-        except IndigoException as ex:
-            print("IndigoException in rendering: " + str(ex))
-            return None
-        
-        return img_name
+        return renderCollection(self.imgfile, self.getMolFile())
             
     def setTime(self, value):
         f = open(self.getTimeFile(), "w")
@@ -179,8 +179,15 @@ class Item:
             self.reference = ref_mol_name
         else:
             self.reference = None
-        
+
+        self.reference_rendered = os.path.join(out_dir, "reference", self.dirname, basename_group + ".mol.png")
+            
         self.versions = dict()
+        
+    def getRenderedReference (self):
+        dirname, photo = os.path.split(self.reference_rendered)
+        createDir(dirname)
+        return renderCollection(self.reference_rendered, self.reference)
         
     def getImageFileName (self):
         return os.path.join(self.dirname, self.photo)
@@ -473,8 +480,9 @@ def generateGroupReport (g, level):
             rendered = item.versions[version].getRenderedFile()
             if rendered:
                 title = item.photo + ": " + getVersionName(version) + " " + sim_cell_value
-                text = "<a href='%s' class='gal' id='%s' title='%s'>%s</a> <a href='%s' class='molref'>.</a>" % (getRefernce(rendered), 
-                    getImgId(), title, sim_cell_value, getRefernce(item.versions[version].getMolFile()))
+                imgId = getImgId()
+                text = "<a href='%s' class='gal' id='i%s' title='%s'>%s</a> <a href='%s' id='m%s' class='molref' download>.</a>" % (getRefernce(rendered), 
+                    imgId, title, sim_cell_value, getRefernce(item.versions[version].getMolFile()), imgId)
             else:
                 text = "%s <a href='%s'>log</a>" % (sim_cell_value, getRefernce(item.versions[version].getLogFile()))
             cls += " " + versions_id[version]
@@ -500,9 +508,16 @@ def generateGroupReport (g, level):
             rowclass.append("rowalmostcorrect")
         
         rowclass = " ".join(rowclass)
-        
-        report_data.write("<tr id='%s' class='%s'><td class='level%d'><a href='%s' id='%s' class='gal' title='%s'>%s</a> <a href='%s' class='molref'>.</a></td>\n" % 
-            (rowid, rowclass, level + 1, getRefernce(item.getImageFileName()), getImgId(), item.photo, item.photo, getRefernce(item.reference)))
+  
+        imgId = getImgId()
+        ref_img = "<a href='%s' id='i%s' class='gal' title='%s'>%s</a>" % (getRefernce(item.getImageFileName()), imgId, item.photo, item.photo)
+        ref_mol = "<a href='%s' id='m%s' class='molref' download>.</a>" % (getRefernce(item.reference), imgId)
+        if item.getRenderedReference():
+            ref_mol_img = "<a href='%s' id='r%s' class='gal ref' title='%s' download>ref</a>" % (getRefernce(item.getRenderedReference()), imgId, item.photo + ': (ref)')
+        else:
+            ref_mol_img = ""
+        report_data.write("<tr id='%s' class='%s'><td class='level%d'>%s %s %s</td>\n" % 
+            (rowid, rowclass, level + 1, ref_img, ref_mol_img, ref_mol))
         report_data.write(rowHTML)
         report_data.write("</tr>\n")
         
