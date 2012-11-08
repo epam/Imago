@@ -123,9 +123,11 @@ def renderCollection (img_name, molfile):
             renderer.renderGridToFile(collection, None, nwidth, img_name)
         else:
             return None
+            
     except IndigoException as ex:
         print("IndigoException in rendering: " + str(ex))
         return None
+    return img_name
         
 class ItemVersion:
     def __init__ (self, base):
