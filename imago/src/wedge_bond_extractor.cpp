@@ -449,6 +449,33 @@ bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex &v,
    return false;
 }
 
+int WedgeBondExtractor::getVertexValence(Skeleton::Vertex &v, Skeleton &mol)
+{
+	std::deque<Skeleton::Vertex> neighbors;
+	boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b_e, e_e;
+				
+	boost::tie(b_e, e_e) = boost::adjacent_vertices(v, mol.getGraph());
+	neighbors.assign(b_e, e_e);
+
+	int retVal = 0;
+
+	for(size_t i = 0; i < neighbors.size(); i++)
+	{
+		Skeleton::Edge edge = boost::edge(neighbors[i], v, mol.getGraph()).first;
+		BondType bType = mol.getBondType(edge);
+		switch(bType)
+		{
+		case BondType::DOUBLE:
+			retVal += 2;
+		case BondType::TRIPLE:
+			retVal += 3;
+		default:
+			retVal++;	
+		}
+	}
+	return retVal;
+}
+
 void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
 {   
 	logEnterFunction();
@@ -480,21 +507,33 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
 
       BGL_FORALL_EDGES(b, graph, Skeleton::SkeletonGraph)
       {
-         if (_isSingleUp(vars, g, b))
+		  Skeleton::Vertex v1 = boost::source(b, graph),
+			  v2 = boost::target(b, graph);
+		 
+		 BondType bond_type = SINGLE;
+
+         if (_isSingleUp(vars, g, b, bond_type))
          {
+			 if(bond_type == WEDGE)
+			 {
+				 int b_val =  getVertexValence(v1, g);
+				 int e_val = getVertexValence(v2, g);
+				 if(e_val == b_val)
+					 continue;
+			 }
             count++;
-            g.setBondType(b, SINGLE_UP);
+            g.setBondType(b, bond_type);
          }
       }
 
       _thicknesses.clear();
       _bfs_state.clear();
    }
-
+   CurateSingleUpBonds(g);
    getLogExt().append("Single-up bonds", count);
 }
 
-bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton::Edge &e1 )
+bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton::Edge &e1, BondType &return_type )
 {
 	logEnterFunction();
 	
@@ -626,13 +665,79 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 		   _bfs_state[y * w + x] = 0;
    }
 
-   if( abs(b_coeff) > vars.wbe.SingleUpSlopeThresh && max_val > vars.dynamic.LineThickness)
+   if( abs(b_coeff) > vars.wbe.SingleUpSlopeThresh && y_mean > vars.dynamic.LineThickness)
+   {
+	   return_type = BondType::SINGLE_UP;
 	   return true;
+   }
    else
 	   if( y_mean / vars.dynamic.LineThickness > vars.wbe.SingleUpThickThresh)
+	   {
+		   return_type = BondType::WEDGE;
 		   return true;
-	   
+	   }
    return false;
+}
+
+void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
+{
+	Skeleton::SkeletonGraph &g = graph.getGraph();
+	BGL_FORALL_EDGES(e, g, Skeleton::SkeletonGraph)
+	{
+		BondType edge_type = graph.getBondType(e);
+		if(edge_type == BondType::WEDGE)
+		{
+			Skeleton::Vertex b_v = graph.getBondBegin(e);
+			Skeleton::Vertex e_v = graph.getBondEnd(e);
+			bool has_single_begin = false,
+				has_single_end = false;
+
+			std::deque<Skeleton::Vertex> neighbors;
+			boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b_e, e_e;
+			boost::tie(b_e, e_e) = boost::adjacent_vertices(b_v, g);
+			neighbors.assign(b_e, e_e);
+			
+			//check edges from beginning vertex
+			for(size_t i = 0; i < neighbors.size(); i++)
+			{
+				if(neighbors[i] != e_v)
+				{
+					Skeleton::Edge edge = boost::edge(neighbors[i], b_v, g).first;
+					if(graph.getBondType(edge) == BondType::SINGLE_UP)
+					{
+						has_single_begin = true;
+						break;
+					}
+				}
+			}
+
+			//check edges from ending vertex
+			boost::tie(b_e, e_e) = boost::adjacent_vertices(e_v, g);
+			neighbors.assign(b_e, e_e);
+			for(size_t i = 0; i < neighbors.size(); i++)
+			{
+				if(neighbors[i] != b_v)
+				{
+					Skeleton::Edge edge = boost::edge(neighbors[i], e_v, g).first;
+					if(graph.getBondType(edge) == BondType::SINGLE_UP)
+					{
+						has_single_end = true;
+						break;
+					}
+				}
+			}
+
+			if( has_single_begin && has_single_end)
+				graph.setBondType(e, BondType::SINGLE);
+		}
+	}
+
+	BGL_FORALL_EDGES(e, g, Skeleton::SkeletonGraph)
+	{
+		BondType edge_type = graph.getBondType(e);
+		if(edge_type == BondType::WEDGE)
+			graph.setBondType(e, BondType::SINGLE_UP);
+	}
 }
 
 void WedgeBondExtractor::fetchArrows(const Settings& vars, Skeleton &g )

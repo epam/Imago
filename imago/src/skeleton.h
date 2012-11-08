@@ -34,6 +34,7 @@ namespace imago
       SINGLE_UP,
       SINGLE_DOWN,
 	  ARROW,
+	  WEDGE,
       UNKNOWN
    };
 
