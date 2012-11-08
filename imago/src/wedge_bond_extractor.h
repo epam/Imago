@@ -79,7 +79,7 @@ namespace imago
       void _fitSingleDownBorders( Vec2d &p1, Vec2d &p2, Vec2d &v1, Vec2d &v2 );
       static bool _intersectionFinderPlotCallBack( int x, int y, int color, void *userdata );	  
       
-      bool _isSingleUp(const Settings& vars, Skeleton &g, Skeleton::Edge &e );
+      bool _isSingleUp(const Settings& vars, Skeleton &g, Skeleton::Edge &e, BondType &return_type);
       int _radiusFinder( const Vec2d &v );
       static bool _radiusFinderPlotCallback( int x, int y, int color, void *userdata );
       static int _doubleCompare( const void *a, const void *b );
@@ -103,6 +103,9 @@ namespace imago
       double _mean_thickness;
       std::vector<byte> _bfs_state;
       double _bond_length;
+
+	  int getVertexValence(Skeleton::Vertex &v, Skeleton &mol);
+	  void CurateSingleUpBonds(Skeleton &graph);
 
       struct _CircleContext
       {
