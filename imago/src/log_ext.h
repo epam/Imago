@@ -109,6 +109,9 @@ namespace imago
 		void appendMat(const std::string& caption, const cv::Mat& mat);
 		void appendSegment(const std::string& name, const Segment& seg);
 		void appendPoints(const std::string& name, const Points2i& pts);
+		
+		std::string generateImageName(std::string* html_name = NULL);
+		void appendImageFile(const std::string& caption, const std::string& file);   
 
 		void appendGraph(const Settings& vars, const std::string& name, const segments_graph::SegmentsGraph& g);
 		void appendSkeleton(const Settings& vars, const std::string& name, const Skeleton::SkeletonGraph& g);   
@@ -127,8 +130,7 @@ namespace imago
 		std::vector<FunctionRecord> Stack;
 
 		void appendImageInternal(const std::string& caption, const Image& img);   
-		std::string generateAnchor(const std::string& name);
-		std::string generateImageName(std::string* html_name = NULL);
+		std::string generateAnchor(const std::string& name);		
 		std::string getStringPrefix(bool paragraph = false) const;
 		std::string filterHtml(const std::string source) const;
 		void dump(const std::string& data);

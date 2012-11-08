@@ -94,6 +94,15 @@ namespace imago
 		LOG_TIME_END;
 	}
 
+	void log_ext::appendImageFile(const std::string& caption, const std::string& htmlName)
+	{
+		std::string table = "<table style=\"display:inline;\"><tbody><tr>";		
+		table += "<td>" + filterHtml(caption) + "</td>";
+		table += "<td><img src=\"file:" + htmlName + "\" /></td>";
+		table += "</tr></tbody></table>";      
+		dump(getStringPrefix() + table);
+	}
+
 	void log_ext::appendImageInternal(const std::string& caption, const Image& img)
 	{		
 		std::string htmlName;
@@ -101,12 +110,7 @@ namespace imago
 		
 		dumpImage(imageName, img);
 
-		std::string table = "<table style=\"display:inline;\"><tbody><tr>";		
-		table += "<td>" + filterHtml(caption) + "</td>";
-		table += "<td><img src=\"file:" + htmlName + "\" /></td>";
-		table += "</tr></tbody></table>";
-      
-		dump(getStringPrefix() + table);
+		appendImageFile(caption, htmlName);		
 	}
    
 	void log_ext::appendGraph(const Settings& vars, const std::string& name, const segments_graph::SegmentsGraph& g)

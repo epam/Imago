@@ -6,6 +6,13 @@
 #include "superatom_expansion.h"
 #include "log_ext.h"
 #include "image_utils.h"
+#include "indigo.h"
+#include "indigo-renderer.h"
+
+// Required for indigo-renderer:
+#ifdef _WIN32
+#pragma comment(lib, "msimg32.lib")
+#endif
 
 namespace recognition_helpers
 {
@@ -137,6 +144,8 @@ namespace recognition_helpers
 	int performFileAction(bool verbose, imago::Settings& vars, const std::string& imageName, const std::string& configName,
 						  const std::string& outputName)
 	{
+		logEnterFunction();
+
 		int result = 0; // ok mark
 		imago::VirtualFS vfs;
 
@@ -174,6 +183,19 @@ namespace recognition_helpers
 				RecognitionResult result = recognizeImage(verbose, vars, image, configName);		
 				imago::FileOutput fout(outputName.c_str());
 				fout.writeString(result.molecule.c_str());
+				if (imago::getLogExt().loggingEnabled())
+				{
+					int molObj = indigoLoadMoleculeFromString(result.molecule.c_str());
+					if (molObj != -1)
+					{
+						indigoSetOption("render-output-format", "png");
+						indigoSetOption("render-background-color", "255, 255, 255");
+						std::string outputImg = imago::getLogExt().generateImageName();
+						indigoRenderToFile(molObj, outputImg.c_str());
+						imago::getLogExt().appendImageFile("Result image:", outputImg);
+						indigoFree(molObj);
+					}
+				}
 			}
 
 		}
