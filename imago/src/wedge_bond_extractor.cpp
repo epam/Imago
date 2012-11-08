@@ -552,10 +552,11 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 
    if (Vec2d::distance(bb, ee) < _bond_length * coef)
       return false;
-   
+   double interpolation_factor = 0.1;
+
    Vec2d b(bb), e(ee);
-   b.interpolate(bb, ee, vars.wbe.SingleUpInterpolateEps);
-   e.interpolate(ee, bb, vars.wbe.SingleUpInterpolateEps);
+   b.interpolate(bb, ee, interpolation_factor); //vars.wbe.SingleUpInterpolateEps);
+   e.interpolate(ee, bb, interpolation_factor); //vars.wbe.SingleUpInterpolateEps);
    b.x = round(b.x);
    b.y = round(b.y);
    e.x = round(e.x);
@@ -618,9 +619,12 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
    getLogExt().appendImage("image profile", img);
 
    double y_mean = 0, x_mean = 0;
-   int psize = profile.size() - 1;
+   int startProfile = vars.wbe.SingleUpInterpolateEps * profile.size();
+   int endProfile = profile.size() - startProfile;
    
-   for(size_t i = 1; i < profile.size(); i++)
+   int psize = endProfile - startProfile;//(profile.size() - 1);
+   
+   for(size_t i = startProfile; i < endProfile; i++)
    {
 	   
 	   if( profile[i] == 0)
@@ -641,7 +645,7 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 
    double Sxx=0, Sxy=0;
    double max_val = 0;
-   for(size_t i = 1; i < profile.size(); i++)
+   for(size_t i = startProfile; i < (startProfile + psize); i++)
    {
 	   if(profile[i] != 0 )
 	   {
