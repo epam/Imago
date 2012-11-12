@@ -35,6 +35,7 @@ namespace imago
       SINGLE_DOWN,
 	  ARROW,
 	  WEDGE,
+	  SINGLE_UP_C, // single up bonds that need to be checked
       UNKNOWN
    };
 

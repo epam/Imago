@@ -98,6 +98,7 @@ namespace imago
       bool _checkStereoCenter( Skeleton::Vertex &v, Molecule &mol );
 
       std::map<Skeleton::Vertex, int> _thicknesses;
+	  std::vector<Skeleton::Edge> _bonds_to_reverse;
 
       //std::vector<int> _thicknesses;
       double _mean_thickness;

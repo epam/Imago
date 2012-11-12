@@ -580,6 +580,7 @@ restart:
 				throw ImagoException("Timelimit exceeded");
 
 			wbe.fixStereoCenters(mol);
+			
 		
 			if (vars.checkTimeLimit())
 				throw ImagoException("Timelimit exceeded");

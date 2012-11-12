@@ -349,7 +349,7 @@ void WedgeBondExtractor::fixStereoCenters( Molecule &mol )
       Bond b_bond = boost::get(boost::edge_type, graph, b);
       BondType type = b_bond.type;
 
-      if (type == SINGLE_DOWN || type == SINGLE_UP)
+      if (type == SINGLE_DOWN || type == SINGLE_UP_C)
       {
          bool begin_stereo = false, end_stereo = false;         
          Skeleton::Vertex v1 = boost::source(b, graph), 
@@ -368,14 +368,57 @@ void WedgeBondExtractor::fixStereoCenters( Molecule &mol )
 
             if (end_stereo && !begin_stereo)
                to_reverse_bonds.push_back(b);
-         }         
+         }       
+		 else
+			 if(type == SINGLE_UP_C)
+				 mol.setBondType(b, SINGLE_UP);
       }
    }
 
    BOOST_FOREACH( Skeleton::Edge e, to_reverse_bonds )
    {
-      mol.reverseEdge(e);
+	   Bond b_bond = boost::get(boost::edge_type, graph, e);
+	   BondType type = b_bond.type;
+
+	   if (type == SINGLE_UP_C)
+		   mol.setBondType(e, SINGLE_UP);
+      
+	   mol.reverseEdge(e);
    }
+
+   if(getLogExt().loggingEnabled())
+	{
+		std::map<std::string, int> bondtypes;
+		BGL_FORALL_EDGES(b, graph, Skeleton::SkeletonGraph)
+		{
+			BondType bt = mol.getBondType(b);
+			std::string bts;
+			switch(bt){
+			case SINGLE: bts = "SINGLE";
+				break;
+			case DOUBLE: bts = "DOUBLE";
+				break;
+			case TRIPLE: bts = "TRIPLE";
+				break;
+			case AROMATIC: bts = "AROMATIC";
+				break;
+			case SINGLE_UP: bts = "SINGLE_UP";
+				break;
+			case SINGLE_DOWN: bts = "SINGLE_DOWN";
+				break;
+			case ARROW: bts = "ARROW";
+				break;
+			case WEDGE: bts = "WEDGE";
+				break;
+			case SINGLE_UP_C: bts = "SINGLE_UP_C";
+				break;
+			case UNKNOWN: bts = "UNKNOWN";
+				break;
+			}
+			bondtypes[bts]++;
+		}
+		getLogExt().appendMap("bond types", bondtypes);
+	}
 }
 
 bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex &v, 
@@ -529,6 +572,11 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
       _thicknesses.clear();
       _bfs_state.clear();
    }
+
+   for(size_t i = 0; i < _bonds_to_reverse.size(); i++)
+   {
+	   g.reverseEdge(_bonds_to_reverse[i]);
+   }
    CurateSingleUpBonds(g);
    getLogExt().append("Single-up bonds", count);
 }
@@ -544,7 +592,10 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 
    Vec2d bb = g.getVertexPos(g.getBondBegin(e1));
    Vec2d ee = g.getVertexPos(g.getBondEnd(e1));
-
+   int r1 = _thicknesses[g.getBondBegin(e1)],
+	   r2 = _thicknesses[g.getBondEnd(e1)];
+   int max_r = r1 > r2 ? r1 : r2;
+   int min_r = r1 < r2 ? r1 : r2;
 
    double coef = vars.wbe.SingleUpDefCoeff;
    if (_bond_length < vars.wbe.SingleUpIncLengthTresh)
@@ -669,9 +720,11 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 		   _bfs_state[y * w + x] = 0;
    }
 
-   if( abs(b_coeff) > vars.wbe.SingleUpSlopeThresh && y_mean > vars.dynamic.LineThickness)
+   if( abs(b_coeff) > vars.wbe.SingleUpSlopeThresh && (y_mean > vars.dynamic.LineThickness || max_r / min_r > 2) )
    {
 	   return_type = BondType::SINGLE_UP;
+	   if( b_coeff < 0 )
+		   _bonds_to_reverse.push_back(e1);//g.reverseEdge(e1);
 	   return true;
    }
    else
@@ -689,6 +742,15 @@ void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 	BGL_FORALL_EDGES(e, g, Skeleton::SkeletonGraph)
 	{
 		BondType edge_type = graph.getBondType(e);
+		if(edge_type = BondType::SINGLE_UP)
+		{
+			Skeleton::Vertex b_v = graph.getBondBegin(e);
+			Skeleton::Vertex e_v = graph.getBondEnd(e);
+			int v1 = getVertexValence(b_v, graph),
+				v2 = getVertexValence(e_v, graph);
+			if(v1 == v2 && v1 == 1)
+				graph.setBondType(e, BondType::SINGLE);
+		}
 		if(edge_type == BondType::WEDGE)
 		{
 			Skeleton::Vertex b_v = graph.getBondBegin(e);
@@ -740,7 +802,7 @@ void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 	{
 		BondType edge_type = graph.getBondType(e);
 		if(edge_type == BondType::WEDGE)
-			graph.setBondType(e, BondType::SINGLE_UP);
+			graph.setBondType(e, BondType::SINGLE_UP_C);
 	}
 }
 
