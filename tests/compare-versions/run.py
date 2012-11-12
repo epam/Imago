@@ -107,6 +107,10 @@ def subprocess_execute(command, outputfile, timeout):
         return returncode   
 
 def renderCollection (img_name, molfile):
+    if molfile is None:
+        warnings.write("None has been passed to renderCollection. Img=%s\n" % (img_name))
+        return None
+        
     if not os.path.exists(molfile):
         warnings.write("There are no file: %s\n" % (molfile))
         return None
