@@ -107,6 +107,10 @@ def subprocess_execute(command, outputfile, timeout):
         return returncode   
 
 def renderCollection (img_name, molfile):
+    if not os.path.exists(molfile):
+        warnings.write("There are no file: %s\n" % (molfile))
+        return None
+        
     if os.path.exists(img_name):
         # Check timestamp
         t1 = os.path.getmtime(molfile)
@@ -130,6 +134,7 @@ def renderCollection (img_name, molfile):
             
     except IndigoException as ex:
         print("IndigoException in rendering: " + str(ex))
+        warnings.write("IndigoException in rendering: " + str(ex) + "\n")
         return None
     return img_name
         
