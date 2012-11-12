@@ -108,7 +108,11 @@ def subprocess_execute(command, outputfile, timeout):
 
 def renderCollection (img_name, molfile):
     if os.path.exists(img_name):
-        return img_name
+        # Check timestamp
+        t1 = os.path.getmtime(molfile)
+        t2 = os.path.getmtime(img_name)
+        if os.path.getmtime(molfile) < os.path.getmtime(img_name):
+            return img_name
 
     # Render the image
     try:
@@ -163,6 +167,9 @@ class ItemVersion:
         except ValueError,e:
             print "error",e,"in getTime()"
             return 666.0
+            
+    def getTimestamp ():
+        return os.path.getmtime(self.getTimeFile())
         
     def exists (self):
         return os.path.exists(self.getTimeFile())
@@ -512,7 +519,7 @@ def generateGroupReport (g, level):
         rowclass = " ".join(rowclass)
   
         imgId = getImgId()
-        ref_img = "<a href='%s' id='i%s' class='gal' title='%s'>%s</a>" % (getRefernce(item.getImageFileName()), imgId, item.photo, item.photo)
+        ref_img = "<a href='%s' id='i%s' class='gal imgref' title='%s'>%s</a>" % (getRefernce(item.getImageFileName()), imgId, item.photo, item.photo)
         ref_mol = "<a href='%s' id='m%s' class='molref' download>.</a>" % (getRefernce(item.reference), imgId)
         if item.getRenderedReference():
             ref_mol_img = "<a href='%s' id='r%s' class='gal ref' title='%s' download>ref</a>" % (getRefernce(item.getRenderedReference()), imgId, item.photo + ': (ref)')

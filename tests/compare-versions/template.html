@@ -24,6 +24,7 @@ function ensureImageGalleryUpdated (objects)
 	if (needUpdateImageGallery)
 	{
 		$('.gal:visible').colorbox({
+			returnFocus:false,
 			rel:'gal',
 			width:'90%',
 			height:'90%',
@@ -33,6 +34,9 @@ function ensureImageGalleryUpdated (objects)
 				var molid = 'm' + id.substring(1);
 				var molref = $("#" + molid);
 				return $(this).attr('title') + "  " + '<a href=' + molref.attr('href') + ' download>mol</a>';
+			},
+			onComplete:function() {
+				$(this).focus();
 			}
 		});
 		needUpdateImageGallery = false;
@@ -89,6 +93,16 @@ $(function() {
 	});
 	
 	$('#spinner').hide();
+	
+	var container = $('#hideColumnsContainer');
+	for(i=0; i<versions.length; i++)
+	{
+		var id = 'hide' + versions[i];
+		container.append('<input type="checkbox" id="' + id + '" onclick="onHideColumns()">' + versionNames[versions[i]] + '</input>');
+	}
+	
+	$('#hideReference').prop('checked', true);
+	hideColumns();
 });
 
 function onFilter ()
@@ -102,6 +116,7 @@ function onFilterFunc ()
 	$(".row").css('display', '');
 	hideOnFilter();
 	hideOnCompare();
+	hideColumns();
 	updateImageGallery();
 
 	$('#spinner').hide();
@@ -117,6 +132,34 @@ function onFilterColumnOptions ()
 {
 	if ($('#filterColumn').is(':checked'))
 		onFilter();
+}
+
+function onHideColumns ()
+{
+	onFilter();
+}
+
+function hideCss (checkId, css, onVisible)
+{
+	var display;
+	if ($(checkId).is(':checked'))
+		display = 'none';
+	else
+		display = onVisible;
+	$(css).css('display', display);
+}
+
+function hideColumns ()
+{
+	hideCss('#hideReference', '.ref', 'inline')
+	
+	for(i=0; i<versions.length; i++)
+	{
+		var cb = '#hide' + versions[i];
+		var cls = "." + versions[i];
+		if ($(cb).is(':checked'))
+			$(cls).css('display', 'none');
+	}
 }
 
 function hideOnCompare ()
@@ -234,6 +277,13 @@ $TOC$
 			<option value=">">Worse</option>
 			<option value="=">Same</option>
 		</select>
+	</div>
+</div>
+<div>
+	Hide
+	<br />
+	<div id='hideColumnsContainer' style="margin-left:45px;">
+		<input type="checkbox" id="hideReference" onclick="onHideColumns()">reference</input>
 	</div>
 </div>
 		
