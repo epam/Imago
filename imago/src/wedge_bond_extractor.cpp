@@ -36,6 +36,44 @@
 
 using namespace imago;
 
+void edge_summary(Skeleton g)
+{
+	if(getLogExt().loggingEnabled())
+	{
+		std::map<std::string, int> bondtypes;
+		Skeleton::SkeletonGraph graph = g.getGraph();
+		BGL_FORALL_EDGES(b, graph, Skeleton::SkeletonGraph)
+		{
+			BondType bt = g.getBondType(b);
+			std::string bts;
+			switch(bt){
+			case SINGLE: bts = "SINGLE";
+				break;
+			case BondType::DOUBLE: bts = "DOUBLE";
+				break;
+			case TRIPLE: bts = "TRIPLE";
+				break;
+			case AROMATIC: bts = "AROMATIC";
+				break;
+			case SINGLE_UP: bts = "SINGLE_UP";
+				break;
+			case SINGLE_DOWN: bts = "SINGLE_DOWN";
+				break;
+			case ARROW: bts = "ARROW";
+				break;
+			case WEDGE: bts = "WEDGE";
+				break;
+			case SINGLE_UP_C: bts = "SINGLE_UP_C";
+				break;
+			case UNKNOWN: bts = "UNKNOWN";
+				break;
+			}
+			bondtypes[bts]++;
+		}
+		getLogExt().appendMap("bond types", bondtypes);
+	}
+}
+
 WedgeBondExtractor::WedgeBondExtractor( SegmentDeque &segs, Image &img ) : _segs(segs), _img(img)
 {
 }
@@ -385,40 +423,6 @@ void WedgeBondExtractor::fixStereoCenters( Molecule &mol )
       
 	   mol.reverseEdge(e);
    }
-
-   if(getLogExt().loggingEnabled())
-	{
-		std::map<std::string, int> bondtypes;
-		BGL_FORALL_EDGES(b, graph, Skeleton::SkeletonGraph)
-		{
-			BondType bt = mol.getBondType(b);
-			std::string bts;
-			switch(bt){
-			case SINGLE: bts = "SINGLE";
-				break;
-			case DOUBLE: bts = "DOUBLE";
-				break;
-			case TRIPLE: bts = "TRIPLE";
-				break;
-			case AROMATIC: bts = "AROMATIC";
-				break;
-			case SINGLE_UP: bts = "SINGLE_UP";
-				break;
-			case SINGLE_DOWN: bts = "SINGLE_DOWN";
-				break;
-			case ARROW: bts = "ARROW";
-				break;
-			case WEDGE: bts = "WEDGE";
-				break;
-			case SINGLE_UP_C: bts = "SINGLE_UP_C";
-				break;
-			case UNKNOWN: bts = "UNKNOWN";
-				break;
-			}
-			bondtypes[bts]++;
-		}
-		getLogExt().appendMap("bond types", bondtypes);
-	}
 }
 
 bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex &v, 
@@ -547,7 +551,7 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
 
       std::sort(iqm_thick.begin(), iqm_thick.end());
       _mean_thickness = StatUtils::interMean(iqm_thick.begin(), iqm_thick.end());
-
+	 
       BGL_FORALL_EDGES(b, graph, Skeleton::SkeletonGraph)
       {
 		  Skeleton::Vertex v1 = boost::source(b, graph),
@@ -577,7 +581,10 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
    {
 	   g.reverseEdge(_bonds_to_reverse[i]);
    }
+   _bonds_to_reverse.clear();
+
    CurateSingleUpBonds(g);
+   
    getLogExt().append("Single-up bonds", count);
 }
 
@@ -742,7 +749,7 @@ void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 	BGL_FORALL_EDGES(e, g, Skeleton::SkeletonGraph)
 	{
 		BondType edge_type = graph.getBondType(e);
-		if(edge_type = BondType::SINGLE_UP)
+		if(edge_type == BondType::SINGLE_UP)
 		{
 			Skeleton::Vertex b_v = graph.getBondBegin(e);
 			Skeleton::Vertex e_v = graph.getBondEnd(e);
