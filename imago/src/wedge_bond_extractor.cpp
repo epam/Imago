@@ -36,7 +36,7 @@
 
 using namespace imago;
 
-void edge_summary(Skeleton g)
+void edge_summary(imago::Skeleton &g)
 {
 	if(getLogExt().loggingEnabled())
 	{
@@ -381,7 +381,6 @@ void WedgeBondExtractor::fixStereoCenters( Molecule &mol )
    Skeleton::SkeletonGraph &graph = mol.getSkeleton();
    const Molecule::ChemMapping &labels = mol.getMappedLabels();
    std::vector<Skeleton::Edge> to_reverse_bonds;
-
    BGL_FORALL_EDGES(b, graph, Skeleton::SkeletonGraph)
    {
       Bond b_bond = boost::get(boost::edge_type, graph, b);
@@ -584,7 +583,7 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
    _bonds_to_reverse.clear();
 
    CurateSingleUpBonds(g);
-   
+   edge_summary(g);
    getLogExt().append("Single-up bonds", count);
 }
 

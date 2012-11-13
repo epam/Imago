@@ -572,9 +572,9 @@ restart:
 
 			if (vars.checkTimeLimit())
 				throw ImagoException("Timelimit exceeded");
-
+			
+			
 			mol.aromatize(ringCenters);
-			//mol._connectBridgedBonds();
 
 			if (vars.checkTimeLimit())
 				throw ImagoException("Timelimit exceeded");
