@@ -171,6 +171,48 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
             nearest.push_back(boost::target(e, _g));
 	  }
 
+	  BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
+	  {
+		  if(boost::degree(v, _g) != 2)
+			  continue;
+		  if(!testNear(boost::get(positions, v), l.rect, space2/2))
+			  continue;
+
+		  std::deque<Skeleton::Vertex> neighbors;
+		  boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b_e, e_e;
+		  boost::tie(b_e, e_e) = boost::adjacent_vertices(v, _g);
+		  neighbors.assign(b_e, e_e);
+
+		  Skeleton::Edge edge1 = boost::edge(neighbors[0], v, _g).first;
+		  Skeleton::Edge edge2 = boost::edge(neighbors[1], v, _g).first;
+		  BondType t1 = getBondType(edge1);
+		  BondType t2 = getBondType(edge2);
+
+		  if( t1 != SINGLE || t2 != SINGLE)
+			  continue;
+
+		  Vec2d p_v = boost::get(positions, v);
+		  Vec2d p1 = boost::get(positions, neighbors[0]);
+		  Vec2d p2 = boost::get(positions, neighbors[1]);
+
+		  Vec2d ap1, ap2;
+		  ap1.diff(p1, p_v);
+		  ap2.diff(p2, p_v);
+
+		  if( testCollision(p1, p_v, l.rect) && 
+			  testCollision(p2, p_v, l.rect) &&
+			  testNear(p_v, l.rect, space) &&
+			  !testNear( p1, l.rect, space) &&
+			  !testNear( p2, l.rect, space) )
+		  {
+			
+			  removeBond(edge1);
+			  Vertex v_d = addVertex( p_v );
+			  addBond(neighbors[0], v_d, SINGLE, true);
+			  nearest.push_back(v_d);
+			  nearest.push_back(v);
+		  }
+	  }
 
       int s = nearest.size();
       if (s == 0)
