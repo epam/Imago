@@ -85,14 +85,14 @@ DoubleBondMaker::Result DoubleBondMaker::_simple()
       boost::remove_edge(second, _g);
       boost::remove_vertex(sb, _g);
       boost::remove_vertex(se, _g);
-      _s.setBondType(first, DOUBLE);
+      _s.setBondType(first, BT_DOUBLE);
    }
    else if ((dsb > 1 || dse > 1) && dfb == 1 && dfe == 1)
    {
       boost::remove_edge(first, _g);
       boost::remove_vertex(fb, _g);
       boost::remove_vertex(fe, _g);
-      _s.setBondType(second, DOUBLE);
+      _s.setBondType(second, BT_DOUBLE);
    }
    else
    {
@@ -126,7 +126,7 @@ DoubleBondMaker::Result DoubleBondMaker::_simple()
          boost::remove_vertex(v, _g);
       }
 
-	  _s.addBond(nb, ne, DOUBLE);
+	  _s.addBond(nb, ne, BT_DOUBLE);
    }
 
    return make_tuple(0, empty, empty);
@@ -157,7 +157,7 @@ DoubleBondMaker::Result DoubleBondMaker::_hard()
    {
       Vertex v1 = _s.addVertex(p1), v2 = _s.addVertex(p2);
       Edge e1 = _s.addBond(fb, v1);
-      _s.addBond(v1, v2, DOUBLE);
+      _s.addBond(v1, v2, BT_DOUBLE);
       Edge e2 = _s.addBond(v2, fe);
       return boost::make_tuple(2, e1, e2);
    }
@@ -165,13 +165,13 @@ DoubleBondMaker::Result DoubleBondMaker::_hard()
    {
       Vertex v = _s.addVertex(p1);
       Edge e1 = _s.addBond(fb, v);
-      Edge e2 = _s.addBond(v, fe, DOUBLE);
+      Edge e2 = _s.addBond(v, fe, BT_DOUBLE);
       return boost::make_tuple(1, e1, empty);
    }
    else if (right)
    {
       Vertex v = _s.addVertex(p2);
-      Edge e1 = _s.addBond(fb, v, DOUBLE);
+      Edge e1 = _s.addBond(fb, v, BT_DOUBLE);
       Edge e2 = _s.addBond(v, fe);
       return boost::make_tuple(1, e2, empty);
    }

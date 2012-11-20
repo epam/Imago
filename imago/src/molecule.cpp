@@ -188,7 +188,7 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 		  BondType t1 = getBondType(edge1);
 		  BondType t2 = getBondType(edge2);
 
-		  if( t1 != SINGLE || t2 != SINGLE)
+		  if( t1 != BT_SINGLE || t2 != BT_SINGLE)
 			  continue;
 
 		  Vec2d p_v = boost::get(positions, v);
@@ -208,7 +208,7 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 			
 			  removeBond(edge1);
 			  Vertex v_d = addVertex( p_v );
-			  addBond(neighbors[0], v_d, SINGLE, true);
+			  addBond(neighbors[0], v_d, BT_SINGLE, true);
 			  nearest.push_back(v_d);
 			  nearest.push_back(v);
 		  }
@@ -364,7 +364,7 @@ void Molecule::aromatize( Points2d &aromatic_centers )
       //TODO: Aromatizing only closed contours! Not sure if it's true.
       if (cur_vertex == begin_vertex)
          BOOST_FOREACH( Edge e, aromatized_bonds )
-            setBondType(e, AROMATIC);
+            setBondType(e, BT_AROMATIC);
 
       aromatized_bonds.clear();
    }

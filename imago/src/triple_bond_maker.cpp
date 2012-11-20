@@ -137,7 +137,7 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
       Vertex v1 = _s.addVertex(p1), v2 = _s.addVertex(p2);
 
       Edge e1 = _s.addBond(fb, v1),
-           e2 = _s.addBond(v1, v2, TRIPLE),
+           e2 = _s.addBond(v1, v2, BT_TRIPLE),
            e3 = _s.addBond(v2, fe);
 
       ret = boost::make_tuple(2, e1, e3);
@@ -146,8 +146,8 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
    {
       Vertex v = _s.addVertex(p1);
 
-      Edge e1 = _s.addBond(fb, v, SINGLE),
-           e2 = _s.addBond(v, fe, TRIPLE);
+      Edge e1 = _s.addBond(fb, v, BT_SINGLE),
+           e2 = _s.addBond(v, fe, BT_TRIPLE);
       
       ret = boost::make_tuple(1, e1, empty);
    }
@@ -155,8 +155,8 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
    {
       Vertex v = _s.addVertex(p2);
       
-      Edge e1 = _s.addBond(fb, v, TRIPLE),
-           e2 = _s.addBond(v, fe, SINGLE);
+      Edge e1 = _s.addBond(fb, v, BT_TRIPLE),
+           e2 = _s.addBond(v, fe, BT_SINGLE);
       ret = boost::make_tuple(1, e2, empty);
    }
    else
@@ -189,7 +189,7 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
       toRemove.insert(tb);
       toRemove.insert(te);
       
-      Edge e = _s.addBond(v1, v2, TRIPLE);
+      Edge e = _s.addBond(v1, v2, BT_TRIPLE);
 
       ret = boost::make_tuple(0, empty, empty);
    }

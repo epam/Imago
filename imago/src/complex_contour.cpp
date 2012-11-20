@@ -306,7 +306,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 		   imago::Skeleton::Vertex vEnd = graph.addVertex(lines[i]);
 		   try
 		   {
-			   graph.addBond(vStart, vEnd, SINGLE, true);
+			   graph.addBond(vStart, vEnd, BT_SINGLE, true);
 		   }// no need to add already existing edge - continue
 		   catch(LogicException ex)
 		   {
@@ -317,7 +317,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 
 	   try
 	   {
-		   graph.addBond(vStart, vStart1, SINGLE, true);
+		   graph.addBond(vStart, vStart1, BT_SINGLE, true);
 	   }// no need to add already existing edge
 	   catch(LogicException ex)
 	   {
