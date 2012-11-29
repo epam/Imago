@@ -215,8 +215,8 @@ void MolfileSaver::_writeCtab(const Settings& vars)
       int begin = mapping.find(boost::source(e, graph))->second,
           end = mapping.find(boost::target(e, graph))->second;
 
-      if (type == SINGLE_DOWN || type == SINGLE_UP)
-         _out.printf("M  V30 %d %d %d %d", j++, SINGLE, begin, end);
+      if (type == BT_SINGLE_DOWN || type == BT_SINGLE_UP)
+         _out.printf("M  V30 %d %d %d %d", j++, BT_SINGLE, begin, end);
       else
          _out.printf("M  V30 %d %d %d %d", j++, type, begin, end);
 
@@ -224,10 +224,10 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 
       switch (type)
       {
-      case SINGLE_UP:
+      case BT_SINGLE_UP:
          _out.printf(" CFG=1\n");
          break;
-      case SINGLE_DOWN:
+      case BT_SINGLE_DOWN:
          _out.printf(" CFG=3\n");
          break;
       default:

@@ -478,14 +478,14 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 			  if(edge_len < _avg_bond_length * (coeff))
 			  {
 				  BondType type = getBondType(edge);
-				  if(pb_e && !state_conected_b && type == SINGLE)
+				  if(pb_e && !state_conected_b && type == BT_SINGLE)
 				  {
 					  _reconnectBonds(beg, end);
 					  boost::remove_vertex(beg, _g);
 					  return true;
 					  
 				  }
-				  if(pb_b && !state_conected_e && type == SINGLE)
+				  if(pb_b && !state_conected_e && type == BT_SINGLE)
 				  {
 					  _reconnectBonds(end, beg);
 					  boost::remove_vertex(end, _g);
@@ -610,7 +610,7 @@ bool Skeleton::_dissolveIntermediateVertices (const Settings& vars)
       boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
       boost::tie(b, e) = boost::adjacent_vertices(to_dissolve, _g);
       neighbors.assign(b, e);
-      addBond(neighbors[0], neighbors[1], SINGLE);
+      addBond(neighbors[0], neighbors[1], BT_SINGLE);
       boost::clear_vertex(to_dissolve, _g); 
       boost::remove_vertex(to_dissolve, _g);
       return true;
@@ -631,7 +631,7 @@ void Skeleton::_findMultiple(const Settings& vars)
    boost::graph_traits<SkeletonGraph>::edge_iterator ei, ei_e;
    boost::tie(ei, ei_e) = boost::edges(_g);
    for (; ei != ei_e; ++ei)
-      if (boost::get(types, *ei).type == SINGLE)
+      if (boost::get(types, *ei).type == BT_SINGLE)
          toProcess.push_back(*ei);
 
    std::map<Edge, bool> used;
@@ -651,7 +651,7 @@ void Skeleton::_findMultiple(const Settings& vars)
 
          BGL_FORALL_EDGES(j, _g, SkeletonGraph)
          {
-            if (i == j || boost::get(types, j).type != SINGLE ||
+            if (i == j || boost::get(types, j).type != BT_SINGLE ||
                 used[j])
                continue;
 
@@ -675,7 +675,7 @@ void Skeleton::_findMultiple(const Settings& vars)
 				   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
 
                   if (k == i || k == j ||
-                      boost::get(types, k).type != SINGLE ||
+                      boost::get(types, k).type != BT_SINGLE ||
                       used[k])
                      continue;
                   
@@ -787,9 +787,9 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
 
 	BGL_FORALL_EDGES(j, _g, SkeletonGraph)
 	{
-		if(getBondType(j) == SINGLE)
+		if(getBondType(j) == BT_SINGLE)
 			singles.push_back(j);
-		if(getBondType(j) == DOUBLE)
+		if(getBondType(j) == BT_DOUBLE)
 			toProcess.push_back(j);
 	}
 
@@ -848,7 +848,7 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
 					addBond(p2, p3);
 			}
 			
-			setBondType(toProcess[i], TRIPLE);
+			setBondType(toProcess[i], BT_TRIPLE);
 		}
 
 
@@ -1063,7 +1063,7 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 		Vec2d p1 = getVertexPos(getBondBegin(edge));
 		Vec2d p2 = getVertexPos(getBondEnd(edge));
 		double slope = Algebra::slope(p1, p2);
-		if(f.type == imago::SINGLE)
+		if(f.type == BT_SINGLE)
 		{
 			bool found_kFactor = false;
 			for(size_t i=0 ; i < kFactor.size() ; i++)
@@ -1211,7 +1211,7 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 			continue;
 		}
 
-		addBond(v3, v4, SINGLE);
+		addBond(v3, v4, BT_SINGLE);
 		
 		verticies_to_remove.push_back(v1);
 		verticies_to_remove.push_back(v2);
@@ -1450,7 +1450,7 @@ void Skeleton::deleteBadTriangles( double eps )
                edges_to_delete.insert(edge);
                edges_to_delete.insert(boost::edge(v, end, _g).first);
                vertices_to_delete.insert(end);
-               setBondType(boost::edge(v, beg, _g).first, SINGLE_UP);
+               setBondType(boost::edge(v, beg, _g).first, BT_SINGLE_UP);
             }
             else
                edges_to_delete.insert(boost::edge(v, beg, _g).first);
@@ -1466,7 +1466,7 @@ void Skeleton::deleteBadTriangles( double eps )
                edges_to_delete.insert(edge);
                edges_to_delete.insert(boost::edge(v, beg, _g).first);
                vertices_to_delete.insert(beg);
-               setBondType(boost::edge(v, end, _g).first, SINGLE_UP);      
+               setBondType(boost::edge(v, end, _g).first, BT_SINGLE_UP);      
             }
             else
                edges_to_delete.insert(boost::edge(v, end, _g).first);
@@ -1480,7 +1480,7 @@ void Skeleton::deleteBadTriangles( double eps )
                edges_to_delete.insert(boost::edge(v, end, _g).first);
                edges_to_delete.insert(boost::edge(v, beg, _g).first);
                vertices_to_delete.insert(v);
-               setBondType(edge, SINGLE_UP);               
+               setBondType(edge, BT_SINGLE_UP);               
             }
             else
                edges_to_delete.insert(edge);
