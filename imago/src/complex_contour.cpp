@@ -278,7 +278,7 @@ void cvRetrieveContour(Image& img, Points2d &lines, int eps)
 	}
 }
 
-ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
+ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg, bool fine_detail)
 {
 	logEnterFunction();
 	std::vector<ComplexNumber> contours;
@@ -287,6 +287,9 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 	Points2d lines;
 	
 	double eps = (lnThickness / 2.0 > 2.0) ? (lnThickness / 2.0) : 2.0;
+
+	if(fine_detail)
+		eps = 2.0;
 	
 	cvRetrieveContour(seg, lines, round(eps)); 
 
@@ -330,7 +333,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg)
 	}
 
 	Skeleton::SkeletonGraph _g = graph.getGraph();
-	//getLogExt().appendSkeleton(vars, "after join vertices", _g);
+	getLogExt().appendSkeleton(vars, "retrieved contour", _g);
 	Skeleton::Vertex vert1 = *(_g.m_vertices.begin());
 	Skeleton::Vertex vert2;
 	Skeleton::Vertex vertIt = vert1;

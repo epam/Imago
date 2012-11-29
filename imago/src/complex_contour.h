@@ -26,6 +26,7 @@
 #include "stl_fwd.h"
 #include "settings.h"
 #include <vector>
+#include <sstream>
 #include "graphics_detector.h"
 
 namespace imago{
@@ -36,6 +37,21 @@ namespace imago{
 		ComplexContour(void);
 		ComplexContour(std::vector<ComplexNumber> conts):_contours(conts)
 		{
+		}
+
+		ComplexContour(std::string stream)
+		{
+			std::stringstream s(stream);
+			double real, im;
+			_contours.clear();
+
+			while(!s.eof())
+			{
+				s >> real;
+				s >> im;
+				ComplexNumber c(real, im);
+				_contours.push_back(c);
+			}
 		}
 
 		~ComplexContour(void);
@@ -66,7 +82,7 @@ namespace imago{
 
 		  void Equalize(int n);
 
-		  static ComplexContour RetrieveContour(const Settings& vars, Image& seg); 
+		  static ComplexContour RetrieveContour(const Settings& vars, Image& seg, bool fine_detail = false); 
 
 		  ComplexNumber NormDot(ComplexContour c)
 		  {

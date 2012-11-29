@@ -37,6 +37,7 @@
 #include "fonts_list.h"
 
 
+
 using namespace imago;
 //const std::string CharacterRecognizer::unusual = "$%^&#+-=";
 const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&#=";
@@ -158,6 +159,228 @@ double CharacterRecognizer::_compareFeatures(const Settings& vars,  const Symbol
    return sqrt(d);
 }
 
+
+bool IsBracket(ComplexContour &cc, double LineThickness, bool &isLeft)
+{
+	int maxInd = -1, maxInd2 = -1;
+	double maxLength = 0, 
+		maxLength2 = 0;
+
+	// find indices with max norm
+	for(int i = 0; i < cc.Size(); i++)
+	{
+		double length = cc.getContour(i).getRadius();
+		if( length > maxLength)		
+		{
+			maxInd2 = maxInd;
+			maxLength2 = maxLength;
+
+			maxInd = i;
+			maxLength = length;
+		}
+
+		if( length > maxLength2 && length < maxLength)
+		{
+			maxInd2 = i;
+			maxLength2 = length;
+		}
+	}
+
+	// check if contour with max length is vertical
+	if( imago::absolute( cc.getContour(maxInd).getAngle() ) < PI / 3)
+		return false;
+
+	// check if contour with second max length is parallel to contour with max length
+	if( imago::absolute( cc.getContour(maxInd2).getAngle() ) < PI / 3)
+		return false;
+
+	// confirm that between maximal contours are other smaller contours
+	if( imago::absolute( maxInd - maxInd2) - 1 < 2 || 
+		imago::absolute( cc.Size() + (maxInd > maxInd2 ? maxInd2 : maxInd ) - ((maxInd < maxInd2 ? maxInd2 : maxInd )) - 1 < 2 ) )
+		return false;
+
+	// check if adjacent contours are on the same side from contour with max length
+	if( cc.getContour(maxInd - 1).getReal() * cc.getContour(maxInd + 1).getReal()  > 0.0 ||
+		cc.getContour(maxInd2 - 1).getReal() * cc.getContour(maxInd2 + 1).getReal()  > 0.0)
+		return false;
+
+	std::vector<ComplexNumber> coordinates;
+	coordinates.push_back( ComplexNumber(0, 0) );
+
+	for( int i = 0; i < cc.Size(); i++)
+	{
+		ComplexNumber curr = cc.getContour(i);
+		ComplexNumber cpred = coordinates[coordinates.size() - 1];
+		coordinates.push_back( cpred + curr);
+	}
+
+
+	int startInterval1 = (maxInd > maxInd2 ? maxInd2 : maxInd ) + 2,
+		endInterval1 = (maxInd < maxInd2 ? maxInd2 : maxInd ),
+		startInterval2 = (maxInd < maxInd2 ? maxInd2 : maxInd ) + 2,
+		endInterval2 = cc.Size() + (maxInd > maxInd2 ? maxInd2 : maxInd ) ;
+
+	double max1 = -DIST_INF, min1 = imago::DIST_INF, max2 = -DIST_INF, min2 = DIST_INF;
+
+	double accum = coordinates[maxInd].getReal(),
+		accum1 = coordinates[maxInd2].getReal();
+
+	if( absolute(accum - accum1) > LineThickness * 1.5 )
+		return false;
+
+	if( maxLength2 > (maxLength - LineThickness) ||
+		maxLength2 < (maxLength - 3 * LineThickness) )
+		return false;
+
+	for(int i = startInterval1; i < endInterval1; i++)
+	{
+		double curr = coordinates[i].getReal();
+		//accum += curr;
+		
+		if(max1 < curr )
+			max1  = curr;
+		if(min1 > curr)
+			min1 = curr;
+	}
+
+	for(int i = startInterval2; i < endInterval2; i++)
+	{
+		int ind = i % coordinates.size();
+		double curr = coordinates[ind].getReal();
+		//accum1 += curr;
+		if(max2 < curr )
+			max2  = curr;
+		if(min2 > curr)
+			min2 = curr;
+	}
+
+	
+	if( ((accum < accum1) && (absolute(max1 - max2) > accum1 - accum  )) ||
+		((accum > accum1) && (absolute(min1 - min2) > accum - accum1  ))
+		)
+		return false;
+
+	if(accum < accum1)
+		isLeft = true;
+	else
+		isLeft = false;
+	return true;
+}
+
+bool CharacterRecognizer::IsParenthesis(const Settings& vars, ComplexContour &cc, bool &isLeft) const
+{
+	std::vector<int> acuteAngleInds;
+	// find two acute angles; if more then return false
+	for(int i = 0; i < cc.Size() ; i++)
+	{
+		Vec2d e1(cc.getContour(i).getReal(), cc.getContour(i).getImaginary());
+		Vec2d e2(cc.getContour(i + 1).getReal(), cc.getContour(i + 1).getImaginary());
+		
+		double angle = Vec2d::angle(e1, e2);
+		angle = PI - angle;
+
+		if( angle < ( PI / 2 ) )
+			acuteAngleInds.push_back(i); // push back the preceding edge
+	}
+
+	if( acuteAngleInds.size() != 2 )
+		return false;
+
+	// check that angles are on the top and bottom
+	std::vector<ComplexNumber> coordinates;
+	coordinates.push_back( ComplexNumber(0, 0) );
+
+	for( int i = 0; i < cc.Size(); i++)
+	{
+		ComplexNumber curr = cc.getContour(i);
+		ComplexNumber cpred = coordinates[coordinates.size() - 1];
+		coordinates.push_back( ComplexNumber( cpred.getReal() + curr.getReal(),
+			cpred.getImaginary() + curr.getImaginary()));
+	}
+
+	double min = coordinates[acuteAngleInds[0] + 1].getImaginary() < coordinates[acuteAngleInds[1] + 1].getImaginary() ? 
+		coordinates[acuteAngleInds[0] + 1].getImaginary() : coordinates[acuteAngleInds[1] + 1].getImaginary();
+	double max  = coordinates[acuteAngleInds[0] + 1].getImaginary() > coordinates[acuteAngleInds[1] + 1].getImaginary() ? 
+		coordinates[acuteAngleInds[0] + 1].getImaginary() : coordinates[acuteAngleInds[1] + 1].getImaginary();
+	
+	for ( int i = 0; i < coordinates.size(); i++)
+	{
+		double y = coordinates[i].getImaginary();
+
+		if( i != ( acuteAngleInds[0] + 1 ) && 
+			i != ( acuteAngleInds[1] + 1 ) &&
+			( y < min || y > max) )
+			return false;
+	}
+
+	//check that contours are convex with the center of radius on the same side
+	int startInt1 = (acuteAngleInds[0] + 1) < (acuteAngleInds[1] + 1 ) ? (acuteAngleInds[0] + 1) : (acuteAngleInds[1] + 1),
+		endInt1 = (acuteAngleInds[0] + 1) > (acuteAngleInds[1] + 1 ) ? (acuteAngleInds[0] + 1) : (acuteAngleInds[1] + 1);
+	int startInt2 = endInt1 + 1,
+		endInt2 = coordinates.size() + startInt1;
+
+	int result = 0;
+	for( int i = (startInt1 + 1); i < endInt1; i++)
+	{
+		Vec2d p1(coordinates[i - 1].getReal(), coordinates[i - 1].getImaginary());
+		Vec2d p2(coordinates[i].getReal(), coordinates[i].getImaginary());
+		Vec2d p3(coordinates[i + 1].getReal(), coordinates[i + 1].getImaginary());
+		Vec2d p11, p22;
+		p11.middle(p1, p2);
+		p22.middle(p2, p3);
+		Line l1 = Algebra::points2line(p11, Vec2d(p11.x + (p2.y - p1.y), p11.y - (p2.x - p1.x)));
+		Line l2 = Algebra::points2line(p22, Vec2d(p22.x + (p3.y - p2.y), p22.y - (p3.x - p2.x)));
+		int curres = 0;
+
+		try
+		{
+			Vec2d inter = Algebra::linesIntersection(vars, l1, l2);
+		
+			curres = inter.x < p2.x ? -1 : 1;
+		}catch(DivizionByZeroException e)
+		{
+		}
+
+		if(result != 0 )
+		{
+			
+			if(curres * result < 0 )
+				return false;
+		}
+		else
+			result = curres;
+		
+	}
+
+	int result1 = 0;
+	for( int i = (startInt2 + 1) ; i < endInt2; i++)
+	{
+		int ind1 = (i-1) % coordinates.size();
+		int ind2 = i % coordinates.size();
+		int ind3 = (i+1) % coordinates.size();
+		Vec2d p1(coordinates[ind1].getReal(), coordinates[ind1].getImaginary());
+		Vec2d p2(coordinates[ind2].getReal(), coordinates[ind2].getImaginary());
+		Vec2d p3(coordinates[ind3].getReal(), coordinates[ind3].getImaginary());
+		double const1 = (p2.y - p1.y) * (p1.x + p2.x) / (p1.x - p2.x) / 2 + (p1.y - p3.y)/2 + (p2.y - p3.y) / (p2.x - p3.x) * (p2.x + p3.x) / 2;
+		double const2 = (p3.y - p2.y) / (p2.x - p3.x) - (p2.y - p1.y) / (p1.x - p2.x);
+		double x = const1 / const2;
+		int curres = x < p2.x ? -1 : 1;
+		if(result1 != 0 )
+		{
+			
+			if(curres * result1 < 0 )
+				return false;
+		}
+		else
+			result1 = curres;
+	}
+	
+	if(result != result1 || (result == 0 && result1 == 0))
+		return false;
+	isLeft = result == 1;
+	return true;
+}
+
 RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const Segment &seg, const std::string &candidates, bool can_adjust) const
 {
    logEnterFunction();
@@ -192,7 +415,31 @@ RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const S
 	   getLogExt().appendText("Used cache: clean");
    }
    else
-   {
+   {	
+	   if(seg.getRatio() < 0.6)
+	   {
+		   
+		   imago::Image img;
+		   img.copy(seg);
+		   ComplexContour cc = ComplexContour::RetrieveContour(vars, img, true);
+		   
+		    bool left = false;
+			if(IsBracket(cc, vars.dynamic.LineThickness, left))
+		   {
+			   char crec = left ? '[':']';
+			   rec.clear();
+			   rec[crec] = 0;
+			   return rec;
+		   }
+		 
+		   if(IsParenthesis(vars, cc, left))
+		   {
+			   char crec = left ? '(':')';
+			   rec.clear();
+			   rec[crec] = 0;
+			   return rec;
+		   }
+	   }
 	   seg.initFeatures(_count, vars.characters.Contour_Eps1, vars.characters.Contour_Eps2);
 	   rec = _recognize(vars, seg.getFeatures(), candidates, true);
 

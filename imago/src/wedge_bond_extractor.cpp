@@ -422,6 +422,8 @@ void WedgeBondExtractor::fixStereoCenters( Molecule &mol )
       
 	   mol.reverseEdge(e);
    }
+
+   edge_summary(mol);
 }
 
 bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex &v, 

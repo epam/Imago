@@ -26,6 +26,7 @@
 #include "recognition_distance.h"
 #include "segment_tools.h"
 #include "settings.h"
+#include "contour_template.h"
 
 namespace imago
 {
@@ -61,6 +62,7 @@ namespace imago
 
 	   static double _compareDescriptors(const Settings& vars,  const std::vector<double> &d1,
 										 const std::vector<double> &d2 );      
+	   bool IsParenthesis(const Settings& vars, ComplexContour &cc, bool &isLeft) const;
 	   
 	   int _classesCount;
    };

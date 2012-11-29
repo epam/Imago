@@ -47,7 +47,7 @@ void ContourTemplate::_calculateAutoCorrelation(ComplexContour& c, int* val)
 	for (int i = 0; i < count; i++)
 	{
 		double v = autoCorr[i].getRadius();
-		int j = 4*i/count;
+		int j = 4*(i + 0.0)/count;
   
 		cd[0] += filter1[j] * v;
 		cd[1] += filter2[j] * v;
@@ -73,7 +73,7 @@ void ContourTemplate::_calculateAutoCorrelation(ComplexContour& c, int* val)
 //	return rate;
 //}
 
-TemplateFound TemplateComparer::Find(ComplexContour c)
+TemplateFound TemplateComparer::Find(ComplexContour &c, char &ch)
 {
 	double maxIRate = 0;
 	double maxARate = 0;
@@ -88,7 +88,7 @@ TemplateFound TemplateComparer::Find(ComplexContour c)
 
 		ComplexContour tempc = c;
 		tempc.Equalize(ct.GetContourSize());//ct.getContour().Size());
-		tempc.Normalize();
+		tempc.NormalizeByPerimeter();
 		
 		ContourTemplate::_calculateAutoCorrelation(ct.getContour(), td);
 		ContourTemplate::_calculateAutoCorrelation(tempc, sd);
@@ -97,8 +97,8 @@ TemplateFound TemplateComparer::Find(ComplexContour c)
 		for(int i=0;i<4;i++)
 			if( imago::absolute(sd[i] - td[i]) > maxdescdiff)
 				maxdescdiff = imago::absolute(sd[i] - td[i]);
-		if(maxdescdiff > imago::maxACFDescriptorDeviation)
-			continue;
+		/*if(maxdescdiff > imago::maxACFDescriptorDeviation)
+			continue;*/
 		
 
 		ComplexContour actempc = tempc.AutoCorrelation(true);
@@ -120,6 +120,7 @@ TemplateFound TemplateComparer::Find(ComplexContour c)
 			retVal._acfddeviation[3] = imago::absolute(sd[3] - td[3]);
 			retVal._angle = fmn.getAngle();
 			maxIRate = irate;
+			ch = ct.getChar();
 		}
 	}
 
@@ -128,7 +129,7 @@ TemplateFound TemplateComparer::Find(ComplexContour c)
 
 void TemplateComparer::LoadTemplates()
 {
-	std::string fontdata;
+	/*std::string fontdata;
    extern const char *_imago_fontshapedata[];
    for (int i = 0; _imago_fontshapedata[i] != 0; ++i)
       fontdata += _imago_fontshapedata[i];
@@ -154,5 +155,11 @@ void TemplateComparer::LoadTemplates()
 	   ComplexContour cc(contour);
 	   cc.Normalize();
 	   _temps.push_back(ContourTemplate(cc));
-   }
+   }*/
+	_temps.clear();
+	_temps.push_back(ContourTemplate(ComplexContour("-5 2 -8 15 -1 10 4 13 0 -21 10 -19"), '('));
+	_temps.push_back(ContourTemplate(ComplexContour("1 4 10 1 1 43 -12 4 13 2 3 -3 0 -49 -16 -2"), ']'));
+	_temps.push_back(ContourTemplate(ComplexContour("0 50 3 3 10 0 3 -2 -13 -5 0 -41 13 -5 -16 0"), '['));
+	_temps.push_back(ContourTemplate(ComplexContour("0 50 13 3 -10 -7 0 -41 11 -6 -14 1"), '['));
+	_temps.push_back(ContourTemplate(ComplexContour("0 19 -10 21 5 -3 7 -12 1 -18 -3 -7"), ')'));
 }

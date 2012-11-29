@@ -33,12 +33,13 @@ namespace imago
 	public:
 		ContourTemplate(void);
 		~ContourTemplate(void);
-		ContourTemplate(ComplexContour cont):_contour(cont)
+		ContourTemplate(ComplexContour cont, char pattern):_contour(cont)
 		{
 			CONTOUR_SIZE = 40;
 			_contour.Equalize(CONTOUR_SIZE);
-			_contour.Normalize();
+			_contour.NormalizeByPerimeter();
 			_calculateAutoCorrelation(_contour, _acf);
+			_pattern = pattern;
 		}
 
 		ComplexContour& getContour()
@@ -55,6 +56,11 @@ namespace imago
 		{
 			return CONTOUR_SIZE;
 		}
+
+		char getChar() const
+		{
+			return _pattern;
+		}
 		
 		static void _calculateAutoCorrelation(ComplexContour& c, int *val);
 	private:
@@ -68,7 +74,7 @@ namespace imago
 		int CONTOUR_SIZE;
 		
 		int _acf[4];
-
+		char _pattern;
 		ComplexContour _contour;
 	};
 
@@ -94,7 +100,7 @@ namespace imago
 	public:
 		void LoadTemplates();
 
-		TemplateFound Find(ComplexContour c);
+		TemplateFound Find(ComplexContour &c, char &ch);
 
 	private:
 		std::deque<ContourTemplate> _temps;

@@ -409,9 +409,11 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
       //indigoFree(mapping);
    }
       
-   int subm = indigoGetSubmolecule(mol, to_layout.size(), &to_layout[0]);
-   indigoLayout(subm);
-      
+   if(to_layout.size() > 0)
+   {
+	   int subm = indigoGetSubmolecule(mol, to_layout.size(), &to_layout[0]);
+	   indigoLayout(subm);
+   }  
    string newMolfile = indigoMolfile(mol);
    //puts(newMolfile.c_str());
    //indigoFree(subm);
