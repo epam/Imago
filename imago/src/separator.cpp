@@ -970,8 +970,16 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque &layer_symbol
 
 	
 	char ch;
-	if(cresults.KNN == -1)
+	if(cresults.KNN == -1 || cresults.KNN == 3)
+	{
 		cresults.KNN = rec.isPossibleCharacter(vars, *s, true, &ch) ? 1 : 0;
+		if(ch == '(' || ch == ')' || ch == '[' || ch == ']')
+		{
+			cresults.HuMoments = SEP_SYMBOL;
+			cresults.Probability = SEP_SYMBOL;
+			mark = SEP_SYMBOL;
+		}
+	}
 	if(cresults.Probability == -1)
 		cresults.Probability = PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND, layer_symbols);
 	

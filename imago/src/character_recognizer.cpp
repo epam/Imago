@@ -50,12 +50,17 @@ const std::string CharacterRecognizer::like_bonds = "lL1iIVv";
 bool imago::CharacterRecognizer::isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp, char* result)
 {
 	RecognitionDistance rd = recognize(vars, seg, CharacterRecognizer::all, false);
+
+	
 	
 	double best_dist;
 	char ch = rd.getBest(&best_dist);
 
 	if (result)
 		*result = ch;
+
+	if(ch == '(' || ch == ')' || ch == '[' || ch == ']')
+		return true;
 
 	if (std::find(CharacterRecognizer::like_bonds.begin(), CharacterRecognizer::like_bonds.end(), ch) != CharacterRecognizer::like_bonds.end())
 	{
@@ -423,14 +428,17 @@ RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const S
 		   img.copy(seg);
 		   ComplexContour cc = ComplexContour::RetrieveContour(vars, img, true);
 		   
+		   
 		    bool left = false;
 			if(IsBracket(cc, vars.dynamic.LineThickness, left))
-		   {
+			{
 			   char crec = left ? '[':']';
 			   rec.clear();
 			   rec[crec] = 0;
 			   return rec;
-		   }
+			}
+
+			
 		 
 		   if(IsParenthesis(vars, cc, left))
 		   {
@@ -439,6 +447,7 @@ RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const S
 			   rec[crec] = 0;
 			   return rec;
 		   }
+		   
 	   }
 	   seg.initFeatures(_count, vars.characters.Contour_Eps1, vars.characters.Contour_Eps2);
 	   rec = _recognize(vars, seg.getFeatures(), candidates, true);
