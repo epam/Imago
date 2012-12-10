@@ -47,7 +47,7 @@ void ContourTemplate::_calculateAutoCorrelation(ComplexContour& c, int* val)
 	for (int i = 0; i < count; i++)
 	{
 		double v = autoCorr[i].getRadius();
-		int j = 4*(i + 0.0)/count;
+		int j = 4*(i + 0.0)/count; // TODO: round?
   
 		cd[0] += filter1[j] * v;
 		cd[1] += filter2[j] * v;

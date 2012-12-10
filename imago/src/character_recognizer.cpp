@@ -201,7 +201,7 @@ bool IsBracket(ComplexContour &cc, double LineThickness, bool &isLeft)
 
 	// confirm that between maximal contours are other smaller contours
 	if( imago::absolute( maxInd - maxInd2) - 1 < 2 || 
-		imago::absolute( cc.Size() + (maxInd > maxInd2 ? maxInd2 : maxInd ) - ((maxInd < maxInd2 ? maxInd2 : maxInd )) - 1 < 2 ) )
+		imago::absolute( cc.Size() + (maxInd > maxInd2 ? maxInd2 : maxInd ) - ((maxInd < maxInd2 ? maxInd2 : maxInd )) - 1) < 2  ) // TODO: check
 		return false;
 
 	// check if adjacent contours are on the same side from contour with max length
@@ -308,7 +308,7 @@ bool CharacterRecognizer::IsParenthesis(const Settings& vars, ComplexContour &cc
 	double max  = coordinates[acuteAngleInds[0] + 1].getImaginary() > coordinates[acuteAngleInds[1] + 1].getImaginary() ? 
 		coordinates[acuteAngleInds[0] + 1].getImaginary() : coordinates[acuteAngleInds[1] + 1].getImaginary();
 	
-	for ( int i = 0; i < coordinates.size(); i++)
+	for (size_t i = 0; i < coordinates.size(); i++)
 	{
 		double y = coordinates[i].getImaginary();
 

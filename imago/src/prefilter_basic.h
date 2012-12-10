@@ -25,7 +25,7 @@ namespace imago
 	namespace prefilter_cv
 	{
 		// required for prefilterCV implementation
-		class ImgAdapter :  public ImageInterface
+		class ImgAdapter : public ImageInterface
 		{
 		public:
 			ImgAdapter(const Image& _raw, const Image& _bin) : raw(_raw), bin(_bin) { }
