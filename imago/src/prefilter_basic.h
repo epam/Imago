@@ -46,7 +46,7 @@ namespace imago
 		bool resampleImage(Image &image);
   
 		// filters image using cv adaptive filtering and cross-correlation
-		bool prefilterBasic(Settings& vars, Image& raw);
+		bool prefilterBasic(Settings& vars, Image& raw, bool threshAdaptive = true);
 	}
 }
 

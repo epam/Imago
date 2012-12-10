@@ -265,7 +265,7 @@ namespace imago
 					for (int x = 0; x < width; x++)
 						input[y * width + x] = raw.getByte(x, y);
 
-				for (int iteration = 1; iteration < 16; iteration += 2)
+				for (int iteration = 1; iteration < 10; iteration += 2)
 				{
 					getLogExt().append("Iteration", iteration);
 
@@ -299,7 +299,7 @@ namespace imago
 			getLogExt().appendImage("Retinex-processed image", raw);
 
 			// call the basic prefilter
-			prefilter_cv::prefilterBasic(vars, raw);
+			prefilter_cv::prefilterBasic(vars, raw, false);
 			
 			return true;
 		}

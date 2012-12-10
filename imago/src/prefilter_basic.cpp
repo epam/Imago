@@ -27,41 +27,47 @@ namespace imago
 {
 	namespace prefilter_cv
 	{
+		bool downscale(cv::Mat& image, int max_dim = 1920)
+		{
+			if (std::max(image.cols, image.rows) > max_dim)
+			{
+				int src_width = image.cols;	
+				cv::Size size;
+
+				if (image.cols > image.rows)
+				{
+					size.width = max_dim;
+					size.height = imago::round((double)image.rows * ((double)max_dim / image.cols));
+				}
+				else
+				{
+					size.height = max_dim;
+					size.width = imago::round((double)image.cols * ((double)max_dim / image.rows));
+				}
+
+				cv::resize(image, image, size);		
+				return true;
+			}
+			return false; // not required
+		}
+
 		bool resampleImage(Image &image)
 		{
 			logEnterFunction();
 			
-			int maxdim = MaxImageDimensions;
-
-			int w = image.getWidth();
-			int h = image.getHeight();
-			int m = std::max(w, h);
-			int scale = 1;
-			while (m / scale > maxdim) scale++;
-			if (scale == 1)
+			int dim = std::max(image.getWidth(), image.getHeight());
+			if (dim > MaxImageDimensions)
 			{
-				getLogExt().appendText("resample is not required");
-				return false;
-			}
-			else
-			{
-				getLogExt().append("Required resample by", scale);
-				Image temp(w / scale, h / scale);
-				for (int y = 0; y < temp.getHeight(); y++)
+				cv::Mat mat;
+				ImageUtils::copyImageToMat(image, mat);
+				if (downscale(mat, MaxImageDimensions))
 				{
-					for (int x = 0; x < temp.getWidth(); x++)			
-					{
-						int c = 0;
-						for (int dy = 0; dy < scale; dy++)
-							for (int dx = 0; dx < scale; dx++)
-								c += image.getByte(x*scale+dx, y*scale+dy);
-						byte value = c / scale / scale;
-						temp.getByte(x, y) = value;
-					}
+					image.clear();
+					ImageUtils::copyMatToImage(mat, image);
+					return true;
 				}
-				image.copy(temp);
-				return true;
 			}
+			return false;
 		}
 
 		bool prefilterBinarized(Settings& vars, Image &image)
@@ -151,7 +157,7 @@ namespace imago
 			}
 		}	
 
-		bool prefilterBasic(Settings& vars, Image& raw)
+		bool prefilterBasic(Settings& vars, Image& raw, bool threshAdaptive)
 		{
 			static const int CV_THRESH_BINARY = 0;
 
@@ -171,7 +177,15 @@ namespace imago
 			getLogExt().appendMat("strong", strong);
 
 			cv::Mat weak;
-			cv::adaptiveThreshold(smoothed2x, weak,   255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, (vars.prefilterCV.WeakBinarizeSize)   + (vars.prefilterCV.WeakBinarizeSize) % 2 + 1,   vars.prefilterCV.WeakBinarizeTresh);	
+			if (threshAdaptive)
+			{
+				cv::adaptiveThreshold(smoothed2x, weak,   255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, (vars.prefilterCV.WeakBinarizeSize)   + (vars.prefilterCV.WeakBinarizeSize) % 2 + 1,   vars.prefilterCV.WeakBinarizeTresh);	
+			}
+			else
+			{
+				// TODO: threshold value
+				cv::threshold(smoothed2x, weak, 64, 255, cv::THRESH_OTSU);
+			}
 			getLogExt().appendMat("weak",   weak);
 
 			Image* output = NULL;
