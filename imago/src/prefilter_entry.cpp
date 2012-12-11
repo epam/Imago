@@ -1,10 +1,57 @@
 #include "prefilter_entry.h"
+#include <opencv2/opencv.hpp>
 #include "log_ext.h"
 #include "prefilter_basic.h"
 #include "filters_list.h"
 
 namespace imago
 {
+	namespace PrefilterUtils
+	{
+		bool downscale(cv::Mat& image, int max_dim = 1920)
+		{
+			if (std::max(image.cols, image.rows) > max_dim)
+			{
+				int src_width = image.cols;	
+				cv::Size size;
+
+				if (image.cols > image.rows)
+				{
+					size.width = max_dim;
+					size.height = imago::round((double)image.rows * ((double)max_dim / image.cols));
+				}
+				else
+				{
+					size.height = max_dim;
+					size.width = imago::round((double)image.cols * ((double)max_dim / image.rows));
+				}
+
+				cv::resize(image, image, size);		
+				return true;
+			}
+			return false; // not required
+		}
+
+		bool resampleImage(Image &image)
+		{
+			logEnterFunction();
+			
+			int dim = std::max(image.getWidth(), image.getHeight());
+			if (dim > MaxImageDimensions)
+			{
+				cv::Mat mat;
+				ImageUtils::copyImageToMat(image, mat);
+				if (downscale(mat, MaxImageDimensions))
+				{
+					image.clear();
+					ImageUtils::copyMatToImage(mat, image);
+					return true;
+				}
+			}
+			return false;
+		}
+	}
+
 	bool prefilterEntrypoint(Settings& vars, Image& raw)
 	{
 		logEnterFunction();
@@ -17,7 +64,7 @@ namespace imago
 		vars.general.ImageAlreadyBinarized = false;
 		vars.general.FilterIndex = 0;
 
-		prefilter_cv::resampleImage(raw);		
+		PrefilterUtils::resampleImage(raw);		
 
 		return applyNextPrefilter(vars, raw, false);
 	}

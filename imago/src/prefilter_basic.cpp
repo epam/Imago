@@ -27,49 +27,6 @@ namespace imago
 {
 	namespace prefilter_cv
 	{
-		bool downscale(cv::Mat& image, int max_dim = 1920)
-		{
-			if (std::max(image.cols, image.rows) > max_dim)
-			{
-				int src_width = image.cols;	
-				cv::Size size;
-
-				if (image.cols > image.rows)
-				{
-					size.width = max_dim;
-					size.height = imago::round((double)image.rows * ((double)max_dim / image.cols));
-				}
-				else
-				{
-					size.height = max_dim;
-					size.width = imago::round((double)image.cols * ((double)max_dim / image.rows));
-				}
-
-				cv::resize(image, image, size);		
-				return true;
-			}
-			return false; // not required
-		}
-
-		bool resampleImage(Image &image)
-		{
-			logEnterFunction();
-			
-			int dim = std::max(image.getWidth(), image.getHeight());
-			if (dim > MaxImageDimensions)
-			{
-				cv::Mat mat;
-				ImageUtils::copyImageToMat(image, mat);
-				if (downscale(mat, MaxImageDimensions))
-				{
-					image.clear();
-					ImageUtils::copyMatToImage(mat, image);
-					return true;
-				}
-			}
-			return false;
-		}
-
 		bool prefilterBinarized(Settings& vars, Image &image)
 		{
 			logEnterFunction();		
@@ -157,7 +114,7 @@ namespace imago
 			}
 		}	
 
-		bool prefilterBasic(Settings& vars, Image& raw, bool threshAdaptive)
+		bool prefilterBasic(Settings& vars, Image& raw)
 		{
 			static const int CV_THRESH_BINARY = 0;
 
@@ -177,16 +134,15 @@ namespace imago
 			getLogExt().appendMat("strong", strong);
 
 			cv::Mat weak;
-			if (threshAdaptive)
-			{
-				cv::adaptiveThreshold(smoothed2x, weak,   255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, (vars.prefilterCV.WeakBinarizeSize)   + (vars.prefilterCV.WeakBinarizeSize) % 2 + 1,   vars.prefilterCV.WeakBinarizeTresh);	
-			}
-			else
-			{
-				// TODO: threshold value
-				cv::threshold(smoothed2x, weak, 64, 255, cv::THRESH_OTSU);
-			}
+			cv::adaptiveThreshold(smoothed2x, weak,   255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY, (vars.prefilterCV.WeakBinarizeSize)   + (vars.prefilterCV.WeakBinarizeSize) % 2 + 1,   vars.prefilterCV.WeakBinarizeTresh);	
 			getLogExt().appendMat("weak",   weak);
+
+			cv::Mat otsu;
+			if (vars.prefilterCV.UseOtsuPixelsAddition)
+			{
+				cv::threshold(smoothed2x, otsu, 128, 255, cv::THRESH_OTSU);
+				getLogExt().appendMat("otsu",   otsu);
+			}
 
 			Image* output = NULL;
 			Rectangle viewport;
@@ -195,18 +151,26 @@ namespace imago
 			int borderX = raw.getWidth()  / vars.prefilterCV.BorderPartProportion + 1;
 			int borderY = raw.getHeight() / vars.prefilterCV.BorderPartProportion + 1;
 
+			for (int iter = 0; iter <= (vars.prefilterCV.UseOtsuPixelsAddition ? 1 : 0); iter++)
 			{
 				Image bin;
-				ImageUtils::copyMatToImage(weak, bin);
+				if (iter == 0)
+					ImageUtils::copyMatToImage(weak, bin);
+				else
+					ImageUtils::copyMatToImage(otsu, bin);
+
 
 				WeakSegmentator ws(raw.getWidth(), raw.getHeight());
 				ws.appendData(ImgAdapter(raw,bin), 1);
 
-				viewport = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
-				ws.needCrop(vars, viewport, vars.prefilterCV.MaxRectangleCropLineWidth);
+				if (output == NULL)
+				{
+					viewport = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
+					ws.needCrop(vars, viewport, vars.prefilterCV.MaxRectangleCropLineWidth);
 
-				output = new Image(viewport.width, viewport.height);
-				output->fillWhite();			
+					output = new Image(viewport.width, viewport.height);
+					output->fillWhite();
+				}
 
 				for (WeakSegmentator::SegMap::const_iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 				{
@@ -251,91 +215,6 @@ namespace imago
 
 			if (output)
 			{
-				getLogExt().appendImage("pre-output", *output);
-
-				if (tresholdPassCount > 0 && vars.prefilterCV.UseTresholdPixelsAddition)
-				{
-					// second pass; now against the source image
-
-					double average_fill_output = 0.0;
-					for (int x = 0; x < output->getWidth(); x++)
-						for (int y = 0; y < output->getHeight(); y++)
-							if (output->getByte(x,y) == 0)
-								average_fill_output += 1;
-					average_fill_output /= (output->getWidth()*output->getHeight());
-
-					// now fill inside areas
-					double tr = (double)tresholdPassSum / tresholdPassCount;
-					byte estimatedTreshold = round(tr + vars.prefilterCV.AdditionPercentage * tr);
-					getLogExt().append("estimatedTreshold", (int)estimatedTreshold);
-
-					Image* tresh = new Image(raw.getWidth(), raw.getHeight());
-					for (int y = 0; y < raw.getHeight(); y++)
-						for (int x = 0; x < raw.getWidth(); x++)							
-							tresh->getByte(x, y) = (raw.getByte(x, y) < estimatedTreshold) ? 0 : 255;
-
-					WeakSegmentator ws(raw.getWidth(), raw.getHeight());
-					ws.appendData(ImgAdapter(raw,*tresh), 2);
-					
-					tresh->fillWhite();
-
-					for (WeakSegmentator::SegMap::const_iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
-					{
-						const Points2i& p = it->second;
-		
-						int good = 0, bad = 0;
-						for (size_t u = 0; u < p.size(); u++)
-						{
-							if (p[u].x > borderX && p[u].y > borderY
-								&& p[u].x < raw.getWidth() - borderX && p[u].y < raw.getHeight() - borderY
-								&& output->getByte(p[u].x, p[u].y) == 0)
-								good++;
-							else
-								bad++;
-						}
-
-						if (vars.prefilterCV.MaxBadToGoodRatio2 * good > bad && good > vars.prefilterCV.MinGoodPixelsCount2)
-						{							
-							for (size_t u = 0; u < p.size(); u++)
-							{
-								int x = p[u].x - viewport.x;
-								int y = p[u].y - viewport.y;
-								if (x >= 0 && y >= 0 && x < output->getWidth() && y < output->getHeight())
-								{
-									tresh->getByte(x, y) = 0;
-								}
-							}
-						}
-					}
-
-					getLogExt().appendImage("segments get by average treshold", *tresh);
-
-					double average_fill_tresh = 0.0;
-					for (int x = 0; x < tresh->getWidth(); x++)
-						for (int y = 0; y < tresh->getHeight(); y++)
-							if (tresh->getByte(x,y) == 0)
-								average_fill_tresh += 1;
-					average_fill_tresh /= (tresh->getWidth() * tresh->getHeight());
-					
-					getLogExt().append("average fill output", average_fill_output);
-					getLogExt().append("average fill tresh", average_fill_tresh);
-
-					double ratio = average_fill_tresh / average_fill_output;
-					getLogExt().append("ratio", ratio);
-
-					if (ratio < vars.prefilterCV.MaxFillRatio)
-					{			
-						// add tresh to output
-						for (int y = 0; y < viewport.height; y++)
-							for (int x = 0; x < viewport.width; x++)
-								if (tresh->getByte(viewport.x + x, viewport.y + y) == 0)
-									output->getByte(x,y) = 0;
-					}
-
-					delete tresh;
-					tresh = NULL;
-				}
-
 				getLogExt().appendImage("output", *output);
 
 				raw.copy(*output);

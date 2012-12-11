@@ -285,7 +285,8 @@ namespace imago
 		ASSIGN_REF(prefilterCV.MinGoodPixelsCount2);
 		ASSIGN_REF(prefilterCV.StrongBinarizeSize);
 		ASSIGN_REF(prefilterCV.StrongBinarizeTresh);
-		ASSIGN_REF(prefilterCV.UseTresholdPixelsAddition);
+		ASSIGN_REF(prefilterCV.UseOtsuPixelsAddition);
+		ASSIGN_REF(prefilterCV.OtsuThresholdValue);
 		ASSIGN_REF(prefilterCV.WeakBinarizeSize);
 		ASSIGN_REF(prefilterCV.WeakBinarizeTresh);
 

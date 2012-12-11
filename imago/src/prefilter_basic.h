@@ -41,12 +41,9 @@ namespace imago
 		// returns true if result image is binarized
 		// may change some pixels inensity if image is already binarized
 		bool prefilterBinarized(Settings& vars, Image &image);
-
-		// returns true if image was modified
-		bool resampleImage(Image &image);
   
 		// filters image using cv adaptive filtering and cross-correlation
-		bool prefilterBasic(Settings& vars, Image& raw, bool threshAdaptive = true);
+		bool prefilterBasic(Settings& vars, Image& raw);
 	}
 }
 

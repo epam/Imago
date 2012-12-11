@@ -26,6 +26,12 @@ namespace imago
 	
 	// iterates trough next filters
 	bool applyNextPrefilter(Settings& vars, Image& raw, bool iterateNext = true);
+
+	namespace PrefilterUtils
+	{
+		// returns true if image was modified
+		bool resampleImage(Image &image);
+	}
 }
 
 #endif //_prefilter_entry_h

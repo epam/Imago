@@ -21,7 +21,7 @@
 
 namespace imago
 {
-	static const int MaxImageDimensions = 1920;
+	static const int MaxImageDimensions = 2560;
 	
 	/// ------------------ cluster-independ settings ------------------ ///
 
@@ -68,7 +68,8 @@ namespace imago
 
 	struct PrefilterCVSettings // POD
 	{
-		bool   UseTresholdPixelsAddition;
+		bool   UseOtsuPixelsAddition;
+		int    OtsuThresholdValue;
 		int    MaxNonBWPixelsProportion;
 		int    MinGoodPixelsCount;
 		int    MaxBadToGoodRatio;
