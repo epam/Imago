@@ -18,11 +18,9 @@ namespace imago
 		push_back(FilterEntryDefinition("prefilter_binarized",   0,   prefilter_cv::prefilterBinarized, 
 			                            "general.ImageAlreadyBinarized = 1;"));	
 
-		// TODO: TEMPORARY! UNCOMMENT BACK AFTER TESTS!
-		//push_back(FilterEntryDefinition("prefilter_basic",       1,   prefilter_cv::prefilterBasic));
-		
+		push_back(FilterEntryDefinition("prefilter_retinex",     1,   prefilter_retinex::prefilterRetinex));
 
-		push_back(FilterEntryDefinition("prefilter_retinex",     2,   prefilter_retinex::prefilterRetinex));
+		push_back(FilterEntryDefinition("prefilter_basic",       2,   prefilter_cv::prefilterBasic));				
 	}
 
 	FilterEntries getFiltersList()

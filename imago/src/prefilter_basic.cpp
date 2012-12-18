@@ -140,7 +140,7 @@ namespace imago
 			cv::Mat otsu;
 			if (vars.prefilterCV.UseOtsuPixelsAddition)
 			{
-				cv::threshold(smoothed2x, otsu, 128, 255, cv::THRESH_OTSU);
+				cv::threshold(smoothed2x, otsu, vars.prefilterCV.OtsuThresholdValue, 255, cv::THRESH_OTSU);
 				getLogExt().appendMat("otsu",   otsu);
 			}
 

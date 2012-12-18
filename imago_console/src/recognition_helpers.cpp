@@ -149,6 +149,8 @@ namespace recognition_helpers
 		int result = 0; // ok mark
 		imago::VirtualFS vfs;
 
+		vars.general.StartTime = 0; // reset timelimit
+
 		if (vars.general.ExtractCharactersOnly)
 		{
 			if (verbose)

@@ -65,6 +65,7 @@ namespace imago
 			APPLY(lcomb);
 			APPLY(p_estimator);
 			APPLY(lab_remover);
+			APPLY(retinex);
 
 			#undef APPLY
 		}
@@ -101,6 +102,7 @@ namespace imago
 			APPLY(lcomb);
 			APPLY(p_estimator);
 			APPLY(lab_remover);
+			APPLY(retinex);
 
 			#undef APPLY
 		}
@@ -394,6 +396,12 @@ namespace imago
 		ASSIGN_REF(weak_seg.RectangularCropFitTreshold);
 		ASSIGN_REF(weak_seg.RefineWidth);
 		ASSIGN_REF(weak_seg.SubpixelDraw);
+
+		ASSIGN_REF(retinex.ContrastDropPercentage);
+		ASSIGN_REF(retinex.ContrastNominal);
+		ASSIGN_REF(retinex.EndIteration);
+		ASSIGN_REF(retinex.IterationStep);
+		ASSIGN_REF(retinex.StartIteration);
 	}
 
 	bool imago::Settings::fillFromDataStream(const std::string& data)

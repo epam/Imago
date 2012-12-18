@@ -132,6 +132,15 @@ namespace imago
 		double SubpixelDraw;
 	};
 
+	struct RetinexFilterSettings // POD
+	{
+		int StartIteration;
+		int EndIteration;
+		int IterationStep;
+		int ContrastNominal;
+		double ContrastDropPercentage;
+	};
+
 	struct LabelRemoverSettings // POD
 	{
 		int    MinCapitalHeight;
@@ -458,6 +467,7 @@ namespace imago
 		LabelCombinerSettings lcomb;
 		ProbabilitySettings p_estimator;
 		LabelRemoverSettings lab_remover;		
+		RetinexFilterSettings retinex;
 
 		void _fillReferenceMap(ReferenceAssignmentMap& result);
 	};

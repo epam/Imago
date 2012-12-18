@@ -77,7 +77,7 @@ namespace imago
 
 
 		template <typename data_t>
-		void contrastNormalize(std::vector<data_t>& data)
+		void contrastNormalize(std::vector<data_t>& data, int contrastNominal, double dropPercentage)
 		{
 			logEnterFunction();
 			
@@ -85,16 +85,11 @@ namespace imago
 			double prev_value = 0;
 			for (int iters = 0; iters < 10; iters++)
 			{
-				double value = contrastNormalizeSingleIteration(data);
-				if (value > 128 || value < prev_value)
+				double value = contrastNormalizeSingleIteration(data, dropPercentage, contrastNominal);
+				if (value > contrastNominal || value < prev_value)
 					break;
 				prev_value = value;
 			}
-		}
-
-		double getAutoRetinexThreshold(double scale, double num_scales, double mean_diff)
-		{
-			return mean_diff * (1.5 * scale / num_scales + 0.5);
 		}
 
 		template <typename data_t>
@@ -265,7 +260,9 @@ namespace imago
 					for (int x = 0; x < width; x++)
 						input[y * width + x] = raw.getByte(x, y);
 
-				for (int iteration = 1; iteration < 10; iteration += 2)
+				for (int iteration =  vars.retinex.StartIteration; 
+					     iteration <  vars.retinex.EndIteration; 
+						 iteration += vars.retinex.IterationStep)
 				{
 					getLogExt().append("Iteration", iteration);
 
@@ -278,7 +275,7 @@ namespace imago
 			}
 
 			// normalize contrast
-			contrastNormalize(result);
+			contrastNormalize(result, vars.retinex.ContrastNominal, vars.retinex.ContrastDropPercentage);
 
 			// store result back
 			getLogExt().appendText("Store image data");
