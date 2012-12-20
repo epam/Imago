@@ -37,8 +37,8 @@ void ContourTemplate::_calculateAutoCorrelation(ComplexContour& c, int* val)
 {
 	double cd[] = {0.0, 0.0, 0.0, 0.0};
 
-	if(val == NULL || 
-		(sizeof(val) != 4))
+	if(val == NULL /*|| 
+		(sizeof(val) != 4)*/ ) // TODO: getting the size of pointer helps nothing
 		throw LogicException("Not valid return parameter or size different from 4");
 
 

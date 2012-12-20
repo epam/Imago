@@ -293,6 +293,8 @@ namespace imago
 
    void ImageUtils::loadImageFromFile( Image &img, const char *format, ... )
    {
+	   logEnterFunction();
+
       char str[MAX_TEXT_LINE];
       va_list args;
 
@@ -313,7 +315,7 @@ namespace imago
          throw FileNotFoundException(fname.c_str());
       fclose(f);
 
-      cv::Mat mat = cv::imread(fname, 0 /*grayscale*/);
+      cv::Mat mat = cv::imread(fname, -1 /*BGRA*/);
 
       if (mat.empty())
 	  {
@@ -329,6 +331,19 @@ namespace imago
 	  }
 	  else
 	  {
+		  if (mat.type() == CV_8UC4)
+		  {
+			  for (int row = 0; row < mat.rows; row++)
+				  for (int col = 0; col < mat.cols; col++)
+				  {
+					  cv::Vec4b& v = mat.at<cv::Vec4b>(row, col);
+					  if (v[3] == 0) // transparent
+					  {
+						  v[0] = v[1] = v[2] = 255; // to white
+					  }
+				  }
+			  cv::cvtColor(mat, mat, cv::COLOR_BGRA2GRAY);
+		  }
 		  copyMatToImage(mat, img);
 	  }
    }

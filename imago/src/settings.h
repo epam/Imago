@@ -26,12 +26,7 @@ namespace imago
 	/// ------------------ cluster-independ settings ------------------ ///
 
 	struct GeneralSettings
-	{
-		bool   LogEnabled;
-		bool   LogVFSEnabled;		
-		bool   ExtractCharactersOnly;
-		bool   UseProbablistics;		
-		bool   ImageAlreadyBinarized;
+	{		
 		int    ClusterIndex;
 		int    FilterIndex;
 		int    OriginalImageWidth;
@@ -40,6 +35,11 @@ namespace imago
 		int    ImageHeight;
 		int    StartTime;
 		int    TimeLimit;		
+		bool   LogEnabled;
+		bool   LogVFSEnabled;		
+		bool   ExtractCharactersOnly;
+		bool   UseProbablistics;		
+		bool   ImageAlreadyBinarized;
 		GeneralSettings();
 	};
 
@@ -67,8 +67,7 @@ namespace imago
 	// DO NOT FORGET TO ADD REFERENCES TO ALL NEW VARIABLES IN SETTINGS.CPP:fillReferenceMap()
 
 	struct PrefilterCVSettings // POD
-	{
-		bool   UseOtsuPixelsAddition;
+	{		
 		int    OtsuThresholdValue;
 		int    MaxNonBWPixelsProportion;
 		int    MinGoodPixelsCount;
@@ -81,11 +80,13 @@ namespace imago
 		int    MinGoodPixelsCount2;
 		int    MaxBadToGoodRatio2;
 		int    BinarizerFrameGap;
+		int    BinarizerThreshold;
 		double StrongBinarizeTresh;
 		double WeakBinarizeTresh;		
 		double AdditionPercentage;
 		double MaxFillRatio;
 		double HighResPassBound;
+		bool   UseOtsuPixelsAddition;
 	};
 
 	struct AdaptiveFilterSettings // POD
@@ -103,8 +104,7 @@ namespace imago
 	};
 
 	struct PrefilterSettings // POD
-	{
-		bool   MakeSegmentsConnected;
+	{		
 		int    SpotsWindowSize;
 		int    ReduceImageDim;
 		int    GaussianKernelSize;
@@ -121,6 +121,7 @@ namespace imago
 		double MaxLSSplah;
 		double MagicCoeff;
 		double SAreaTresh;
+		bool   MakeSegmentsConnected;
 	};
 
 	struct WeakSegmentatorSettings // POD
@@ -284,18 +285,13 @@ namespace imago
 		double SingleUpIncLengthTresh;
 		double SingleUpInterpolateEps;
 		double SingleUpMagicAddition;
-		//double SingleUpS2Divisor;
-		//double SingleUpMinATresh;
-		//double SingleUpSquareRatio;
-		//double SingleUpAngleTresh;
 		double SingleUpSlopeThresh;
 		double SingleUpThickThresh;
 		double SomeTresh;
 	};
 
 	struct CharactersRecognitionSettings // POD
-	{
-		bool   HackFor3Use;
+	{		
 		int    MinEndpointsPossible;
 		int    MaximalEndpointsUse;
 		int    ImpossibleToWriteDelta;
@@ -317,13 +313,12 @@ namespace imago
 		double Contour_Eps2;
 		double Contour_Eps1_generator;
 		double Contour_Eps2_generator;
-		int Filter_Threshold_generator;
+		int    Filter_Threshold_generator;
+		bool   HackFor3Use;
 	};
 	
 	struct ChemicalStructureRecognizerSettings // POD
 	{
-		bool   UseDPApproximator;
-		bool   StableDecorner;
 		int    WeakSegmentatorDist;
 		double Dissolve;
 		double DeleteBadTriangles;		
@@ -332,6 +327,8 @@ namespace imago
 		double ReconnectSurelyBadCoef; 
 		double ReconnectSurelyGoodCoef;
 		double ReconnectProbablyGoodCoef;
+		bool   UseDPApproximator;
+		bool   StableDecorner;
 	};
 
 	struct GraphExtractorSettings // POD
@@ -352,8 +349,7 @@ namespace imago
 	};
 
 	struct SeparatorSettings // POD
-	{
-		bool   UseVoteArray;
+	{		
 		int    ltFactor1;
 		int    minApproxSegsStrong;
 		int    minApproxSegsWeak;
@@ -381,6 +377,7 @@ namespace imago
 		double extRatioMax;
 		double ext2charRatio;
 		double SymProbabilityThresh;		
+		bool   UseVoteArray;
 	};
 
 	struct LabelLogicSettings // POD
@@ -407,13 +404,13 @@ namespace imago
 	};
 
 	struct ProbabilitySettings // POD
-	{
-		bool   UsePerimeterNormalization;
+	{		
 		double DefaultApriority;
 		double ApriorProb4SymbolCase;
 		double MinRatio2ConsiderGrPr;
 		double LogisticScale;
 		double LogisticLocation;		
+		bool   UsePerimeterNormalization;
 	};
 
 	#pragma pack (pop)

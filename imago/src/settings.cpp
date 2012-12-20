@@ -275,6 +275,7 @@ namespace imago
 
 		ASSIGN_REF(prefilterCV.AdditionPercentage);
 		ASSIGN_REF(prefilterCV.BinarizerFrameGap);
+		ASSIGN_REF(prefilterCV.BinarizerThreshold);
 		ASSIGN_REF(prefilterCV.BorderPartProportion);
 		ASSIGN_REF(prefilterCV.HighResPassBound);
 		ASSIGN_REF(prefilterCV.MaxBadToGoodRatio);

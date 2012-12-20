@@ -31,6 +31,8 @@ namespace imago
 		{
 			logEnterFunction();		
 
+			getLogExt().appendImage("Source", image);
+
 			int white_count = 0, black_count = 0, others_count = 0;
 			for (int y = 0; y < image.getHeight(); y++)
 				for (int x = 0; x < image.getWidth(); x++)
@@ -56,9 +58,10 @@ namespace imago
 					{
 						for (int x = 0; x < image.getWidth(); x++)
 						{
-							if (image.getByte(x, y) != 255 && image.getByte(x,y) != 0)
+							if (image.getByte(x,y) != 0 && image.getByte(x,y) != 255)
 							{
-								if (x > gap && y > gap && x + gap < image.getWidth() && y + gap < image.getHeight())
+								if (x > gap && y > gap && x + gap < image.getWidth() && y + gap < image.getHeight() &&
+									image.getByte(x, y) < vars.prefilterCV.BinarizerThreshold )
 								{
 									image.getByte(x, y) = 0;
 								}
@@ -71,20 +74,28 @@ namespace imago
 					}
 				}
 
-				if (black_count > 2 * white_count) // TODO
+				if (black_count > 2 * white_count)
 				{
-					getLogExt().appendText("image is inversed");
-					for (int y = 0; y < image.getHeight(); y++)
+					if (white_count == 0)
 					{
-						for (int x = 0; x < image.getWidth(); x++)
+						getLogExt().appendText("image is probably wrongly loaded");
+						return false;
+					}
+					else
+					{
+						getLogExt().appendText("image is inversed");
+						for (int y = 0; y < image.getHeight(); y++)
 						{
-							if (image.getByte(x,y) == 0)
+							for (int x = 0; x < image.getWidth(); x++)
 							{
-								image.getByte(x, y) = 255;
-							}
-							else
-							{
-								image.getByte(x, y) = 0;
+								if (image.getByte(x,y) == 0)
+								{
+									image.getByte(x, y) = 255;
+								}
+								else
+								{
+									image.getByte(x, y) = 0;
+								}
 							}
 						}
 					}
@@ -104,6 +115,8 @@ namespace imago
 						image.crop(viewport.x1(), viewport.y1(), viewport.x2(), viewport.y2());
 					}
 				}
+
+				getLogExt().appendImage("Result", image);
 
 				return true;
 			}
