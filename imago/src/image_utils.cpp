@@ -333,6 +333,7 @@ namespace imago
 	  {
 		  if (mat.type() == CV_8UC4)
 		  {
+			  getLogExt().append("Image type", "CV_8UC4 / BGRA");
 			  for (int row = 0; row < mat.rows; row++)
 				  for (int col = 0; col < mat.cols; col++)
 				  {
@@ -343,6 +344,20 @@ namespace imago
 					  }
 				  }
 			  cv::cvtColor(mat, mat, cv::COLOR_BGRA2GRAY);
+		  }
+		  else if (mat.type() == CV_8UC3)
+		  {
+			  getLogExt().append("Image type", "CV_8UC3 / BGR");
+			  cv::cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
+		  }
+		  else if (mat.type() == CV_8UC1)
+		  {
+			  getLogExt().append("Image type", "CV_8UC1 / GRAY");
+		  }
+		  else
+		  {
+			  getLogExt().appendText("Unknown image type, attempt to reload as grayscale");
+			  cv::Mat mat = cv::imread(fname, 0 /*Grayscale*/);
 		  }
 		  copyMatToImage(mat, img);
 	  }
