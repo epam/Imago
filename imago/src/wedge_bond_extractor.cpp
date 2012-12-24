@@ -845,13 +845,20 @@ void WedgeBondExtractor::fetchArrows(const Settings& vars, Skeleton &g )
 						boost::degree(neighbors[i], graph) == 1)
 					{
 						Skeleton::Edge edge = boost::edge(neighbors[i], v, graph).first;
-						if(g.getBondType(edge) == BT_SINGLE && 
-							Algebra::SegmentsOnSameLine(vars, g.getVertexPos(neighbors[i]), g.getVertexPos(v), 
-																g.getVertexPos(v), g.getVertexPos(b_deg == 1 ? b : e_v)))
-						{//arrow found TODO: do smth
-							g.removeBond(edge);
-							g.removeBond(v, (b_deg == 1 ? b : e_v));
-							g.addBond(neighbors[i], (b_deg == 1 ? b : e_v), BT_ARROW, true);
+
+						if (g.getBondType(edge) == BT_SINGLE)
+						{
+							Vec2d v1 = g.getVertexPos(neighbors[i]);
+							Vec2d v2 = g.getVertexPos(v);
+							Vec2d v3 = g.getVertexPos(v);
+							Vec2d v4 = g.getVertexPos(b_deg == 1 ? b : e_v);
+
+							if (Algebra::SegmentsOnSameLine(vars, v1, v2, v3, v4))
+							{//arrow found TODO: do smth
+								g.removeBond(edge);
+								g.removeBond(v, (b_deg == 1 ? b : e_v));
+								g.addBond(neighbors[i], (b_deg == 1 ? b : e_v), BT_ARROW, true);
+							}
 						}
 					}
 				}
