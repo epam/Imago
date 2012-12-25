@@ -21,8 +21,8 @@
 #include <cmath>
 #include <cfloat>
 #include <deque>
+#include <opencv2/opencv.hpp>
 #include <string.h> // memcpy
-
 #include "stl_fwd.h"
 #include "character_recognizer.h"
 #include "segment.h"
@@ -113,23 +113,8 @@ qword CharacterRecognizer::getSegmentHash(const Segment &seg, const std::string&
 	return segHash;
 }
 
-
-void unpack(cv::Mat1d& result, const std::string& input, unsigned int factor)
-{
-	size_t dim = imago::CharacterRecognizerImp::REQUIRED_SIZE + 2 * imago::CharacterRecognizerImp::PENALTY_SHIFT;
-	result = cv::Mat1d(dim, dim);
-	for (size_t u = 0; u < dim; u++)
-		for (size_t v = 0; v < dim; v++)
-		{
-			double value = (unsigned char)input[u * dim + v] - 32;
-			if (factor != 1 && factor != 0)
-				value /= factor;
-			result[u][v] = value;
-		}
-}
-
 void internalInitTemplates(imago::CharacterRecognizerImp::Templates& templates)
-{
+{	
 	unsigned int start = platform::TICKS();
 	{
 		#include "font.inc"
@@ -190,29 +175,29 @@ namespace imago
 {
 	namespace CharacterRecognizerImp
 	{
-		CircleOffsetPoints::CircleOffsetPoints(int radius)
-		{
-			clear();
-			resize(radius+1);
+		typedef std::vector<cv::Point> Points;
 
-			for (int dx = -radius; dx <= radius; dx++)
-				for (int dy = -radius; dy <= radius; dy++)
-				{
-					int distance = imago::round(sqrt((double)(imago::square(dx) + imago::square(dy))));
-					if (distance <= radius)
-						at(distance).push_back(cv::Point(dx, dy));
-				}
-		}
+		class CircleOffsetPoints : public std::vector<Points>
+		{
+		public: CircleOffsetPoints(int radius)
+			{
+				clear();
+				resize(radius+1);
+
+				for (int dx = -radius; dx <= radius; dx++)
+					for (int dy = -radius; dy <= radius; dy++)
+					{
+						int distance = imago::round(sqrt((double)(imago::square(dx) + imago::square(dy))));
+						if (distance <= radius)
+							at(distance).push_back(cv::Point(dx, dy));
+					}
+			}
+		};
 
 		static CircleOffsetPoints offsets(REQUIRED_SIZE);
 
-		void calculatePenalties(const cv::Mat1b& img, cv::Mat1d& penalty_ink, cv::Mat1d& penalty_white)
-		{		
-			int size = REQUIRED_SIZE + 2*PENALTY_SHIFT;
-		
-			penalty_ink = cv::Mat1d(size, size);
-			penalty_white = cv::Mat1d(size, size);
-		
+		void calculatePenalties(const cv::Mat1b& img, unsigned char* penalty_ink, unsigned char* penalty_white)
+		{				
 			for (int y = -PENALTY_SHIFT; y < REQUIRED_SIZE + PENALTY_SHIFT; y++)
 				for (int x = -PENALTY_SHIFT; x < REQUIRED_SIZE + PENALTY_SHIFT; x++)
 				{
@@ -240,40 +225,49 @@ namespace imago
 
 						double result = (value == 0) ? min_dist : sqrt(min_dist);
 					
+						int idx = (y + PENALTY_SHIFT) * INTERNAL_ARRAY_DIM + (x + PENALTY_SHIFT);
+
 						if (value == 0)
-							penalty_ink(y + PENALTY_SHIFT, x + PENALTY_SHIFT) = result;
+							penalty_ink[idx] = std::min(255, CHARACTERS_OFFSET + imago::round(result));
 						else
-							penalty_white(y + PENALTY_SHIFT, x + PENALTY_SHIFT) = result;
+							penalty_white[idx] = std::min(255, CHARACTERS_OFFSET + imago::round(PENALTY_WHITE_FACTOR * result));
 					}
 				}	
 		}
 
-		double compareImages(const cv::Mat1b& img, const cv::Mat1d& penalty_ink, const cv::Mat1d& penalty_white)
+		double compareImages(const cv::Mat1b& img, const unsigned char* penalty_ink, const unsigned char* penalty_white)
 		{
 			double best = imago::DIST_INF;
 			for (int shift_x = 0; shift_x <= 2 * PENALTY_SHIFT; shift_x += PENALTY_STEP)
+			{
 				for (int shift_y = 0; shift_y <= 2 * PENALTY_SHIFT; shift_y += PENALTY_STEP)
 				{
-					double result = 0.0;
-					double max_dist = REQUIRED_SIZE;
+					int sum_ink = 0;
+					int sum_white = 0;
 					for (int y = 0; y < img.cols; y++)
 					{
 						for (int x = 0; x < img.rows; x++)
 						{
 							int value = img(y,x);
+
+							int idx = (y + PENALTY_SHIFT) * INTERNAL_ARRAY_DIM + (x + PENALTY_SHIFT);
+
 							if (value == 0)
 							{
-								result += penalty_ink(y + PENALTY_SHIFT, x + PENALTY_SHIFT);
+								sum_ink += penalty_ink[idx] - CHARACTERS_OFFSET;
 							}
 							else
 							{
-								result += penalty_white(y + PENALTY_SHIFT, x + PENALTY_SHIFT);
+								sum_white += penalty_white[idx] - CHARACTERS_OFFSET;
 							}
 						}
 					}
+
+					double result = (double)sum_ink + (double)sum_white / (double)PENALTY_WHITE_FACTOR;
 					if (result < best)
 						best = result;
 				}
+			}
 			return best;
 		}
 

@@ -59,25 +59,24 @@ namespace imago
 		const int PENALTY_SHIFT = 2;
 		const int PENALTY_STEP  = 1;
 
+		const int PENALTY_WHITE_FACTOR = 32;
+		const int CHARACTERS_OFFSET = 32;
+
+		const int INTERNAL_ARRAY_DIM = REQUIRED_SIZE + 2*PENALTY_SHIFT;
+		const int INTERNAL_ARRAY_SIZE = INTERNAL_ARRAY_DIM * INTERNAL_ARRAY_DIM;
+
 		struct MatchRecord
 		{
-			cv::Mat1d penalty_ink;
-			cv::Mat1d penalty_white;
+			unsigned char penalty_ink[INTERNAL_ARRAY_SIZE];
+			unsigned char penalty_white[INTERNAL_ARRAY_SIZE];
 			std::string text;
 			double wh_ratio;
 		};
 
-		typedef std::vector<cv::Point> Points;
-
-		class CircleOffsetPoints : public std::vector<Points>
-		{
-			public: CircleOffsetPoints(int radius);
-		};
-
 		typedef std::vector<MatchRecord> Templates;
 
-		void calculatePenalties(const cv::Mat1b& img, cv::Mat1d& penalty_ink, cv::Mat1d& penalty_white);
-		double compareImages(const cv::Mat1b& img, const cv::Mat1d& penalty_ink, const cv::Mat1d& penalty_white);
+		void calculatePenalties(const cv::Mat1b& img, unsigned char* penalty_ink, unsigned char* penalty_white);
+		double compareImages(const cv::Mat1b& img, const unsigned char* penalty_ink, const unsigned char* penalty_white);
 		cv::Mat1b prepareImage(const Settings& vars, const cv::Mat1b& src, double &ratio);
 
 		bool initializeTemplates(const Settings& vars, const std::string& path, Templates& templates);
