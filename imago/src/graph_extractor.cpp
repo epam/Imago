@@ -78,7 +78,7 @@ void GraphExtractor::extract(Settings& vars, const GraphicsDetector &gd, const I
 			 avg_size += dist;
 	   }
 
-	   avg_size /= (lsegments.size() / 2);
+	   avg_size /= (lsegments.size() / 2.0);
 
 	   graph.setInitialAvgBondLength(vars, avg_size);
 

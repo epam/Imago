@@ -370,7 +370,6 @@ void Skeleton::calcCloseVerticiesPenalty(const Settings& vars)
 
 bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 {
-   std::vector<Edge> toProcess;
 
    BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
    {
@@ -545,7 +544,6 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 
 bool Skeleton::_dissolveIntermediateVertices (const Settings& vars)
 {
-   std::set<Vertex> vertices;
    boost::graph_traits<SkeletonGraph>::vertex_iterator vi, vi_end;
    boost::tie(vi, vi_end) = boost::vertices(_g);
 

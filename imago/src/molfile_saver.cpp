@@ -162,8 +162,8 @@ void MolfileSaver::_writeCtab(const Settings& vars)
       else
       {
          const Label &l = *(labels.find(v))->second;
-         double x = l.rect.x + l.rect.width / 2;
-         double y = l.rect.y + l.rect.height / 2;
+         double x = l.rect.x + l.rect.width / 2.0;
+         double y = l.rect.y + l.rect.height / 2.0;
          if (l.multiline)
             _out.printf(" %lf %lf 0 0", vert_pos.x / bond_length, -vert_pos.y / bond_length);
          else

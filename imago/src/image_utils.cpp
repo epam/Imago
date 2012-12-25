@@ -240,7 +240,7 @@ namespace imago
 		  else
 		  {
 			  getLogExt().appendText("Unknown image type, attempt to reload as grayscale");
-			  cv::Mat mat = cv::imread(fname, 0 /*Grayscale*/);
+			  mat = cv::imread(fname, 0 /*Grayscale*/);
 		  }
 		  copyMatToImage(mat, img);
 	  }

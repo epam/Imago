@@ -398,13 +398,13 @@ CEXPORT int imagoGetLogRecord( int it, char **filename, int *length, char **data
    IMAGO_BEGIN;
 
    VirtualFS &vfs = getCurrentContext()->vfs;
-
-   *filename = new char[vfs[it].filename.length() + 1];
+   std::string &fname = vfs[it].filename;
+   *filename = new char[fname.length() + 1];
    *length = vfs[it].data.size();
    *data = new char[vfs[it].data.size()];
 
-   memcpy(*filename, vfs[it].filename.c_str(), vfs[it].filename.length());
-   (*filename)[vfs[it].filename.length()] = 0;
+   memcpy(*filename, fname.c_str(), fname.length());
+   (*filename)[fname.length()] = 0;
    memcpy(*data, &vfs[it].data[0], *length);
 
    IMAGO_END;

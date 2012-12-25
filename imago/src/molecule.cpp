@@ -123,7 +123,6 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 
    std::vector<Skeleton::Vertex> nearest;
 
-   std::set<Skeleton::Vertex> only_nearest;
    labels.assign(_labels.begin(), _labels.end());
    
    for (size_t i = 0; i < labels.size(); ++i)

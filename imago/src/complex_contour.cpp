@@ -343,7 +343,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
 	Skeleton::Vertex vertIt = vert1;
 
 	std::deque<Skeleton::Vertex> neighbours;
-	std::deque<Skeleton::Vertex>::iterator vit, minIt;
+	std::deque<Skeleton::Vertex>::iterator minIt;
 	boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b, e;
   
 	//Find start vertex with minimal degree

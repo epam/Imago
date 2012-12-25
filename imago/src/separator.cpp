@@ -472,7 +472,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 
 		bool isTextContext = _bIsTextContext(vars, layer_symbols, symbRects[i]);
 
-		if(LineCount[i] < 2 && (!isTextContext || (symbRects[i].width / symbRects[i].height) > adequate_ratio_min ))
+		if(LineCount[i] < 2 && (!isTextContext || ((double)(symbRects[i].width) / symbRects[i].height) > adequate_ratio_min ))
 			continue;
 		if(LineCount[i] == 2 )
 		{

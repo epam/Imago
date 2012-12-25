@@ -142,7 +142,6 @@ int WedgeBondExtractor::singleDownFetch(const Settings& vars, Skeleton &g )
    int sdb_count = 0;
    double eps = vars.wbe.SingleDownEps, angle;   
 
-   std::vector<SingleDownBond> sd_bonds;
    std::vector<SegCenter> segs_info;
    std::vector<Segment *> to_delete_segs;
 
@@ -168,7 +167,6 @@ int WedgeBondExtractor::singleDownFetch(const Settings& vars, Skeleton &g )
       {
 		  if (segs_info[i].used && segs_info[j].used && fabs(segs_info[i].angle - segs_info[j].angle) < vars.wbe.SomeTresh)
          {
-            DoubleVector distances;
             Vec2d p1 = segs_info[i].center, p2 = segs_info[j].center;   
 
             std::vector<SegCenter> cur_points;
@@ -400,10 +398,9 @@ void WedgeBondExtractor::fixStereoCenters( Molecule &mol )
 
          if (!begin_stereo)
          {
-            if (!begin_stereo && !end_stereo)
+            if (!end_stereo)
                mol.setBondType(b, BT_SINGLE);
-
-            if (end_stereo && !begin_stereo)
+			else
                to_reverse_bonds.push_back(b);
          }       
 		 else

@@ -20,7 +20,7 @@ namespace file_helpers
 		size_t pos_slash = image.rfind('/');
 		size_t temp = image.rfind('\\');
 		if (pos_slash == std::string::npos || 
-			temp != std::string::npos && temp > pos_slash)
+			(temp != std::string::npos && temp > pos_slash) )
 		{
 			pos_slash = temp;
 		}
