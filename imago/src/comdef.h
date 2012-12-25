@@ -75,6 +75,11 @@ namespace imago
    {
 	   return (x > 0) ? 1 : ((x < 0) ? -1 : 0);
    }
+
+   template <typename T> T square(const T& a)
+   {
+      return a * a;
+   }
 }
 
 #endif /* _comdef_h */

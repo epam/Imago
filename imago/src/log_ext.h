@@ -39,6 +39,14 @@ namespace imago
 
 	log_ext& getLogExt();
 
+	struct ProfilingInformation
+	{
+		unsigned int calls;
+		unsigned int totalTime;
+		int maxMemory;
+		ProfilingInformation();
+	};
+
 	struct FunctionRecord
 	{
 		std::string name;
@@ -48,6 +56,10 @@ namespace imago
 		unsigned int time_log_ms;
 		FunctionRecord(const std::string& n);
 		std::string getPlatformSpecificInfo();
+		unsigned int getTotalTime();
+		unsigned int getWorkTime();
+		unsigned int getLogTime();
+		int getMemDelta();
 	};
 
 	class log_ext
@@ -128,6 +140,7 @@ namespace imago
 		std::string Folder;
 		size_t ImgIdent, CallIdent;
 		std::vector<FunctionRecord> Stack;
+		std::map<std::string, ProfilingInformation> Profile;
 
 		void appendImageInternal(const std::string& caption, const Image& img);   
 		std::string generateAnchor(const std::string& name);		

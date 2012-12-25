@@ -72,7 +72,7 @@ const static char *comb[28] = // TODO: move to config
 /*X*/   "e",
 /*Y*/   "b",
 /*Z*/   "nr",
-		"ABCEFGHIKLMNOPQRSTUVWYZX$%^&#=",
+		"ABCEFGHIKLMNOPQRSTUVWYZX$%^&#=()",
         "abcdeghiklmnoprstuyz",
 };
 
@@ -297,10 +297,8 @@ bool LabelLogic::_multiLetterSubst(char sym)
 
 void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 {
-   //ImageUtils::saveImageToFile(*seg, "output/aaa.png");
-
 	logEnterFunction();
-
+	
 	getLogExt().appendSegmentWithYLine(vars, "segment with baseline", *seg, line_y);
 
    std::string letters;
@@ -310,19 +308,9 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 
    bool capital = false;
    int digit_small = -1;
-   RecognitionDistance rd = _cr.recognize(vars, *seg);
-   char hwc = rd.getBest();
+   RecognitionDistance rd = _cr.recognize(vars, *seg, CharacterRecognizer::all, true);
 
-   if(seg->getHeight() < 20 && seg->getHeight() < 20)
-   {
-	   SmallCharRecognizer scr;
-	   char sChar  = scr.Recognize(vars, seg);
-	   if(sChar != -1)
-		   hwc = sChar;
-   }
-   
-   if (hwc == 'X' && rd.getQuality() < vars.characters.X_Quality) // HACK
-	   hwc = 'H';
+   char hwc = rd.getBest();
 
    bool plus = ImageUtils::testPlus(vars, *seg);
 
@@ -330,7 +318,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 
    if (seg->getHeight() > vars.labels.heightRatio * vars.dynamic.CapitalHeight && (hwc == -1 || hwc < '0' || hwc > '9'))
       capital = true;
-   else if (hwc == -1 && plus)
+   else if ((hwc == -1 || hwc == '+') && plus)
       capital = false;
    else
    {
@@ -470,7 +458,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
       //small letter
       if (bottom >= (line_y - sameLineEps * vars.dynamic.CapitalHeight) &&
           bottom <= (line_y + sameLineEps * vars.dynamic.CapitalHeight) &&
-          (digit_small == -1 || digit_small == 1))
+          (digit_small == -1 || digit_small == 1) && !plus)
       {
 		  getLogExt().appendText("small");
          if (was_letter)
@@ -488,7 +476,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
             throw LabelException("Unexpected symbol position (small instead of capital)");
       }
       //superscript
-      else if (med < line_y - vars.labels.medHeightFactor * vars.dynamic.CapitalHeight && digit_small == 0)
+      else if (plus || med < line_y - vars.labels.medHeightFactor * vars.dynamic.CapitalHeight && digit_small == 0)
       {
 		  getLogExt().appendText("superscript");
          was_super = 1;

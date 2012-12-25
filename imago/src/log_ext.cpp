@@ -19,6 +19,11 @@
 
 namespace imago
 {
+	ProfilingInformation::ProfilingInformation()
+	{
+		calls = totalTime = maxMemory = 0;
+	}
+
 	FunctionRecord::FunctionRecord(const std::string& n)
 	{
 		name = n;
@@ -28,14 +33,32 @@ namespace imago
 		memory = platform::MEM_AVAIL();
 	}
 
+	unsigned int FunctionRecord::getTotalTime()
+	{
+		return platform::TICKS() - time_start;
+	}
+
+	unsigned int FunctionRecord::getWorkTime()
+	{
+		return getTotalTime() - time_log_ms;
+	}
+
+	unsigned int FunctionRecord::getLogTime()
+	{
+		return time_log_ms;
+	}
+
+	int FunctionRecord::getMemDelta()
+	{
+		return static_cast<int>(memory - platform::MEM_AVAIL());
+	}	
+
 	std::string FunctionRecord::getPlatformSpecificInfo()
 	{
 		std::string result = "";
 		char buf[MAX_TEXT_LINE];
-		int mem_delta = static_cast<int>(memory - platform::MEM_AVAIL());
-		int total_time = (platform::TICKS() - time_start);
 		sprintf(buf, " (memory: %iKb, work time: %ims, log time: %ims, total time: %ims)", 
-			    mem_delta, total_time - time_log_ms, time_log_ms, total_time);
+			    getMemDelta(), getWorkTime(), getLogTime(), getTotalTime());
 		result = buf;
 		return result;
 	}
@@ -56,6 +79,28 @@ namespace imago
 
 	log_ext::~log_ext()
 	{
+		if (!Profile.empty())
+		{
+			appendText("By memory (in Kb)");
+			for (std::map<std::string, ProfilingInformation>::const_iterator it = Profile.begin(); it != Profile.end(); it++)
+			{
+				if (it->second.maxMemory > 0)
+					append(it->first, it->second.maxMemory);
+			}
+			appendText("By calls count");
+			for (std::map<std::string, ProfilingInformation>::const_iterator it = Profile.begin(); it != Profile.end(); it++)
+			{
+				if (it->second.calls > 1)
+					append(it->first, it->second.calls);
+			}
+			appendText("By total time (ms)");
+			for (std::map<std::string, ProfilingInformation>::const_iterator it = Profile.begin(); it != Profile.end(); it++)
+			{
+				if (it->second.totalTime > 10)
+					append(it->first, it->second.totalTime);
+			}
+		}
+
 		if (UseVirtualFS)
 		{
 			// do nothing
@@ -201,10 +246,9 @@ namespace imago
 		fr.anchor = filterHtml(generateAnchor(name));
 
 		char color[64];
-      //sprintf(color, "RGB(%u, %u, %u)", rand()%20 + 236, rand()%20 + 236, rand()%20 + 236);
-      sprintf(color, "#%02x%02x%02x", rand()%20 + 236, rand()%20 + 236, rand()%20 + 236);
+		sprintf(color, "#%02x%02x%02x", rand()%20 + 236, rand()%20 + 236, rand()%20 + 236);
 
-      dump(getStringPrefix(true) + "<div title=\"" + fr.name + "\" style=\"background-color: " + color + ";\" >"
+		dump(getStringPrefix(true) + "<div title=\"" + fr.name + "\" style=\"background-color: " + color + ";\" >"
 			+ "<b><font size=\"+1\">Enter into <a href=\"#" + fr.anchor + "\">" 
 			+ fr.name + "</a> function</font></b><div style=\"margin-left: 20px;\">");
 		Stack.push_back(fr);
@@ -216,6 +260,11 @@ namespace imago
 
 		FunctionRecord fr = Stack.back();
 		Stack.pop_back();
+
+		Profile[fr.name].calls += 1;
+		Profile[fr.name].totalTime += fr.getWorkTime();
+		if (fr.getMemDelta() > Profile[fr.name].maxMemory)
+			Profile[fr.name].maxMemory = fr.getMemDelta();
 
 		dump(getStringPrefix() + "</div><b><font size=\"+1\">Leave from <a name=\"" + fr.anchor + "\">" 
 			+ fr.name + "</a> function</font></b>" + fr.getPlatformSpecificInfo() + " </div>");

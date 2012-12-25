@@ -51,6 +51,7 @@ namespace imago
 	  static const std::string digits;
 	  static const std::string charges;
 	  static const std::string all;
+	  static const std::string brackets;
 	  static const std::string like_bonds;
 
    private:

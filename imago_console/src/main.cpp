@@ -22,7 +22,7 @@
 int main(int argc, char **argv)
 {
 	imago::Settings vars;
-	vars.general.TimeLimit = 10000; // ms, default timelimit value
+	vars.general.TimeLimit = 20000; // ms, default timelimit value
 
 	if (argc <= 1)
 	{

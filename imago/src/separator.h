@@ -81,8 +81,6 @@ namespace imago
 
       bool _checkSequence(const Settings& vars, IntPair &checking, IntPair &symbols_graphics, double &density );
       
-	  bool _isSuspiciousSymbol( Segment *segment, SegmentDeque &layer_symbols, int cap_height );
-      
 	  static bool _segmentsComparator( Segment *a, Segment *b );
 	  
 	  bool _bIsTextContext(const Settings& vars, SegmentDeque &layer_symbols, Rectangle rec);
