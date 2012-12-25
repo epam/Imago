@@ -19,7 +19,7 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "symbol_features.h"
+#include <opencv2/opencv.hpp>
 #include "segment.h"
 #include "stl_fwd.h"
 #include "recognition_distance.h"
@@ -53,6 +53,38 @@ namespace imago
 	   static qword getSegmentHash(const Segment &seg, const std::string& candidates);
    };
 
+   namespace CharacterRecognizerImp
+   {
+	   	const int REQUIRED_SIZE = 32;
+		const int PENALTY_SHIFT = 2;
+		const int PENALTY_STEP  = 1;
+
+		struct MatchRecord
+		{
+			cv::Mat1d penalty_ink;
+			cv::Mat1d penalty_white;
+			std::string text;
+			double wh_ratio;
+		};
+
+		typedef std::vector<cv::Point> Points;
+
+		class CircleOffsetPoints : public std::vector<Points>
+		{
+			public: CircleOffsetPoints(int radius);
+		};
+
+		typedef std::vector<MatchRecord> Templates;
+
+		void calculatePenalties(const cv::Mat1b& img, cv::Mat1d& penalty_ink, cv::Mat1d& penalty_white);
+		double compareImages(const cv::Mat1b& img, const cv::Mat1d& penalty_ink, const cv::Mat1d& penalty_white);
+		cv::Mat1b prepareImage(const Settings& vars, const cv::Mat1b& src, double &ratio);
+
+		bool initializeTemplates(const Settings& vars, const std::string& path, Templates& templates);
+		
+		RecognitionDistance recognizeMat(const Settings& vars, const cv::Mat1b& rect, const std::string &candidates, const Templates& templates);		
+		RecognitionDistance recognizeImage(const Settings& vars, const imago::Image& img, const std::string &candidates, const Templates& templates);
+   };
 }
 
 #endif /* _character_recognizer_h */

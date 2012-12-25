@@ -18,7 +18,6 @@
 
 #include "vec2d.h"
 #include "image.h"
-#include "symbol_features.h"
 
 namespace imago
 {
