@@ -13,6 +13,7 @@ namespace machine_learning
 	const double LEARNING_ABNORMAL_TIME = 2500;          /* ms, time to assume there's something wrong */ 
 	const double LEARNING_SUSPICIOUS_TIME_FACTOR = 2.0;  /* abs, if current time > average * this_const then probably constant set is bad */
 	const int    LEARNING_MAX_CONFIGS = 20;              /* abs, maximal configs stored in history */
+	const int    LEARNING_CONFIGS_START_MERGE = 5;       /* abs, minimal configs count to start merge process */
 	const int    LEARNING_TOP_USE = 3;                   /* abs, maximal best configs count to branch from them */
 	const int    LEARNING_VERBOSE_TIME = 15000;          /* ms, print on screen progress every such time */	
 	const double LEARNING_LOG_START = 2.79;              /* abs, constants variation logarithmic base */
@@ -21,7 +22,8 @@ namespace machine_learning
 	const double LEARNING_PART_CONSTS_TO_CHANGE = 0.1;   /* %, maximal count of constants to adjust */
 	const double LEARNING_MAX_BAD_COUNT_ADDITION = 0.05; /* %, threshold of maximal new bad images before iteration skip */
 	const int    LEARNING_MAX_ZERO_DELTA_COUNT = 3;      /* abs, count of 0 delta before restart iterations */
-	      double LEARNING_MULTIPLIER_BASE = 0.1;         /* %, constants variation threshold */
+
+	double LEARNING_MULTIPLIER_BASE = 0.1;         /* %, constants variation threshold */
 
 	double getWorstAllowedDelta(int imagesCount)  /* %, worst similarity delta (in average) allowed for further checks */
 	{
@@ -39,6 +41,47 @@ namespace machine_learning
 	{
 		return (double)(rand() % RAND_MAX) / (double)RAND_MAX; // [0..1)
 	}
+
+	std::string mutateMerge(const std::string& config1, const std::string& config2)
+	{
+		imago::Settings vars;
+
+		strings lines;
+		{
+			std::string data = config1 + platform::getLineEndings() + config2;
+			std::string buffer;
+			for (size_t u = 0; u < data.size(); u++)
+			{
+				char c = data[u];
+				if (c == 10) // LF
+				{
+					lines.push_back(buffer);
+					buffer = "";
+				}
+				else if (c > 32)
+				{
+					buffer += c;
+				}
+			}
+			if (!buffer.empty())
+				lines.push_back(buffer);
+		}
+
+		std::random_shuffle(lines.begin(), lines.end());
+
+		std::string config;
+		for (size_t u = 0; u < lines.size(); u++)
+			config += lines[u] + platform::getLineEndings();
+
+		vars.fillFromDataStream(config);
+
+		printf("[Learning] -- Configs randomly merged --\n");
+
+		std::string output;
+		vars.saveToDataStream(output);
+		return output;
+	}
+
 
 	std::string modifyConfig(const std::string& config, const LearningBase& learning, int iteration)
 	{
@@ -481,7 +524,16 @@ namespace machine_learning
 
 					LearningResultRecord res;
 					res.work_iteration = work_iteration;
-					res.config = modifyConfig(base_config, base, work_iteration);
+
+					if (rand() % 2 == 1 && history.size() >= LEARNING_CONFIGS_START_MERGE && cfg_id != cfg_best_idx &&
+						imago::absolute(history[cfg_id].average_score - history[cfg_best_idx].average_score) > imago::EPS)
+					{
+						res.config = mutateMerge(history[cfg_id].config, history[cfg_best_idx].config);
+					}
+					else
+					{
+						res.config = modifyConfig(base_config, base, work_iteration);
+					}
 
 					// now recheck the config
 					unsigned int last_out_time = platform::TICKS();					
@@ -624,6 +676,8 @@ namespace machine_learning
 						storeLearningProgress(base, history);
 					}
 
+					bool all_ok = res.valid_count == res.ok_count;
+
 					if (history[cfg_best_idx] < res)
 					{
 						printf("[Learning] --- Got better result (%g, %u OK), saving\n", res.average_score, res.ok_count);
@@ -631,18 +685,19 @@ namespace machine_learning
 
 						// commit best_similarity_achieved:
 						for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
-							it->second.best_similarity_achieved = it->second.similarity;
-
-						if (res.valid_count == res.ok_count)
-						{
-							printf("[Learning] Everything is done.\n");
-							work_continue = false;
-							break;
-						}
+							it->second.best_similarity_achieved = it->second.similarity;						
 					}
 					else
 					{
-						storeConfig(res, "bad/");
+						if (!all_ok)
+							storeConfig(res, "bad/");
+					}
+					
+					if (all_ok)
+					{
+						printf("[Learning] Everything is done.\n");
+						work_continue = false;
+						break;
 					}
 
 					break_iteration: continue;

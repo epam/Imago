@@ -246,6 +246,9 @@ namespace imago
 	struct CharactersRecognitionSettings // POD
 	{		
 		int    MinEndpointsPossible;
+		int    InternalBinarizationThreshold;
+		int    MaxTopVariantsLookup;
+		double DistanceScaleFactor; 
 		double PossibleCharacterDistanceStrong;
 		double PossibleCharacterDistanceWeak;
 		double PossibleCharacterMinimalQuality;

@@ -56,13 +56,6 @@ namespace character_recognizer_imp
 	const int PENALTY_SHIFT = 2;
 	const int PENALTY_STEP  = 1;
 
-	// TODO: move to settings
-	const int DISTANCE_GOOD = 275;
-	const int DISTANCE_MODERATE = 400;
-	const int BINARIZATION_THRESHOLD = 190;
-	const int MAX_TOP_VARIANTS_LOOKUP = 10;
-	const double RATE_CONVERSION_CONST = 3.0;
-
 	struct MatchRecord
 	{
 		cv::Mat1d penalty_ink;
@@ -164,10 +157,10 @@ namespace character_recognizer_imp
 		return best;
 	}
 
-	cv::Mat1b prepareImage(const cv::Mat1b& src, double &ratio)
+	cv::Mat1b prepareImage(const Settings& vars, const cv::Mat1b& src, double &ratio)
 	{
 		cv::Mat1b temp_binary;
-		cv::threshold(src, temp_binary, BINARIZATION_THRESHOLD, 255, CV_THRESH_BINARY);
+		cv::threshold(src, temp_binary, vars.characters.InternalBinarizationThreshold, 255, CV_THRESH_BINARY);
 
 		imago::Image img_bin;
 		imago::ImageUtils::copyMatToImage(temp_binary, img_bin);
@@ -184,7 +177,7 @@ namespace character_recognizer_imp
 
 		cv::resize(temp_binary, temp_binary, cv::Size(size_x, size_y), 0.0, 0.0, cv::INTER_CUBIC);
 
-		cv::threshold(temp_binary, temp_binary, BINARIZATION_THRESHOLD, 255, CV_THRESH_BINARY);
+		cv::threshold(temp_binary, temp_binary, vars.characters.InternalBinarizationThreshold, 255, CV_THRESH_BINARY);
 		
 		return temp_binary;
 	}
@@ -249,7 +242,7 @@ namespace character_recognizer_imp
 		return name;
 	}
 
-	bool initializeTemplates(const std::string& path)
+	bool initializeTemplates(const Settings& vars, const std::string& path)
 	{
 		strings files;
 		file_helpers::getDirectoryContent(path, files, true);
@@ -261,7 +254,7 @@ namespace character_recognizer_imp
 			mr.text = convertFileNameToLetter(files[u]);
 			if (!image.empty())
 			{
-				cv::Mat1b prepared = prepareImage(image, mr.wh_ratio);
+				cv::Mat1b prepared = prepareImage(vars, image, mr.wh_ratio);
 				calculatePenalties(prepared, mr.penalty_ink, mr.penalty_white);
 				templates.push_back(mr);
 			}
@@ -289,14 +282,14 @@ namespace character_recognizer_imp
 		}
 	};
 
-	imago::RecognitionDistance recognize1b(const cv::Mat1b& rect, const std::string &candidates)
+	imago::RecognitionDistance recognizeMat(const Settings& vars, const cv::Mat1b& rect, const std::string &candidates)
 	{
 		imago::RecognitionDistance _result;
 
 		std::vector<ResultEntry> results;
 		
 		double ratio;
-		cv::Mat1b img = prepareImage(rect, ratio);
+		cv::Mat1b img = prepareImage(vars, rect, ratio);
 
 		for (size_t u = 0; u < templates.size(); u++)
 		{
@@ -326,22 +319,22 @@ namespace character_recognizer_imp
 
 		std::sort(results.begin(), results.end());
 
-		for (int u = std::min(MAX_TOP_VARIANTS_LOOKUP, (int)results.size() - 1); u >= 0; u--)
+		for (int u = std::min(vars.characters.MaxTopVariantsLookup, (int)results.size() - 1); u >= 0; u--)
 		{
 			if (results[u].text.size() == 1)
 			{
-				_result[results[u].text[0]] = results[u].value / DISTANCE_GOOD * RATE_CONVERSION_CONST;
+				_result[results[u].text[0]] = results[u].value / vars.characters.DistanceScaleFactor;
 			}
 		}
 
 		return _result;
 	}
 
-	imago::RecognitionDistance recognize(const imago::Image& img, const std::string &candidates)
+	imago::RecognitionDistance recognizeImage(const Settings& vars, const imago::Image& img, const std::string &candidates)
 	{		
 		cv::Mat1b rect;
 		imago::ImageUtils::copyImageToMat(img, rect);
-		return recognize1b(rect, candidates);
+		return recognizeMat(vars, rect, candidates);
 	}
 }
 
@@ -431,11 +424,11 @@ RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const S
 		if (!init)
 		{
 			// TODO
-			character_recognizer_imp::initializeTemplates("C:\\development\\image_filter\\symbols");
+			character_recognizer_imp::initializeTemplates(vars, "C:\\development\\image_filter\\symbols");
 			init = true;
 		}
 
-		rec = character_recognizer_imp::recognize(seg, candidates);
+		rec = character_recognizer_imp::recognizeImage(vars, seg, candidates);
 		getLogExt().appendMap("Font recognition result", rec);
 
 		if (vars.caches.PCacheSymbolsRecognition)

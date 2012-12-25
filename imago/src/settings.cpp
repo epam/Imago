@@ -117,6 +117,9 @@ namespace imago
 		// DO NOT FORGET TO ADD REFERENCES TO ALL NEW VARIABLES HERE!
 
 		ASSIGN_REF(characters.MinEndpointsPossible);
+		ASSIGN_REF(characters.InternalBinarizationThreshold);
+		ASSIGN_REF(characters.MaxTopVariantsLookup);
+		ASSIGN_REF(characters.DistanceScaleFactor);
 		ASSIGN_REF(characters.PossibleCharacterDistanceStrong);
 		ASSIGN_REF(characters.PossibleCharacterDistanceWeak);
 		ASSIGN_REF(characters.PossibleCharacterMinimalQuality);
