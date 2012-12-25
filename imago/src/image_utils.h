@@ -40,21 +40,12 @@ namespace imago
 
       static void loadImageFromBuffer( const std::vector<byte> &buffer, Image &img);
       static void saveImageToBuffer( const Image &img, const std::string &format, std::vector<byte> &buffer );
-      //static void saveImageToBuffer( const Image &img, const char *FileName, ... );
-
-      static bool testSlashLine(const Settings& vars, Segment &img, double *angle, double eps );
-      static bool testVertHorLine(const Settings& vars, Segment &img, int &angle );
-
-      static int findCornerRect( const Segment &img, bool corner, bool side,
-                                 bool orient, int &out_w, int &out_h );
-      
-      static bool testPlus(const Settings& vars, const Segment &img );
-      static bool testMinus(const Settings& vars, const Segment &img, int cap_height );
 
       static void putSegment( Image &img, const Segment &seg, bool careful = true );
       static void cutSegment( Image &img, const Segment &seg, bool forceCut = false, byte val = 255 );
 
-	  static bool isThinCircle(const Settings& vars, Image &seg, double &radius, bool asChar = false);
+      static bool testSlashLine(const Settings& vars, Segment &img, double *angle, double eps );
+      static bool isThinCircle(const Settings& vars, Image &seg, double &radius, bool asChar = false);
 	  static double estimateLineThickness(Image &bwimg, int grid);
    };
 }

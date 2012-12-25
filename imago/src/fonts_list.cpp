@@ -12,7 +12,8 @@ namespace imago
 	{
 		#define LENGTH(x) sizeof(x) / sizeof(int)
 		
-		{
+		// TODO:
+		/*{
 			const char* data[] = 
 			{
 				#include "imago.font.inc"
@@ -25,7 +26,7 @@ namespace imago
 			}
 
 			push_back(FontEntryDefinition("base", temp)); 			
-		}
+		}*/
 	}
 
 	FontEntries getFontsList()

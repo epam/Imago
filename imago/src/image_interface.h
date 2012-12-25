@@ -33,14 +33,7 @@ namespace imago
 		// get the image dimensions
 		virtual int width() const = 0;
 		virtual int height() const = 0;
-
-		// some generic methods
-		double getAverageIntensity(const Points2i& pts) const;
-		double getAverageIntensity() const;
-
-		double getAverageFillrate(const Points2i& pts) const;
-		double getAverageFillrate() const;
-	};
+	};	
 }
 
 #endif // _image_interface_h

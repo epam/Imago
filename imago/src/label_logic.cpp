@@ -22,7 +22,6 @@
 #include "image_utils.h"
 #include "log_ext.h"
 #include "chemical_validity.h"
-#include "small_character_recognizer.h"
 
 using namespace imago;
 
@@ -308,11 +307,11 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 
    bool capital = false;
    int digit_small = -1;
-   RecognitionDistance rd = _cr.recognize(vars, *seg, CharacterRecognizer::all, true);
+   RecognitionDistance rd = _cr.recognize(vars, *seg, CharacterRecognizer::all);
 
    char hwc = rd.getBest();
 
-   bool plus = ImageUtils::testPlus(vars, *seg);
+   bool plus = (hwc == '+'); // todo
 
    getLogExt().append("plus", plus);
 
@@ -329,7 +328,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
       // Just use one on top of another for now.
       if (hwc == 'N' || hwc == 'H' || hwc == 'O' || hwc == 'P')
          capital = true;
-      else if (seg->getFeatures().recognizable)
+      else if (true /*seg->getFeatures().recognizable*/)
       {
 		 c_big = _cr.recognize(vars, *seg, CharacterRecognizer::upper).getBest(&d_big);
 		 getLogExt().append("c_big", c_big);
@@ -385,7 +384,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
          ;
       else if (sym == 'O')
          ;
-      else if (seg->getFeatures().recognizable)
+      else if (true /*seg->getFeatures().recognizable*/)
 		  sym = _cr.recognize(vars, *seg, letters).getBest(); //TODO: Can use c_big here
       else
          sym = '?';
@@ -465,7 +464,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
          {
 			 getLogExt().append("letters", letters);
             _predict(vars, seg, letters);
-            if (seg->getFeatures().recognizable)
+            if (true /*seg->getFeatures().recognizable*/)
 			{
 				_cur_atom->addLabel(_cr.recognize(vars, *seg, letters).getBest());
 			}
@@ -491,8 +490,8 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 		 if (_cur_atom->getLabelFirst() == 0)
          {
 			 getLogExt().appendText("isotope");
-            if (seg->getFeatures().recognizable)
-				index_val = _cr.recognize(vars, *seg, CharacterRecognizer::digits).getBest() - '0';
+            if (true /*seg->getFeatures().recognizable*/)
+				index_val = _cr.recognize(vars, *seg, CharacterRecognizer::digits).getBest() - '0'; // TODO: unsafe
             else
                index_val = 0;
             _cur_atom->isotope = _cur_atom->isotope * 10 + index_val;
@@ -507,7 +506,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
             {
                tmp = '+';
             }
-			else if (ImageUtils::testMinus(vars, *seg, (int)vars.dynamic.CapitalHeight)) //testMinus
+			else if (hwc == '-') // TODO //ImageUtils::testMinus(vars, *seg, (int)vars.dynamic.CapitalHeight)) //testMinus
             {
                tmp = '-';
             }
@@ -518,7 +517,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
                else
                   letters = "0123456789";
 
-               if (seg->getFeatures().recognizable)
+               if (true /*seg->getFeatures().recognizable*/)
 				   tmp = _cr.recognize(vars, *seg, letters).getBest();
                else
                   tmp = 0; //TODO: what to do if charge is unrecognizable
@@ -551,7 +550,7 @@ void LabelLogic::process(const Settings& vars, Segment *seg, int line_y )
 		  if (_cur_atom->getLabelFirst() == 0)
             throw LabelException("Unexpected symbol position (subscript instaed of capital)");
 
-         if (seg->getFeatures().recognizable)
+         if (true /*seg->getFeatures().recognizable*/)
 		 {
 			 index_val = _cr.recognize(vars, *seg, CharacterRecognizer::digits).getBest() - '0';
 			getLogExt().append("Index val", index_val);

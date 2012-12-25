@@ -46,8 +46,6 @@ namespace imago
 			#define APPLY(x) memset(&x, pattern, sizeof(x));
 
 			APPLY(prefilterCV);
-			APPLY(adaptive);
-			APPLY(prefilter);
 			APPLY(molecule);
 			APPLY(estimation);
 			APPLY(main);
@@ -83,8 +81,6 @@ namespace imago
 		    }
 
 			APPLY(prefilterCV);
-			APPLY(adaptive);
-			APPLY(prefilter);
 			APPLY(molecule);
 			APPLY(estimation);
 			APPLY(main);
@@ -119,47 +115,18 @@ namespace imago
 		ASSIGN_REF(general.ImageAlreadyBinarized);
 
 		// DO NOT FORGET TO ADD REFERENCES TO ALL NEW VARIABLES HERE!
-				
-		ASSIGN_REF(adaptive.GuessInkThresholdFactor);
-		ASSIGN_REF(adaptive.InterpolationLevel);
-		ASSIGN_REF(adaptive.MaxCrops);
-		ASSIGN_REF(adaptive.MaxDiffIterations);
-		ASSIGN_REF(adaptive.MaximalInkPercentage);
-		ASSIGN_REF(adaptive.MaximalLineThickness);
-		ASSIGN_REF(adaptive.MaxRefineIterations);
-		ASSIGN_REF(adaptive.MinimalInkPercentage);
-		ASSIGN_REF(adaptive.MinimalLineThickness);
-		ASSIGN_REF(adaptive.WindowSizeFactor);
 
-		ASSIGN_REF(characters.DefaultFourierClassesUse);
-		ASSIGN_REF(characters.DescriptorsEvenFactorStrong);
-		ASSIGN_REF(characters.DescriptorsEvenFactorWeak);
-		ASSIGN_REF(characters.DescriptorsOddFactorStrong);
-		ASSIGN_REF(characters.DescriptorsOddFactorWeak);
-		ASSIGN_REF(characters.HackFor3Use);
-		ASSIGN_REF(characters.ImpossibleToWriteDelta);
-		ASSIGN_REF(characters.MaximalEndpointsUse);
 		ASSIGN_REF(characters.MinEndpointsPossible);
 		ASSIGN_REF(characters.PossibleCharacterDistanceStrong);
 		ASSIGN_REF(characters.PossibleCharacterDistanceWeak);
 		ASSIGN_REF(characters.PossibleCharacterMinimalQuality);
-		ASSIGN_REF(characters.WriteEasyFactor);
-		ASSIGN_REF(characters.WriteProbablyImpossibleFactor);
-		ASSIGN_REF(characters.WriteSurelyImpossibleFactor);
-		ASSIGN_REF(characters.WriteVeryEasyFactor);
-		ASSIGN_REF(characters.X_Quality);
-		ASSIGN_REF(characters.SmallLetterRecogThreshold);
-		ASSIGN_REF(characters.Contour_Eps1);
-		ASSIGN_REF(characters.Contour_Eps2);
-		ASSIGN_REF(characters.Contour_Eps1_generator);
-		ASSIGN_REF(characters.Contour_Eps2_generator);
-		ASSIGN_REF(characters.Filter_Threshold_generator);
 
 		ASSIGN_REF(csr.DeleteBadTriangles);
 		ASSIGN_REF(csr.Dissolve);
 		ASSIGN_REF(csr.LineVectorizationFactor);
 		ASSIGN_REF(csr.UseDPApproximator);
 		ASSIGN_REF(csr.WeakSegmentatorDist);				
+		ASSIGN_REF(csr.SmallImageDim);
 		ASSIGN_REF(csr.ReconnectMinBads);
 		ASSIGN_REF(csr.ReconnectSurelyBadCoef);
 		ASSIGN_REF(csr.ReconnectSurelyGoodCoef);
@@ -204,7 +171,6 @@ namespace imago
 		ASSIGN_REF(lcomb.FillLabelFactor1);
 		ASSIGN_REF(lcomb.FillLabelFactor2);
 		ASSIGN_REF(lcomb.MaximalDistanceFactor);
-		ASSIGN_REF(lcomb.MaximalSymbolRecognitionDistance);
 		ASSIGN_REF(lcomb.MaximalYDistanceFactor);
 
 		ASSIGN_REF(main.DissolvingsFactor);
@@ -255,37 +221,14 @@ namespace imago
 		ASSIGN_REF(molecule.LengthValue_medium);
 		ASSIGN_REF(molecule.SpaceMultiply);
 
-		ASSIGN_REF(prefilter.BilateralSpace);
-		ASSIGN_REF(prefilter.Bilateral_d);
-		ASSIGN_REF(prefilter.BlockSAdaptive);
-		ASSIGN_REF(prefilter.GaussianKernelSize);
-		ASSIGN_REF(prefilter.GreyTreshMaxF);
-		ASSIGN_REF(prefilter.GreyTreshMinF);
-		ASSIGN_REF(prefilter.MagicCoeff);
-		ASSIGN_REF(prefilter.MakeSegmentsConnected);
-		ASSIGN_REF(prefilter.MaxLSSplah);
-		ASSIGN_REF(prefilter.MinSSize);
-		ASSIGN_REF(prefilter.ReduceImageDim);
-		ASSIGN_REF(prefilter.SAreaTresh);
-		ASSIGN_REF(prefilter.SpotsWindowSize);
-		ASSIGN_REF(prefilter.TreshFactor);
-		ASSIGN_REF(prefilter.UnsharpAmount);
-		ASSIGN_REF(prefilter.UnsharpSize);
-		ASSIGN_REF(prefilter.WienerSize);
-
-		ASSIGN_REF(prefilterCV.AdditionPercentage);
 		ASSIGN_REF(prefilterCV.BinarizerFrameGap);
 		ASSIGN_REF(prefilterCV.BinarizerThreshold);
 		ASSIGN_REF(prefilterCV.BorderPartProportion);
-		ASSIGN_REF(prefilterCV.HighResPassBound);
 		ASSIGN_REF(prefilterCV.MaxBadToGoodRatio);
-		ASSIGN_REF(prefilterCV.MaxBadToGoodRatio2);
-		ASSIGN_REF(prefilterCV.MaxFillRatio);
 		ASSIGN_REF(prefilterCV.MaxNonBWPixelsProportion);
 		ASSIGN_REF(prefilterCV.MaxRectangleCropLineWidth);
 		ASSIGN_REF(prefilterCV.MaxRectangleCropLineWidthAlreadyBinarized);
 		ASSIGN_REF(prefilterCV.MinGoodPixelsCount);
-		ASSIGN_REF(prefilterCV.MinGoodPixelsCount2);
 		ASSIGN_REF(prefilterCV.StrongBinarizeSize);
 		ASSIGN_REF(prefilterCV.StrongBinarizeTresh);
 		ASSIGN_REF(prefilterCV.UseOtsuPixelsAddition);
@@ -302,9 +245,6 @@ namespace imago
 
 		ASSIGN_REF(routines.Algebra_IntersectionEps);
 		ASSIGN_REF(routines.Algebra_SameLineEps);
-		ASSIGN_REF(routines.Approx_CalcLineTresh);
-		ASSIGN_REF(routines.Approx_Eps1);
-		ASSIGN_REF(routines.Approx_Eps2);
 		ASSIGN_REF(routines.Circle_AsCharFactor);
 		ASSIGN_REF(routines.Circle_GapAngleMax);
 		ASSIGN_REF(routines.Circle_GapRadiusMax);
@@ -335,8 +275,6 @@ namespace imago
 		ASSIGN_REF(separator.minApproxSegsWeak);
 		ASSIGN_REF(separator.minDensity);
 		ASSIGN_REF(separator.specialSegmentsTreat);
-		ASSIGN_REF(separator.SurfCoef);
-		ASSIGN_REF(separator.SymProbabilityThresh);
 		ASSIGN_REF(separator.testSlashLine1);
 		ASSIGN_REF(separator.testSlashLine2);
 		ASSIGN_REF(separator.UseVoteArray);
@@ -369,11 +307,6 @@ namespace imago
 		ASSIGN_REF(skeleton.SlopeFact2);
 
 		ASSIGN_REF(utils.SlashLineDensity);
-		ASSIGN_REF(utils.TestMinusDensity);
-		ASSIGN_REF(utils.TestMinusHeightFactor);
-		ASSIGN_REF(utils.TestMinusRatio);
-		ASSIGN_REF(utils.TestPlusDensity);
-		ASSIGN_REF(utils.TestPlusSq);
 
 		ASSIGN_REF(wbe.MinimalSingleDownSegsCount);
 		ASSIGN_REF(wbe.PointsCompareDist);
@@ -392,11 +325,8 @@ namespace imago
 		ASSIGN_REF(wbe.SingleUpRatioEps);
 		ASSIGN_REF(wbe.SomeTresh);
 
-		ASSIGN_REF(weak_seg.MinDistanceDraw);
 		ASSIGN_REF(weak_seg.RectangularCropAreaTreshold);
 		ASSIGN_REF(weak_seg.RectangularCropFitTreshold);
-		ASSIGN_REF(weak_seg.RefineWidth);
-		ASSIGN_REF(weak_seg.SubpixelDraw);
 
 		ASSIGN_REF(retinex.ContrastDropPercentage);
 		ASSIGN_REF(retinex.ContrastNominal);
@@ -533,22 +463,15 @@ namespace imago
 
 	imago::RecognitionCaches::RecognitionCaches()
 	{
-		PCacheClean    = new RecognitionDistanceCacheType();
-		PCacheAdjusted = new RecognitionDistanceCacheType();
+		PCacheSymbolsRecognition = new RecognitionDistanceCacheType();
 	}
 
 	imago::RecognitionCaches::~RecognitionCaches()
 	{
-		if (PCacheClean)
+		if (PCacheSymbolsRecognition)
 		{
-			delete PCacheClean;
-			PCacheClean = NULL;
-		}
-
-		if (PCacheAdjusted)
-		{
-			delete PCacheAdjusted;
-			PCacheAdjusted = NULL;
+			delete PCacheSymbolsRecognition;
+			PCacheSymbolsRecognition = NULL;
 		}
 	}
 

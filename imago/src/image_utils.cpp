@@ -34,33 +34,6 @@
 
 namespace imago
 {
-   bool ImageUtils::testVertHorLine(const Settings& vars, Segment &img, int &angle )
-   {
-      Image tmp;
-
-      tmp.copy(img);
-      ThinFilter2(tmp).apply();
-      tmp.crop();
-
-      int w = tmp.getWidth(), h = tmp.getHeight();
-
-      if (w < 2 && w < h)
-      {
-         angle = -1;
-         return true;
-      }
-
-      if (h < 2 && h < w)
-      {
-         angle = 1;
-         return true;
-      }
-
-      angle = 0;
-
-      return false;
-   }
-
    bool ImageUtils::testSlashLine(const Settings& vars, Segment &img, double *angle, double eps )
    {
 	   logEnterFunction();
@@ -95,7 +68,6 @@ namespace imago
       density = tmp.density();
       ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
       density = tmp.density() / density;
-      //ImageUtils::saveImageToFile(tmp, "output/origin_orient2.png");
    
       if (density < vars.utils.SlashLineDensity)
       {
@@ -108,111 +80,6 @@ namespace imago
          *angle = thetha;
 
       return false;
-   }
-
-   int ImageUtils::findCornerRect( const Segment &img, bool corner, bool side,
-                                   bool orient, int &out_w, int &out_h )
-   {
-      //
-      int x, y, w, h, dy, dx;
-      int max_sq = 0;
-
-      if (!corner)
-         y = 0, dy = 1;
-      else
-         y = img.getHeight() - 1, dy = -1;
-
-      if (!side)
-         x = 0, dx = 1;
-      else
-         x = img.getWidth() - 1, dx = -1;
-
-      int lim_y = (dy > 0) ? img.getHeight() : 0;
-      int lim_x = (dx > 0) ? img.getWidth() : 0;
-
-
-      out_w = out_h = 0;
-      for (h = 1; y != lim_y; y += dy, h++)
-      {
-         if (img.getByte(0, y) != 255)
-            break;
-         for (w = 1; x != lim_x; x += dx, w++)
-         {
-            if (img.getByte(x, y) != 255)
-            {
-               if (!side)
-                  lim_x = std::min(x, lim_x);
-               else
-                  lim_x = std::max(x, lim_x);
-            
-               break;
-            }
-
-            if (!orient && w > h)
-               break;
-
-            if (orient && h > w)
-               continue;
-
-            if (w * h > max_sq)
-            {
-               max_sq = w * h;
-               out_w = w;
-               out_h = h;
-            }
-         }
-
-         if (!side)
-            x = 0;
-         else
-            x = img.getWidth() - 1;
-      }
-      return max_sq;
-   }
-
-   bool ImageUtils::testPlus(const Settings& vars, const Segment &img )
-   {
-      int sq[4];
-      int w[4], h[4];
-      int sum = 0;
-      int s = img.getWidth() * img.getHeight();
-
-      sq[0] = ImageUtils::findCornerRect(img, 0, 0, 0, w[0], h[0]);
-      sq[1] = ImageUtils::findCornerRect(img, 0, 1, 0, w[1], h[1]);
-      sq[2] = ImageUtils::findCornerRect(img, 1, 0, 0, w[2], h[2]);
-      sq[3] = ImageUtils::findCornerRect(img, 1, 1, 0, w[3], h[3]);
-
-      sum = sq[0] + sq[1] + sq[2] + sq[3];
-
-      int max_sq = *std::max_element(sq, sq + 4);
-
-      double density = (double)sum / s;
-
-	  if (density > vars.utils.TestPlusDensity)
-	  {
-		  getLogExt().append("[testPlus] Density", density);     
-	  }
-      
-      return (density > vars.utils.TestPlusDensity && max_sq < vars.utils.TestPlusSq * s); 
-   }
-
-   bool ImageUtils::testMinus(const Settings& vars, const Segment &img, int cap_height )
-   {
-      int w = img.getWidth(), h = img.getHeight();
-      int black = 0;
-      int total = w * h;
-      for (int i = 0; i < total; i++)
-      {
-         if (img[i] == 0)
-            black++;
-      }
-
-      double density = (double)black / total;
-      double ratio = (double)h / w;
-
-	  return (ratio < vars.utils.TestMinusRatio 
-		  && density > vars.utils.TestMinusDensity 
-		  && w < vars.utils.TestMinusHeightFactor * cap_height); 
    }
 
    void ImageUtils::putSegment( Image &img, const Segment &seg, bool careful )

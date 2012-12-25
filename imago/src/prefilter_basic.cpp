@@ -25,7 +25,7 @@
 
 namespace imago
 {
-	namespace prefilter_cv
+	namespace prefilter_basic
 	{
 		bool prefilterBinarized(Settings& vars, Image &image)
 		{
@@ -104,10 +104,10 @@ namespace imago
 				// this code allows to crop image in rectangular border
 				// useful only for 1 image from Image2Structure set
 				// but works quite fast.
-				if (image.getWidth() > vars.prefilter.ReduceImageDim && image.getHeight() > vars.prefilter.ReduceImageDim)
+				if (image.getWidth() > vars.csr.SmallImageDim && image.getHeight() > vars.csr.SmallImageDim)
 				{
 					WeakSegmentator ws(image.getWidth(), image.getHeight());
-					ws.appendData(ImgAdapter(image,image), 1);
+					ws.appendData(ImageAdapter(image), 1);
 
 					Rectangle viewport;
 					if (ws.needCrop(vars, viewport, vars.prefilterCV.MaxRectangleCropLineWidthAlreadyBinarized))
@@ -174,7 +174,7 @@ namespace imago
 
 
 				WeakSegmentator ws(raw.getWidth(), raw.getHeight());
-				ws.appendData(ImgAdapter(raw,bin), 1);
+				ws.appendData(ImageAdapter(raw,bin), 1);
 
 				if (output == NULL)
 				{

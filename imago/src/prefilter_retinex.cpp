@@ -296,7 +296,7 @@ namespace imago
 			getLogExt().appendImage("Retinex-processed image", raw);
 
 			// call the basic prefilter
-			prefilter_cv::prefilterBasic(vars, raw);
+			prefilter_basic::prefilterBasic(vars, raw);
 			
 			return true;
 		}

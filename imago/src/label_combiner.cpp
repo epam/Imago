@@ -36,80 +36,15 @@ LabelCombiner::LabelCombiner(Settings& vars, SegmentDeque &symbols_layer, Segmen
    _symbols_layer(symbols_layer), _cr(cr), _graphic_layer(other_layer)
    
 {
-	do
+	if (vars.dynamic.CapitalHeight > 0.0)
 	{
-		//vars.estimation.CapitalHeight = _findCapitalHeight(vars);
-
-		if (vars.dynamic.CapitalHeight > 0.0)
+		_labels.clear();
+		_locateLabels(vars);
+		BOOST_FOREACH(Label &l, _labels)
 		{
-			_labels.clear();
-			_locateLabels(vars);
-			BOOST_FOREACH(Label &l, _labels)
-				_fillLabelInfo(vars, l);
+			_fillLabelInfo(vars, l);
 		}
-		//Temporary switched off
-	}while(0);//(needsProcessing(vars));
-}
-
-
-int LabelCombiner::_findCapitalHeight(const Settings& vars)
-{
-   logEnterFunction();
-
-   int mean_height = 0, seg_height, cap_height = -1, n=0;
-   double sigma = 0, delta = 0, mean=0;
-
-   BOOST_FOREACH(Segment *seg, _symbols_layer)
-   {
-	   getLogExt().append("Height", seg->getHeight());
-	   mean_height += seg->getHeight();
-
-	   delta = seg->getHeight() - mean;
-	   n++;
-	   mean += delta/n;
-	   sigma += delta*(seg->getHeight() - mean);
-   }
-
-   sigma = n > 1 ? sigma / (n-1) : 1;
-   _capHeightStandardDeviation = sqrt(sigma);
-   mean_height = (int)mean; //_symbols_layer.size();
-   getLogExt().append("Mean height", mean_height);
-
-   double d = DBL_MAX, min_d = DBL_MAX;
-   BOOST_FOREACH(Segment *seg, _symbols_layer)
-   {
-	  char c = 0;
-      try
-      {
-		  c = _cr.recognize(vars, *seg, CharacterRecognizer::all).getBest(&d);
-      }
-	  catch(ImagoException &e)
-      {
-		  logEnterFunction();
-		  getLogExt().appendText(e.what());
-	  }
-	  if (CharacterRecognizer::upper.find(c) != std::string::npos)
-	  {
-		seg_height = seg->getHeight();
-		getLogExt().append("Segment height", seg_height);
-      
-		if (d < min_d && seg_height >= (mean_height - sigma))
-		{
-			 min_d = d;
-			 cap_height = seg_height;
-		} 
-		else if (d < min_d && seg_height > cap_height 
-			     && (d < vars.lcomb.MaximalSymbolRecognitionDistance && c != 'O') )
-		{
-			min_d = d;
-			cap_height = seg_height;
-		}
-	  }
-   }
-   
-   getLogExt().append("Capital height", cap_height);
-
-   return cap_height;
+	}
 }
 
 void LabelCombiner::extractLabels( std::deque<Label> &labels )
@@ -282,78 +217,3 @@ LabelCombiner::~LabelCombiner()
 {
 }
 
-
-bool LabelCombiner::needsProcessing(Settings& vars)
-{
-	bool retVal = false;
-	SegmentDeque sym_segment2graphics;
-
-	double cap_height_limit = vars.dynamic.CapitalHeight + _capHeightStandardDeviation;
-
-	// find sym that is graphic
-	BOOST_FOREACH(Label l, _labels)
-	{
-		//if(l.symbols.size() > 1)
-		{
-			BOOST_FOREACH(Segment *s, l.symbols)
-			{
-				if(s->getHeight() > cap_height_limit &&
-					s->getSymbolProbability() < vars.separator.SymProbabilityThresh)
-				{
-					_graphic_layer.push_back(s);
-					sym_segment2graphics.push_back(s);
-					retVal = true;
-				}
-			}
-		}
-	
-	}
-
-	//remove symbols
-	SegmentDeque::iterator it;
-	std::vector<SegmentDeque::iterator> its;
-	BOOST_FOREACH(Segment* s, sym_segment2graphics)
-	{
-		for(it = _symbols_layer.begin(); it != _symbols_layer.end(); it++)
-			if((*it) == s)
-			{
-				its.push_back(it);
-				break;
-			}
-			_symbols_layer.erase(its[0]);
-			its.clear();
-	}
-
-	if(retVal)
-		return retVal;
-
-	// check if bonds are inside labels
-	BOOST_FOREACH(Label l, _labels)
-	{
-		BOOST_FOREACH(Segment *s, _graphic_layer)
-		{
-			if(l.rect.x < s->getRectangle().x && (l.rect.x + l.rect.width) > s->getRectangle().x 
-				&& l.rect.y < (s->getRectangle().y + s->getRectangle().width/2) && (l.rect.y + l.rect.height) > (s->getRectangle().y + s->getRectangle().width/2) &&
-				s->getRectangle().height < cap_height_limit && 
-				s->getRatio() < 0.5) 
-			{
-				sym_segment2graphics.push_back(s);
-				_symbols_layer.push_back(s);
-				retVal = true;
-			}
-		}
-	}
-
-	BOOST_FOREACH(Segment* s, sym_segment2graphics)
-	{
-		for(it = _graphic_layer.begin(); it != _graphic_layer.end(); it++)
-			if((*it) == s)
-			{
-				its.push_back(it);
-				break;
-			}
-		_graphic_layer.erase(its[0]);
-		its.clear();
-	}
-	return retVal;
-}

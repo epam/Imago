@@ -19,7 +19,6 @@
 #include "rectangle.h"
 #include "segment.h"
 #include "vec2d.h"
-#include "fourier_descriptors.h"
 #include "segmentator.h"
 #include "output.h"
 #include "log_ext.h"
@@ -30,7 +29,6 @@ using namespace imago;
 Segment::Segment()
 {
    _density = _ratio = -1;
-   _density = _ratio = _symbolProbability = -1;
    _x = _y = 0;
 }
 
@@ -41,7 +39,6 @@ void Segment::copy( const Segment &s, bool copy_all )
 	{
 		_x = s._x;
 		_y = s._y;
-		_features = s._features;
 	}
 	else
 	{
@@ -134,77 +131,6 @@ double Segment::getDensity()
    return _density;
 }
 
-SymbolFeatures &Segment::getFeatures() const
-{
-   return _features;
-}
-
-SymbolFeatures &Segment::getFeatures()
-{
-   return _features;
-}
-
-void Segment::initFeatures (int descriptorsCount, double eps1, double eps2) const
-{
-   if (_features.init)
-      if ((int)_features.descriptors.size() / 2 >=  descriptorsCount)
-         return;
-
-   SegmentDeque segments;
-
-   try
-   {
-      FourierDescriptors::calculate(this, descriptorsCount, _features.descriptors, eps1, eps2);
-
-      //Searching for inner contours
-      Segmentator::segmentate(*this, segments, 3, 255); //all white parts
-
-      int x, y, w, h;
-      int total = 0;
-      int i = 0;
-      BOOST_FOREACH(Segment * &seg, segments)
-      {
-//      FileOutput fout("output/seg_%d.png", i++);
-//      PngSaver(fout).saveImage(*seg);
-      
-         x = seg->getX(), y = seg->getY();
-         w = seg->getWidth(), h = seg->getHeight();
-
-         if (x == 0 || y == 0 || x + w == _width || y + h == _height)
-         {
-            delete seg;
-            seg = 0;
-         }
-         else
-         {
-			 total++;
-         }
-      }
-
-      _features.inner_contours_count = total;
-      _features.inner_descriptors.resize(total);
-
-      i = 0;
-      BOOST_FOREACH(Segment * &seg, segments)
-      {
-		  if (seg != 0)
-         {
-            std::vector<double> &descr = _features.inner_descriptors[i++];
-            FourierDescriptors::calculate(seg, descriptorsCount, descr, eps1, eps2);
-         }
-      }
-      _features.recognizable = true;
-   }
-   catch (NoContourException &e)
-   {
-	   getLogExt().appendText(e.what());
-      _features.recognizable = false;
-   }
-   _features.init = true;
-
-   BOOST_FOREACH(Segment *s, segments)
-      delete s;
-}
 
 void Segment::splitVert(int x, Segment &left, Segment &right) const
 {
@@ -246,14 +172,4 @@ void Segment::rotate90()
 Segment::~Segment()
 {
 
-}
-
-double Segment::getSymbolProbability() const
-{
-	return _symbolProbability;
-}
-
-void Segment::setSymbolProbability(double prob)
-{
-	_symbolProbability = prob;
 }

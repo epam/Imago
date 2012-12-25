@@ -53,18 +53,17 @@ namespace imago
 
 	struct RecognitionCaches // caches for character recognizer, etc
 	{
-		RecognitionDistanceCacheType* PCacheClean;   
-		RecognitionDistanceCacheType* PCacheAdjusted;
-
+		RecognitionDistanceCacheType* PCacheSymbolsRecognition;
+		
 		RecognitionCaches();
 		virtual ~RecognitionCaches();
 	};	
 
 	/// ------------------ cluster-depending settings ------------------ ///
 
-	#pragma pack (push, 1)
-
 	// DO NOT FORGET TO ADD REFERENCES TO ALL NEW VARIABLES IN SETTINGS.CPP:fillReferenceMap()
+
+	#pragma pack (push, 4)
 
 	struct PrefilterCVSettings // POD
 	{		
@@ -77,60 +76,17 @@ namespace imago
 		int    MaxRectangleCropLineWidthAlreadyBinarized;
 		int    StrongBinarizeSize;
 		int    WeakBinarizeSize;
-		int    MinGoodPixelsCount2;
-		int    MaxBadToGoodRatio2;
 		int    BinarizerFrameGap;
 		int    BinarizerThreshold;
 		double StrongBinarizeTresh;
 		double WeakBinarizeTresh;		
-		double AdditionPercentage;
-		double MaxFillRatio;
-		double HighResPassBound;
 		bool   UseOtsuPixelsAddition;
-	};
-
-	struct AdaptiveFilterSettings // POD
-	{
-		int    InterpolationLevel;
-		int    MaxCrops;
-		int    MaxRefineIterations;
-		int    MaxDiffIterations;
-		int    WindowSizeFactor;
-		double MinimalLineThickness;
-		double MaximalLineThickness;
-		double MinimalInkPercentage;
-		double MaximalInkPercentage;
-		double GuessInkThresholdFactor;
-	};
-
-	struct PrefilterSettings // POD
-	{		
-		int    SpotsWindowSize;
-		int    ReduceImageDim;
-		int    GaussianKernelSize;
-		int    Bilateral_d;
-		int    MinSSize;
-		int    UnsharpSize;
-		int    WienerSize;
-		int    BlockSAdaptive;
-		double GreyTreshMinF;
-		double GreyTreshMaxF;		
-		double BilateralSpace;		
-		double UnsharpAmount;		
-		double TreshFactor;		
-		double MaxLSSplah;
-		double MagicCoeff;
-		double SAreaTresh;
-		bool   MakeSegmentsConnected;
 	};
 
 	struct WeakSegmentatorSettings // POD
 	{
 		double RectangularCropAreaTreshold;
 		double RectangularCropFitTreshold;
-		double RefineWidth;
-		double MinDistanceDraw;
-		double SubpixelDraw;
 	};
 
 	struct RetinexFilterSettings // POD
@@ -265,16 +221,13 @@ namespace imago
 		double Circle_AsCharFactor;
 		double Algebra_IntersectionEps;
 		double Algebra_SameLineEps;
-		double Approx_Eps1;
-		double Approx_Eps2;
-		double Approx_CalcLineTresh;		
 	};
 
 	struct WedgeBondExtractorSettings // POD
 	{
-		int PointsCompareDist;
-		int SingleDownCompareDist;
-		int MinimalSingleDownSegsCount;
+		int    PointsCompareDist;
+		int    SingleDownCompareDist;
+		int    MinimalSingleDownSegsCount;
 		double SingleDownEps;
 		double SingleDownAngleMax;
 		double SingleDownDistancesMax;
@@ -293,37 +246,19 @@ namespace imago
 	struct CharactersRecognitionSettings // POD
 	{		
 		int    MinEndpointsPossible;
-		int    MaximalEndpointsUse;
-		int    ImpossibleToWriteDelta;
-		int    DefaultFourierClassesUse;
-		double WriteProbablyImpossibleFactor;
-		double WriteSurelyImpossibleFactor;
-		double WriteEasyFactor;
-		double WriteVeryEasyFactor;		
 		double PossibleCharacterDistanceStrong;
 		double PossibleCharacterDistanceWeak;
 		double PossibleCharacterMinimalQuality;
-		double DescriptorsOddFactorStrong;
-		double DescriptorsEvenFactorStrong;
-		double DescriptorsOddFactorWeak;
-		double DescriptorsEvenFactorWeak;
-		double X_Quality;		
-		double SmallLetterRecogThreshold;
-		double Contour_Eps1;
-		double Contour_Eps2;
-		double Contour_Eps1_generator;
-		double Contour_Eps2_generator;
-		int    Filter_Threshold_generator;
-		bool   HackFor3Use;
 	};
 	
 	struct ChemicalStructureRecognizerSettings // POD
 	{
 		int    WeakSegmentatorDist;
+		int    SmallImageDim;
+		int    ReconnectMinBads; 
 		double Dissolve;
 		double DeleteBadTriangles;		
 		double LineVectorizationFactor;
-		int    ReconnectMinBads; 
 		double ReconnectSurelyBadCoef; 
 		double ReconnectSurelyGoodCoef;
 		double ReconnectProbablyGoodCoef;
@@ -341,11 +276,6 @@ namespace imago
 	struct ImageUtilsSettings // POD
 	{
 		double SlashLineDensity;
-		double TestPlusDensity;
-		double TestPlusSq;
-		double TestMinusRatio;
-		double TestMinusDensity;
-		double TestMinusHeightFactor;
 	};
 
 	struct SeparatorSettings // POD
@@ -362,7 +292,6 @@ namespace imago
 		double capHeightMin;
 		double capHeightMax;
 		double gdConst;
-		double SurfCoef;
 		double capHeightRatio;
 		double capHeightRatio2;
 		double getRatio1;
@@ -376,7 +305,6 @@ namespace imago
 		double extRatioMin;
 		double extRatioMax;
 		double ext2charRatio;
-		double SymProbabilityThresh;		
 		bool   UseVoteArray;
 	};
 
@@ -396,7 +324,6 @@ namespace imago
 
 	struct LabelCombinerSettings // POD
 	{
-		double MaximalSymbolRecognitionDistance;
 		double FillLabelFactor1;
 		double FillLabelFactor2;
 		double MaximalDistanceFactor;
@@ -411,7 +338,7 @@ namespace imago
 		double LogisticScale;
 		double LogisticLocation;		
 		bool   UsePerimeterNormalization;
-	};
+	};	
 
 	#pragma pack (pop)
 
@@ -445,8 +372,6 @@ namespace imago
 
 		// other settings, should be updated
 		PrefilterCVSettings prefilterCV;
-		AdaptiveFilterSettings adaptive;
-		PrefilterSettings prefilter;		
 		MoleculeSettings molecule;
 		EstimationSettings estimation;
 		MainSettings main;

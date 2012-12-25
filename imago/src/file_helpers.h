@@ -1,5 +1,5 @@
 /****************************************************************************
- * Copyright (C) 2009-2010 GGA Software Services LLC
+ * Copyright (C) 2009-2012 GGA Software Services LLC
  * 
  * This file is part of Imago toolkit.
  * 
@@ -13,30 +13,23 @@
  ***************************************************************************/
 
 #pragma once
-#ifndef contour_extractor_h_
-#define contour_extractor_h_
 
+#ifndef _file_helpers_h_
+#define _file_helpers_h_
+
+#include <string>
 #include <vector>
 
-#include "stl_fwd.h"
-#include "image.h"
+typedef std::vector<std::string> strings;
 
-namespace imago
+namespace file_helpers
 {
-   class Image;
-
-   class ContourExtractor
-   {
-   public:
-      ContourExtractor();
-      virtual ~ContourExtractor();
-
-      void getRawContour(const Image &i, Points2i &contour);
-      void getApproxContour(const Image &i, Points2i &contour, double eps1, double eps2);
-
-   private:
-	   void _approximize(Points2i &contour, double eps1, double eps2);
-   };
+	size_t getLastSlashPos(const std::string& filename);
+	bool getReferenceFileName(const std::string& image, std::string& output);
+	bool getOnlyFileName(const std::string& image, std::string& output);
+	int  getDirectoryContent(const std::string& dir, strings &files, bool recursive);
+	bool isSupportedImageType(const std::string& filename);
+	void filterOnlyImages(strings& files);
 }
 
-#endif /* contour_extractor_h_ */
+#endif // _file_helpers_h_

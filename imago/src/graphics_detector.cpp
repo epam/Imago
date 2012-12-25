@@ -27,7 +27,6 @@
 #include "image_utils.h"
 #include "image_draw_utils.h"
 #include "molecule.h"
-#include "fourier_descriptors.h"
 #include "log_ext.h"
 #include "output.h"
 #include "weak_segmentator.h"

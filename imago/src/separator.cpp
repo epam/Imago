@@ -468,9 +468,9 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 	bool found_symbol = false;
 		
 			
-	int sym_height_err = (int)vars.estimation.SymHeightErr;
-	int cap_height = (int)vars.dynamic.CapitalHeight;		
-	double adequate_ratio_max = vars.estimation.MaxSymRatio;
+	//int sym_height_err = (int)vars.estimation.SymHeightErr;
+	//int cap_height = (int)vars.dynamic.CapitalHeight;		
+	//double adequate_ratio_max = vars.estimation.MaxSymRatio;
 	double adequate_ratio_min = vars.estimation.MinSymRatio;
 
 	for(size_t i=0;i< symbRects.size(); i++)
@@ -717,7 +717,8 @@ int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark,  Segme
 			retVal = SEP_BOND;
 		else
 			retVal = SEP_SYMBOL;
-		seg->setSymbolProbability(sym_prob);
+		
+		//seg->setSymbolProbability(sym_prob);
 
 		getLogExt().append("Graphic probability ", bond_prob);
 		getLogExt().append("Character probability ", sym_prob);
@@ -955,7 +956,7 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque &layer_symbol
 	if(mark1 != SEP_SYMBOL && cresults.KNN < 2 && cresults.KNN > -1)
 		votes[mark]++;
 
-	s->setSymbolProbability(mark < 2 ? (double)mark : 0.0);
+	//s->setSymbolProbability(mark < 2 ? (double)mark : 0.0);
 
 	if (vars.general.UseProbablistics) // use probablistic method			
 	{

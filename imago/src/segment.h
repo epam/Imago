@@ -45,8 +45,10 @@ namespace imago
 
       int getX() const;
       int getY() const;
-      int &getX();
+      
+	  int &getX();
       int &getY();
+
       Rectangle getRectangle() const;
       Vec2i getCenter() const;
 
@@ -54,26 +56,16 @@ namespace imago
       void crop();
       void rotate90();
 
-      double getRatio() const;
-      double getDensity() const;
-      double getRatio();
+	  double getRatio();
       double getDensity();
 
-      SymbolFeatures &getFeatures() const;
-      SymbolFeatures &getFeatures();
-      void initFeatures(int descriptorsCount, double eps1, double eps2) const;      
-
-	  void setSymbolProbability(double prob);
-	  double getSymbolProbability() const;
-
+      double getRatio() const;
+      double getDensity() const;
   
-
    private:
       int _x, _y;
       double _ratio;
       double _density;
-      mutable SymbolFeatures _features;
-	  double _symbolProbability;
    };
 }
 

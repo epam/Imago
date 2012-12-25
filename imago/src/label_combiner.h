@@ -82,9 +82,7 @@ namespace imago
 
       static bool _segmentsCompareX( const Segment* const &a,
                                      const Segment* const &b );
-
-      int _findCapitalHeight(const Settings& vars);
-	  bool needsProcessing(Settings& vars);
+      
    };
 }
 #endif /* _label_combiner_h */

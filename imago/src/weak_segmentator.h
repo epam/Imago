@@ -27,15 +27,29 @@
 
 namespace imago
 {
+	class ImageAdapter : public ImageInterface
+	{
+	public:
+		ImageAdapter(const Image& _raw, const Image& _bin) : raw(_raw), bin(_bin) { }
+		ImageAdapter(const Image& _raw_bin) : raw(_raw_bin), bin(_raw_bin) { }
+
+		virtual bool isFilled(int x, int y) const { return bin.getByte(x,y) == 0; }			
+		virtual unsigned char getIntensity(int x, int y) const { return raw.getByte(x,y); }
+
+		virtual int width() const { return std::min(raw.getWidth(), bin.getWidth()); }	
+		virtual int height() const { return std::min(raw.getHeight(), bin.getHeight()); }
+	private:
+		const Image& raw;
+		const Image& bin;
+	};
+
 	#pragma pack (push, 1)
 	struct SegmentPackedRecord
 	{
 		unsigned short int id;
-		unsigned char refineGeneration;
-		unsigned char Reserved;
 		SegmentPackedRecord()
 		{
-			id = refineGeneration = Reserved = 0;
+			id = 0;
 		}
 	};
 	#pragma pack (pop)
@@ -43,62 +57,33 @@ namespace imago
 	class WeakSegmentator : public Basic2dStorage<SegmentPackedRecord>
 	{
 	public:		
-		WeakSegmentator(int width, int height) : Basic2dStorage<SegmentPackedRecord>(width, height)
-		{
-			currentRefineGeneration = 0;
-			ConnectMode = false;
-		}
+		WeakSegmentator(int width, int height) : Basic2dStorage<SegmentPackedRecord>(width, height) {}		
 
 		// addend data from image (img.isFilled() called)
-		int appendData(const ImageInterface &img, int lookup_range);
+		int appendData(const ImageInterface &img, int lookup_range, bool connectMode = false);
 		
-		// updates the map for refineIsAllowed( )
-		void updateRefineMap(const Settings& vars, int max_len);
-				
 		// updates crop if required
 		bool needCrop(const Settings& vars, Rectangle& crop, int winSize);		
-
-		// required for AdaptiveFilter updateBound( )
-		bool alreadyExplored(int x, int y) const;
-
-		// returns true if point should be returned from filter
-		inline bool readyForOutput(int x, int y) const
-		{
-			return at(x,y).id > 0;
-		}
 
 		// returns neighbors of p with intensity == INK
 		static Points2i getNeighbors(const Image& img, const Vec2i& p, int range = 1);
 		
-		// decorner image by setting corner pixels to 'set_to'
+		// decorner image by setting corner pixels to 'set_to' value
 		static void decorner(Image &img, GrayscaleData set_to);
-
-		// returns endpoints
-		static Points2i decorneredEndpoints(Image &img);
 
 		typedef std::map<int, Points2i> SegMap;
 		SegMap SegmentPoints;		
 
-		bool ConnectMode;
-
-	protected:		
-		// returns all segment endpoints
-		Points2i getEndpointsDecornered() const;
-
-		// required for appendData (after first one)
-		bool refineIsAllowed(int x, int y) const;
-		
+	protected:				
 		// returns area of bounding box of segment with id
 		int getRectangularArea(int id);
 
 		// check segment with id has rectangular structure
 		bool hasRectangularStructure(const Settings& vars, int id, Rectangle& bound, int winSize);
 		
-		int currentRefineGeneration;
-
 	private:
 		// returns filled pixels count
-		void fill(const ImageInterface &img, int& id, int startx, int starty, int lookup_range);
+		void fill(const ImageInterface &img, int& id, int startx, int starty, int lookup_range, bool connectMode);
 		
 		// returns shortest path between two pixels
 		Points2i getShortestPath(const ImageInterface &img, const Vec2i& start, const Vec2i& end);

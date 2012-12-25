@@ -35,88 +35,6 @@ namespace imago
 		return neighb;
 	}
 
-	void WeakSegmentator::updateRefineMap(const Settings& vars, int max_len)
-	{
-		logEnterFunction();
-
-		currentRefineGeneration++;
-
-		Image thin(width(), height());
-		for (int y = 0; y < height(); y++)
-			for (int x = 0; x < width(); x++)
-				thin.getByte(x, y) = readyForOutput(x,y) ? INK : BLANK;
-
-		ThinFilter2(thin).apply();
-
-		for (int y = 0; y < height(); y++)
-		{
-			for (int x = 0; x < width(); x++)
-			{
-				if (thin.getByte(x,y) != INK)
-					continue;
-				Vec2i current = Vec2i(x,y);
-				if (getNeighbors(thin, current).size() == 1) // endpoint
-				{					
-					Points2i p = getNeighbors(thin, current, 1 + max_len / 2); 
-					double average_dx = 0, average_dy = 0;
-					for (size_t u = 0; u < p.size(); u++)
-					{
-						average_dx += (double)(current.x - p[u].x) / p.size();
-						average_dy += (double)(current.y - p[u].y) / p.size();
-					}
-
-					if (fabs(average_dx) < vars.weak_seg.MinDistanceDraw && fabs(average_dy) < vars.weak_seg.MinDistanceDraw)
-					{
-						// draw square
-						for (int j = -max_len/2; j <= max_len/2; j++)
-						{
-							for (int k = -max_len/2; k <= max_len/2; k++)
-							{
-								int _x = x + j;
-								int _y = y + k;
-								if (inRange(_x, _y))
-								{
-									at(_x, _y).refineGeneration = currentRefineGeneration;
-								}
-							}
-						}
-					}
-					else
-					{
-						// draw trinagle
-						double norm = sqrt(average_dx*average_dx + average_dy*average_dy);
-						double dx = average_dx/norm, dy = average_dy/norm;
-						double subpx = vars.weak_seg.SubpixelDraw;
-
-						for (int j = (int)(-max_len / subpx); j < (int)(max_len / subpx); j++)
-						{
-							int bnd = round(absolute(j) * vars.weak_seg.RefineWidth + 2);
-							for (int k = -bnd; k <= bnd; k++)
-							{
-								int _x = round((double)x + dx * (double)(j*subpx) - dy * (double)(k*subpx));
-								int _y = round((double)y + dy * (double)(j*subpx) + dx * (double)(k*subpx));
-								if (inRange(_x, _y))
-								{
-									at(_x, _y).refineGeneration = currentRefineGeneration;
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		if (getLogExt().loggingEnabled())
-		{
-			for (int y = 0; y < height(); y++)
-				for (int x = 0; x < width(); x++)
-					if (at(x, y).refineGeneration == currentRefineGeneration)
-						thin.getByte(x, y) = 128; // only visual effect
-
-			getLogExt().appendImage("Image with endvectors", thin);
-		}
-	}
-
 	void WeakSegmentator::decorner(Image &img, GrayscaleData set_to)
 	{
 		logEnterFunction();
@@ -135,93 +53,7 @@ namespace imago
 		getLogExt().appendImage("Decorner", img);
 	}
 
-	Points2i WeakSegmentator::decorneredEndpoints(Image &thin)
-	{
-		logEnterFunction();
-
-		Points2i result;
-
-		// only visual effect
-		const int DECORNERED = 200;
-		const int TRACED = 230;
-		const int ENDPOINT = 1;		
-
-		// decorner
-		decorner(thin, DECORNERED);		
-
-		// now all objects are just curve lines with exactly 2 endpoints
-		for (int y = 0; y < thin.getHeight(); y++)
-		{
-			for (int x = 0; x < thin.getWidth(); x++)
-			{
-				if (thin.getByte(x,y) != INK)
-					continue;
-				// search enpoints, go to 2 different directions
-				// <------- . ------->				
-				thin.getByte(x,y) = TRACED;
-				Points2i startPoints = getNeighbors(thin, Vec2i(x,y));				
-				for (size_t u = 0; u < startPoints.size(); u++)
-				{
-					Vec2i current = startPoints[u];
-					bool first = true;
-					while (true)
-					{
-						thin.getByte(current.x, current.y) = TRACED;
-						Points2i n = getNeighbors(thin, current);
-						if (n.size() > 1 && !first)
-						{
-							// bad decorner, or decorner not applied
-							break;
-						}
-						if (n.empty())
-						{
-							thin.getByte(current.x, current.y) = ENDPOINT;
-							result.push_back(current);
-							break;
-						}
-						current = n[0];
-						first = false;
-					}
-				}
-				if (startPoints.size() == 1)
-				{
-					// we started from the edge
-					thin.getByte(x,y) = ENDPOINT;
-					result.push_back(Vec2i(x,y));
-				}
-			}
-		}
-
-		getLogExt().appendImage("Traced image", thin);		
-
-		return result;
-	}
-
-	Points2i WeakSegmentator::getEndpointsDecornered() const
-	{
-		logEnterFunction();
-
-		Image thin(width(), height());
-		for (int y = 0; y < height(); y++)
-			for (int x = 0; x < width(); x++)
-				thin.getByte(x, y) = readyForOutput(x,y) ? INK : BLANK;
-		
-		ThinFilter2(thin).apply();
-
-		return decorneredEndpoints(thin);
-	}
-
-	bool WeakSegmentator::alreadyExplored(int x, int y) const
-	{
-		return at(x, y).id > 0 || at(x, y).refineGeneration > 0;
-	}
-
-	bool WeakSegmentator::refineIsAllowed(int x, int y) const
-	{
-		return at(x, y).refineGeneration == currentRefineGeneration;
-	}
-
-	int WeakSegmentator::appendData(const ImageInterface &img, int lookup_range)
+	int WeakSegmentator::appendData(const ImageInterface &img, int lookup_range, bool reconnect)
 	{
 		logEnterFunction();
 			
@@ -229,10 +61,10 @@ namespace imago
 
 		for (int y = 0; y < height(); y++)
 			for (int x = 0; x < width(); x++)
-				if (at(x,y).id == 0 && img.isFilled(x,y) && refineIsAllowed(x,y))
+				if (at(x,y).id == 0 && img.isFilled(x,y))
 				{
 					int id = SegmentPoints.size()+1;
-					fill(img, id, x, y, lookup_range);			
+					fill(img, id, x, y, lookup_range, reconnect);			
 					added_pixels += SegmentPoints[id].size();
 				}
 
@@ -339,7 +171,7 @@ namespace imago
 		return result;
 	}
 
-	void WeakSegmentator::fill(const ImageInterface &img, int& id, int sx, int sy, int lookup_range)
+	void WeakSegmentator::fill(const ImageInterface &img, int& id, int sx, int sy, int lookup_range, bool reconnect)
 	{
 		std::queue<Vec2i> v;
 		v.push(Vec2i(sx,sy));
@@ -361,7 +193,7 @@ namespace imago
 						{
 							if (at(t.x, t.y).id == 0)
 							{					
-								if (img.isFilled(t.x, t.y) && refineIsAllowed(t.x, t.y))
+								if (img.isFilled(t.x, t.y))
 								{
 									/*
 									// performance waste
@@ -377,7 +209,7 @@ namespace imago
 										}
 									}*/	
 
-									if (ConnectMode && (abs(dx) > 1 || abs(dy) > 1) )
+									if (reconnect && (abs(dx) > 1 || abs(dy) > 1) )
 									{
 										v.push(Vec2i(cur.x + dx/2,cur.y + dy/2));
 									}
@@ -386,10 +218,7 @@ namespace imago
 							}
 							else if (at(t.x, t.y).id != id)
 							{
-								// merge segments								
 								int merge_id = at(t.x, t.y).id;
-								// getLogExt().append("Merge id", id);
-								// getLogExt().append("With", merge_id);
 								for (size_t u = 0; u < SegmentPoints[id].size(); u++)
 								{
 									Vec2i p = SegmentPoints[id][u];

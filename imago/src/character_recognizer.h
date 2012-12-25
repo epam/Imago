@@ -19,32 +19,27 @@
 #include <string>
 #include <vector>
 #include <map>
-#include "character_recognizer_data.h"
 #include "symbol_features.h"
 #include "segment.h"
 #include "stl_fwd.h"
 #include "recognition_distance.h"
 #include "segment_tools.h"
 #include "settings.h"
-#include "contour_template.h"
 
 namespace imago
 {
    class Segment;   
 	
-   class CharacterRecognizer: CharacterRecognizerData
+   class CharacterRecognizer
    {
    public:
-	  bool isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp = false, char* result = NULL);  
+	  bool isPossibleCharacter(const Settings& vars, const Segment& seg, 
+		                       bool loose_cmp = false, char* result = NULL);  
 
-      CharacterRecognizer( int classesCount );
-      CharacterRecognizer( int classesCount, const std::string &filename );
-      
       RecognitionDistance recognize(const Settings& vars, const Segment &seg, 
-									const std::string &candidates = all,
-									bool can_adjust = true) const;
+									const std::string &candidates = all) const;
 
-      ~CharacterRecognizer();
+	  virtual ~CharacterRecognizer() { };
 
       static const std::string upper; 
 	  static const std::string lower;
@@ -55,17 +50,7 @@ namespace imago
 	  static const std::string like_bonds;
 
    private:
-	   RecognitionDistance _recognize(const Settings& vars, const SymbolFeatures &features,
-									  const std::string &candidates, bool wide_range = false ) const;
-
-       static double _compareFeatures(const Settings& vars,  const SymbolFeatures &f1,
-		                              const SymbolFeatures &f2 );
-
-	   static double _compareDescriptors(const Settings& vars,  const std::vector<double> &d1,
-										 const std::vector<double> &d2 );      
-	   bool IsParenthesis(const Settings& vars, ComplexContour &cc, bool &isLeft) const;
-	   
-	   int _classesCount;
+	   static qword getSegmentHash(const Segment &seg, const std::string& candidates);
    };
 
 }

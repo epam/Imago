@@ -45,12 +45,14 @@
 
 using namespace imago;
 
-ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr(3)
+ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr()
 {
 }
 
-ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname ) : _cr(3, fontname)
+ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname ) : _cr()
 {
+	// TODO
+	// _cr.loadFont(fontname);
 }
 
 double maxHeightHelper(const Settings& vars, int lines)
@@ -91,7 +93,7 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 	getLogExt().append("borderDistance", borderDistance);
 
 	WeakSegmentator ws(img.getWidth(), img.getHeight());
-	ws.appendData(prefilter_cv::ImgAdapter(img, img), round(vars.dynamic.CapitalHeight));
+	ws.appendData(ImageAdapter(img), round(vars.dynamic.CapitalHeight));
 
 	if (ws.SegmentPoints.size() < 2)
 	{
@@ -185,8 +187,7 @@ void ChemicalStructureRecognizer::segmentate(const Settings& vars, Image& img, S
 
 	// extract segments using WeakSegmentator
 	WeakSegmentator ws(img.getWidth(), img.getHeight());
-	ws.ConnectMode = reconnect;
-	ws.appendData(prefilter_cv::ImgAdapter(img, img), vars.csr.WeakSegmentatorDist);
+	ws.appendData(ImageAdapter(img), vars.csr.WeakSegmentatorDist, reconnect);
 	for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 	{
 		const Points2i& pts = it->second;
@@ -208,7 +209,7 @@ void ChemicalStructureRecognizer::storeSegments(const Settings& vars, SegmentDeq
 
 	BOOST_FOREACH( Segment *s, layer_symbols )
 	{
-		RecognitionDistance rd = getCharacterRecognizer().recognize(vars, *s, CharacterRecognizer::all, true);
+		RecognitionDistance rd = getCharacterRecognizer().recognize(vars, *s, CharacterRecognizer::all);
 		double dist = 0.0;
 		char res = rd.getBest(&dist);
 		double qual = rd.getQuality();
@@ -255,7 +256,7 @@ bool ChemicalStructureRecognizer::isReconnectSegmentsRequired(const Settings& va
 {
 	logEnterFunction();
 
-	if (img.getWidth() < vars.prefilter.ReduceImageDim && img.getHeight() < vars.prefilter.ReduceImageDim)
+	if (img.getWidth() < vars.csr.SmallImageDim && img.getHeight() < vars.csr.SmallImageDim)
 	{
 		getLogExt().appendText("Too small image to analyze");
 		return false;
@@ -383,7 +384,8 @@ restart:
 				// use filter
 				Image temp_img;
 				temp_img.copy(_img);
-				prefilter_cv::prefilterBasic(vars, temp_img);
+				// TODO: check
+				prefilter_basic::prefilterBasic(vars, temp_img);
 
 				SegmentDeque temp;
 				segmentate(vars, temp_img, temp);
