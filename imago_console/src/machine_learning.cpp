@@ -204,6 +204,18 @@ namespace machine_learning
 				if (init)
 					ctx.valid = false;
 			}
+			catch(std::exception &e)
+			{
+				printf("Similarity internal exception: %s\n", e.what());
+				if (init)
+					ctx.valid = false;
+			}
+			catch(...)
+			{
+				printf("Similarity unknown exception\n");
+				if (init)
+					ctx.valid = false;
+			}
 		}
 
 		res.average_score += cur_similarity;
@@ -543,7 +555,6 @@ namespace machine_learning
 					{
 						for (size_t j = i + 1; j < valid_indexes.size(); j++)
 						{
-							// TODO: check condition
 							if (valid_indexes[i]->second.attempts > 2 * valid_indexes[j]->second.attempts ||
 								valid_indexes[i]->second.score_stability > valid_indexes[j]->second.score_stability)
 							{
@@ -611,10 +622,9 @@ namespace machine_learning
 								}
 								delta += (it->second.similarity - it->second.best_similarity_achieved) / (double)(count);
 							}
-							catch(...)
+							catch(std::exception& e)
 							{
-								printf("Some exception in performMachineLearning() loop\n");
-								// TODO: handle?
+								printf("Exception in performMachineLearning() loop: %s\n", e.what());
 							}
 
 							if (platform::TICKS() - last_out_time > LEARNING_VERBOSE_TIME)
@@ -622,7 +632,7 @@ namespace machine_learning
 								last_out_time = platform::TICKS();
 								printf("Image (%u/%u): %s... %g\n", pos, count, it->first.c_str(), it->second.similarity);								
 								printf("[Learning] Current delta: %g; current OK count: %u\n", delta, res.ok_count);
-							} // if LEARNING_VERBOSE_TIME
+							}
 
 							if (!quick_check && pos > qc_pos) // count of processed is greater than pre-test collection
 							{								

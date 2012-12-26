@@ -47,14 +47,14 @@ const std::string CharacterRecognizer::brackets = "()[]";
 const std::string CharacterRecognizer::charges = "+-";
 const std::string CharacterRecognizer::all = CharacterRecognizer::upper + CharacterRecognizer::lower +
 	                                         CharacterRecognizer::digits + CharacterRecognizer::charges + 
-											 CharacterRecognizer::brackets + "=!";
-
+											 CharacterRecognizer::brackets + "=";
+const std::string CharacterRecognizer::graphics = "!";
 const std::string CharacterRecognizer::like_bonds = "lL1iIVv";
 
 
 bool imago::CharacterRecognizer::isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp, char* result)
 {
-	RecognitionDistance rd = recognize(vars, seg, CharacterRecognizer::all);
+	RecognitionDistance rd = recognize(vars, seg, CharacterRecognizer::all + CharacterRecognizer::graphics);
 	
 	double best_dist;
 	char ch = rd.getBest(&best_dist);
@@ -62,10 +62,10 @@ bool imago::CharacterRecognizer::isPossibleCharacter(const Settings& vars, const
 	if (result)
 		*result = ch;
 
-	if (ch == '!') // graphics
+	if (CharacterRecognizer::graphics.find(ch) != std::string::npos)
 		return false;
 
-	if (std::find(CharacterRecognizer::like_bonds.begin(), CharacterRecognizer::like_bonds.end(), ch) != CharacterRecognizer::like_bonds.end())
+	if (CharacterRecognizer::like_bonds.find(ch) != std::string::npos)
 	{
 		Points2i endpoints = SegmentTools::getEndpoints(seg);
 		if ((int)endpoints.size() < vars.characters.MinEndpointsPossible)
@@ -89,15 +89,11 @@ bool imago::CharacterRecognizer::isPossibleCharacter(const Settings& vars, const
 	return false;
 }
 
-qword CharacterRecognizer::getSegmentHash(const Segment &seg, const std::string& candidates) 
+qword CharacterRecognizer::getSegmentHash(const Segment &seg) 
 {
 	logEnterFunction();
 
 	qword segHash = 0, shift = 0;
-   
-	// hash against the source candidates
-	for (size_t i = 0; i < candidates.size(); i++)
-		segHash ^= (candidates[i] << (i % (64-8)));
    
 	// hash against the source pixels
 	for (int y = 0; y < seg.getHeight(); y++)
@@ -130,7 +126,7 @@ RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const S
 	getLogExt().appendSegment("Source segment", seg);
 	getLogExt().append("Candidates", candidates);
 
-	qword segHash = getSegmentHash(seg, candidates);	
+	qword segHash = getSegmentHash(seg);	
 	getLogExt().append("Segment hash", segHash);
 	RecognitionDistance rec;
    
@@ -151,7 +147,7 @@ RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const S
 			init = true;
 		}
 
-		rec = CharacterRecognizerImp::recognizeImage(vars, seg, candidates, templates);
+		rec = CharacterRecognizerImp::recognizeImage(vars, seg, templates);
 		getLogExt().appendMap("Font recognition result", rec);
 
 		if (vars.caches.PCacheSymbolsRecognition)
@@ -161,13 +157,23 @@ RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const S
 		}
 	}
 
-	if (getLogExt().loggingEnabled())
+	RecognitionDistance result;
+
+	for (RecognitionDistance::iterator it = rec.begin(); it != rec.end(); it++)
 	{
-		getLogExt().append("Result candidates", rec.getBest());
-		getLogExt().append("Recognition quality", rec.getQuality());
+		if (candidates.find(it->first) != std::string::npos)
+		{
+			result[it->first] = it->second;
+		}
 	}
 
-   return rec;
+	if (getLogExt().loggingEnabled())
+	{
+		getLogExt().append("Result candidates", result.getBest());
+		getLogExt().append("Recognition quality", result.getQuality());
+	}
+
+   return result;
 }
 
 
@@ -392,7 +398,7 @@ namespace imago
 			}
 		};
 
-		imago::RecognitionDistance recognizeMat(const Settings& vars, const cv::Mat1b& rect, const std::string &candidates, const Templates& templates)
+		imago::RecognitionDistance recognizeMat(const Settings& vars, const cv::Mat1b& rect, const Templates& templates)
 		{
 			imago::RecognitionDistance _result;
 
@@ -403,20 +409,18 @@ namespace imago
 
 			for (size_t u = 0; u < templates.size(); u++)
 			{
-				if (!candidates.empty() && candidates.find(templates[u].text) == std::string::npos)
-					continue;
+				if (templates[u].text.size() != 1)
+					continue; // TODO: hack
 
 				try
 				{
 					double distance = compareImages(img, templates[u].penalty_ink, templates[u].penalty_white);
 					double ratio_diff = imago::absolute(ratio - templates[u].wh_ratio);
 				
-					if (ratio_diff > 0.3) // TODO: ratio constants
-						distance *= 1.1;
-					else if (ratio_diff > 0.5)
-						distance *= 1.3;
-
-					results.push_back(ResultEntry(distance, templates[u].text));
+					if (ratio_diff < 0.7) // TODO: const
+					{
+						results.push_back(ResultEntry(distance, templates[u].text));
+					}
 				}
 				catch(std::exception& e)
 				{
@@ -429,9 +433,10 @@ namespace imago
 
 			std::sort(results.begin(), results.end());
 
-			for (int u = std::min(vars.characters.MaxTopVariantsLookup, (int)results.size() - 1); u >= 0; u--)
+			// std::min(vars.characters.MaxTopVariantsLookup -- remove TODO
+			for (int u = (int)results.size(); u >= 0; u--)
 			{
-				if (results[u].text.size() == 1)
+				if (results[u].text.size() == 1) // HACK
 				{
 					_result[results[u].text[0]] = results[u].value / vars.characters.DistanceScaleFactor;
 				}
@@ -440,11 +445,11 @@ namespace imago
 			return _result;
 		}
 
-		RecognitionDistance recognizeImage(const Settings& vars, const imago::Image& img, const std::string &candidates, const Templates& templates)
+		RecognitionDistance recognizeImage(const Settings& vars, const imago::Image& img, const Templates& templates)
 		{		
 			cv::Mat1b rect;
 			imago::ImageUtils::copyImageToMat(img, rect);
-			return recognizeMat(vars, rect, candidates, templates);
+			return recognizeMat(vars, rect, templates);
 		}
 	}
 }

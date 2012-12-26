@@ -993,6 +993,8 @@ void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque 
 {
    logEnterFunction();
    
+   int guessedHeight = -1;
+
    if (_segs.size() == 0)
    {
 	   getLogExt().appendText("Warning, _segs.size is 0!");	   
@@ -1001,111 +1003,98 @@ void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque 
    else
    {
 	   bool _heightRestricted = false;
-	   int cap_height = _estimateCapHeight(vars, _heightRestricted);   
-	   if (cap_height > -1)
-		   vars.dynamic.CapitalHeight = cap_height;
+	   guessedHeight = _estimateCapHeight(vars, _heightRestricted);
+	   vars.dynamic.CapitalHeight = guessedHeight;
+	   getLogExt().append("Capital height", vars.dynamic.CapitalHeight);
    }
 
-   SegmentDeque todo;
+	double height_sum = 0.0;
+	int height_count = 0;
+	bool classified_at_least_one_char = false;	
 
-	   double height_sum = 0.0;
-	   int height_count = 0;
+pre_classify:
 
    for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
    {
+	   if (std::find(layer_graphics.begin(), layer_graphics.end(), *it) != layer_graphics.end())
+		   continue;
+
+	   if (std::find(layer_symbols.begin(), layer_symbols.end(), *it) != layer_symbols.end())
+		   continue;
+
 	   Segment *s = *it;
-	   RecognitionDistance rd = rec.recognize(vars, *s);
+	   RecognitionDistance rd = rec.recognize(vars, *s, CharacterRecognizer::all + CharacterRecognizer::graphics);
 	   double dist;
 	   char c = rd.getBest(&dist);
 	   const double DIST_ABSOLUTELY_SURE = 1.5;
-	   if (c == '!' && dist < DIST_ABSOLUTELY_SURE)
+	   if (CharacterRecognizer::graphics.find(c) != std::string::npos && dist < DIST_ABSOLUTELY_SURE)
 	   {
 		   layer_graphics.push_back(s);
 		   getLogExt().appendText("Classified as graphics on first stage");
 	   }
-	   else if (dist < DIST_ABSOLUTELY_SURE &&
-		   std::find(CharacterRecognizer::like_bonds.begin(), CharacterRecognizer::like_bonds.end(), c) == CharacterRecognizer::like_bonds.end()
-		   && s->getHeight() > 0.3 * vars.dynamic.CapitalHeight 
-		   && s->getHeight() < 2.0 * vars.dynamic.CapitalHeight )
+	   else if (CharacterRecognizer::like_bonds.find(c) == std::string::npos
+		        && (vars.dynamic.CapitalHeight < 0 ||
+		            s->getHeight() > 0.3 * vars.dynamic.CapitalHeight 
+		            && s->getHeight() < 2.0 * vars.dynamic.CapitalHeight ) )
 		{
-
-			if (std::find(CharacterRecognizer::upper.begin(), CharacterRecognizer::upper.end(), c) != CharacterRecognizer::upper.end())
+			if (dist < DIST_ABSOLUTELY_SURE)
 			{
-				height_sum += s->getHeight();
-				height_count += 1;
-				getLogExt().appendText("CAPITAL");
+				if (CharacterRecognizer::upper.find(c) != std::string::npos)
+				{
+					height_sum += s->getHeight();
+					height_count += 1;
+					getLogExt().appendText("Classified as capital letter on first stage");
+				}
+				else
+				{			
+					getLogExt().appendText("Classified as symbol on first stage");
+				}
+
+				classified_at_least_one_char = true;
+				layer_symbols.push_back(s);
 			}
-			
-			layer_symbols.push_back(s);
-			getLogExt().appendText("Classified as symbol on first stage");
 		}
 		else
 		{
-			todo.push_back(s);
 			getLogExt().appendText("Not classified on first stage");
-	   }
-	   
+	   }	   
    }
 
-   if (height_count >= 2)
+   if (height_count >= 3 || (height_count > 0 && vars.dynamic.CapitalHeight < 0)) // TODO: consts
+	{
+		getLogExt().appendText("Re-estimate cap height");
+		double height = height_sum / height_count;
+		vars.dynamic.CapitalHeight = height;
+		getLogExt().append("Height updated", vars.dynamic.CapitalHeight);
+	}
+
+   if (!classified_at_least_one_char)
+   {
+	   if (vars.dynamic.CapitalHeight > 0)
 	   {
-		   getLogExt().appendText("Reestimate cap height");
-		   double height = height_sum / height_count;
-		   vars.dynamic.CapitalHeight = height;
-		   getLogExt().append("Height updated", vars.dynamic.CapitalHeight);
+		   vars.dynamic.CapitalHeight = -1; // reset estimated height;
+		   getLogExt().appendText("Restart classification!");
+		   goto pre_classify; // restart classification
 	   }
+   }
+
+   if (vars.dynamic.CapitalHeight < 0 && guessedHeight > 0)
+   {
+	   getLogExt().appendText("Give first guessed height a try");
+	   vars.dynamic.CapitalHeight = guessedHeight;
+   }
 
      
    {
-/*	   int sym_height_err = (int)vars.estimation.SymHeightErr;
-      //double susp_seg_density = rs["SuspSegDensity"],
-	   double adequate_ratio_max = vars.estimation.MaxSymRatio;
-	   double adequate_ratio_min = vars.estimation.MinSymRatio;
-      
-	   SegmentDeque tempSymbols;
-	   */
-      /* Classification procedure */
-	   
-	   /*
-		for (SegmentDeque::iterator it = todo.begin(); it != todo.end(); it++)
-		{
-			if (vars.checkTimeLimit())
-				throw ImagoException("Timelimit exceeded");
-
-			ClassifierResults cres;
-			Segment *s = *it;
-			ClassifySegment(vars, tempSymbols, rec, s, cres);
-
-			if(cres.Processed)
-			{
-				tempSymbols.push_back(s);
-				continue;
-			}
-
-			int HuMms = cres.HuMoments > -1 && cres.HuMoments < 2 ? cres.HuMoments : 
-				(cres.KNN == SEP_SYMBOL || cres.Probability == SEP_SYMBOL);
-
-			if((cres.KNN == SEP_SYMBOL && cres.HuMoments == SEP_SYMBOL) || cres.Probability == SEP_SYMBOL)
-				//(cres.KNN > 0 && HuMms) //cres.OverAll != SEP_BOND && (HuMms + cres.KNN + cres.Probability) > 0)
-			//if(cres.OverAll == 1)
-				tempSymbols.push_back(s);
-		}
-		*/
-
-		/*int hSymbols = 0;
-		for(SegmentDeque::iterator it = tempSymbols.begin(); it != tempSymbols.end(); it++)
-		{
-			hSymbols += (*it)->getHeight();
-		}
-
-		hSymbols = tempSymbols.size() > 0 ? hSymbols / tempSymbols.size() : (int)vars.dynamic.CapitalHeight;
-
-		if(!_heightRestricted || (_heightRestricted && hSymbols < vars.dynamic.CapitalHeight))
-			vars.dynamic.CapitalHeight = hSymbols;*/
-	   
-
-	  for (SegmentDeque::iterator it = todo.begin(); it != todo.end(); it++)
+	  for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
 	  {
+
+	   if (std::find(layer_graphics.begin(), layer_graphics.end(), *it) != layer_graphics.end())
+		   continue;
+
+	   if (std::find(layer_symbols.begin(), layer_symbols.end(), *it) != layer_symbols.end())
+		   continue;
+
 		  if (vars.checkTimeLimit())
 			  throw ImagoException("Timelimit exceeded");
 
@@ -1172,7 +1161,11 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
 
    BOOST_FOREACH( Segment *s, _segs )
    {
-      heights.push_back(s->getHeight());
+	   if (s->getHeight() > 5) // TODO: minimal recognizable height
+	   {
+		   heights.push_back(s->getHeight());
+	   }
+      
 #ifdef DEBUG
       printf("%d ", s->getHeight());
 #endif
@@ -1257,7 +1250,10 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
       }
 
    if (count == 0)
+   {
+	   getLogExt().appendText("Can not determine");
       return -1;
+   }
 
 
    double temp = StatUtils::interMean(heights.begin() + seq_pairs[symbols_found[symbols_seq]].first, 

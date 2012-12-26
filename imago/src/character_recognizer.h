@@ -45,23 +45,24 @@ namespace imago
 	  static const std::string lower;
 	  static const std::string digits;
 	  static const std::string charges;
-	  static const std::string all;
 	  static const std::string brackets;
+	  static const std::string all;
+	  static const std::string graphics;	  
 	  static const std::string like_bonds;
 
    private:
-	   static qword getSegmentHash(const Segment &seg, const std::string& candidates);
+	   static qword getSegmentHash(const Segment &seg);
    };
 
    namespace CharacterRecognizerImp
    {
-	   	const int REQUIRED_SIZE = 32;
-		const int PENALTY_SHIFT = 2;
+	   	const int REQUIRED_SIZE = 30;
+		const int PENALTY_SHIFT = 1;
 		const int PENALTY_STEP  = 1;
 
+		// used for technical reasons, do not modify
 		const int PENALTY_WHITE_FACTOR = 32;
 		const int CHARACTERS_OFFSET = 32;
-
 		const int INTERNAL_ARRAY_DIM = REQUIRED_SIZE + 2*PENALTY_SHIFT;
 		const int INTERNAL_ARRAY_SIZE = INTERNAL_ARRAY_DIM * INTERNAL_ARRAY_DIM;
 
@@ -81,8 +82,8 @@ namespace imago
 
 		bool initializeTemplates(const Settings& vars, const std::string& path, Templates& templates);
 		
-		RecognitionDistance recognizeMat(const Settings& vars, const cv::Mat1b& rect, const std::string &candidates, const Templates& templates);		
-		RecognitionDistance recognizeImage(const Settings& vars, const imago::Image& img, const std::string &candidates, const Templates& templates);
+		RecognitionDistance recognizeMat(const Settings& vars, const cv::Mat1b& rect, const Templates& templates);		
+		RecognitionDistance recognizeImage(const Settings& vars, const imago::Image& img, const Templates& templates);
    };
 }
 

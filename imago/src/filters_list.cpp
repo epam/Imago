@@ -20,7 +20,7 @@ namespace imago
 
 		push_back(FilterEntryDefinition("prefilter_retinex",     1,   prefilter_retinex::prefilterRetinex));
 
-		push_back(FilterEntryDefinition("prefilter_basic",       2,   prefilter_basic::prefilterBasic));				
+		// push_back(FilterEntryDefinition("prefilter_basic",       2,   prefilter_basic::prefilterBasic));				
 	}
 
 	FilterEntries getFiltersList()
