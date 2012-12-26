@@ -817,7 +817,7 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
 		Vertex p1, p2, p3, p4;
 		Vec2d p1b, p1e, p2b, p2e;
 
-		for(it = singles.begin(); it != singles.end(); it++)
+		for(it = singles.begin(); it != singles.end(); ++it)
 		{
 			if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
 
@@ -1039,7 +1039,7 @@ bool Skeleton::_isSegmentIntersectedByEdge(const Settings& vars, Vec2d &b, Vec2d
 {
 	std::deque<Edge>::iterator it;
 
-	for(it=edges.begin();it != edges.end();it++)
+	for(it=edges.begin();it != edges.end(); ++it)
 	{
 		Edge edge = *it;
 		Vec2d p1 = getVertexPos(getBondBegin(edge));
@@ -1170,7 +1170,7 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 	std::deque<std::pair<Edge, Edge> >::iterator eit;
 	std::vector<Vertex> verticies_to_remove;
 
-	for(eit = edges_to_connect.begin(); eit != edges_to_connect.end(); eit++)
+	for(eit = edges_to_connect.begin(); eit != edges_to_connect.end(); ++eit)
 	{
 		Edge e1 = (*eit).first,
 			e2 = (*eit).second;

@@ -45,7 +45,7 @@ void LabelLogic::setSuperatom( Superatom *satom )
 std::string substract(const std::string& fullset, const std::string& reduction)
 {
 	std::string result;
-	for (std::string::const_iterator it = fullset.begin(); it != fullset.end(); it++)
+	for (std::string::const_iterator it = fullset.begin(); it != fullset.end(); ++it)
 		if (reduction.find(*it) == std::string::npos)
 			result += *it;
 	return result;
@@ -273,8 +273,9 @@ void LabelLogic::_postProcessLabel(Label& label)
 	{
 		for (size_t i = 0; i < 2; i++)
 		{
-			if (sa.atoms[i].getLabelFirst() == 'H' && sa.atoms[i].getLabelSecond() == 0 &&
-				sa.atoms[i].charge == 0 && sa.atoms[i].isotope == 0)
+			Atom &atom = sa.atoms[i];
+			if (atom.getLabelFirst() == 'H' && atom.getLabelSecond() == 0 &&
+				atom.charge == 0 && atom.isotope == 0)
 			{
 				sa.atoms.erase(sa.atoms.begin() + i);
 				break;

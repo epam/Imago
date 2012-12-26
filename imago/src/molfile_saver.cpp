@@ -98,19 +98,20 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 
          if (satom->atoms.size() == 1)
          {
-			 label[0] = satom->atoms[0].getLabelFirst();
-			 label[1] = satom->atoms[0].getLabelSecond();
+			 Atom atom = satom->atoms[0];
+			 label[0] = atom.getLabelFirst();
+			 label[1] = atom.getLabelSecond();
             _out.printf("%s", label);
 			
 			getLogExt().append("Label", label);
 			
 			// R-groups used different store notation
-			if (satom->atoms[0].getLabelFirst() == 'R' && satom->atoms[0].getLabelSecond() == 0)
+			if (atom.getLabelFirst() == 'R' && atom.getLabelSecond() == 0)
             {
-				if (satom->atoms[0].charge > 0)
+				if (atom.charge > 0)
 				{
-					getLogExt().append("R-group index", satom->atoms[0].charge);
-					_out.printf("%d", satom->atoms[0].charge);
+					getLogExt().append("R-group index", atom.charge);
+					_out.printf("%d", atom.charge);
 				}
 				else
 				{

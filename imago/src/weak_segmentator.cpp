@@ -118,7 +118,7 @@ namespace imago
 		std::vector<int> map_x;
 		std::vector<int> map_y;
 
-		for (Points2i::iterator it = p.begin(); it != p.end(); it++)
+		for (Points2i::iterator it = p.begin(); it != p.end(); ++it)
 		{
 			if (it->x >= (int)map_x.size())
 				map_x.resize(it->x + 1);
@@ -136,7 +136,7 @@ namespace imago
 			map_x.clear();
 			map_y.clear();
 
-			for (Points2i::iterator it = p.begin(); it != p.end(); it++)
+			for (Points2i::iterator it = p.begin(); it != p.end(); ++it)
 			{
 				if (it->y > y1c && it->y < y2c)
 				{
@@ -156,7 +156,7 @@ namespace imago
 				fabs(x1c - x2c) > 2*winSize && fabs(y1c - y2c) > 2*winSize)
 			{
 				int good = 0, bad = 0;
-				for (Points2i::iterator it = p.begin(); it != p.end(); it++)
+				for (Points2i::iterator it = p.begin(); it != p.end(); ++it)
 					if ((fabs(it->x - x1c) < winSize || fabs(it->x - x2c) < winSize) ||
 						(fabs(it->y - y1c) < winSize || fabs(it->y - y2c) < winSize))
 						good++;

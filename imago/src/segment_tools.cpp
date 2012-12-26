@@ -92,7 +92,7 @@ namespace imago
 		int min_y = INT_MAX;
 		int max_y = 0;
 		Points2i p = getAllFilled(seg);
-		for (Points2i::iterator it = p.begin(); it != p.end(); it++)
+		for (Points2i::iterator it = p.begin(); it != p.end(); ++it)
 		{
 			if (it->y < min_y) min_y = it->y;
 			if (it->y > max_y) max_y = it->y;
@@ -105,7 +105,7 @@ namespace imago
 	{
 		int above = 0, below = 0;
 		Points2i p = getAllFilled(seg);
-		for (Points2i::iterator it = p.begin(); it != p.end(); it++)
+		for (Points2i::iterator it = p.begin(); it != p.end(); ++it)
 			if (it->y + seg.getY() < line_y) above++;
 			else if (it->y + seg.getY() > line_y) below++;
 		if (below + above == 0) 
@@ -146,7 +146,7 @@ namespace imago
 		Points2i endpoints;
 
 		Points2i all = getAllFilled(thinseg);
-		for (Points2i::const_iterator it = all.begin(); it != all.end(); it++)
+		for (Points2i::const_iterator it = all.begin(); it != all.end(); ++it)
 			if (getInRange(thinseg, *it, 1).size() == 1)
 				endpoints.push_back(*it);
 

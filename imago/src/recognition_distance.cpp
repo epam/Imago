@@ -22,7 +22,7 @@ namespace imago
 
 	void RecognitionDistance::mergeTables(const RecognitionDistance& second)
 	{
-		for (RecognitionDistance::const_iterator it = second.begin(); it != second.end(); it++)
+		for (RecognitionDistance::const_iterator it = second.begin(); it != second.end(); ++it)
 		{
 			if (this->find(it->first) == this->end())
 				(*this)[it->first] = it->second;
@@ -47,7 +47,7 @@ namespace imago
 
 	void RecognitionDistance::fillVector(PrVec &out) const
 	{
-		for (RecognitionDistance::const_iterator it = this->begin(); it != this->end(); it++)
+		for (RecognitionDistance::const_iterator it = this->begin(); it != this->end(); ++it)
 			out.push_back(std::make_pair(it->first, it->second));
 	}
 
@@ -55,7 +55,7 @@ namespace imago
 	{		
 		double min1 = 999.0, min2 = 1000.0;
 	
-		for (RecognitionDistance::const_iterator it = this->begin(); it != this->end(); it++)
+		for (RecognitionDistance::const_iterator it = this->begin(); it != this->end(); ++it)
 		{
 			if (it->second < min1)
 			{
@@ -96,7 +96,7 @@ namespace imago
 	{
 		double d = DBL_MAX;
 		char result = 0;
-		for (RecognitionDistance::const_iterator it = this->begin(); it != this->end(); it++)
+		for (RecognitionDistance::const_iterator it = this->begin(); it != this->end(); ++it)
 		{
 			if (it->second < d)
 			{

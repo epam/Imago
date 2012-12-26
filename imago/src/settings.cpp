@@ -447,7 +447,7 @@ namespace imago
 		ReferenceAssignmentMap entries;
 		_fillReferenceMap(entries);		
 		
-		for (ReferenceAssignmentMap::const_iterator it = entries.begin(); it != entries.end(); it++)
+		for (ReferenceAssignmentMap::const_iterator it = entries.begin(); it != entries.end(); ++it)
 		{			
 			char buffer[MAX_TEXT_LINE];
 

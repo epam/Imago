@@ -272,7 +272,7 @@ namespace imago
 		for (size_t u = 0; u < sa.atoms.size(); u++)
 			keep.push_back(1);
 
-		for (bad_info::iterator it = bad_parts.begin(); it != bad_parts.end(); it++)
+		for (bad_info::iterator it = bad_parts.begin(); it != bad_parts.end(); ++it)
 		{
 			AtomRefs group_items;
 			for (int offset_count = 0; offset_count < it->second; offset_count++)

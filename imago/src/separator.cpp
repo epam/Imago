@@ -292,7 +292,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 	SegmentDeque::iterator sit;
 
 	// put the graphic layer on the image
-	for(sit = layer_graphics.begin();sit != layer_graphics.end(); sit++)
+	for(sit = layer_graphics.begin();sit != layer_graphics.end(); ++sit)
 	{
 		ImageUtils::putSegment(timg, *(*sit));
 	}
@@ -521,7 +521,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 		Segment *s = NULL;
 		Segmentator::segmentate(extracted, segs);
 
-		for(SegmentDeque::iterator it = segs.begin(); it!=segs.end(); it++)
+		for(SegmentDeque::iterator it = segs.begin(); it!=segs.end(); ++it)
 		{
 			for(size_t n = 0; n < RectPoints[i].size(); n++)
 			{

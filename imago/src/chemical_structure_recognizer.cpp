@@ -95,21 +95,22 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 		return result;
 	}
 
-	for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
+	for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); ++it)
 	{
-		RectShapedBounding b(it->second);		
+		RectShapedBounding b(it->second);	
+		const Rectangle &bounding = b.getBounding();
 		getLogExt().appendPoints("segment", it->second);
-		getLogExt().append("width", b.getBounding().width);
-		getLogExt().append("height", b.getBounding().height);
-		if (b.getBounding().height <= maxHeight &&
-			b.getBounding().height >= minHeight &&
-			b.getBounding().width  >= minWidth &&
-			  (b.getBounding().y1() < borderDistance || 
-			   b.getBounding().y2() >= img.getHeight() - borderDistance)
+		getLogExt().append("width", bounding.width);
+		getLogExt().append("height", bounding.height);
+		if (bounding.height <= maxHeight &&
+			bounding.height >= minHeight &&
+			bounding.width  >= minWidth &&
+			  (bounding.y1() < borderDistance || 
+			   bounding.y2() >= img.getHeight() - borderDistance)
 			  && 
-			  (b.getBounding().x1() < borderDistance ||
-			   b.getBounding().x2() >= img.getWidth() - borderDistance ||
-			   absolute((b.getBounding().x1() + b.getBounding().x2()) / 2.0 - img.getWidth() / 2.0) <= centerShiftMax * borderDistance
+			  (bounding.x1() < borderDistance ||
+			   bounding.x2() >= img.getWidth() - borderDistance ||
+			   absolute((bounding.x1() + bounding.x2()) / 2.0 - img.getWidth() / 2.0) <= centerShiftMax * borderDistance
 			  )
 		    )
 		{
@@ -138,7 +139,7 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 					std::vector<Segment*> bad_symbols;
 					std::vector<Segment*> bad_graphics;
 
-					for (SegmentDeque::iterator it = symbols.begin(); it != symbols.end(); it++)
+					for (SegmentDeque::iterator it = symbols.begin(); it != symbols.end(); ++it)
 						if ((*it)->getX() >= badBounding.x1() - vars.lab_remover.PixGapX && 
 							(*it)->getX() < badBounding.x2() &&
 							(*it)->getY() >= badBounding.y1() - vars.lab_remover.PixGapY && 
@@ -148,7 +149,7 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 						}
 			
 
-					for (SegmentDeque::iterator it = graphics.begin(); it != graphics.end(); it++)
+					for (SegmentDeque::iterator it = graphics.begin(); it != graphics.end(); ++it)
 						if ((*it)->getX() >= badBounding.x1() - vars.lab_remover.PixGapX && 
 							(*it)->getX() < badBounding.x2() &&
 							(*it)->getY() >= badBounding.y1() - vars.lab_remover.PixGapY && 
@@ -182,7 +183,7 @@ void ChemicalStructureRecognizer::segmentate(const Settings& vars, Image& img, S
 	// extract segments using WeakSegmentator
 	WeakSegmentator ws(img.getWidth(), img.getHeight());
 	ws.appendData(img, WeakSegmentator::getLookupPattern(vars.csr.WeakSegmentatorDist), reconnect);
-	for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
+	for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); ++it)
 	{
 		const Points2i& pts = it->second;
 		RectShapedBounding b(pts);
@@ -299,14 +300,14 @@ void ClearSegments(SegmentDeque& segs, SegmentDeque& segSymbols, SegmentDeque& s
 	std::map<std::string, Segment*>::iterator map_it;
 	SegmentDeque::iterator it;
 
-	for(it = segs.begin(); it != segs.end(); it++)
+	for(it = segs.begin(); it != segs.end(); ++it)
 	{
 		std::ostringstream str;
 		str << (*it);
 		all_segs[str.str()] = (*it);
 	}
 
-	for(it = segSymbols.begin(); it != segSymbols.end(); it++)
+	for(it = segSymbols.begin(); it != segSymbols.end(); ++it)
 	{
 		std::ostringstream str;
 		str << (*it);
@@ -314,7 +315,7 @@ void ClearSegments(SegmentDeque& segs, SegmentDeque& segSymbols, SegmentDeque& s
 			all_segs[str.str()] = (*it);
 	}
 
-	for(it = segGraphics.begin(); it != segGraphics.end(); it++)
+	for(it = segGraphics.begin(); it != segGraphics.end(); ++it)
 	{
 		std::ostringstream str;
 		str << (*it);
@@ -322,7 +323,7 @@ void ClearSegments(SegmentDeque& segs, SegmentDeque& segSymbols, SegmentDeque& s
 			all_segs[str.str()] = (*it);
 	}
 
-	for(map_it = all_segs.begin(); map_it != all_segs.end(); map_it++)
+	for(map_it = all_segs.begin(); map_it != all_segs.end(); ++map_it)
 	{
 		if((*map_it).second)
 			delete (*map_it).second;

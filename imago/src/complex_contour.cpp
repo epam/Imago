@@ -390,7 +390,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
 			minIt = neighbours2.begin();
 
 			//find adjacent vertex to vert2  with minimum angle with (vert1, vert2) edge
-			for(vit2 = neighbours2.begin(); vit2 != neighbours2.end(); vit2++)
+			for(vit2 = neighbours2.begin(); vit2 != neighbours2.end(); ++vit2)
 			{
 				if (vars.checkTimeLimit())
 					throw ImagoException("Timelimit exceeded");

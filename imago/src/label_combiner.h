@@ -48,7 +48,7 @@ namespace imago
 	  {
 		  int result = 0;
 		  std::vector<Segment*>::const_iterator it;
-		  for (it = symbols.begin(); it != symbols.end(); it++)
+		  for (it = symbols.begin(); it != symbols.end(); ++it)
 			  if ((*it)->getWidth() > result)
 				  result = (*it)->getWidth();
 		  return result;

@@ -251,7 +251,7 @@ void GraphicsDetector::extractRingsCenters(const Settings& vars, SegmentDeque &s
 					Image others(vars.general.ImageWidth, vars.general.ImageHeight);
 					others.fillWhite();
 
-					for (SegmentDeque::iterator it2 = segments.begin(); it2 != segments.end(); it2++)
+					for (SegmentDeque::iterator it2 = segments.begin(); it2 != segments.end(); ++it2)
 						if (it != it2)
 							ImageUtils::putSegment(others, *(*it2), true);
 					

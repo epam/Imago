@@ -229,7 +229,7 @@ namespace imago
 					output->fillWhite();
 				}
 
-				for (WeakSegmentator::SegMap::const_iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
+				for (WeakSegmentator::SegMap::const_iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); ++it)
 				{
 					const Points2i& p = it->second;
 		
