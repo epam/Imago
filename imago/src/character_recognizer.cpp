@@ -434,7 +434,7 @@ namespace imago
 			std::sort(results.begin(), results.end());
 
 			// std::min(vars.characters.MaxTopVariantsLookup -- remove TODO
-			for (int u = (int)results.size(); u >= 0; u--)
+			for (int u = (int)results.size() - 1; u >= 0; u--)
 			{
 				if (results[u].text.size() == 1) // HACK
 				{

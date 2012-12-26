@@ -357,7 +357,15 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
          Vec2f v1(attachment_atoms[i].dir.x, attachment_atoms[i].dir.y);
          Vec2f v2(attachment_atoms[left_most].dir.x, attachment_atoms[left_most].dir.y);
 
-         attachment_atoms[i].angle = (float)Vec2f::angle(v1, v2);
+		 try
+		 {
+			attachment_atoms[i].angle = (float)Vec2f::angle(v1, v2);
+		 }
+		 catch(imago::DivizionByZeroException &e)
+		 {
+			 // TODO: ?
+			 attachment_atoms[i].angle = 0;
+		 }
       }
 
       // Sort attachment points according to the angle
