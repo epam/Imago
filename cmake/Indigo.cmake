@@ -36,7 +36,9 @@ if(NOT USE_SYSTEM_INDIGO)
 	file(GLOB INDIGO_LIBS "${INDIGO_LIBS_DIR}/*${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	else()
 		set(INDIGO_LIBS 
+			${INDIGO_LIBS_DIR}/librender2d.a
 			${INDIGO_LIBS_DIR}/libindigo-static.a
+			${INDIGO_LIBS_DIR}/libindigo-renderer-static.a
 			${INDIGO_LIBS_DIR}/libcommon.a 
 			${INDIGO_LIBS_DIR}/libmolecule.a  
 			${INDIGO_LIBS_DIR}/libreaction.a
@@ -45,7 +47,10 @@ if(NOT USE_SYSTEM_INDIGO)
 			${INDIGO_LIBS_DIR}/libtinyxml.a 
 			${INDIGO_LIBS_DIR}/libcommon.a 
 			${INDIGO_LIBS_DIR}/libmolecule.a  
-			${INDIGO_LIBS_DIR}/libgraph.a)
+			${INDIGO_LIBS_DIR}/libgraph.a
+			${INDIGO_LIBS_DIR}/libcairo.a
+			${INDIGO_LIBS_DIR}/libpixman.a
+			${INDIGO_LIBS_DIR}/libpng.a)
 	endif()
 else()
 	message(FATAL_ERROR "Not implemented yet!")
