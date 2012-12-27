@@ -37,7 +37,7 @@ namespace imago
 			logEnterFunction();
 			
 			int dim = std::max(image.getWidth(), image.getHeight());
-			const int MaxImageDimensions = 960; // TODO: !!
+			const int MaxImageDimensions = 1280; // TODO: !!
 			if (dim > MaxImageDimensions) // TODO
 			{
 				cv::Mat mat;

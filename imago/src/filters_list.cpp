@@ -15,8 +15,8 @@ namespace imago
 
 	FilterEntries::FilterEntries()
 	{
-		push_back(FilterEntryDefinition("prefilter_binarized",    0,   prefilter_basic::prefilterBinarizedDownscale, 
-			                            "general.ImageAlreadyBinarized = 1;"));	
+		//push_back(FilterEntryDefinition("prefilter_binarized",    0,   prefilter_basic::prefilterBinarizedDownscale, 
+		//	                            "general.ImageAlreadyBinarized = 1;"));	
 
 		push_back(FilterEntryDefinition("prefilter_binarized_fs", 1,   prefilter_basic::prefilterBinarizedFullsize, 
 			                            "general.ImageAlreadyBinarized = 1;"));	

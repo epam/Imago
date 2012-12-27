@@ -481,6 +481,12 @@ namespace machine_learning
 							result_record.valid_count++;
 						}
 					}
+
+					if (visual_counter % 10 == 1)
+					{
+						printf("*** OK: %u/%u, SCORE: %g, TIME: %g ms\n", result_record.ok_count, visual_counter, 
+							  result_record.average_score / visual_counter, result_record.average_time / visual_counter);
+					}
 				}
 
 				if (updateResult(result_record, history))
