@@ -22,7 +22,6 @@ else()
 	endif()
 
 	add_subdirectory(imago_c)
-	#add_subdirectory(alter-ego)
 
 	#if(Java_JAVAC_EXECUTABLE)
 	#	Include(UseJava)
