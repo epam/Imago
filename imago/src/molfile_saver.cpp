@@ -117,7 +117,7 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 			
 			getLogExt().append("Label", label);
 			
-			// HACK
+			// R-groups used different store notation
 			if (satom->atoms[0].getLabelFirst() == 'R' && satom->atoms[0].getLabelSecond() == 0)
             {
 				if (satom->atoms[0].charge > 0)

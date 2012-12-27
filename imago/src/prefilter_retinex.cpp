@@ -241,7 +241,7 @@ namespace imago
 
 		bool prefilterRetinexDownscale(Settings& vars, Image& raw)
 		{
-			return PrefilterUtils::resampleImage(raw) &&
+			return PrefilterUtils::resampleImage(vars, raw) &&
 				   prefilterRetinexFullsize(vars, raw);
 		}
 
@@ -286,7 +286,9 @@ namespace imago
 
 			// store result back
 			getLogExt().appendText("Store image data");
-			raw.crop(0, 0, width - 1, height - 1); // TODO: slow
+
+			raw.clear();
+			raw.init(width, height);
 			for (int y = 0; y < height; y++)
 			{
 				for (int x = 0; x < width; x++)

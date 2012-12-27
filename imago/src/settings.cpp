@@ -118,11 +118,13 @@ namespace imago
 
 		ASSIGN_REF(characters.MinEndpointsPossible);
 		ASSIGN_REF(characters.InternalBinarizationThreshold);
-		ASSIGN_REF(characters.MaxTopVariantsLookup);
 		ASSIGN_REF(characters.DistanceScaleFactor);
 		ASSIGN_REF(characters.PossibleCharacterDistanceStrong);
 		ASSIGN_REF(characters.PossibleCharacterDistanceWeak);
 		ASSIGN_REF(characters.PossibleCharacterMinimalQuality);
+		ASSIGN_REF(characters.ReestimateMinimalCharacters);
+		ASSIGN_REF(characters.MinimalRecognizableHeight);
+		ASSIGN_REF(characters.RatioDiffThresh);
 
 		ASSIGN_REF(csr.DeleteBadTriangles);
 		ASSIGN_REF(csr.Dissolve);
@@ -135,6 +137,7 @@ namespace imago
 		ASSIGN_REF(csr.ReconnectSurelyGoodCoef);
 		ASSIGN_REF(csr.ReconnectProbablyGoodCoef);
 		ASSIGN_REF(csr.StableDecorner);
+		ASSIGN_REF(csr.RescaleImageDimensions);
 
 		ASSIGN_REF(estimation.CapitalHeightError);
 		ASSIGN_REF(estimation.CharactersSpaceCoeff);
@@ -178,6 +181,7 @@ namespace imago
 
 		ASSIGN_REF(main.DissolvingsFactor);
 		ASSIGN_REF(main.WarningsRecalcTreshold);
+		ASSIGN_REF(main.MinGoodCharactersSize);
 
 		ASSIGN_REF(mbond.Case1Factor);
 		ASSIGN_REF(mbond.Case1LengthTresh);

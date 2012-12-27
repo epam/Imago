@@ -409,15 +409,16 @@ namespace imago
 
 			for (size_t u = 0; u < templates.size(); u++)
 			{
+				// Imago supports only one-char-length templates, TODO: upgrade
 				if (templates[u].text.size() != 1)
-					continue; // TODO: hack
+					continue;
 
 				try
 				{
 					double distance = compareImages(img, templates[u].penalty_ink, templates[u].penalty_white);
 					double ratio_diff = imago::absolute(ratio - templates[u].wh_ratio);
 				
-					if (ratio_diff < 0.7) // TODO: const
+					if (ratio_diff < vars.characters.RatioDiffThresh)
 					{
 						results.push_back(ResultEntry(distance, templates[u].text));
 					}
@@ -433,10 +434,9 @@ namespace imago
 
 			std::sort(results.begin(), results.end());
 
-			// std::min(vars.characters.MaxTopVariantsLookup -- remove TODO
 			for (int u = (int)results.size() - 1; u >= 0; u--)
 			{
-				if (results[u].text.size() == 1) // HACK
+				if (results[u].text.size() == 1) // Imago supports only one-char-length templates
 				{
 					_result[results[u].text[0]] = results[u].value / vars.characters.DistanceScaleFactor;
 				}

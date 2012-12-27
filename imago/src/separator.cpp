@@ -1060,7 +1060,7 @@ pre_classify:
 	   }	   
    }
 
-   if (height_count >= 3 || (height_count > 0 && vars.dynamic.CapitalHeight < 0)) // TODO: consts
+   if (height_count >= vars.characters.ReestimateMinimalCharacters || (height_count > 0 && vars.dynamic.CapitalHeight < 0)) 
 	{
 		getLogExt().appendText("Re-estimate cap height");
 		double height = height_sum / height_count;
@@ -1161,7 +1161,7 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
 
    BOOST_FOREACH( Segment *s, _segs )
    {
-	   if (s->getHeight() > 5) // TODO: minimal recognizable height
+	   if (s->getHeight() >= vars.characters.MinimalRecognizableHeight)
 	   {
 		   heights.push_back(s->getHeight());
 	   }

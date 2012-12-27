@@ -30,7 +30,7 @@ namespace imago
 	{
 		bool prefilterBinarizedDownscale(Settings& vars, Image &image)
 		{
-			return PrefilterUtils::resampleImage(image) &&
+			return PrefilterUtils::resampleImage(vars, image) &&
 				   prefilterBinarizedFullsize(vars, image);
 		}
 
@@ -136,7 +136,7 @@ namespace imago
 
 		bool prefilterBasicDownscale(Settings& vars, Image &image)
 		{
-			return PrefilterUtils::resampleImage(image) &&
+			return PrefilterUtils::resampleImage(vars, image) &&
 				   prefilterBasicFullsize(vars, image);
 		}
 

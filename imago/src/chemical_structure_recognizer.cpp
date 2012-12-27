@@ -49,12 +49,6 @@ ChemicalStructureRecognizer::ChemicalStructureRecognizer() : _cr()
 {
 }
 
-ChemicalStructureRecognizer::ChemicalStructureRecognizer( const char *fontname ) : _cr()
-{
-	// TODO
-	// _cr.loadFont(fontname);
-}
-
 double maxHeightHelper(const Settings& vars, int lines)
 {
 	double maxHeight = (vars.lab_remover.HeightFactor * vars.dynamic.CapitalHeight 
@@ -384,7 +378,6 @@ restart:
 				// use filter
 				Image temp_img;
 				temp_img.copy(_img);
-				// TODO: check
 				prefilter_basic::prefilterBasicFullsize(vars, temp_img);
 
 				SegmentDeque temp;

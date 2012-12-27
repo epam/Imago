@@ -43,7 +43,7 @@ void LabelLogic::setSuperatom( Superatom *satom )
    was_super = was_letter = was_charge = 0;
 }
 
-const static char *comb[28] = // TODO: move to config
+const static char *comb[28] = // TODO: completely remove
 {
 /*A*/   "lcmsur",
 /*B*/   "aehkrnzou", 

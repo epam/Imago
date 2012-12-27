@@ -12,7 +12,7 @@ namespace imago
 	{
 		#define LENGTH(x) sizeof(x) / sizeof(int)
 		
-		// TODO:
+		// TODO: currently not used, decide: eliminate or transform
 		/*{
 			const char* data[] = 
 			{

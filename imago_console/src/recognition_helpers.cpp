@@ -91,7 +91,7 @@ namespace recognition_helpers
 				results.push_back(result);
 
 				good = result.warnings <= vars.main.WarningsRecalcTreshold;
-				good_characters_size = vars.dynamic.CapitalHeight > 10; // TODO: min cap height
+				good_characters_size = vars.dynamic.CapitalHeight >= vars.main.MinGoodCharactersSize;
 			
 				if (verbose)
 					printf("Filter [%u] done, warnings: %u, good: %u.\n", vars.general.FilterIndex, result.warnings, good);

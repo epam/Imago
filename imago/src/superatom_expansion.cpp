@@ -22,6 +22,7 @@
 #include "molecule.h"
 #include "output.h"
 #include "molfile_saver.h"
+#include "log_ext.h"
 
 namespace imago
 {
@@ -91,6 +92,8 @@ public:
 
 std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
 {
+   logEnterFunction();
+
    using namespace std;
 
    static bool init = false;
@@ -363,7 +366,7 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
 		 }
 		 catch(imago::DivizionByZeroException &e)
 		 {
-			 // TODO: ?
+			 getLogExt().append("Got exception", e.what());
 			 attachment_atoms[i].angle = 0;
 		 }
       }

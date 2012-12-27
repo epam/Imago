@@ -30,10 +30,8 @@ namespace imago
    class ChemicalStructureRecognizer
    {
    public:
-
       ChemicalStructureRecognizer();
-      ChemicalStructureRecognizer( const char *fontfile );
-
+      
       void setImage( Image &img );
       void recognize( Settings& vars, Molecule &mol); 
       void image2mol( Settings& vars, Image &img, Molecule &mol );

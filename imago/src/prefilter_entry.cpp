@@ -8,7 +8,7 @@ namespace imago
 {
 	namespace PrefilterUtils
 	{
-		bool downscale(cv::Mat& image, int max_dim = 1920)
+		bool downscale(cv::Mat& image, int max_dim)
 		{
 			if (std::max(image.cols, image.rows) > max_dim)
 			{
@@ -32,17 +32,16 @@ namespace imago
 			return false; // not required
 		}
 
-		bool resampleImage(Image &image)
+		bool resampleImage(const Settings& vars, Image &image)
 		{
 			logEnterFunction();
 			
 			int dim = std::max(image.getWidth(), image.getHeight());
-			const int MaxImageDimensions = 1280; // TODO: !!
-			if (dim > MaxImageDimensions) // TODO
+			if (dim > vars.csr.RescaleImageDimensions) 
 			{
 				cv::Mat mat;
 				ImageUtils::copyImageToMat(image, mat);
-				if (downscale(mat, MaxImageDimensions))
+				if (downscale(mat, vars.csr.RescaleImageDimensions))
 				{
 					image.clear();
 					ImageUtils::copyMatToImage(mat, image);

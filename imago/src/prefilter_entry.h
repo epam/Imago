@@ -30,7 +30,7 @@ namespace imago
 	namespace PrefilterUtils
 	{
 		// returns true if image was modified
-		bool resampleImage(Image &image);
+		bool resampleImage(const Settings& vars, Image &image);
 	}
 }
 

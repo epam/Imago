@@ -108,11 +108,11 @@ namespace imago
 
 		for (Points2i::iterator it = p.begin(); it != p.end(); it++)
 		{
-			if (it->x >= map_x.size())
+			if (it->x >= (int)map_x.size())
 				map_x.resize(it->x + 1);
 			map_x[it->x]++;
 
-			if (it->y >= map_y.size())
+			if (it->y >= (int)map_y.size())
 				map_y.resize(it->y + 1);
 			map_y[it->y]++;
 		}
@@ -128,13 +128,13 @@ namespace imago
 			{
 				if (it->y > y1c && it->y < y2c)
 				{
-					if (it->x >= map_x.size())
+					if (it->x >= (int)map_x.size())
 						map_x.resize(it->x + 1);
 					map_x[it->x]++;
 				}
 				if (it->x > x1c && it->x < x2c)
 				{
-					if (it->y >= map_y.size())
+					if (it->y >= (int)map_y.size())
 						map_y.resize(it->y + 1);
 					map_y[it->y]++;
 				}
