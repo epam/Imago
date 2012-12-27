@@ -60,7 +60,7 @@ void Skeleton::recalcAvgBondLength()
       return;
 
    _avg_bond_length = 0;
-   _min_bond_length = MaxImageDimensions;
+   _min_bond_length = DIST_INF;
 
    BGL_FORALL_EDGES(e, _g, SkeletonGraph)
    {

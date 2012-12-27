@@ -22,10 +22,10 @@
 namespace imago
 {
 	// selects first OK prefilter
-	bool prefilterEntrypoint(Settings& vars, Image& raw);
+	bool prefilterEntrypoint(Settings& vars, Image& output, const Image& src);
 	
 	// iterates trough next filters
-	bool applyNextPrefilter(Settings& vars, Image& raw, bool iterateNext = true);
+	bool applyNextPrefilter(Settings& vars, Image& output, const Image& src, bool iterateNext = true);
 
 	namespace PrefilterUtils
 	{

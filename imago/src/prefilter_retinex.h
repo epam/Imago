@@ -25,7 +25,8 @@ namespace imago
 	namespace prefilter_retinex
 	{
 		// filters image using retinex-based approach
-		bool prefilterRetinex(Settings& vars, Image& raw);
+		bool prefilterRetinexDownscale(Settings& vars, Image& raw);
+		bool prefilterRetinexFullsize(Settings& vars, Image& raw);
 	}
 }
 

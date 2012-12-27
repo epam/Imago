@@ -24,7 +24,7 @@ namespace imago
 
 	RectShapedBounding::RectShapedBounding(const Points2i& pts)
 	{
-		int min_x = MaxImageDimensions, min_y = MaxImageDimensions, max_x = 0, max_y = 0;
+		int min_x = INT_MAX, min_y = INT_MAX, max_x = 0, max_y = 0;
 		for (Points2i::const_iterator it = pts.begin(); it != pts.end(); it++)
 		{
 			min_x = std::min(min_x, it->x);

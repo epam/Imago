@@ -31,7 +31,8 @@ namespace imago
    struct RecognitionContext
    {
       ChemicalStructureRecognizer csr;
-      Image img;
+      Image img_tmp;
+	  Image img_src;
       Molecule mol;
       std::string molfile;
       std::string out_buf;

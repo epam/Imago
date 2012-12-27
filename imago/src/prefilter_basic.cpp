@@ -22,12 +22,19 @@
 #include "chemical_structure_recognizer.h"
 #include "log_ext.h"
 #include "filters_list.h"
+#include "prefilter_entry.h"
 
 namespace imago
 {
 	namespace prefilter_basic
 	{
-		bool prefilterBinarized(Settings& vars, Image &image)
+		bool prefilterBinarizedDownscale(Settings& vars, Image &image)
+		{
+			return PrefilterUtils::resampleImage(image) &&
+				   prefilterBinarizedFullsize(vars, image);
+		}
+
+		bool prefilterBinarizedFullsize(Settings& vars, Image &image)
 		{
 			logEnterFunction();		
 
@@ -127,7 +134,13 @@ namespace imago
 			}
 		}	
 
-		bool prefilterBasic(Settings& vars, Image& raw)
+		bool prefilterBasicDownscale(Settings& vars, Image &image)
+		{
+			return PrefilterUtils::resampleImage(image) &&
+				   prefilterBasicFullsize(vars, image);
+		}
+
+		bool prefilterBasicFullsize(Settings& vars, Image& raw)
 		{
 			static const int CV_THRESH_BINARY = 0;
 

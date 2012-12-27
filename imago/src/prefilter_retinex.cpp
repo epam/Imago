@@ -3,6 +3,7 @@
 #include "log_ext.h"
 #include "image_utils.h"
 #include "prefilter_basic.h"
+#include "prefilter_entry.h"
 
 namespace imago
 {
@@ -238,7 +239,13 @@ namespace imago
 			return true;
 		}		
 
-		bool prefilterRetinex(Settings& vars, Image& raw)
+		bool prefilterRetinexDownscale(Settings& vars, Image& raw)
+		{
+			return PrefilterUtils::resampleImage(raw) &&
+				   prefilterRetinexFullsize(vars, raw);
+		}
+
+		bool prefilterRetinexFullsize(Settings& vars, Image& raw)
 		{
 			logEnterFunction();
 
@@ -296,7 +303,7 @@ namespace imago
 			getLogExt().appendImage("Retinex-processed image", raw);
 
 			// call the basic prefilter
-			prefilter_basic::prefilterBasic(vars, raw);
+			prefilter_basic::prefilterBasicFullsize(vars, raw);
 			
 			return true;
 		}

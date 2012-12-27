@@ -102,28 +102,45 @@ namespace imago
 	bool WeakSegmentator::hasRectangularStructure(const Settings& vars, int id, Rectangle& bound, int winSize)
 	{
 		Points2i& p = SegmentPoints[id];
-			
-		int map_x[MaxImageDimensions] = {0};
-		int map_y[MaxImageDimensions] = {0};
+		
+		std::vector<int> map_x;
+		std::vector<int> map_y;
+
 		for (Points2i::iterator it = p.begin(); it != p.end(); it++)
 		{
+			if (it->x >= map_x.size())
+				map_x.resize(it->x + 1);
 			map_x[it->x]++;
+
+			if (it->y >= map_y.size())
+				map_y.resize(it->y + 1);
 			map_y[it->y]++;
 		}
 
 		double x1c, x2c, y1c, y2c;			
-		if (get2centers(map_x, width(), x1c, x2c) && get2centers(map_y, height(), y1c, y2c))
+		if (get2centers(map_x, x1c, x2c) && get2centers(map_y, y1c, y2c))
 		{
 			// now update maps
-			memset(map_x, 0, sizeof(map_x));
-			memset(map_y, 0, sizeof(map_y));
+			map_x.clear();
+			map_y.clear();
+
 			for (Points2i::iterator it = p.begin(); it != p.end(); it++)
 			{
-				if (it->y > y1c && it->y < y2c) map_x[it->x]++;
-				if (it->x > x1c && it->x < x2c) map_y[it->y]++;
+				if (it->y > y1c && it->y < y2c)
+				{
+					if (it->x >= map_x.size())
+						map_x.resize(it->x + 1);
+					map_x[it->x]++;
+				}
+				if (it->x > x1c && it->x < x2c)
+				{
+					if (it->y >= map_y.size())
+						map_y.resize(it->y + 1);
+					map_y[it->y]++;
+				}
 			}
 			// and centers
-			if (get2centers(map_x, width(), x1c, x2c) && get2centers(map_y, height(), y1c, y2c) &&
+			if (get2centers(map_x, x1c, x2c) && get2centers(map_y, y1c, y2c) &&
 				fabs(x1c - x2c) > 2*winSize && fabs(y1c - y2c) > 2*winSize)
 			{
 				int good = 0, bad = 0;
@@ -234,10 +251,10 @@ namespace imago
 		} // while
 	}
 
-	bool WeakSegmentator::get2centers(int* data, int size, double &c1, double& c2) // c1 < c2
+	bool WeakSegmentator::get2centers(const std::vector<int>& data, double &c1, double& c2) // c1 < c2
 	{
 		double mean = 0.0, count = 0.0;
-		for (int u = 0; u < size; u++)
+		for (size_t u = 0; u < data.size(); u++)
 		{
 			mean += u * data[u];
 			count += data[u];
@@ -252,7 +269,7 @@ namespace imago
 		double count1 = 0.0;
 		double count2 = 0.0;
 
-		for (int u = 0; u < size; u++)
+		for (size_t u = 0; u < data.size(); u++)
 		{
 			if (u < mean)
 			{

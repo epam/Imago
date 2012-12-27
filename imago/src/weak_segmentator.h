@@ -17,6 +17,7 @@
 #define _weak_segmentator_h
 
 #include <map>
+#include <vector>
 #include "image.h"
 #include "color_channels.h"
 #include "image_interface.h"
@@ -89,7 +90,7 @@ namespace imago
 		Points2i getShortestPath(const ImageInterface &img, const Vec2i& start, const Vec2i& end);
 
 		// returns 2 probably condensation point for integer vector
-		static bool get2centers(int* data, int size, double &c1, double& c2);		
+		static bool get2centers(const std::vector<int>& data, double &c1, double& c2);		
 	};
 }
 

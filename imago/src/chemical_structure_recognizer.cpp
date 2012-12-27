@@ -385,7 +385,7 @@ restart:
 				Image temp_img;
 				temp_img.copy(_img);
 				// TODO: check
-				prefilter_basic::prefilterBasic(vars, temp_img);
+				prefilter_basic::prefilterBasicFullsize(vars, temp_img);
 
 				SegmentDeque temp;
 				segmentate(vars, temp_img, temp);

@@ -62,22 +62,23 @@ namespace recognition_helpers
 		for (int iter = 0; ; iter++)
 		{
 			bool good = false;
+			bool good_characters_size = false;
 
 			vars.general.StartTime = 0;
 
 			try
 			{
 				imago::Image img;
-				img.copy(src);
+				//img.copy(src);
 
 				if (iter == 0)
 				{
-					if (!imago::prefilterEntrypoint(vars, img))
+					if (!imago::prefilterEntrypoint(vars, img, src))
 						break;
 				}
 				else
 				{
-					if (!imago::applyNextPrefilter(vars, img))
+					if (!imago::applyNextPrefilter(vars, img, src))
 						break;
 				}
 
@@ -90,6 +91,7 @@ namespace recognition_helpers
 				results.push_back(result);
 
 				good = result.warnings <= vars.main.WarningsRecalcTreshold;
+				good_characters_size = vars.dynamic.CapitalHeight > 10; // TODO: min cap height
 			
 				if (verbose)
 					printf("Filter [%u] done, warnings: %u, good: %u.\n", vars.general.FilterIndex, result.warnings, good);
@@ -104,7 +106,7 @@ namespace recognition_helpers
 		#endif
 			}
 
-			if (good)
+			if (good && good_characters_size)
 				break;
 		} // for
 
@@ -129,9 +131,12 @@ namespace recognition_helpers
 		{
 			imago::Image image;
 			imago::ImageUtils::loadImageFromFile(image, imageName.c_str());
-			if (!imago::prefilterEntrypoint(vars, image))
+			
+			imago::Image out;
+			if (!imago::prefilterEntrypoint(vars, out, image))
 				return 2;
-			imago::ImageUtils::saveImageToFile(image, (imageName + ".filtered.png").c_str());
+
+			imago::ImageUtils::saveImageToFile(out, (imageName + ".filtered.png").c_str());
 		}
 		catch (std::exception &e)
 		{
@@ -175,10 +180,11 @@ namespace recognition_helpers
 
 			if (vars.general.ExtractCharactersOnly)
 			{
-				imago::prefilterEntrypoint(vars, image);
+				imago::Image out;
+				imago::prefilterEntrypoint(vars, out, image);
 				applyConfig(verbose, vars, configName);
 				imago::ChemicalStructureRecognizer _csr;
-				_csr.extractCharacters(vars, image);
+				_csr.extractCharacters(vars, out);
 			}
 			else
 			{

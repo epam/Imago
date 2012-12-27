@@ -37,7 +37,8 @@ namespace imago
 			logEnterFunction();
 			
 			int dim = std::max(image.getWidth(), image.getHeight());
-			if (dim > MaxImageDimensions)
+			const int MaxImageDimensions = 960; // TODO: !!
+			if (dim > MaxImageDimensions) // TODO
 			{
 				cv::Mat mat;
 				ImageUtils::copyImageToMat(image, mat);
@@ -52,24 +53,24 @@ namespace imago
 		}
 	}
 
-	bool prefilterEntrypoint(Settings& vars, Image& raw)
+	bool prefilterEntrypoint(Settings& vars, Image& output, const Image& src)
 	{
 		logEnterFunction();
 
 		bool result = false;
+
+		output.copy(src);
 		
-		vars.general.ImageWidth = vars.general.OriginalImageWidth = raw.getWidth();
-		vars.general.ImageHeight = vars.general.OriginalImageHeight = raw.getHeight();
+		vars.general.ImageWidth = vars.general.OriginalImageWidth = src.getWidth();
+		vars.general.ImageHeight = vars.general.OriginalImageHeight = src.getHeight();
 
 		vars.general.ImageAlreadyBinarized = false;
 		vars.general.FilterIndex = 0;
-
-		PrefilterUtils::resampleImage(raw);		
-
-		return applyNextPrefilter(vars, raw, false);
+		
+		return applyNextPrefilter(vars, output, src, false);
 	}
 
-	bool applyNextPrefilter(Settings& vars, Image& raw, bool iterateNext)
+	bool applyNextPrefilter(Settings& vars, Image& output, const Image& src, bool iterateNext)
 	{
 		logEnterFunction();
 		bool result = false;
@@ -83,18 +84,20 @@ namespace imago
 
 		for (; vars.general.FilterIndex < (int)filters.size(); vars.general.FilterIndex++)
 		{
+			output.copy(src);
+
 			int& u = vars.general.FilterIndex;
 
 			getLogExt().append("use filter", filters[u].name);
 
 			if (filters[u].condition != NULL &&
-				filters[u].condition(raw) == false)
+				filters[u].condition(output) == false)
 			{
 				getLogExt().append("filter condition failed", filters[u].name);
 				continue;
 			}
 
-			if (filters[u].routine(vars, raw))
+			if (filters[u].routine(vars, output))
 			{
 				getLogExt().append("filter success", filters[u].name);
 				if (!filters[u].update_config_string.empty())

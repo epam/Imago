@@ -140,7 +140,8 @@ CEXPORT int imagoLoadImageFromFile( const char *FileName )
    IMAGO_BEGIN;
 
    RecognitionContext *context = getCurrentContext();
-   ImageUtils::loadImageFromFile(context->img, FileName);
+   ImageUtils::loadImageFromFile(context->img_src, FileName);
+   context->img_tmp = context->img_src;
       
    IMAGO_END;
 }
@@ -150,7 +151,7 @@ CEXPORT int imagoFilterImage()
    IMAGO_BEGIN;
    
    RecognitionContext *context = getCurrentContext();   
-   prefilterEntrypoint(context->vars, context->img);
+   prefilterEntrypoint(context->vars, context->img_tmp, context->img_src);
 
    IMAGO_END;
 }
@@ -161,7 +162,8 @@ CEXPORT int imagoLoadImageFromBuffer( const char *buf, const int buf_size )
    
    RecognitionContext *context = getCurrentContext();
    const unsigned char* buf_uc = (const unsigned char*)buf;
-   failsafePngLoadBuffer(buf_uc, buf_size, context->img);
+   failsafePngLoadBuffer(buf_uc, buf_size, context->img_src);
+   context->img_tmp = context->img_src;
 
    IMAGO_END;
 }
@@ -171,7 +173,7 @@ CEXPORT int imagoLoadGreyscaleRawImage( const char *buf, const int width, const 
    IMAGO_BEGIN;
 
    RecognitionContext *context = getCurrentContext();
-   Image &img = context->img;
+   Image &img = context->img_src;
 
    img.clear();
 
@@ -180,6 +182,8 @@ CEXPORT int imagoLoadGreyscaleRawImage( const char *buf, const int width, const 
    for (int i = 0; i < width * height; i++)
       img[i] = buf[i];
 
+   context->img_tmp = context->img_src;
+
    IMAGO_END;
 }
 
@@ -187,7 +191,7 @@ CEXPORT int imagoGetInkPercentage(double *result)
 {
 	IMAGO_BEGIN;
 	RecognitionContext *context = getCurrentContext();
-	Image &img = context->img;
+	Image &img = context->img_tmp;
 	
 	size_t ink = 0;
 	size_t total = img.getWidth() * img.getHeight();
@@ -215,7 +219,7 @@ CEXPORT int imagoGetPrefilteredImageSize (int *width, int *height)
 {
    IMAGO_BEGIN;
    RecognitionContext *context = getCurrentContext();
-   Image &img = context->img;
+   Image &img = context->img_tmp;
 
    *height = img.getHeight();
    *width = img.getWidth();
@@ -226,7 +230,7 @@ CEXPORT int imagoGetPrefilteredImage (unsigned char **data, int *width, int *hei
 {
    IMAGO_BEGIN;
    RecognitionContext *context = getCurrentContext();
-   Image &img = context->img;
+   Image &img = context->img_tmp;
    unsigned char *buf = new unsigned char[img.getWidth() * img.getHeight()];
 
    *height = img.getHeight();
@@ -250,9 +254,9 @@ CEXPORT int imagoSaveImageToFile( const char *filename )
 {
    IMAGO_BEGIN;
    RecognitionContext *context = getCurrentContext();
-   if (context->img.isInit())
+   if (context->img_tmp.isInit())
    {
-      ImageUtils::saveImageToFile(context->img, filename);
+      ImageUtils::saveImageToFile(context->img_tmp, filename);
    }
 
    IMAGO_END;
@@ -265,7 +269,7 @@ CEXPORT int imagoRecognize(int* warningsCountDataOut)
    RecognitionContext *context = getCurrentContext();
    ChemicalStructureRecognizer &csr = context->csr;
 
-   csr.setImage(context->img);
+   csr.setImage(context->img_tmp);
    csr.recognize(context->vars, context->mol);
    if (warningsCountDataOut)
    {

@@ -21,8 +21,6 @@
 
 namespace imago
 {
-	static const int MaxImageDimensions = 2560;
-	
 	/// ------------------ cluster-independ settings ------------------ ///
 
 	struct GeneralSettings

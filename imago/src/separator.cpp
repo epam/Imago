@@ -84,8 +84,8 @@ bool Separator::_bIsTextContext(const Settings& vars, SegmentDeque &layer_symbol
 	Segment* firstNear = NULL,
 		*secNear = NULL;
 
-	double dist1 = imago::MaxImageDimensions;
-	double dist2 = imago::MaxImageDimensions;
+	double dist1 = imago::DIST_INF;
+	double dist2 = imago::DIST_INF;
 
 	Vec2i cntr(rec.x + rec.width/2, rec.y+rec.height/2);
 
@@ -185,7 +185,7 @@ int Separator::ClusterLines(const Settings& vars,Points2d& inputLines, IntVector
 	  lengths.push_back(dist);
    }
 
-	double min = imago::MaxImageDimensions;
+	double min = imago::DIST_INF;
 	double max = 0;
 	for(size_t i=0;i<lengths.size();i++)
 	{
