@@ -33,28 +33,25 @@ namespace imago
    {
       std::vector<Segment*> symbols;
       Rectangle rect;
-      int line_y;
-
-      //int cap_letters_count;
-
-      int multi_line_y;
-      int multi_begin;
+      int baseline_y;
+	  bool multiline;
 
       Superatom satom;
+
       Label()
       {
-         line_y = 0; //cap_letters_count = 0;
-         multi_line_y = multi_begin = -1;
+         baseline_y = 0;
+		 multiline = false;
       }
 
-	  int MaxSymbolWidth()
+	  int MaxSymbolWidth() const
 	  {
-		  int maxwidth = 0;
-		  std::vector<Segment *>::iterator sit;
-		  for(sit = symbols.begin();sit != symbols.end(); sit++)
-			  if((*sit)->getWidth() > maxwidth)
-				  maxwidth = (*sit)->getWidth();
-		  return maxwidth;
+		  int result = 0;
+		  std::vector<Segment*>::const_iterator it;
+		  for (it = symbols.begin(); it != symbols.end(); it++)
+			  if ((*it)->getWidth() > result)
+				  result = (*it)->getWidth();
+		  return result;
 	  }
    };
 
@@ -65,8 +62,6 @@ namespace imago
       ~LabelCombiner();
       
 	  void extractLabels( std::deque<Label> &labels );
-
-	  
 
    private:
       SegmentDeque &_symbols_layer;

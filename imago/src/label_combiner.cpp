@@ -116,7 +116,54 @@ void LabelCombiner::_fillLabelInfo(const Settings& vars, Label &l )
 {
 	logEnterFunction();
 
-   std::vector<Segment*> &symbols = l.symbols;
+	int min_x = INT_MAX, min_y = INT_MAX, max_x = 0, max_y = 0;
+	
+	if (l.symbols.size())
+	{
+		int sum = 0;
+		int min_end = INT_MAX;
+		int max_begin = 0;
+		bool multiline = false;
+		for (size_t u = 0; u < l.symbols.size(); u++)
+		{
+			int y_begin = l.symbols[u]->getY();
+			int y_end = y_begin + l.symbols[u]->getHeight();
+			int x_begin = l.symbols[u]->getX();
+			int x_end = x_begin + l.symbols[u]->getWidth();
+			
+			sum += y_end;
+			
+			min_x = std::min(min_x, x_begin);
+			min_y = std::min(min_y, y_begin);
+			max_x = std::max(max_x, x_end);
+			max_y = std::max(max_y, y_end);
+
+			if (y_end < min_end)
+				min_end = y_end;
+			
+			if (y_begin > max_begin)
+				max_begin = y_begin;
+			
+			if (y_begin >= min_end)
+				multiline = true;
+			
+			if (y_end <= max_begin)
+				multiline = true;
+		}
+		l.baseline_y = sum / l.symbols.size();
+		l.multiline = multiline;
+	}
+	else
+	{
+		l.baseline_y = -1;
+		l.multiline = false;
+	}
+
+	l.rect = Rectangle(min_x, min_y, max_x, max_y, 1);
+
+	std::sort(l.symbols.begin(), l.symbols.end(), _segmentsCompareX);
+
+   /*std::vector<Segment*> &symbols = l.symbols;
    int size = symbols.size();
    std::sort(symbols.begin(), symbols.end(), _segmentsComparator);
 
@@ -130,9 +177,9 @@ void LabelCombiner::_fillLabelInfo(const Settings& vars, Label &l )
          first_cap = i;
          first_line_y = symbols[i]->getY() + symbols[i]->getHeight();
          continue;
-      }
+      }*/
       
-      if (first_cap >= 0)
+    /*  if (first_cap >= 0)
       {
 		  int mid = round(symbols[i]->getY() + vars.lcomb.FillLabelFactor2 * symbols[i]->getHeight());
 
@@ -141,10 +188,10 @@ void LabelCombiner::_fillLabelInfo(const Settings& vars, Label &l )
             new_line_sep = i;
             break;
          }
-      }
-   }
+      } 
+   }*/
 
-   if (new_line_sep > 0)
+ /*  if (new_line_sep > 0)
    {
       const Segment *seg1, *seg2;
 
@@ -172,20 +219,10 @@ void LabelCombiner::_fillLabelInfo(const Settings& vars, Label &l )
          }
       }
    } 
-   else
-   {
-      const Segment *seg1;
-      l.rect.y = symbols[0]->getY();
-      seg1 = symbols[size - 1];
-      l.rect.height = seg1->getY() + seg1->getHeight() - l.rect.y;
+   else */
+   {      
 
-      std::sort(symbols.begin(), symbols.end(), _segmentsCompareX);
-
-      l.rect.x = symbols[0]->getX();
-      seg1 = symbols[size - 1];
-      l.rect.width = seg1->getX() + seg1->getWidth() - l.rect.x;
-
-      l.line_y = first_line_y;
+     // l.line_y = first_line_y;
    }
 }
 

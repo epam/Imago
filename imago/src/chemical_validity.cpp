@@ -335,6 +335,9 @@ namespace imago
 		elements.push_back("Me",    0.2);
 		elements.push_back("Et",    0.2); // whats that?
 
+		elements.push_back("(",     0.01);
+		elements.push_back(")",     0.01);
+
 		// and also fixup these bad combinations
 		elements.push_back("IN", 0.0);
 		
@@ -378,7 +381,6 @@ namespace imago
 		hacks["FIC"] = Superatom(C, F3);
 		hacks["OTO"] = Superatom(O, T, F);
 		hacks["OTE"] = Superatom(O, T, F);
-		hacks["C+1"] = Superatom(Cl);
 
 		// elements should be sorted for optimal split function working
 		std::sort(elements.names.begin(), elements.names.end(), sort_comparator_length_reversed);		

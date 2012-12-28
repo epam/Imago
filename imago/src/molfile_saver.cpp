@@ -122,12 +122,12 @@ void MolfileSaver::_writeCtab(const Settings& vars)
             {
 				if (satom->atoms[0].charge > 0)
 				{
-					getLogExt().append("R-group (type)", satom->atoms[0].charge);
+					getLogExt().append("R-group index", satom->atoms[0].charge);
 					_out.printf("%d", satom->atoms[0].charge);
 				}
 				else
 				{
-					getLogExt().appendText("R-group (single)");
+					getLogExt().appendText("R-group index=1");
 					_out.printf("#");
 				}
             }
@@ -183,7 +183,7 @@ void MolfileSaver::_writeCtab(const Settings& vars)
          const Label &l = *(labels.find(v))->second;
          double x = l.rect.x + l.rect.width / 2;
          double y = l.rect.y + l.rect.height / 2;
-         if (l.multi_line_y != -1)
+         if (l.multiline)
             _out.printf(" %lf %lf 0 0", vert_pos.x / bond_length, -vert_pos.y / bond_length);
          else
             _out.printf(" %lf %lf 0 0", x / bond_length, -y / bond_length);

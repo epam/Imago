@@ -36,14 +36,12 @@ namespace imago
       void recognizeLabel(const Settings& vars, Label &label );
 
    protected:
-	  void process(const Settings& vars, Segment *seg, int line_y );
 	  void process_ext(const Settings& vars, Segment *seg, int line_y );
 
    private:	  
       const CharacterRecognizer &_cr;
       Superatom *_satom;
       Atom *_cur_atom;
-      bool flushed, was_super, was_charge, was_letter;
       LabelLogic( LabelLogic & );
 
 	  void _addAtom();
