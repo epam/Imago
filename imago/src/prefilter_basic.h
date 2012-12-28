@@ -27,11 +27,11 @@ namespace imago
 		// returns true if result image is binarized
 		// may change some pixels inensity if image is already binarized
 		bool prefilterBinarizedFullsize(Settings& vars, Image &image);
-		bool prefilterBinarizedDownscale(Settings& vars, Image &image);
+		bool prefilterBinarizedDownscaleOnly(Settings& vars, Image &image);
   
 		// filters image using cv adaptive filtering and cross-correlation
 		bool prefilterBasicFullsize(Settings& vars, Image& raw);
-		bool prefilterBasicDownscale(Settings& vars, Image& raw);		
+		bool prefilterBasicDownscaleOnly(Settings& vars, Image& raw);		
 	}
 }
 

@@ -101,9 +101,6 @@ namespace recognition_helpers
 				if (verbose)
 					printf("Filter [%u] exception '%s'.\n", vars.general.FilterIndex, e.what());
 
-		#ifdef _DEBUG
-				throw;
-		#endif
 			}
 
 			if (good && good_characters_size)
@@ -211,9 +208,6 @@ namespace recognition_helpers
 		{
 			result = 2; // error mark
 			puts(e.what());
-	#ifdef _DEBUG
-			throw;
-	#endif
 		}
 
 		dumpVFS(vfs, "log_vfs.txt");

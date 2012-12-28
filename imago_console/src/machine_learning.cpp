@@ -553,6 +553,12 @@ namespace machine_learning
 						res.config = modifyConfig(base_config, base, work_iteration);
 					}
 
+					{
+						imago::VirtualFS vfs;
+						vfs.appendData("temp_config.txt", res.config);
+						vfs.storeOnDisk();
+					}
+
 					// now recheck the config
 					unsigned int last_out_time = platform::TICKS();					
 					
@@ -724,9 +730,6 @@ namespace machine_learning
 		{
 			result = 2; // error mark
 			puts(e.what());
-	#ifdef _DEBUG
-			throw;
-	#endif
 		}
 
 		return result;

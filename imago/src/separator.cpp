@@ -1026,7 +1026,7 @@ pre_classify:
 	   RecognitionDistance rd = rec.recognize(vars, *s, CharacterRecognizer::all + CharacterRecognizer::graphics);
 	   double dist;
 	   char c = rd.getBest(&dist);
-	   const double DIST_ABSOLUTELY_SURE = 1.5;
+	   const double DIST_ABSOLUTELY_SURE = 1.5; // TODO
 	   if (CharacterRecognizer::graphics.find(c) != std::string::npos && dist < DIST_ABSOLUTELY_SURE)
 	   {
 		   layer_graphics.push_back(s);
@@ -1034,8 +1034,8 @@ pre_classify:
 	   }
 	   else if (CharacterRecognizer::like_bonds.find(c) == std::string::npos
 		        && (vars.dynamic.CapitalHeight < 0 ||
-		            s->getHeight() > 0.3 * vars.dynamic.CapitalHeight 
-		            && s->getHeight() < 2.0 * vars.dynamic.CapitalHeight ) )
+		            s->getHeight() > 0.3 * vars.dynamic.CapitalHeight  // TODO
+		            && s->getHeight() < 2.0 * vars.dynamic.CapitalHeight ) ) // TODO
 		{
 			if (dist < DIST_ABSOLUTELY_SURE)
 			{
@@ -1220,6 +1220,8 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
       double density;
       IntPair p;
       IntVector::iterator iter = std::max_element(seq_lengths.begin(), seq_lengths.end());
+	  if (iter == seq_lengths.end())
+		  break;
       
       maximum = *iter;
       max_seq_length_i = std::distance(seq_lengths.begin(), iter);
@@ -1237,6 +1239,12 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
          densities.push_back(density);
          symbols_found.push_back(max_seq_length_i);
       }
+   }
+
+   if (symbols_found.empty())
+   {
+	   getLogExt().appendText("No symbols found");
+	   return -1;
    }
 
    int count = 0;

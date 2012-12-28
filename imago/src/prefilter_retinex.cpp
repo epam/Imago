@@ -239,10 +239,10 @@ namespace imago
 			return true;
 		}		
 
-		bool prefilterRetinexDownscale(Settings& vars, Image& raw)
+		bool prefilterRetinexDownscaleOnly(Settings& vars, Image& raw)
 		{
-			return PrefilterUtils::resampleImage(vars, raw) &&
-				   prefilterRetinexFullsize(vars, raw);
+			PrefilterUtils::resampleImage(vars, raw);
+			return prefilterRetinexFullsize(vars, raw);
 		}
 
 		bool prefilterRetinexFullsize(Settings& vars, Image& raw)
