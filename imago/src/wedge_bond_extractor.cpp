@@ -854,7 +854,9 @@ void WedgeBondExtractor::fetchArrows(const Settings& vars, Skeleton &g )
 							Vec2d v4 = g.getVertexPos(b_deg == 1 ? b : e_v);
 
 							if (Algebra::SegmentsOnSameLine(vars, v1, v2, v3, v4))
-							{//arrow found TODO: do smth
+							{
+								// arrow found 
+								// TODO: handle properly
 								g.removeBond(edge);
 								g.removeBond(v, (b_deg == 1 ? b : e_v));
 								g.addBond(neighbors[i], (b_deg == 1 ? b : e_v), BT_ARROW, true);

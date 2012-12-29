@@ -231,7 +231,6 @@ namespace imago
 		double SingleDownAngleMax;
 		double SingleDownDistancesMax;
 		double SingleDownLengthMax;
-		double SingleUpRatioEps;
 		double SingleUpDefCoeff;
 		double SingleUpIncCoeff;
 		double SingleUpIncLengthTresh;
@@ -253,6 +252,9 @@ namespace imago
 		double PossibleCharacterDistanceStrong;
 		double PossibleCharacterDistanceWeak;
 		double PossibleCharacterMinimalQuality;
+		double DistanceAbsolutelySure;
+		double HeightMinBound;
+		double HeightMaxBound;
 	};
 	
 	struct ChemicalStructureRecognizerSettings // POD
@@ -315,22 +317,18 @@ namespace imago
 
 	struct LabelLogicSettings // POD
 	{
+		int    adjustAttemptsCount;
 		double underlinePos;
 		double weightUnderline;
-		double ratioBase;
+		double ratioCapital;
+		double capitalAdjustFactor;
 		double ratioWeight;
 		double adjustDec;
 		double adjustInc;
-		double sameLineEps;
-		double heightRatio;
-		double medHeightFactor;
-		double capHeightError;
 	};
 
 	struct LabelCombinerSettings // POD
 	{
-		double FillLabelFactor1;
-		double FillLabelFactor2;
 		double MaximalDistanceFactor;
 		double MaximalYDistanceFactor;
 	};

@@ -24,8 +24,8 @@
 
 using namespace imago;
 
-const std::string exact_as_lower = "OSWVPZXCV"; // TODO
-const std::string can_not_be_capital = "XJUVWQ"; // TODO
+const std::string exact_as_lower = "OSWVPZXCV"; 
+const std::string can_not_be_capital = "XJUVWQ";
 
 LabelLogic::LabelLogic( const CharacterRecognizer &cr ) : _cr(cr), _satom(NULL), _cur_atom(NULL)
 {
@@ -72,17 +72,15 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 			double ratio = (double)SegmentTools::getRealHeight(*seg) / (vars.dynamic.CapitalHeight - 1);
 			getLogExt().append("Height ratio", ratio);
 			double base = 1.0 - vars.labels.ratioWeight * 1.0;
-			// TODO: remove vars.labels.ratioBase
 			pr.adjust(base + vars.labels.ratioWeight * ratio , CharacterRecognizer::lower + CharacterRecognizer::digits);	
-
 		
 			// complicated cases: there are some symbols with exactly the same representation in lower and upper cases
-			if (ratio > 0.9) // TODO
+			if (ratio > vars.labels.ratioCapital)
 			{				
 				std::string lower_em = lower(exact_as_lower);
 				if (lower_em.find(pr.getBest()) != std::string::npos)
 				{
-					pr.adjust(0.5, exact_as_lower); // TODO
+					pr.adjust(vars.labels.capitalAdjustFactor, exact_as_lower);
 				}
 			}
 		}
@@ -97,7 +95,7 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 			if (idx >= 0 && idx < 26)
 			{
 				// decrease probability of unallowed characters
-				// TODO
+				// TODO: not implemented
 				//pr.adjust(vars.labels.adjustDec, substract(CharacterRecognizer::lower, comb[idx]));		
 			}
 		} 
@@ -112,13 +110,12 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 
 	retry:
 
-	if (attempts_count++ > 3) // TODO
+	if (attempts_count++ > vars.labels.adjustAttemptsCount)
 	{
-		getLogExt().appendText("Attempts count overreach 3, probably unrecognizable. skip");
+		getLogExt().append("Probably unrecognizable. Attempts count reached", attempts_count);
 		return;
 	}
 
-	//getLogExt().appendMap("Current distance map", pr);
 	getLogExt().append("Ranged best candidates", pr.getRangedBest());
 	getLogExt().append("Quality", pr.getQuality());
 

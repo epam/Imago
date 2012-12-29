@@ -118,6 +118,7 @@ namespace imago
 		std::string result = d.getRangedBest(2.0);
 		if (result.length() == 1 && result[0] == base_char)
 		{
+			// TODO: extend
 			if (base_char == 'I')
 				result += 'H';
 			if (base_char == 'Y')
@@ -145,7 +146,7 @@ namespace imago
 		// here we know that data contains the references to the bad atoms
 		// we can do anything with them.
 
-		// HACK for "R"
+		// HACK for "R", probably outdated
 		if (data.size() == 1 && data[0]->getPrintableForm() == "R")
 		{
 			return true;

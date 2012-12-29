@@ -437,7 +437,7 @@ restart:
 
 			if (layer_graphics.size() == 0 && layer_symbols.size() == 1)
 			{
-				getLogExt().appendText("HACK: No graphics detected, assume symbols are graphics");
+				getLogExt().appendText("No graphics detected, assume symbols are graphics");
 				layer_graphics = layer_symbols;
 				layer_symbols.clear();
 			}

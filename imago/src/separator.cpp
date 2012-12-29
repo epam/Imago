@@ -999,7 +999,7 @@ void Separator::Separate(Settings& vars, CharacterRecognizer &rec, SegmentDeque 
 	int height_count = 0;
 	bool classified_at_least_one_char = false;	
 
-pre_classify:
+	pre_classify:
 
    for (SegmentDeque::iterator it = _segs.begin(); it != _segs.end(); it++)
    {
@@ -1013,18 +1013,17 @@ pre_classify:
 	   RecognitionDistance rd = rec.recognize(vars, *s, CharacterRecognizer::all + CharacterRecognizer::graphics);
 	   double dist;
 	   char c = rd.getBest(&dist);
-	   const double DIST_ABSOLUTELY_SURE = 1.5; // TODO
-	   if (CharacterRecognizer::graphics.find(c) != std::string::npos && dist < DIST_ABSOLUTELY_SURE)
+	   if (CharacterRecognizer::graphics.find(c) != std::string::npos && dist < vars.characters.DistanceAbsolutelySure)
 	   {
 		   layer_graphics.push_back(s);
 		   getLogExt().appendText("Classified as graphics on first stage");
 	   }
 	   else if (CharacterRecognizer::like_bonds.find(c) == std::string::npos
 		        && (vars.dynamic.CapitalHeight < 0 ||
-		            s->getHeight() > 0.3 * vars.dynamic.CapitalHeight  // TODO
-		            && s->getHeight() < 2.0 * vars.dynamic.CapitalHeight ) ) // TODO
+				s->getHeight() > vars.characters.HeightMinBound * vars.dynamic.CapitalHeight  
+				&& s->getHeight() < vars.characters.HeightMaxBound * vars.dynamic.CapitalHeight ) )
 		{
-			if (dist < DIST_ABSOLUTELY_SURE)
+			if (dist < vars.characters.DistanceAbsolutelySure)
 			{
 				if (CharacterRecognizer::upper.find(c) != std::string::npos)
 				{
@@ -1061,7 +1060,7 @@ pre_classify:
 	   {
 		   vars.dynamic.CapitalHeight = -1; // reset estimated height;
 		   getLogExt().appendText("Restart classification!");
-		   goto pre_classify; // restart classification
+		   goto pre_classify;
 	   }
    }
 

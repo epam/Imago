@@ -122,6 +122,9 @@ namespace imago
 		ASSIGN_REF(characters.PossibleCharacterDistanceStrong);
 		ASSIGN_REF(characters.PossibleCharacterDistanceWeak);
 		ASSIGN_REF(characters.PossibleCharacterMinimalQuality);
+		ASSIGN_REF(characters.DistanceAbsolutelySure);
+		ASSIGN_REF(characters.HeightMinBound);
+		ASSIGN_REF(characters.HeightMaxBound);
 		ASSIGN_REF(characters.ReestimateMinimalCharacters);
 		ASSIGN_REF(characters.MinimalRecognizableHeight);
 		ASSIGN_REF(characters.RatioDiffThresh);
@@ -153,14 +156,12 @@ namespace imago
 		ASSIGN_REF(graph.RatioSub);
 		ASSIGN_REF(graph.RatioTresh);
 
+		ASSIGN_REF(labels.adjustAttemptsCount);
 		ASSIGN_REF(labels.adjustDec);
 		ASSIGN_REF(labels.adjustInc);
-		ASSIGN_REF(labels.capHeightError);
-		ASSIGN_REF(labels.heightRatio);
-		ASSIGN_REF(labels.medHeightFactor);
-		ASSIGN_REF(labels.ratioBase);
+		ASSIGN_REF(labels.ratioCapital);
+		ASSIGN_REF(labels.capitalAdjustFactor);
 		ASSIGN_REF(labels.ratioWeight);
-		ASSIGN_REF(labels.sameLineEps);
 		ASSIGN_REF(labels.underlinePos);
 		ASSIGN_REF(labels.weightUnderline);
 		
@@ -174,8 +175,6 @@ namespace imago
 		ASSIGN_REF(lab_remover.PixGapX);
 		ASSIGN_REF(lab_remover.PixGapY);
 
-		ASSIGN_REF(lcomb.FillLabelFactor1);
-		ASSIGN_REF(lcomb.FillLabelFactor2);
 		ASSIGN_REF(lcomb.MaximalDistanceFactor);
 		ASSIGN_REF(lcomb.MaximalYDistanceFactor);
 
@@ -329,7 +328,6 @@ namespace imago
 		ASSIGN_REF(wbe.SingleUpIncLengthTresh);
 		ASSIGN_REF(wbe.SingleUpInterpolateEps);
 		ASSIGN_REF(wbe.SingleUpMagicAddition);
-		ASSIGN_REF(wbe.SingleUpRatioEps);
 		ASSIGN_REF(wbe.SomeTresh);
 
 		ASSIGN_REF(weak_seg.RectangularCropAreaTreshold);

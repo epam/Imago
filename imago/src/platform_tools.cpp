@@ -114,15 +114,11 @@ int platform::CALL(const std::string& executable, const std::string& parameters,
 		
 		if (WAIT_TIMEOUT == dwExitCode)
 		{
-			//printf("...timelimit exceeded\n");
-
 			result = -2; // TIMEOUT
 			TerminateProcess(piProcessInfo.hProcess, 0);
 		}
 		else
 		{
-			//printf("...process exited (%i ms)\n", GetTickCount() - dwStartTime);
-
 			DWORD exitCode;
 			result = GetExitCodeProcess(piProcessInfo.hProcess, &exitCode);
 			result = exitCode;
