@@ -405,31 +405,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 				  return true;
 			  }
 			  else
-			  {
-				  /*
-				  if ((edge_len < max_edge_beg * (coeff) ||
-				  edge_len < max_edge_end * (coeff)) &&
-				  edge_len < _avg_bond_length * coeff)
-				  {
-					_dissolvings++;
-					  LPRINT(0, "dissolving edge len: %.2lf, max_edge_beg: %.2lf, max_edge_end: %.2lf",
-						  edge_len, max_edge_beg, max_edge_end);
-					  // dissolve the edge
-					  if (max_edge_end < max_edge_beg)
-					  {          
-						  _reconnectBonds(end, beg);
-						  boost::remove_vertex(end, _g);
-					  }
-					  else
-					  {
-						  _reconnectBonds(beg, end);
-						  boost::remove_vertex(beg, _g);
-					  }
-					  return true;
-
-				  }
-				  */
-
+			  {				  
 				  if(( max_edge_end < _avg_bond_length * coeff) &&
 					  (edge_len*(coeff) > max_edge_end) && absolute(max_edge_end) > EPS)
 				  {
@@ -441,10 +417,6 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 							   {
 								   _reconnectBonds(neighbors_e[i], end);
 								   boost::remove_vertex(neighbors_e[i], _g);
-//								   setBondType(*ei, SINGLE_UP);
-								   /*Bond b = boost::get(boost::edge_type, _g, edge);
-								   b.type = SINGLE_UP;
-								   boost::put(boost::edge_type, _g, edge, b);*/
 								   ret = true;
 							   }
 						   }
@@ -464,10 +436,6 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 							   {
 								   _reconnectBonds(neighbors_b[i], beg);
 								   boost::remove_vertex(neighbors_b[i], _g);
-//								   setBondType(*ei, SINGLE_UP);
-								   /*Bond b = boost::get(boost::edge_type, _g, edge);
-								   b.type = SINGLE_UP;
-								   boost::put(boost::edge_type, _g, edge, b);*/
 								   ret = true;
 							   }
 						   }
@@ -1270,19 +1238,14 @@ void Skeleton::modifyGraph(Settings& vars)
    {
 	   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
    }
-   //_repairBroken();
 
    recalcAvgBondLength();
 
     getLogExt().appendSkeleton(vars, "after dissolve intermediate vertrices", _g);
 
-    //_repairBroken(); // DP: disabled
-   
     recalcAvgBondLength();
 
     _findMultiple(vars);
-    //while (_dissolveIntermediateVertices())
-    //   ;
 
 	if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
     

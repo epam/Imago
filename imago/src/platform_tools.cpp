@@ -91,7 +91,7 @@ int platform::CALL(const std::string& executable, const std::string& parameters,
     char* pcharParam = new char[Parameters.size() + 1]; 
     if (pcharParam == 0) 
     { 
-        return -1; // MALLOC FAIL
+        return -1; // memory allocation is failed
     } 
     strcpy_s(pcharParam, Parameters.size() + 1, Parameters.c_str()); 
 

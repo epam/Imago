@@ -137,7 +137,7 @@ namespace imago
 	{
 		int    DissolvingsFactor;
 		int    WarningsRecalcTreshold;
-		int    MinGoodCharactersSize; // 9
+		int    MinGoodCharactersSize; 
 	};
 
 	struct MultipleBondSettings // POD
@@ -246,10 +246,10 @@ namespace imago
 	{		
 		int    MinEndpointsPossible;
 		int    InternalBinarizationThreshold;
-		int    ReestimateMinimalCharacters; // 3
-		int    MinimalRecognizableHeight; // 6
+		int    ReestimateMinimalCharacters; 
+		int    MinimalRecognizableHeight; 
 		double DistanceScaleFactor; 
-		double RatioDiffThresh; // 0.7
+		double RatioDiffThresh; 
 		double PossibleCharacterDistanceStrong;
 		double PossibleCharacterDistanceWeak;
 		double PossibleCharacterMinimalQuality;
@@ -259,7 +259,7 @@ namespace imago
 	{
 		int    WeakSegmentatorDist;
 		int    SmallImageDim;
-		int    RescaleImageDimensions; // 1280
+		int    RescaleImageDimensions; 
 		int    ReconnectMinBads; 		
 		double Dissolve;
 		double DeleteBadTriangles;		

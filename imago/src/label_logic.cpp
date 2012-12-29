@@ -24,6 +24,9 @@
 
 using namespace imago;
 
+const std::string exact_as_lower = "OSWVPZXCV"; // TODO
+const std::string can_not_be_capital = "XJUVWQ"; // TODO
+
 LabelLogic::LabelLogic( const CharacterRecognizer &cr ) : _cr(cr), _satom(NULL), _cur_atom(NULL)
 {
 }
@@ -39,7 +42,6 @@ void LabelLogic::setSuperatom( Superatom *satom )
 	_addAtom();
 }
 
-
 std::string substract(const std::string& fullset, const std::string& reduction)
 {
 	std::string result;
@@ -49,7 +51,6 @@ std::string substract(const std::string& fullset, const std::string& reduction)
 	return result;
 }
 
-
 void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 {
 	logEnterFunction();
@@ -57,24 +58,38 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 
 	RecognitionDistance pr = _cr.recognize(vars, *seg);
 
-	{ // adjust using image params
+	{ 
+		// adjust using image params
 		if (line_y >= 0)
 		{
 			double underline = SegmentTools::getPercentageUnderLine(*seg, line_y);
 			getLogExt().append("Percentage under baseline", underline);
-			// assume the n% underline is zero-point
 			pr.adjust(1.0 - vars.labels.weightUnderline * (underline - vars.labels.underlinePos), CharacterRecognizer::digits);		
 		}
 	
+		if (vars.dynamic.CapitalHeight > 0)
 		{
-			double ratio = (double)SegmentTools::getRealHeight(*seg) / vars.dynamic.CapitalHeight;
+			double ratio = (double)SegmentTools::getRealHeight(*seg) / (vars.dynamic.CapitalHeight - 1);
 			getLogExt().append("Height ratio", ratio);
-			// assume the n% height ratio is zero-point
-			pr.adjust(vars.labels.ratioBase + vars.labels.ratioWeight * ratio , CharacterRecognizer::lower + CharacterRecognizer::digits);	
+			double base = 1.0 - vars.labels.ratioWeight * 1.0;
+			// TODO: remove vars.labels.ratioBase
+			pr.adjust(base + vars.labels.ratioWeight * ratio , CharacterRecognizer::lower + CharacterRecognizer::digits);	
+
+		
+			// complicated cases: there are some symbols with exactly the same representation in lower and upper cases
+			if (ratio > 0.9) // TODO
+			{				
+				std::string lower_em = lower(exact_as_lower);
+				if (lower_em.find(pr.getBest()) != std::string::npos)
+				{
+					pr.adjust(0.5, exact_as_lower); // TODO
+				}
+			}
 		}
 	}
 
-	{ // adjust using chemical structure logic
+	{ 
+		// adjust using chemical structure logic
 		if (_cur_atom->getLabelFirst() != 0 && _cur_atom->getLabelSecond() == 0)
 		{
 			// can be a capital or digit or small
@@ -88,8 +103,8 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 		} 
 		else if (_cur_atom->getLabelFirst() == 0)
 		{
-			// should be a capital letter, increase probability of allowed characters
-			pr.adjust(vars.labels.adjustInc, substract(CharacterRecognizer::upper, "XJUVWQ"));
+			// should be a capital letter, increase probability of allowed characters			
+			pr.adjust(vars.labels.adjustInc, substract(CharacterRecognizer::upper, can_not_be_capital));
 		}
 	}
 
@@ -97,7 +112,7 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 
 	retry:
 
-	if (attempts_count++ > 3)
+	if (attempts_count++ > 3) // TODO
 	{
 		getLogExt().appendText("Attempts count overreach 3, probably unrecognizable. skip");
 		return;
@@ -107,15 +122,14 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 	getLogExt().append("Ranged best candidates", pr.getRangedBest());
 	getLogExt().append("Quality", pr.getQuality());
 
-
 	char ch = pr.getBest();
 	if (CharacterRecognizer::upper.find(ch) != std::string::npos) // it also includes 'tricky' symbols
 	{
 		_addAtom();
-		if (!_multiLetterSubst(ch))
+		if (!_multiLetterSubst(ch)) // 'tricky'
 		{
 			getLogExt().append("Added first label", ch);
-			_cur_atom->addLabel(pr); // = ch;
+			_cur_atom->addLabel(pr);
 		}
 		else
 		{
@@ -139,7 +153,7 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 		else
 		{
 			getLogExt().append("Added second label", ch);
-			_cur_atom->addLabel(pr); // = ch;
+			_cur_atom->addLabel(pr);
 		}
 	}
 	else if (CharacterRecognizer::digits.find(ch) != std::string::npos)
@@ -158,22 +172,21 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 		}
 		else
 		{
-			int count = ch - '0';
+			int digit = ch - '0';
 			if (_cur_atom->getLabelFirst() == 'R' && _cur_atom->getLabelSecond() == 0)
 			{
-				_cur_atom->charge = count;
+				_cur_atom->charge = _cur_atom->charge*10 + digit;
 				getLogExt().append("Initialized R-group index", _cur_atom->charge);
 			}
 			else
 			{
-				_cur_atom->count = count;
+				_cur_atom->count = _cur_atom->count*10 + digit;
 				getLogExt().append("Initialized atom count", _cur_atom->count);
 			}
 		}
 	}
 	else if (CharacterRecognizer::brackets.find(ch) != std::string::npos) // brackets
 	{
-		// TODO: condition		
 		_addAtom();
 		_cur_atom->addLabel(pr);		
 		getLogExt().append("Added bracket", ch);
@@ -182,10 +195,13 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 	{
 		_cur_atom->charge = (ch == '+') ? +1 : -1;
 		getLogExt().append("Initialized atom charge", _cur_atom->charge);
+		// TODO: charges like "-3"
 	}
 	else 
 	{
-		getLogExt().append("Current char not in supported set, skip", ch);
+		getLogExt().append("Current char not in supported set, increase probability of supported ones", ch);
+		pr.adjust(vars.labels.adjustInc, CharacterRecognizer::all);
+		goto retry;
 	}
 }
 
@@ -204,29 +220,24 @@ bool LabelLogic::_multiLetterSubst(char sym)
 	{
 	case '$':
 		_cur_atom->setLabel("Cl");
-		//_addAtom();
 		return true;
 	case '%':
 		_cur_atom->setLabel("H");
 		_cur_atom->count = 2;
-		//_addAtom();
 		return true;
 	case '^':
 		_cur_atom->setLabel("H");
 		_cur_atom->count = 3;
-		//_addAtom();
 		return true;
 	case '&':
 		_cur_atom->setLabel("O");
 		_addAtom();
 		_cur_atom->setLabel("C");
-		//_addAtom();
 		return true;
 	case '#':
 		_cur_atom->setLabel("N");
 		_addAtom();
 		_cur_atom->setLabel("H");
-		//_addAtom();
 		return true;
 	case '=':
 		// special chars to ignore

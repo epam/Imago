@@ -162,68 +162,6 @@ void LabelCombiner::_fillLabelInfo(const Settings& vars, Label &l )
 	l.rect = Rectangle(min_x, min_y, max_x, max_y, 1);
 
 	std::sort(l.symbols.begin(), l.symbols.end(), _segmentsCompareX);
-
-   /*std::vector<Segment*> &symbols = l.symbols;
-   int size = symbols.size();
-   std::sort(symbols.begin(), symbols.end(), _segmentsComparator);
-
-   int first_line_y = -1;
-   int new_line_sep = -1;
-   for (int i = 0, first_cap = -1; i < size; i++)
-   {
-	   if (first_cap < 0 && symbols[i]->getHeight() > 
-		   vars.estimation.CapitalHeightError * vars.lcomb.FillLabelFactor1 * vars.dynamic.CapitalHeight)
-      {
-         first_cap = i;
-         first_line_y = symbols[i]->getY() + symbols[i]->getHeight();
-         continue;
-      }*/
-      
-    /*  if (first_cap >= 0)
-      {
-		  int mid = round(symbols[i]->getY() + vars.lcomb.FillLabelFactor2 * symbols[i]->getHeight());
-
-		  if (mid - first_line_y > vars.dynamic.CapitalHeight * vars.estimation.CharactersSpaceCoeff)
-         {
-            new_line_sep = i;
-            break;
-         }
-      } 
-   }*/
-
- /*  if (new_line_sep > 0)
-   {
-      const Segment *seg1, *seg2;
-
-      l.rect.y = symbols[0]->getY();
-      std::sort(symbols.begin(), symbols.begin() + new_line_sep, _segmentsCompareX);
-      l.rect.x = symbols[0]->getX();
-
-      seg1 = symbols[size - 1];
-      l.rect.height = seg1->getY() + seg1->getHeight() - l.rect.y;
-      std::sort(symbols.begin() + new_line_sep, symbols.end(), _segmentsCompareX);
-      
-      seg1 = symbols[new_line_sep - 1];
-      seg2 = symbols[size - 1];
-      l.rect.width = std::max(seg1->getX() + seg1->getWidth(),
-                              seg2->getX() + seg2->getWidth()) - l.rect.x;
-
-      l.line_y = first_line_y;
-      l.multi_begin = new_line_sep;
-      for (int i = new_line_sep; i < size; i++)
-      {
-		  if (symbols[i]->getHeight() > vars.estimation.CapitalHeightError * vars.dynamic.CapitalHeight)
-         {
-            l.multi_line_y = symbols[i]->getY() + symbols[i]->getHeight();
-            break;
-         }
-      }
-   } 
-   else */
-   {      
-
-     // l.line_y = first_line_y;
-   }
 }
 
 bool LabelCombiner::_segmentsComparator( const Segment* const &a,

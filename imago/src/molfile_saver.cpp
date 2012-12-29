@@ -63,19 +63,6 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 {
 	logEnterFunction();
 
-   //const Array< Pair<int> > &_vert2labels = _mol->_vert2labels;
-
-   //Array<int> mapping(graph.vertexCapacity());
-   //Array<int> s_mapping(graph.vertexCapacity());
-   
-   
-   
-   //memset(s_mapping.ptr(), -1, s_mapping.size() * sizeof(int));
-   //for (i = 0; i < _vert2labels.size(); i++)
-   //{
-      //s_mapping[_vert2labels[i].first] = _vert2labels[i].second;
-   //}
-
    const Skeleton::SkeletonGraph &graph = _mol->getSkeleton();
    const Molecule::ChemMapping &labels = _mol->getMappedLabels();
    std::map<Skeleton::Vertex, int> mapping;
@@ -140,12 +127,6 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 
                if (atom.isotope > 0)
                {
-   //                  if (int len = strlen(abbrev) > 0)
-   //                  {
-   //                     char last = abbrev[len - 1];
-   //                     if (last == '-' || last == '+')
-   //                        out.writeChar(' ');
-   //                  }
                   _out.printf("\\S%d", atom.isotope);
                }
 			   label[0] = atom.getLabelFirst();

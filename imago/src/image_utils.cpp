@@ -314,7 +314,7 @@ namespace imago
 				float sine = (centery - j) / radius;
 				float ang = (float)atan2(sine, cosine);
 				if (ang < 0)
-				   ang += TWO_PI;
+				   ang += TWO_PI_f;
 				points[k].ang = ang;
 				k++;
 			 }
@@ -322,7 +322,7 @@ namespace imago
 
 	   qsort(points, npoints, sizeof(_AngRadius), _cmp_ang);
    
-	   points[npoints].ang = points[0].ang + TWO_PI;
+	   points[npoints].ang = points[0].ang + TWO_PI_f;
 	   points[npoints].radius = points[0].radius;
 
 	   for (i = 0; i < npoints; i++)

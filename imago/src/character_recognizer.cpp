@@ -306,21 +306,7 @@ namespace imago
 		{
 			const int CV_FORCE_GRAYSCALE = 0;
 			return cv::imread(filename, CV_FORCE_GRAYSCALE);
-		}
-
-		std::string upper(const std::string& in)
-		{
-			std::string data = in;
-			std::transform(data.begin(), data.end(), data.begin(), ::toupper);
-			return data;
-		}
-
-		std::string lower(const std::string& in)
-		{
-			std::string data = in;
-			std::transform(data.begin(), data.end(), data.begin(), ::tolower);
-			return data;
-		}
+		}		
 
 		std::string convertFileNameToLetter(const std::string& name)
 		{

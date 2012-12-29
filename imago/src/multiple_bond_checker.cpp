@@ -41,8 +41,6 @@ MultipleBondChecker::~MultipleBondChecker()
 
 bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd )
 {
-	//logEnterFunction();
-
    first = frst, second = scnd;
    bf = _s.getBondInfo(first); bs = _s.getBondInfo(second);
 
@@ -130,9 +128,6 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
       return false;
    }
    
-   //if (d > std::min(bf.length, bs.length))
-   //   return false;
-   
    BGL_FORALL_VERTICES(v, _g, Graph)
    {
       if (v == fb || v == fe || v == sb || v == se)
@@ -147,9 +142,6 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
          coef = Algebra::pointProjectionCoef(v_pos, fb_pos, fe_pos);
       else
          coef = Algebra::pointProjectionCoef(v_pos, sb_pos, se_pos);
-
-      //LPRINT(0, "checking (%.1lf %.1lf): d1=%.1lf, d2=%.1lf, coef=%.1lf",
-      //       v_pos.x, v_pos.y, d1, d2, coef);
 
       if (d1 > d || d2 > d)
          continue;
@@ -215,8 +207,6 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
 
 bool MultipleBondChecker::checkTriple(const Settings& vars, Edge thrd )
 {
-	//logEnterFunction();
-
    third = thrd;
    bt = _s.getBondInfo(third);
 

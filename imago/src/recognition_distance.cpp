@@ -35,6 +35,9 @@ namespace imago
 
 	void RecognitionDistance::adjust(double factor, const std::string& sym_set)
 	{
+		if (absolute(factor - 1.0) < EPS)
+			return;
+
 		getLogExt().append("Distance map adjust for " + sym_set, factor);
 
 		for (size_t u = 0; u < sym_set.size(); u++)

@@ -125,24 +125,13 @@ void ImageDrawUtils::_plot8points( int cx, int cy, int x, int y, byte color, voi
 
 void ImageDrawUtils::_plot4points( int cx, int cy, int x, int y, byte color, void *userdata, bool (*plot)( int x, int y, int color, void *userdata ) )
 {
-//   int w = img.getWidth(), h = img.getHeight();
-
-//   if (CHECK_INDEX(cx + x, cy + y))
-//      img.getByte(cx + x, cy + y) = color;
-
    plot(cx + x, cy + y, color, userdata);
 
    if (x != 0)
-//      if (CHECK_INDEX(cx - x, cy + y))
-//         img.getByte(cx - x, cy + y) = color;
       plot(cx - x, cy + y, color, userdata);
    if (y != 0)
-//      if (CHECK_INDEX(cx + x, cy - y))
-//         img.getByte(cx + x, cy - y) = color;
       plot(cx + x, cy - y, color, userdata);
    if (x != 0 && y != 0)
-//      if (CHECK_INDEX(cx - x, cy - y))
-//         img.getByte(cx - x, cy - y) = color;
       plot(cx - x, cy - y, color, userdata);
 }
 

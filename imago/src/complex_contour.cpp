@@ -89,7 +89,7 @@ std::vector<ComplexNumber> ComplexContour::InterCorrelation(ComplexContour c)
 
 std::vector<ComplexNumber> ComplexContour::AutoCorrelation(bool normalize)
 {
-	int count = _contours.size()/2;// > 0 ? _contours.size() : 1 ;
+	int count = _contours.size()/2;
 	double maxNorm = 0;
 	std::vector<ComplexNumber> acf;
 	for(int i=0; i<count; i++)

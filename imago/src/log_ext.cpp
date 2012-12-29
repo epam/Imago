@@ -292,9 +292,9 @@ namespace imago
 			//	// that's ok
 			//}
 			//else
-			{
-				// folder cannot be created, skip image generation?
-			}
+			//{
+			//	// folder cannot be created, skip image generation?
+			//}
 		}
 
 		if (html_name != NULL)

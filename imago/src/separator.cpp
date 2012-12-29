@@ -115,10 +115,7 @@ bool Separator::_bIsTextContext(const Settings& vars, SegmentDeque &layer_symbol
 
 	bool xfirstSeparable = Algebra::rangesSeparable(rec.x, rec.x+rec.width, firstNear->getX(), firstNear->getX() + firstNear->getWidth());
 	bool yfirstSeparable = Algebra::rangesSeparable(rec.y, rec.y+rec.height, firstNear->getY(), firstNear->getY() + firstNear->getHeight());
-
-	/*bool xsecSeparable = Algebra::rangesSeparable(rec.x, rec.x+rec.width, secNear->getX(), secNear->getX() + secNear->getWidth());
-	bool ysecSeparable = Algebra::rangesSeparable(rec.y, rec.y+rec.height, secNear->getY(), secNear->getX() + secNear->getHeight());
-*/
+	
 	if(xfirstSeparable &&  !yfirstSeparable && dist1 < vars.dynamic.CapitalHeight)
 		return true;
 
@@ -467,10 +464,6 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 
 	bool found_symbol = false;
 		
-			
-	//int sym_height_err = (int)vars.estimation.SymHeightErr;
-	//int cap_height = (int)vars.dynamic.CapitalHeight;		
-	//double adequate_ratio_max = vars.estimation.MaxSymRatio;
 	double adequate_ratio_min = vars.estimation.MinSymRatio;
 
 	for(size_t i=0;i< symbRects.size(); i++)
@@ -718,8 +711,6 @@ int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark,  Segme
 		else
 			retVal = SEP_SYMBOL;
 		
-		//seg->setSymbolProbability(sym_prob);
-
 		getLogExt().append("Graphic probability ", bond_prob);
 		getLogExt().append("Character probability ", sym_prob);
 
@@ -748,7 +739,6 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque &layer_symbol
 	int cap_height = (int)vars.dynamic.CapitalHeight;
 
 	int sym_height_err = (int)vars.estimation.SymHeightErr;
-    //double susp_seg_density = rs["SuspSegDensity"],
 	double adequate_ratio_max = vars.estimation.MaxSymRatio;
 	double adequate_ratio_min = vars.estimation.MinSymRatio;
     
@@ -788,7 +778,6 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque &layer_symbol
 
 		Segment *thinseg = new Segment();
 		thinseg->copy(*s);
-		//memcpy(thinseg->getData(), temp.getData(), temp.getWidth()*temp.getHeight() *sizeof(byte));
 
 		if (s->getHeight() >= cap_height - sym_height_err && 
 			s->getHeight() <= cap_height + sym_height_err &&
@@ -917,8 +906,6 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque &layer_symbol
 						rec.isPossibleCharacter(vars, *s2, true, &ch))
 					{
 						getLogExt().appendText("Both are symbols");
-						//int segs = _getApproximationSegmentsCount(vars, s) - 1;
-						//getLogExt().append("Approx segs", segs);
 						if (segs > vars.separator.minApproxSegsWeak)
 						{							
 							getLogExt().appendText("Segments criteria passed");
@@ -1131,15 +1118,12 @@ pre_classify:
    std::sort(layer_symbols.begin(), layer_symbols.end(), _segmentsComparator);
 }
 
-
-
-
 bool Separator::_analyzeSpecialSegment(const Settings& vars, Segment *cur_seg)
 {
 	return _getApproximationSegmentsCount(vars, cur_seg) <= vars.separator.specialSegmentsTreat;
 }
 
-int Separator::_getApproximationSegmentsCount(const Settings& vars, Segment *seg /*, SegmentDeque &layer_graphics, SegmentDeque &layer_symbols*/ )
+int Separator::_getApproximationSegmentsCount(const Settings& vars, Segment *seg)
 {
    Image tmp;
    CvApproximator cvApprox;

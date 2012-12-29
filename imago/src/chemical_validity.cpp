@@ -341,46 +341,12 @@ namespace imago
 		// and also fixup these bad combinations
 		elements.push_back("IN", 0.0);
 		
-		Atom C;   C.setLabel("C");
+	/*	
+		// hacks usage, something like that:
 		Atom N;   N.setLabel("N");
-		Atom H;   H.setLabel("H");
-		Atom O;   O.setLabel("O");
-		Atom Br;  Br.setLabel("Br");
-		Atom T;   T.setLabel("T");
-		Atom F;   F.setLabel("F");
-		Atom Cl;  Cl.setLabel("Cl");
-
 		Atom H2; H2.setLabel("H"); H2.count = 2;
-		Atom H3; H3.setLabel("H"); H3.count = 3;		
-		Atom F3; F3.setLabel("F"); F3.count = 3;		
-
-		
-		hacks["U"] = Superatom(O); // the most evil hack
-		hacks["II"] = Superatom(O);
-
-		hacks["OYI"] = Superatom(O, H);
-		hacks["IO"] = Superatom(O, H);
-		hacks["OI"] = Superatom(O, H);
-		
-		hacks["BN"] = Superatom(N);
-		hacks["IY"] = Superatom(N);
-
-		hacks["NN"] = Superatom(N, H);
 		hacks["NHH"] = Superatom(N, H2);
-		hacks["NIH"] = Superatom(N, H3);
-
-		hacks["HHN"] = Superatom(N, H3);
-		hacks["HIN"] = Superatom(N, H3);
-
-		hacks["IC"] = Superatom(C, H3);
-		hacks["CHI"] = Superatom(C, H3);
-		hacks["ClC"] = Superatom(C, H3);
-		hacks["HIC"] = Superatom(C, H3);
-		hacks["HOC"] = Superatom(C, H3);
-
-		hacks["FIC"] = Superatom(C, F3);
-		hacks["OTO"] = Superatom(O, T, F);
-		hacks["OTE"] = Superatom(O, T, F);
+	*/
 
 		// elements should be sorted for optimal split function working
 		std::sort(elements.names.begin(), elements.names.end(), sort_comparator_length_reversed);		

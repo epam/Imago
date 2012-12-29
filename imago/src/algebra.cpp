@@ -179,25 +179,6 @@ bool Algebra::segmentsParallel( const Vec2d &b1, const Vec2d &e1,
                                 const Vec2d &b2, const Vec2d &e2,
                                 double eps, double *dist )
 {
-//   Vec2d p1, p2;
-//   boost::tie(p1, p2) = Algebra::segmentProjection(b1, e1, b2, e2);
-//   Vec2d m1, m2;
-//   m1.middle(p1, p2);
-//   m2.middle(b1, e1);
-//   Vec2d n, p;
-//   n.diff(m2, m1);
-//   p.diff(b1, e1);
-//
-//   try
-//   {
-//      if (n.norm() < 2.0)
-//         return true;
-//   } catch (DivizionByZeroException &e)
-//   {
-//      return true;
-//   }
-//
-//   return false;
    Line l1 = points2line(b1, e1);
    Line l2 = points2line(b2, e2);
 

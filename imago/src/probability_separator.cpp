@@ -122,8 +122,6 @@ void ProbabilitySeparator::CalculateProbabilities(const Settings& vars,
 	        Image& seg, double& char_probability, double& bond_probability, 
 			double char_apriory, double bond_apriory)
 {
-	/*Image img(seg.getWidth(), seg.getHeight());
-	seg.extract(0, 0, img.getWidth(), img.getHeight(), img);*/
 	ComplexContour contour  = ComplexContour::RetrieveContour(vars, seg);
 	
 	if(vars.p_estimator.UsePerimeterNormalization)
