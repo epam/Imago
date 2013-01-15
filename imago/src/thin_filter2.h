@@ -35,13 +35,11 @@ namespace imago
       ~ThinFilter2();
       
    private:
-	   Image& _img;
+	  Image& _img;
+
       ThinFilter2( const ThinFilter2& );
       byte get( int x, int y );
       void set( int x, int y, byte val );
-      int width, height;
-      byte *data;
-      std::vector<byte *> scanlines;
    };
 }
 

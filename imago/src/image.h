@@ -24,81 +24,120 @@
 
 #include "comdef.h"
 #include "exception.h"
+#include <opencv2/opencv.hpp>
 
 namespace imago
 {
-   class Segment;
+	class Image : public cv::Mat1b
+	{
+	public:
+		Image() { }
 
-   /**
-    * @brief   Picture representation type
-    */
-   class Image
-   {
-   public:
+		Image( int width, int height ) : cv::Mat1b(height, width) { }
 
-      //Constructors & destructor
-      Image();
+		Image( const Image &other)
+		{
+			copy(other);
+		}
 
-      Image( int width, int height );
+		virtual ~Image() { }
 
-	  Image( const Image &other)
-	  {
-		  _data = 0;
-		  copy(other);
-	  }
+		inline void init( int width, int height )
+		{
+			*this = Image(width, height);
+		}
 
-      virtual ~Image();
+		inline void clear()
+		{
+			cv::Mat1b::resize(0);
+		}
 
-      //init\de-init
-      void init( int width, int height );
-      void clear();
-      bool isInit() const;
-      void fillWhite();
+		inline bool isInit() const
+		{
+			return rows > 0;
+		}
 
-      //Get functions
-      const int &getWidth() const;
-      const int &getHeight() const;
-      inline byte &getByte( int i, int j )
-      {
-         int ind = _width * j + i;
-         if (ind < 0 || ind >= _width * _height)
-            throw OutOfBoundsException("Image::getByte(%d, %d)", i, j);
-         return _data[ind];
-      }
-      inline const byte &getByte( int i, int j ) const
-      {
-         int ind = _width * j + i;
-         if (ind < 0 || ind >= _width * _height)
-            throw OutOfBoundsException("Image::getByte(%d, %d)", i, j);
-         return _data[ind];
-      }
-      inline const byte &operator[]( int i ) const {return _data[i];}
-      inline byte &operator[]( int i ) {return _data[i];}
-      inline byte const * const getData() const {return _data;}
-      inline byte *getData() { return _data; }
+		inline void fillWhite()
+		{
+			for (int y = 0; y < rows; y++)
+				for (int x = 0; x < cols; x++)
+					getByte(x,y) = 255;
+		}
 
-      //Copy
-      void copy( const Image &other );
-      void emptyCopy( const Image &other );
+		inline const int &getWidth() const
+		{
+			return cols;
+		}
 
-      //Helpful functions
-      void invert();
-      void crop(int left = -1, int top = -1, int right = -1, int bottom = -1);
-      void splitVert( int x, Image &left, Image &right ) const;
-      void extract( int x1, int y1, int x2, int y2, Image &res );
-      double density() const;
-      int mean() const;
+		inline const int &getHeight() const
+		{
+			return rows;
+		}
 
-      void rotate90( bool cw = true );
-      void rotate180();
-	 
-   protected:
-      int _width, _height;
+		inline byte &getByte( int x, int y )
+		{
+			return (*this)(y, x);
+		}
 
-   private:      
-      byte *_data;
+		inline const byte &getByte( int x, int y ) const
+		{
+			return (*this)(y, x);
+		}
+
+		inline void copy( const Image &other )
+		{
+			other.copyTo(*this);
+		}
+
+		inline void emptyCopy( const Image &other )
+		{
+			*this = Image(other.rows, other.cols);
+		}
+
+		inline void invertColor()
+		{
+			for (int y = 0; y < getHeight(); y++)
+				for (int x = 0; x < getWidth(); x++)
+					getByte(x,y) = 255 - getByte(x,y);
+		}
+
+		void crop(int left = -1, int top = -1, int right = -1, int bottom = -1, int* shift_x = NULL, int* shift_y = NULL);
       
-   };
+		inline void extractRect( int x1, int y1, int x2, int y2, Image &res ) const
+		{
+			if (x1 < 0) x1 = 0;
+			if (y1 < 0) y1 = 0;
+			if (x2 >= getWidth()) x2 = getWidth() - 1;
+			if (y2 >= getHeight()) y2 = getHeight() - 1;
+			(*this)(cv::Rect(x1, y1, x2-x1+1, y2-y1+1)).copyTo(res);
+		}
+
+		inline void splitVert( int x, Image &left, Image &right ) const
+		{
+			extractRect(0, 0, x, getHeight()-1, left);
+			extractRect(x+1, 0, getWidth()-1, getHeight()-1, right);
+		}
+      	        
+		inline double density() const
+		{
+			int density = 0;
+			for (int y = 0; y < rows; y++)
+				for (int x = 0; x < cols; x++)
+					if (getByte(x,y) == 0)
+						density++;
+			return (double)density/(cols*rows);
+		}
+      
+		inline int mean() const
+		{
+			return (int)(cv::mean(*this)[0]);
+		}
+
+		inline void rotate90()
+		{
+			cv::transpose(*this, *this);
+		}
+	};
 }
 
 

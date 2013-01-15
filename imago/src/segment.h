@@ -41,6 +41,7 @@ namespace imago
 	  virtual ~Segment();
 
       void copy( const Segment &s, bool copy_all = true );	  
+	  void copy( const Image &i) { Image::copy(i); }
 
       int getX() const;
       int getY() const;

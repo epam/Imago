@@ -147,7 +147,7 @@ RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const S
 			init = true;
 		}
 
-		rec = CharacterRecognizerImp::recognizeImage(vars, seg, templates);
+		rec = CharacterRecognizerImp::recognizeMat(vars, seg, templates);
 		getLogExt().appendMap("Font recognition result", rec);
 
 		if (vars.caches.PCacheSymbolsRecognition)
@@ -286,6 +286,10 @@ namespace imago
 			imago::ImageUtils::copyMatToImage(temp_binary, img_bin);
 			img_bin.crop();
 			imago::ImageUtils::copyImageToMat(img_bin, temp_binary);		
+
+			
+			if (temp_binary.cols * temp_binary.rows == 0)
+				throw ImagoException("Empty mat passed");
 		
 			int size_y = temp_binary.rows;
 			int size_x = temp_binary.cols;
@@ -391,7 +395,16 @@ namespace imago
 			std::vector<ResultEntry> results;
 		
 			double ratio;
-			cv::Mat1b img = prepareImage(vars, rect, ratio);
+			cv::Mat1b img;
+			try
+			{
+				img = prepareImage(vars, rect, ratio);
+			}
+			catch (ImagoException& e)
+			{
+				getLogExt().append("Exception", e.what());
+				return _result;
+			}
 
 			for (size_t u = 0; u < templates.size(); u++)
 			{
@@ -429,13 +442,6 @@ namespace imago
 			}
 
 			return _result;
-		}
-
-		RecognitionDistance recognizeImage(const Settings& vars, const imago::Image& img, const Templates& templates)
-		{		
-			cv::Mat1b rect;
-			imago::ImageUtils::copyImageToMat(img, rect);
-			return recognizeMat(vars, rect, templates);
 		}
 	}
 }

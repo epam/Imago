@@ -92,17 +92,22 @@ namespace imago
       for (j = 0; j < seg_rows; j++)
          for (i = 0; i < seg_cols; i++)
          {
-            int address = (j + seg_y) * img_cols + (i + seg_x);
+			 int y = j+seg_y;
+			 int x = i+seg_x;
+            //int address = (j + seg_y) * img_cols + (i + seg_x);
 
-            if (address < img_size)
+            //if (address < img_size)
+			 if (y >= 0 && y < img.getHeight() && x >= 0 && x < img.getWidth())
             { 
                if (careful)
                {
-                  if (img[address] == 255)
-                     img[address] = seg.getByte(i, j);
+				   if (img.getByte(x,y) == 255)
+                     img.getByte(x,y) = seg.getByte(i, j);
                }
                else
-                  img[address] = seg.getByte(i, j);
+			   {
+                  img.getByte(x,y) = seg.getByte(i, j);
+			   }
             }
          }
    }
@@ -116,16 +121,23 @@ namespace imago
       for (j = 0; j < seg_rows; j++)
          for (i = 0; i < seg_cols; i++)
          {
-            int address = (j + seg_y) * img_cols + (i + seg_x);
+			 int y = j+seg_y;
+			 int x = i+seg_x;
+            //int address = (j + seg_y) * img_cols + (i + seg_x);
 
-            if (seg.getByte(i, j) == 0)
-               if (img[address] == 0 || forceCut)
-                  img[address] = val;
+			 if (y >= 0 && y < img.getHeight() && x >= 0 && x < img.getWidth())
+			 {
+				if (seg.getByte(i, j) == 0)
+					if (img.getByte(x,y) == 0 || forceCut)
+						img.getByte(x,y) = val;
+			 }
          }
    }
 
    void ImageUtils::copyImageToMat ( const Image &img, cv::Mat &mat)
    {
+	   mat = img;
+	   /*
       int w = img.getWidth();
       int h = img.getHeight();
 
@@ -134,11 +146,13 @@ namespace imago
 
       for (i = 0; i < w; i++)
          for (j = 0; j < h; j++)
-            mat.at<unsigned char>(j, i) = img.getByte(i, j);
+            mat.at<unsigned char>(j, i) = img.getByte(i, j);*/
    }
 
    void ImageUtils::copyMatToImage (const cv::Mat &mat, Image &img)
    {
+	   mat.assignTo(img);
+	   /*
       int w = mat.cols;
       int h = mat.rows;
 
@@ -147,7 +161,7 @@ namespace imago
 
       for (i = 0; i < w; i++)
          for (j = 0; j < h; j++)
-            img.getByte(i, j) = mat.at<unsigned char>(j, i);
+            img.getByte(i, j) = mat.at<unsigned char>(j, i);*/
    }
 
    void ImageUtils::loadImageFromBuffer( const std::vector<byte> &buffer, Image &img )

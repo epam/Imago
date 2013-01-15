@@ -515,7 +515,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 		_2BClassified.fillWhite();
 
 
-		timg.extract(left, top, right, bottom, extracted); 
+		timg.extractRect(left, top, right, bottom, extracted); 
 			
 		SegmentDeque segs;
 		Segment *s = NULL;
@@ -552,8 +552,9 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 
 		//_2BClassified.crop();
 		s = new Segment();
-		s ->init( _2BClassified.getWidth(),  _2BClassified.getHeight());
-		memcpy(s->getData(),  _2BClassified.getData(), sizeof(byte) *  _2BClassified.getWidth() *  _2BClassified.getHeight());
+		//s ->init( _2BClassified.getWidth(),  _2BClassified.getHeight());
+		s->copy(_2BClassified); // TODO: check
+		//memcpy(s->getData(),  _2BClassified.getData(), sizeof(byte) *  _2BClassified.getWidth() *  _2BClassified.getHeight());
 		s->getX() = left;
 		s->getY() = top;
 
@@ -750,7 +751,8 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque &layer_symbol
 
 	//thin segment
 	Image temp;
-	s->extract(0, 0, s->getWidth(), s->getHeight(), temp);
+	temp.copy(*s);
+	//s->extractRect(0, 0, s->getWidth(), s->getHeight(), temp); // TODO: check
 	
 	int votes[2] = {0, 0};
 

@@ -79,11 +79,8 @@ namespace imago
 		void calculatePenalties(const cv::Mat1b& img, unsigned char* penalty_ink, unsigned char* penalty_white);
 		double compareImages(const cv::Mat1b& img, const unsigned char* penalty_ink, const unsigned char* penalty_white);
 		cv::Mat1b prepareImage(const Settings& vars, const cv::Mat1b& src, double &ratio);
-
-		bool initializeTemplates(const Settings& vars, const std::string& path, Templates& templates);
-		
-		RecognitionDistance recognizeMat(const Settings& vars, const cv::Mat1b& rect, const Templates& templates);		
-		RecognitionDistance recognizeImage(const Settings& vars, const imago::Image& img, const Templates& templates);
+		bool initializeTemplates(const Settings& vars, const std::string& path, Templates& templates);		
+		RecognitionDistance recognizeMat(const Settings& vars, const cv::Mat1b& image, const Templates& templates);		
    };
 }
 

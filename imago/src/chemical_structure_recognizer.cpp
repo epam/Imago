@@ -452,7 +452,6 @@ restart:
 				BOOST_FOREACH( Segment *s, layer_symbols )
 				{
 					getLogExt().append("draw symbol", (void*)s);
-					getLogExt().append("data ptr", (void*)s->getData());
 					ImageUtils::putSegment(symbols, *s, true);
 				}
 

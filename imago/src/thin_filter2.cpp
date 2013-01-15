@@ -21,12 +21,6 @@ using namespace imago;
 
 ThinFilter2::ThinFilter2( Image &I ) : _img(I)
 {
-   width = _img.getWidth();
-   height = _img.getHeight();
-   data = _img.getData();
-   scanlines.resize(height);
-   for (int i = 0; i < height; i++)
-      scanlines[i] = data + i * width;
 }
 
 void ThinFilter2::apply()
@@ -77,10 +71,10 @@ void ThinFilter2::apply()
    std::vector<byte> qb;
    int m;
 
-   xsize = width + 20;
-   ysize = height + 20;
+   xsize = _img.getWidth() + 20;
+   ysize = _img.getHeight() + 20;
 
-   _img.invert();
+   _img.invertColor();
 
    qb.resize(xsize);
    qb[xsize - 1] = 0;
@@ -140,27 +134,27 @@ void ThinFilter2::apply()
       //printf("ThinImage: pass %d, %d pixels deleted\n", pc, count);
    }
 
-   _img.invert();
+   _img.invertColor();
 }
 
 inline byte ThinFilter2::get( int x, int y )
 {
    x -= 10;
    y -= 10;
-   if (x < 0 || y < 0 || x >= width || y >= height)
+   if (x < 0 || y < 0 || x >= _img.getWidth() || y >= _img.getHeight())
       return 0;
 
-   return scanlines[y][x];
+   return _img.getByte(x,y);
 }
 
 inline void ThinFilter2::set( int x, int y, byte val )
 {
    x -= 10;
    y -= 10;
-   if (x < 0 || y < 0 || x >= width || y >= height)
+   if (x < 0 || y < 0 || x >= _img.getWidth() || y >= _img.getHeight())
       return;
 
-   scanlines[y][x] = val;
+   _img.getByte(x,y) = val;
 }
 
 ThinFilter2::~ThinFilter2()

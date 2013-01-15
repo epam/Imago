@@ -88,7 +88,7 @@ int &Segment::getY()
 
 Rectangle Segment::getRectangle() const
 {
-   return Rectangle(_x, _y, _width, _height);
+	return Rectangle(_x, _y, getWidth(), getHeight());
 }
 
 double Segment::getRatio() const
@@ -112,7 +112,7 @@ double Segment::getRatio()
 
 Vec2i Segment::getCenter() const
 {
-   return Vec2i(_x + (_width >> 1), _y + (_height >> 1));
+	return Vec2i(_x + getWidth() / 2, _y + getHeight() / 2);
 }
 
 double Segment::getDensity() const
@@ -143,29 +143,17 @@ void Segment::splitVert(int x, Segment &left, Segment &right) const
 
 void Segment::crop()
 {
-   int w = getWidth(), h = getHeight(), i, j;
-   int t = -1, l = -1;
+   int l = 0, t = 0;
 
-   for (i = 0; i < w * h && t == -1; i++)
-      if (this->operator [](i) != 255)
-         t = i / w;
-   
-   for (i = 0; i < w && l == -1; i++)
-      for (j = 0; j < h && l == -1; j++)
-         if(this->operator [](j * w + i) != 255)
-            l = i;
-
-   Image::crop();
+   Image::crop(-1,-1,-1,-1,&l,&t);
    
    _x += l;
-   _y += t;
-   
+   _y += t;   
 }
 
 void Segment::rotate90()
 {
    Image::rotate90();
-
    std::swap(_x, _y);
 }
 
