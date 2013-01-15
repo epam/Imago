@@ -136,7 +136,8 @@ namespace imago
 
    void ImageUtils::copyImageToMat ( const Image &img, cv::Mat &mat)
    {
-	   mat = img;
+	   img.copyTo(mat);
+
 	   /*
       int w = img.getWidth();
       int h = img.getHeight();
@@ -151,7 +152,8 @@ namespace imago
 
    void ImageUtils::copyMatToImage (const cv::Mat &mat, Image &img)
    {
-	   mat.assignTo(img);
+	   mat.copyTo(img);
+
 	   /*
       int w = mat.cols;
       int h = mat.rows;

@@ -94,6 +94,8 @@ void LabelLogic::process_ext(const Settings& vars, Segment *seg, int line_y )
 			int idx = _cur_atom->getLabelFirst() - 'A';
 			if (idx >= 0 && idx < 26)
 			{
+				if (_cur_atom->getLabelFirst() == 'C')
+					pr.adjust(vars.labels.adjustInc, "l");
 				// decrease probability of unallowed characters
 				// TODO: not implemented
 				//pr.adjust(vars.labels.adjustDec, substract(CharacterRecognizer::lower, comb[idx]));		

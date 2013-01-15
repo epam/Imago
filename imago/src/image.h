@@ -91,7 +91,8 @@ namespace imago
 
 		inline void emptyCopy( const Image &other )
 		{
-			*this = Image(other.rows, other.cols);
+			*this = Image(other.cols, other.rows);
+			fillWhite();
 		}
 
 		inline void invertColor()

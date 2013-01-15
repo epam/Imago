@@ -179,8 +179,9 @@ CEXPORT int imagoLoadGreyscaleRawImage( const char *buf, const int width, const 
 
    img.init(width, height);
    
-   for (int i = 0; i < width * height; i++)
-      img[i] = buf[i];
+   for (int y = 0; y < height; y++)
+	   for (int x = 0; x < width; x++)
+		   img.getByte(x,y) = buf[y * width + x];
 
    context->img_tmp = context->img_src;
 
