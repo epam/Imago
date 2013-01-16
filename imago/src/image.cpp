@@ -39,7 +39,7 @@ void Image::crop(int left, int top, int right, int bottom, int* shift_x, int* sh
    {
 	   for (left = 0; left < w; left++)
 		   for (int y = 0; y < h; y++)
-			   if (getByte(left, y) != 255)
+			   if (isFilled(left, y))
 			   {
 				   goto left_done;
 			   }
@@ -48,7 +48,7 @@ void Image::crop(int left, int top, int right, int bottom, int* shift_x, int* sh
 	   
 	   for (right = w-1; right >= left; right--)
 		   for (int y = 0; y < h; y++)
-			   if (getByte(right, y) != 255)
+			   if (isFilled(right, y))
 			   {
 				   goto right_done;
 			   }
@@ -57,7 +57,7 @@ void Image::crop(int left, int top, int right, int bottom, int* shift_x, int* sh
 	   
 	   for (top = 0; top < h; top++)
 		   for (int x = 0; x < w; x++)
-			   if (getByte(x, top) != 255)
+			   if (isFilled(x, top))
 			   {
 				   goto top_done;
 			   }
@@ -66,7 +66,7 @@ void Image::crop(int left, int top, int right, int bottom, int* shift_x, int* sh
 	   
 	   for (bottom = h-1; bottom >= top; bottom--)
 		   for (int x = 0; x < w; x++)
-			   if (getByte(x, bottom) != 255)
+			   if (isFilled(x, bottom))
 			   {
 				   goto bottom_done;
 			   }

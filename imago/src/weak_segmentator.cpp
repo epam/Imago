@@ -17,7 +17,6 @@
 #include <string.h>
 #include "log_ext.h"
 #include "pixel_boundings.h"
-#include "color_channels.h"
 #include "thin_filter2.h"
 #include "segment_tools.h"
 
@@ -30,12 +29,12 @@ namespace imago
 			for (int dx = -range; dx <= range; dx++)
 				if ((dx != 0 || dy != 0) && p.x+dx >= 0 && p.y+dy >= 0
 					&& p.x+dx < img.getWidth() && p.y+dy < img.getHeight() )
-					if (img.getByte(p.x+dx, p.y+dy) == INK)
+					if (img.isFilled(p.x+dx, p.y+dy))
 						neighb.push_back(Vec2i(p.x+dx, p.y+dy));
 		return neighb;
 	}
 
-	void WeakSegmentator::decorner(Image &img, GrayscaleData set_to)
+	void WeakSegmentator::decorner(Image &img, byte set_to)
 	{
 		logEnterFunction();
 
@@ -43,8 +42,9 @@ namespace imago
 		{
 			for (int x = 0; x < img.getWidth(); x++)
 			{
-				if (img.getByte(x,y) != INK)
+				if (!img.isFilled(x,y))
 					continue;
+
 				if (getNeighbors(img, Vec2i(x,y)).size() > 2)
 					img.getByte(x,y) = set_to;
 			}
@@ -53,7 +53,7 @@ namespace imago
 		getLogExt().appendImage("Decorner", img);
 	}
 
-	int WeakSegmentator::appendData(const ImageInterface &img, int lookup_range, bool reconnect)
+	int WeakSegmentator::appendData(const Image& img, int lookup_range, bool reconnect)
 	{
 		logEnterFunction();
 			
@@ -61,7 +61,7 @@ namespace imago
 
 		for (int y = 0; y < height(); y++)
 			for (int x = 0; x < width(); x++)
-				if (at(x,y).id == 0 && img.isFilled(x,y))
+				if (at(x,y) == 0 && (img.getByte(x,y) != 255))
 				{
 					int id = SegmentPoints.size()+1;
 					fill(img, id, x, y, lookup_range, reconnect);			
@@ -161,11 +161,11 @@ namespace imago
 		return false;
 	}
 
-	Points2i WeakSegmentator::getShortestPath(const ImageInterface &img, const Vec2i& start, const Vec2i& end)
+	Points2i WeakSegmentator::getShortestPath(const Image& img, const Vec2i& start, const Vec2i& end)
 	{
 		// this function works OK but it's such a performance waste
 
-		int id = at(start.x, start.y).id;
+		unsigned short int id = at(start.x, start.y);
 		const Points2i pts = SegmentPoints[id];
 		Points2i pts_ext = pts;
 		pts_ext.push_back(end);
@@ -188,7 +188,7 @@ namespace imago
 		return result;
 	}
 
-	void WeakSegmentator::fill(const ImageInterface &img, int& id, int sx, int sy, int lookup_range, bool reconnect)
+	void WeakSegmentator::fill(const Image& img, int& id, int sx, int sy, int lookup_range, bool reconnect)
 	{
 		std::queue<Vec2i> v;
 		v.push(Vec2i(sx,sy));
@@ -197,9 +197,9 @@ namespace imago
 			Vec2i cur = v.front();
 			v.pop(); // remove top
 
-			if (at(cur.x,cur.y).id == 0)
+			if (at(cur.x,cur.y) == 0)
 			{
-				at(cur.x,cur.y).id = id;
+				at(cur.x,cur.y) = id;
 				SegmentPoints[id].push_back(cur);
 
 				for (int dx = -lookup_range; dx <= lookup_range; dx++)
@@ -208,7 +208,7 @@ namespace imago
 						Vec2i t(cur.x + dx,cur.y + dy);
 						if ((dx != 0 || dy != 0) && inRange(t.x, t.y))
 						{
-							if (at(t.x, t.y).id == 0)
+							if (at(t.x, t.y) == 0)
 							{					
 								if (img.isFilled(t.x, t.y))
 								{
@@ -233,13 +233,13 @@ namespace imago
 									v.push(t);
 								}
 							}
-							else if (at(t.x, t.y).id != id)
+							else if (at(t.x, t.y) != id)
 							{
-								int merge_id = at(t.x, t.y).id;
+								int merge_id = at(t.x, t.y);
 								for (size_t u = 0; u < SegmentPoints[id].size(); u++)
 								{
 									Vec2i p = SegmentPoints[id][u];
-									at(p.x, p.y).id = merge_id;
+									at(p.x, p.y) = merge_id;
 									SegmentPoints[merge_id].push_back(p);
 								}
 								SegmentPoints.erase(SegmentPoints.find(id));

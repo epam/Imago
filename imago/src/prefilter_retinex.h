@@ -16,7 +16,6 @@
 #ifndef _prefilter_retinex_h
 #define _prefilter_retinex_h
 
-#include "image_interface.h"
 #include "image.h"
 #include "settings.h"
 

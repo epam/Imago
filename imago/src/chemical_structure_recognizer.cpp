@@ -87,7 +87,7 @@ bool ChemicalStructureRecognizer::removeMoleculeCaptions(const Settings& vars, I
 	getLogExt().append("borderDistance", borderDistance);
 
 	WeakSegmentator ws(img.getWidth(), img.getHeight());
-	ws.appendData(ImageAdapter(img), round(vars.dynamic.CapitalHeight));
+	ws.appendData(img, round(vars.dynamic.CapitalHeight));
 
 	if (ws.SegmentPoints.size() < 2)
 	{
@@ -181,7 +181,7 @@ void ChemicalStructureRecognizer::segmentate(const Settings& vars, Image& img, S
 
 	// extract segments using WeakSegmentator
 	WeakSegmentator ws(img.getWidth(), img.getHeight());
-	ws.appendData(ImageAdapter(img), vars.csr.WeakSegmentatorDist, reconnect);
+	ws.appendData(img, vars.csr.WeakSegmentatorDist, reconnect);
 	for (WeakSegmentator::SegMap::iterator it = ws.SegmentPoints.begin(); it != ws.SegmentPoints.end(); it++)
 	{
 		const Points2i& pts = it->second;

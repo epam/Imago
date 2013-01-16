@@ -47,20 +47,22 @@ namespace imago{
 		  inline void setImaginary(double b)
 		  { _b = b;}
 
-		  static ComplexNumber Dot(ComplexNumber n1, ComplexNumber n2);
+		  static ComplexNumber Dot(const ComplexNumber& n1, const ComplexNumber& n2);
 
 		  ComplexNumber& operator*();
+		  
+		  const ComplexNumber& operator*() const;
 
-		  ComplexNumber&  operator +(ComplexNumber n2);
+		  ComplexNumber&  operator +(const ComplexNumber& n2);
 
-		  ComplexNumber& operator +=(ComplexNumber cn)
+		  ComplexNumber& operator +=(const ComplexNumber& cn)
 		  {
 			  _a += cn.getReal();
 			  _b += cn.getImaginary();
 			  return *this;
 		  }
 
-		  ComplexNumber operator -(ComplexNumber n)
+		  ComplexNumber operator -(const ComplexNumber& n)
 		  {
 			  return ComplexNumber(_a - n.getReal(), _b - n.getImaginary());
 		  }
@@ -88,7 +90,7 @@ namespace imago{
 			  return _a * _a + _b * _b;
 		  }
 
-		  ComplexNumber  operator *(ComplexNumber n2);
+		  ComplexNumber  operator *(const ComplexNumber& n2);
 
 	  private:
 		  double _a, _b;

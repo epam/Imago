@@ -35,11 +35,15 @@ ComplexContour::~ComplexContour(void)
 
 ComplexNumber& ComplexContour::getContour(int shift)
 {
-			  
 	return *(_contours[shift % _contours.size()]);
 }
 
-double ComplexContour::DiffR2(ComplexContour lc)
+const ComplexNumber& ComplexContour::getContour(int shift) const
+{
+	return *(_contours[shift % _contours.size()]);
+}
+
+double ComplexContour::DiffR2(const ComplexContour& lc) const
 {
 	double max1 = 0;
 	double max2 = 0;
@@ -69,7 +73,7 @@ double ComplexContour::Norm() const
 	return sqrt(result);
 }
 
-ComplexNumber ComplexContour::Dot(ComplexContour c, int shift)
+ComplexNumber ComplexContour::Dot(const ComplexContour& c, int shift) const
 {
 	ComplexNumber cn = ComplexNumber(0, 0);
 	for(size_t i=0;i<_contours.size();i++)
@@ -78,7 +82,7 @@ ComplexNumber ComplexContour::Dot(ComplexContour c, int shift)
 	return cn;
 }
 
-std::vector<ComplexNumber> ComplexContour::InterCorrelation(ComplexContour c)
+std::vector<ComplexNumber> ComplexContour::InterCorrelation(const ComplexContour& c)
 {
 	int count = _contours.size();
 	std::vector<ComplexNumber> retVal;
@@ -114,7 +118,7 @@ std::vector<ComplexNumber> ComplexContour::AutoCorrelation(bool normalize)
 	return acf;
 }
 
-ComplexNumber ComplexContour::FindMaxNorm()
+ComplexNumber ComplexContour::FindMaxNorm() const
 {
 	double max = 0.;
 	ComplexNumber res(0, 0);
@@ -150,7 +154,7 @@ void ComplexContour::NormalizeByPerimeter()
 		Scale(1.0 / perimeter);
 }
 
-double ComplexContour::getNorm()
+double ComplexContour::getNorm() const
 {
 	double result = 0.;
 	for(size_t i=0;i<_contours.size();i++)
@@ -158,7 +162,7 @@ double ComplexContour::getNorm()
 	return std::sqrt(result);
 }
 
-double ComplexContour::Distance(ComplexContour c)
+double ComplexContour::Distance(const ComplexContour& c)
 {
 	double n1 = this->Norm();
 	double n2 = c.Norm();

@@ -35,13 +35,13 @@ namespace imago{
 	{
 	public:
 		ComplexContour(void);
-		ComplexContour(std::vector<ComplexNumber> conts):_contours(conts)
+		ComplexContour(const std::vector<ComplexNumber>& conts) : _contours(conts)
 		{
 		}
 
-		ComplexContour(std::string stream)
+		ComplexContour(const std::string& data)
 		{
-			std::stringstream s(stream);
+			std::stringstream s(data);
 			double real, im;
 			_contours.clear();
 
@@ -57,18 +57,19 @@ namespace imago{
 		~ComplexContour(void);
 		
 		  ComplexNumber& getContour(int shift);
+		  const ComplexNumber& getContour(int shift) const;
 
-		  double DiffR2(ComplexContour lc);
+		  double DiffR2(const ComplexContour& lc) const;
 
 		  double Norm() const;
 
-		  ComplexNumber Dot(ComplexContour c, int shift=0);
+		  ComplexNumber Dot(const ComplexContour& c, int shift=0) const;
 
-		  std::vector<ComplexNumber> InterCorrelation(ComplexContour c);
+		  std::vector<ComplexNumber> InterCorrelation(const ComplexContour& c);
 
 		  std::vector<ComplexNumber> AutoCorrelation(bool normalize);
 
-		  ComplexNumber FindMaxNorm();
+		  ComplexNumber FindMaxNorm() const;
 
 		  void Scale(double scale);
 
@@ -76,15 +77,15 @@ namespace imago{
 
 		  void NormalizeByPerimeter();
 
-		  double getNorm();
+		  double getNorm() const;
 
-		  double Distance(ComplexContour c);
+		  double Distance(const ComplexContour& c);
 
 		  void Equalize(int n);
 
 		  static ComplexContour RetrieveContour(const Settings& vars, Image& seg, bool fine_detail = false); 
 
-		  ComplexNumber NormDot(ComplexContour c)
+		  ComplexNumber NormDot(const ComplexContour& c) const
 		  {
 			  int count = _contours.size();
 			  double  norm1 = 0,
@@ -103,7 +104,7 @@ namespace imago{
 			  return S;
 		  }
 
-			int Size()
+			int Size() const
 			{ 
 				return _contours.size();
 			}

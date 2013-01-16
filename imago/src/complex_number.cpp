@@ -30,7 +30,12 @@ ComplexNumber& ComplexNumber::operator*()
 	return *this;
 }
 
-ComplexNumber& ComplexNumber::operator+ (ComplexNumber n2)
+const ComplexNumber& ComplexNumber::operator*() const
+{
+	return *this;
+}
+
+ComplexNumber& ComplexNumber::operator+ (const ComplexNumber& n2)
 {
 	_a += n2.getReal();
 	_b += n2.getImaginary();
@@ -65,7 +70,7 @@ ComplexNumber& ComplexNumber::operator*=(double n)
 	return *this;
 }
 
-ComplexNumber ComplexNumber::Dot(ComplexNumber n1, ComplexNumber n2)
+ComplexNumber ComplexNumber::Dot(const ComplexNumber& n1, const ComplexNumber& n2)
 {
 	double a1 = n1.getReal();
 	double a2 = n2.getReal();
@@ -75,7 +80,7 @@ ComplexNumber ComplexNumber::Dot(ComplexNumber n1, ComplexNumber n2)
 	return ComplexNumber(a1*a2 + b1*b2, b1*a2-a1*b2) ;
 }
 
-ComplexNumber  ComplexNumber::operator *(ComplexNumber n2)
+ComplexNumber  ComplexNumber::operator *(const ComplexNumber& n2)
 {
 	double radius = getRadius() * n2.getRadius();
 	double angle = getAngle() + n2.getAngle();

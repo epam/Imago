@@ -84,6 +84,11 @@ namespace imago
 			return (*this)(y, x);
 		}
 
+		inline bool isFilled( int x, int y ) const
+		{
+			return getByte(x, y) != 255;
+		}
+
 		inline void copy( const Image &other )
 		{
 			other.copyTo(*this);

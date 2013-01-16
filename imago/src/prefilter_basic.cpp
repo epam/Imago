@@ -114,7 +114,7 @@ namespace imago
 				if (image.getWidth() > vars.csr.SmallImageDim && image.getHeight() > vars.csr.SmallImageDim)
 				{
 					WeakSegmentator ws(image.getWidth(), image.getHeight());
-					ws.appendData(ImageAdapter(image), 1);
+					ws.appendData(image, 1);
 
 					Rectangle viewport;
 					if (ws.needCrop(vars, viewport, vars.prefilterCV.MaxRectangleCropLineWidthAlreadyBinarized))
@@ -187,7 +187,7 @@ namespace imago
 
 
 				WeakSegmentator ws(raw.getWidth(), raw.getHeight());
-				ws.appendData(ImageAdapter(raw,bin), 1);
+				ws.appendData(bin, 1);
 
 				if (output == NULL)
 				{
