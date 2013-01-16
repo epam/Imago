@@ -279,31 +279,26 @@ namespace imago
 
 		cv::Mat1b prepareImage(const Settings& vars, const cv::Mat1b& src, double &ratio)
 		{
-			cv::Mat1b temp_binary;
-			cv::threshold(src, temp_binary, vars.characters.InternalBinarizationThreshold, 255, CV_THRESH_BINARY);
-
-			imago::Image img_bin;
-			imago::ImageUtils::copyMatToImage(temp_binary, img_bin);
-			img_bin.crop();
-			imago::ImageUtils::copyImageToMat(img_bin, temp_binary);		
-
+			imago::Image temp;
+			cv::threshold(src, temp, vars.characters.InternalBinarizationThreshold, 255, CV_THRESH_BINARY);
+			temp.crop();
 			
-			if (temp_binary.cols * temp_binary.rows == 0)
+			if (temp.cols * temp.rows == 0)
 				throw ImagoException("Empty mat passed");
 		
-			int size_y = temp_binary.rows;
-			int size_x = temp_binary.cols;
+			int size_y = temp.rows;
+			int size_x = temp.cols;
 
 			ratio = (double)size_x / (double)size_y;
 		
 			size_y = REQUIRED_SIZE;
 			size_x = REQUIRED_SIZE;
 
-			cv::resize(temp_binary, temp_binary, cv::Size(size_x, size_y), 0.0, 0.0, cv::INTER_CUBIC);
+			cv::resize(temp, temp, cv::Size(size_x, size_y), 0.0, 0.0, cv::INTER_CUBIC);
 
-			cv::threshold(temp_binary, temp_binary, vars.characters.InternalBinarizationThreshold, 255, CV_THRESH_BINARY);
+			cv::threshold(temp, temp, vars.characters.InternalBinarizationThreshold, 255, CV_THRESH_BINARY);
 		
-			return temp_binary;
+			return temp;
 		}	
 
 		cv::Mat1b load(const std::string& filename)
