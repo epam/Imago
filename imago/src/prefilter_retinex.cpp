@@ -153,7 +153,7 @@ namespace imago
 
 			data_t* ptr_table = &table.at(0);
 			for (size_t i = 0; i < size; i++)
-				*ptr_table++ = (data_t)cos((imago::PI * i) / size);
+				*ptr_table++ = cos((data_t)(imago::PI) * i / size);
 
 			return true;
 		}
@@ -167,7 +167,9 @@ namespace imago
 			fastFillCosTable(nx, cosi);
 			fastFillCosTable(ny, cosj);
 
-			data_t m2 = (data_t)(m / 2.0);
+			data_t two = static_cast<data_t>(2.0);
+			data_t m2 = static_cast<data_t>(m) / two;
+
 			data_t* ptr_data = &data.at(0);
 			data_t* ptr_cosi = &cosi.at(0);
 			data_t* ptr_cosj = &cosj.at(0);
@@ -177,7 +179,7 @@ namespace imago
 
 			for (size_t i = 1; i < nx; i++)
 			{
-				*ptr_data++ *= (data_t)(m2 / (2. - *ptr_cosi++ - *ptr_cosj));
+				*ptr_data++ *= m2 / (two - *ptr_cosi++ - *ptr_cosj);
 			}
 
 			ptr_cosj++;
@@ -187,7 +189,7 @@ namespace imago
 			{
 				for (size_t i = 0; i < nx; i++)
 				{
-					*ptr_data++ *= (data_t)(m2 / (2. - *ptr_cosi++ - *ptr_cosj));
+					*ptr_data++ *= m2 / (two - *ptr_cosi++ - *ptr_cosj);
 				}
 				ptr_cosj++;
 				ptr_cosi = &cosi.at(0);
@@ -197,23 +199,22 @@ namespace imago
 		}
 
 		template <typename data_t>
-		void cvBasedCDT(const std::vector<data_t>& data, size_t nx, size_t ny, std::vector<data_t>& output, int flags = 0)
+		void cvBasedCDT(std::vector<data_t>& data, size_t nx, size_t ny, int flags = 0)
 		{
 			logEnterFunction();
 
-			// TODO: libfftw3 is more than twice faster
+			cv::Mat1d temp(ny, nx);			
+			int idx = 0;
+			for (size_t y = 0; y < ny; y++)
+				for (size_t x = 0; x < nx; x++)				
+					temp(y,x) = data[idx++];
 
-			cv::Mat1d temp_in(ny,nx);
-			cv::Mat1d temp_out;
-			for (size_t x = 0; x < nx; x++)
-				for (size_t y = 0; y < ny; y++)
-					temp_in(y,x) = data[x + nx*y];
+			cv::dct(temp, temp, flags);
 
-			cv::dct(temp_in, temp_out, flags);
-
-			for (size_t x = 0; x < nx; x++)
-				for (size_t y = 0; y < ny; y++)
-					output[x + nx*y] = (data_t)temp_out(y,x);
+			idx = 0;
+			for (size_t y = 0; y < ny; y++)
+				for (size_t x = 0; x < nx; x++)				
+					data[idx++] = (data_t)temp(y,x);
 		}
 
 
@@ -227,14 +228,16 @@ namespace imago
 			computeDLT(temp, data, nx, ny, thresh); // data -> temp
 
 			getLogExt().appendText("Compute simple discrete cosine transform");
-			cvBasedCDT(temp, nx, ny, temp); // temp -> temp
+			cvBasedCDT(temp, nx, ny);
  
 			getLogExt().appendText("Solve the Poisson PDE in Fourier space");
 			data_t normDCT = (data_t)(1.0 / (data_t)(nx * ny));			
-			retinexPoissonDCT(temp, nx, ny, normDCT); // temp -> temp
+			retinexPoissonDCT(temp, nx, ny, normDCT);
 	
 			getLogExt().appendText("Compute inversed discrete cosine transform");
-			cvBasedCDT(temp, nx, ny, data, cv::DCT_INVERSE); // temp -> data
+			cvBasedCDT(temp, nx, ny, cv::DCT_INVERSE);
+			
+			data = temp; // temp -> data
 
 			return true;
 		}		
