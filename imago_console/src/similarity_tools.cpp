@@ -47,13 +47,13 @@ namespace similarity_tools
          int outm = indigoLoadMoleculeFromFile(ctx.output_file.c_str());
          if (outm == -1)
          {
-            indigoFreeAllObject();
+            indigoFreeAllObjects();
 				throw imago::IOException("Failed to load " + ctx.output_file + ":" + indigoGetLastError());
          }
          int refm = indigoLoadMoleculeFromFile(ctx.reference_file.c_str());
          if (refm == -1)
          {
-            indigoFreeAllObject();
+            indigoFreeAllObjects();
 				throw imago::IOException("Failed to load " + ctx.reference_file + ":" + indigoGetLastError());
          }
 
@@ -69,7 +69,7 @@ namespace similarity_tools
          result = 100.0 * std::max(sim1, sim2);
 
          // Clear all the objects used by Indigo
-         indigoFreeAllObject();
+         indigoFreeAllObjects();
 		}
 
 		return result;
