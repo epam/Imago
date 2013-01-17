@@ -22,6 +22,30 @@
 
 namespace imago
 {	
+	Points2i WeakSegmentator::getLookupPattern(int range, bool fill)
+	{
+		Points2i result;
+		for (int dx = -range; dx <= range; dx++)
+			for (int dy = -range; dy <= range; dy++)
+			{
+				if (dx == 0 && dy == 0)
+					continue;
+
+				if (fill)
+				{
+					// add all points
+					result.push_back(Vec2i(dx, dy));
+				}
+				else
+				{
+					// draw crosshair-like figure
+					if (dx == 0 || dy == 0 || (int)(1 + sqrt((double)(dx*dx + dy*dy))) == range)
+						result.push_back(Vec2i(dx, dy));					
+				}
+			}
+		return result;
+	}
+
 	Points2i WeakSegmentator::getNeighbors(const Image& img, const Vec2i& p, int range)
 	{
 		Points2i neighb;
@@ -53,7 +77,7 @@ namespace imago
 		getLogExt().appendImage("Decorner", img);
 	}
 
-	int WeakSegmentator::appendData(const Image& img, int lookup_range, bool reconnect)
+	int WeakSegmentator::appendData(const Image& img, const Points2i& lookup_pattern, bool reconnect)
 	{
 		logEnterFunction();
 			
@@ -64,7 +88,7 @@ namespace imago
 				if (at(x,y) == 0 && (img.getByte(x,y) != 255))
 				{
 					int id = SegmentPoints.size()+1;
-					fill(img, id, x, y, lookup_range, reconnect);			
+					fill(img, id, x, y, lookup_pattern, reconnect);			
 					added_pixels += SegmentPoints[id].size();
 				}
 
@@ -188,7 +212,7 @@ namespace imago
 		return result;
 	}
 
-	void WeakSegmentator::fill(const Image& img, int& id, int sx, int sy, int lookup_range, bool reconnect)
+	void WeakSegmentator::fill(const Image& img, int& id, int sx, int sy, const Points2i& lookup_pattern, bool reconnect)
 	{
 		std::queue<Vec2i> v;
 		v.push(Vec2i(sx,sy));
@@ -202,52 +226,53 @@ namespace imago
 				at(cur.x,cur.y) = id;
 				SegmentPoints[id].push_back(cur);
 
-				for (int dx = -lookup_range; dx <= lookup_range; dx++)
-					for (int dy = -lookup_range; dy <= lookup_range; dy++)
-					{						
-						Vec2i t(cur.x + dx,cur.y + dy);
-						if ((dx != 0 || dy != 0) && inRange(t.x, t.y))
-						{
-							if (at(t.x, t.y) == 0)
-							{					
-								if (img.isFilled(t.x, t.y))
-								{
-									/*
-									// performance waste
-									if (ConnectMode && (abs(dx) >= lookup_range || abs(dy) >= lookup_range) )
-									{
-										if (SegmentPoints[id].size() < 120)
-										{
-											Points2i shortestPath = getShortestPath(img, cur, t);
-											for (size_t u = 0; u < shortestPath.size(); u++)
-											{
-												v.push(shortestPath[u]);
-											}
-										}
-									}*/	
-
-									if (reconnect && (abs(dx) > 1 || abs(dy) > 1) )
-									{
-										v.push(Vec2i(cur.x + dx/2,cur.y + dy/2));
-									}
-									v.push(t);
-								}
-							}
-							else if (at(t.x, t.y) != id)
+				for (size_t w = 0; w < lookup_pattern.size(); w++)
+				{
+					int dx = lookup_pattern[w].x;
+					int dy = lookup_pattern[w].y;
+					Vec2i t(cur.x + dx,cur.y + dy);
+					if (inRange(t.x, t.y))
+					{
+						if (at(t.x, t.y) == 0)
+						{					
+							if (img.isFilled(t.x, t.y))
 							{
-								int merge_id = at(t.x, t.y);
-								for (size_t u = 0; u < SegmentPoints[id].size(); u++)
+								/*
+								// performance waste
+								if (ConnectMode && (abs(dx) >= lookup_range || abs(dy) >= lookup_range) )
 								{
-									Vec2i p = SegmentPoints[id][u];
-									at(p.x, p.y) = merge_id;
-									SegmentPoints[merge_id].push_back(p);
+									if (SegmentPoints[id].size() < 120)
+									{
+										Points2i shortestPath = getShortestPath(img, cur, t);
+										for (size_t u = 0; u < shortestPath.size(); u++)
+										{
+											v.push(shortestPath[u]);
+										}
+									}
+								}*/	
+
+								if (reconnect && (abs(dx) > 1 || abs(dy) > 1) )
+								{
+									v.push(Vec2i(cur.x + dx/2,cur.y + dy/2));
 								}
-								SegmentPoints.erase(SegmentPoints.find(id));
-								id = merge_id;
+								v.push(t);
 							}
 						}
-					}
-			}
+						else if (at(t.x, t.y) != id)
+						{
+							int merge_id = at(t.x, t.y);
+							for (size_t u = 0; u < SegmentPoints[id].size(); u++)
+							{
+								Vec2i p = SegmentPoints[id][u];
+								at(p.x, p.y) = merge_id;
+								SegmentPoints[merge_id].push_back(p);
+							}
+							SegmentPoints.erase(SegmentPoints.find(id));
+							id = merge_id;
+						} // if
+					} // inRange
+				} // for
+			} // if
 		} // while
 	}
 

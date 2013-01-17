@@ -29,10 +29,12 @@ namespace imago
 	class WeakSegmentator : public Basic2dStorage<unsigned short int /*id*/>
 	{
 	public:		
+		static Points2i getLookupPattern(int range = 1, bool fill = true);
+
 		WeakSegmentator(int width, int height) : Basic2dStorage<unsigned short int>(width, height) {}		
 
 		// addend data from image (img.isFilled() called)
-		int appendData(const Image &img, int lookup_range, bool connectMode = false);
+		int appendData(const Image &img, const Points2i& lookup_pattern = getLookupPattern(), bool connectMode = false);
 		
 		// updates crop if required
 		bool needCrop(const Settings& vars, Rectangle& crop, int winSize);		
@@ -55,7 +57,7 @@ namespace imago
 		
 	private:
 		// returns filled pixels count
-		void fill(const Image& img, int& id, int startx, int starty, int lookup_range, bool connectMode);
+		void fill(const Image& img, int& id, int startx, int starty, const Points2i& lookup_pattern, bool connectMode);
 		
 		// returns shortest path between two pixels
 		Points2i getShortestPath(const Image& img, const Vec2i& start, const Vec2i& end);
