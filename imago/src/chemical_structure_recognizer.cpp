@@ -342,7 +342,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 
 	bool captions_removed = false;
 
-restart:
+	restart:
 
 	{
 		SegmentDeque segments;
@@ -423,11 +423,10 @@ restart:
 			{
 				if (removeMoleculeCaptions(vars, _img, layer_symbols, layer_graphics))
 				{
-					captions_removed = true;
-					// TODO: this is completely performance waste! 
-					// ...but quite easily than trying to filter skeleton
-					getLogExt().appendText("Restart!!!");
+					captions_removed = true;					
+					getLogExt().appendText("Restart after molecule captions cleanup");
 					ClearSegments(segments, layer_symbols, layer_graphics);
+					// looks like performance degrade, but actually gives more accurate result (due to capital height re-estimation) at a almost zero-cost in terms of cpu time
 					goto restart;
 				}
 			}

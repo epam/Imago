@@ -25,13 +25,29 @@ namespace imago
 	Points2i SegmentTools::getAllFilled(const Segment& seg)
 	{
 		Points2i result;
-		for (int x = 0; x < seg.getWidth(); x++)
+		for (int y = 0; y < seg.getHeight(); y++)		
 		{
-			for (int y = 0; y < seg.getHeight(); y++)
+			for (int x = 0; x < seg.getWidth(); x++)
 			{
 				if (seg.getByte(x,y) == 0) // 0 = black
 				{
 					result.push_back(Vec2i(x,y));
+				}
+			}
+		}
+		return result;
+	}
+
+	int SegmentTools::getFilledCount(const Segment& seg)
+	{
+		int result = 0;
+		for (int y = 0; y < seg.getHeight(); y++)		
+		{
+			for (int x = 0; x < seg.getWidth(); x++)
+			{
+				if (seg.getByte(x,y) == 0) // 0 = black
+				{
+					result++;
 				}
 			}
 		}
@@ -103,9 +119,9 @@ namespace imago
 		Points2i result;
 		int w = seg.getWidth();
 		int h = seg.getHeight();
-		for (int dx = -range; dx <= range; dx++)
+		for (int dy = -range; dy <= range; dy++)		
 		{
-			for (int dy = -range; dy <= range; dy++)
+			for (int dx = -range; dx <= range; dx++)
 			{
 				if (dx == 0 && dy == 0) 
 					continue;
@@ -136,115 +152,6 @@ namespace imago
 
 		return endpoints;
 	}
-
-	SegmentTools::WaveMap::WaveMap(const Image& img)
-	{
-		copy(img);
-		wavemap = new int[getWidth()*getHeight()]();
-	}
-
-	SegmentTools::WaveMap::~WaveMap()
-	{
-		if (wavemap)
-		{
-			delete []wavemap;
-			wavemap = NULL;
-		}
-	}
-
-	void SegmentTools::WaveMap::fillByStartPoint(const Vec2i& start, int max_length, bool outer_mode)
-	{
-		typedef std::queue<std::pair<Vec2i, int> > WorkVector;
-		WorkVector v;
-		v.push(std::make_pair(start, 1));
-		while (!v.empty())
-		{
-			Vec2i cur_v = v.front().first;
-			int cur_d = v.front().second;
-			v.pop();
-			
-			int idx = cur_v.x + cur_v.y * getWidth();
-
-			if (cur_v.x >= 0 && cur_v.y >= 0 && cur_v.x < getWidth() && cur_v.y < getHeight() // range
-				&& (getByte(cur_v.x, cur_v.y) == 0 || outer_mode) // fill
-				&& (wavemap[idx] > cur_d || wavemap[idx] == 0)) // not filled with better value
-			{
-				wavemap[idx] = cur_d;
-
-				if (max_length > 0 && cur_d > max_length)
-				{
-					// ignore
-				}
-				else
-				{
-					int new_d = cur_d;
-					if (outer_mode)
-					{
-						if (getByte(cur_v.x, cur_v.y) != 0)
-							new_d++; // penalty 1 if not filled
-					}
-					else
-						new_d++; // penalty 1 anyway
-
-
-					#define lookup(dx,dy) v.push(std::make_pair(Vec2i(cur_v.x + (dx), cur_v.y + (dy)), new_d));
-					lookup(1,0); lookup(-1,0); lookup(0,1);  lookup(0,-1);
-					lookup(1,1); lookup(-1,1); lookup(1,-1); lookup(-1,-1);				
-					#undef lookup
-				}
-			}
-		}		
-	}
-
-	bool SegmentTools::WaveMap::isAccesssible(const Vec2i& finish)
-	{
-		return wavemap[finish.x + finish.y * getWidth()] != 0;
-	}
-
-	Points2i SegmentTools::WaveMap::getPath(const Vec2i& other)
-	{
-		Vec2i finish = other;
-
-		Points2i result;
-
-		size_t length_limit = getWidth()*getHeight();
-
-		while (isAccesssible(finish))
-		{
-			int end = wavemap[finish.x + finish.y * getWidth()];
-
-			if (end == 0 || end == 1 || result.size() > length_limit)
-				break;
-
-			result.push_back(finish);
-
-			Points2i ways;
-			#define lookup(dx,dy) ways.push_back(Vec2i(finish.x + (dx), finish.y + (dy)));
-			lookup(1,0); lookup(-1,0); lookup(0,1);  lookup(0,-1);
-			lookup(1,1); lookup(-1,1); lookup(1,-1); lookup(-1,-1);				
-			#undef lookup
-
-			int best_v = end;
-			Vec2i best_w = finish;
-			for (size_t u = 0; u < ways.size(); u++)
-			{
-				if (ways[u].x >= 0 && ways[u].x < getWidth() &&
-					ways[u].y >= 0 && ways[u].y < getHeight())
-				{
-					int value = wavemap[ways[u].x + ways[u].y * getWidth()];
-					if (value != 0 && value < best_v)
-					{
-						best_v = value;
-						best_w = ways[u];
-					}
-				}
-			}
-			finish = best_w;
-		}
-
-		return result;
-	}
-
 	
 	Vec2i SegmentTools::getNearest(const Vec2i& start, const Points2i& pts)
 	{

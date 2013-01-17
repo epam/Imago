@@ -46,18 +46,6 @@ namespace imago
 		return result;
 	}
 
-	Points2i WeakSegmentator::getNeighbors(const Image& img, const Vec2i& p, int range)
-	{
-		Points2i neighb;
-		for (int dy = -range; dy <= range; dy++)
-			for (int dx = -range; dx <= range; dx++)
-				if ((dx != 0 || dy != 0) && p.x+dx >= 0 && p.y+dy >= 0
-					&& p.x+dx < img.getWidth() && p.y+dy < img.getHeight() )
-					if (img.isFilled(p.x+dx, p.y+dy))
-						neighb.push_back(Vec2i(p.x+dx, p.y+dy));
-		return neighb;
-	}
-
 	void WeakSegmentator::decorner(Image &img, byte set_to)
 	{
 		logEnterFunction();
@@ -69,7 +57,7 @@ namespace imago
 				if (!img.isFilled(x,y))
 					continue;
 
-				if (getNeighbors(img, Vec2i(x,y)).size() > 2)
+				if (SegmentTools::getInRange(img, Vec2i(x,y), 1).size() > 2)
 					img.getByte(x,y) = set_to;
 			}
 		}
@@ -185,33 +173,6 @@ namespace imago
 		return false;
 	}
 
-	Points2i WeakSegmentator::getShortestPath(const Image& img, const Vec2i& start, const Vec2i& end)
-	{
-		// this function works OK but it's such a performance waste
-
-		unsigned short int id = at(start.x, start.y);
-		const Points2i pts = SegmentPoints[id];
-		Points2i pts_ext = pts;
-		pts_ext.push_back(end);
-
-		RectShapedBounding b(pts_ext);
-		int _x = b.getBounding().x;
-		int _y = b.getBounding().y;
-		Image output(b.getBounding().width+1, b.getBounding().height+1);		
-		output.fillWhite();
-		for (size_t u = 0; u < pts.size(); u++) // draw points
-			output.getByte(pts[u].x - _x, pts[u].y - _y) = 0;
-
-		SegmentTools::WaveMap wave(output);
-		//getLogExt().appendImage("wavemap for", output);
-		wave.fillByStartPoint(Vec2i(start.x - _x, start.y - _y), 10, true);
-		Points2i res = wave.getPath(Vec2i(end.x - _x, end.y - _y));
-		Points2i result;
-		for (size_t u = 0; u < res.size(); u++)
-			result.push_back(Vec2i(res[u].x + _x, res[u].y + _y));
-		return result;
-	}
-
 	void WeakSegmentator::fill(const Image& img, int& id, int sx, int sy, const Points2i& lookup_pattern, bool reconnect)
 	{
 		std::queue<Vec2i> v;
@@ -237,20 +198,6 @@ namespace imago
 						{					
 							if (img.isFilled(t.x, t.y))
 							{
-								/*
-								// performance waste
-								if (ConnectMode && (abs(dx) >= lookup_range || abs(dy) >= lookup_range) )
-								{
-									if (SegmentPoints[id].size() < 120)
-									{
-										Points2i shortestPath = getShortestPath(img, cur, t);
-										for (size_t u = 0; u < shortestPath.size(); u++)
-										{
-											v.push(shortestPath[u]);
-										}
-									}
-								}*/	
-
 								if (reconnect && (abs(dx) > 1 || abs(dy) > 1) )
 								{
 									v.push(Vec2i(cur.x + dx/2,cur.y + dy/2));

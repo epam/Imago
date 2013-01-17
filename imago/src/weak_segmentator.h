@@ -26,12 +26,12 @@
 
 namespace imago
 {
-	class WeakSegmentator : public Basic2dStorage<unsigned short int /*id*/>
+	class WeakSegmentator : public Basic2dStorage<int /*id*/>
 	{
 	public:		
 		static Points2i getLookupPattern(int range = 1, bool fill = true);
 
-		WeakSegmentator(int width, int height) : Basic2dStorage<unsigned short int>(width, height) {}		
+		WeakSegmentator(int width, int height) : Basic2dStorage<int>(width, height) {}		
 
 		// addend data from image (img.isFilled() called)
 		int appendData(const Image &img, const Points2i& lookup_pattern = getLookupPattern(), bool connectMode = false);
@@ -39,9 +39,6 @@ namespace imago
 		// updates crop if required
 		bool needCrop(const Settings& vars, Rectangle& crop, int winSize);		
 
-		// returns neighbors of p with intensity == INK
-		static Points2i getNeighbors(const Image& img, const Vec2i& p, int range = 1);
-		
 		// decorner image by setting corner pixels to 'set_to' value
 		static void decorner(Image &img, byte set_to);
 
@@ -58,9 +55,6 @@ namespace imago
 	private:
 		// returns filled pixels count
 		void fill(const Image& img, int& id, int startx, int starty, const Points2i& lookup_pattern, bool connectMode);
-		
-		// returns shortest path between two pixels
-		Points2i getShortestPath(const Image& img, const Vec2i& start, const Vec2i& end);
 
 		// returns 2 probably condensation point for integer vector
 		static bool get2centers(const std::vector<int>& data, double &c1, double& c2);		

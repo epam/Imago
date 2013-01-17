@@ -23,29 +23,11 @@ namespace imago
 {
    namespace SegmentTools
    {
-	   class WaveMap : public Image
-	   {
-	   public:
-		   // initialize wavemap by image pixels (0 = ink, 255 = white)
-		   WaveMap(const Image& img);
-		   virtual ~WaveMap();
-
-		   // fill wavemap. max_length == maximal path length to find (affects performance)
-		   // outer_mode: false - find path inside filled pixels
-		   // outer_mode: true - find path outside filled pixels (filled has no penalty, blank - penalty==1)
-		   void fillByStartPoint(const Vec2i& start, int max_length = -1, bool outer_mode = false);
-
-		   // check the finish point is accessible (the path exists)
-		   bool isAccesssible(const Vec2i& finish);
-
-		   // returns path from start to finish
-		   Points2i getPath(const Vec2i& finish);
-	   private:
-		   int* wavemap;
-	   };
-
-	   // return all filled points from segment
+		// return all filled points from segment
 		Points2i getAllFilled(const Segment& seg);
+		
+		// return count of filled points
+		int getFilledCount(const Segment& seg);
 
 		// returns distance between two sets
 		enum DistanceType { dtEuclidian, dtDeltaX, dtDeltaY };
