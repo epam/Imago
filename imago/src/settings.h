@@ -38,6 +38,7 @@ namespace imago
 		bool   ExtractCharactersOnly;
 		bool   UseProbablistics;		
 		bool   ImageAlreadyBinarized;
+		bool   ExpandAbbreviations;
 		GeneralSettings();
 	};
 

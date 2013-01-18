@@ -37,6 +37,7 @@ int main(int argc, char **argv)
 		printf("  -config cfg_file: use specified configuration cluster file \n");		
 		printf("  -log: enables debug log output to ./log.html \n");
 		printf("  -logvfs: stores log in single encoded file ./log_vfs.txt \n");		
+		printf("  -noexp: do not expand chemical abbreviations \n");		
 		printf("  -pr: use probablistic separator (experimental) \n");
 		printf("  -tl time_in_ms: timelimit per single image process (default is %u) \n", vars.general.TimeLimit);
 		printf("  -similarity tool [-sparam additional_parameters]: override the default comparison method \n");
@@ -87,6 +88,9 @@ int main(int argc, char **argv)
 
 		else if (param == "-logvfs")
 			vars.general.LogVFSEnabled = true;
+
+		else if (param == "-noexp")
+			vars.general.ExpandAbbreviations = false;
 
 		else if (param == "-pr" || param == "-probablistic")
 			vars.general.UseProbablistics = true;

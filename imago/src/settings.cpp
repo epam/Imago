@@ -36,6 +36,7 @@ namespace imago
 		ImageAlreadyBinarized = false; // we don't know yet
 		ClusterIndex = 0; // default
 		StartTime = TimeLimit = 0;
+		ExpandAbbreviations = true;
 	}
 
 	imago::Settings::Settings()

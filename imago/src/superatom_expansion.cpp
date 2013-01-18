@@ -35,7 +35,10 @@ std::string expandSuperatoms(const Settings& vars, const Molecule &molecule )
    ArrayOutput so(molString);
    MolfileSaver ma(so);
    ma.saveMolecule(vars, molecule);
-      
+   
+   if (!vars.general.ExpandAbbreviations)
+      return molString;
+
    indigoSetOption("treat-x-as-pseudoatom", "true");
    indigoSetOption("ignore-stereochemistry-errors", "true");
 
