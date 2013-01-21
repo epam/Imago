@@ -573,7 +573,8 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 				throw ImagoException("Timelimit exceeded");
 
 			wbe.fixStereoCenters(mol);
-			
+
+			mol.calcShortBondsPenalty(vars);			
 		
 			if (vars.checkTimeLimit())
 				throw ImagoException("Timelimit exceeded");

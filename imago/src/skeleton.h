@@ -110,6 +110,8 @@ namespace imago
 
 	  int getWarningsCount() const { return _warnings; }
 	  int getDissolvingsCount() const { return _dissolvings; }
+	  
+	  void calcShortBondsPenalty(const Settings& vars);
 
    protected:
 
@@ -126,10 +128,12 @@ namespace imago
 	  void _reconnectBondsRWT( Vertex from, Vertex to, BondType new_t);
       void _repairBroken(const Settings& vars);
       void _findMultiple(const Settings& vars);
+
    public:
       void _joinVertices(double eps);
       bool _dissolveShortEdges (double coeff,const bool has2nb = false);
       void deleteBadTriangles( double eps );
+
    private:
       bool _dissolveIntermediateVertices (const Settings& vars);
       double _avgEdgeLendth (const Vertex &v, int &nnei);

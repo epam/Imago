@@ -317,6 +317,29 @@ bool Skeleton::_isParallel( const Edge &first, const Edge &second ) const
                     fabs(fabs(f.k - s.k) - PI) < _parLinesEps);
 }
 
+void Skeleton::calcShortBondsPenalty(const Settings& vars)
+{
+	logEnterFunction();
+
+	int probablyWarnings = 0;
+	BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
+	{
+		const Vertex &beg = boost::source(edge, _g);
+		const Vertex &end = boost::target(edge, _g);
+
+		double edge_len = boost::get(boost::edge_type, _g, edge).length;
+
+		if (edge_len < vars.dynamic.CapitalHeight / 4)
+			probablyWarnings += 2;
+		else if (edge_len < vars.dynamic.CapitalHeight / 2)
+			probablyWarnings += 1;
+	}
+	getLogExt().append("probablyWarnings", probablyWarnings);
+	getLogExt().append("_warnings", _warnings);
+	_warnings += probablyWarnings / 2; // TODO
+}
+
+
 bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 {
    std::vector<Edge> toProcess;
