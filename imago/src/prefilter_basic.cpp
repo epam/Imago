@@ -28,12 +28,6 @@ namespace imago
 {
 	namespace prefilter_basic
 	{
-		bool prefilterBinarizedDownscaleOnly(Settings& vars, Image &image)
-		{
-			return PrefilterUtils::resampleImage(vars, image) &&
-				   prefilterBinarizedFullsize(vars, image);
-		}
-
 		bool prefilterBinarizedFullsize(Settings& vars, Image &image)
 		{
 			logEnterFunction();		
@@ -134,10 +128,38 @@ namespace imago
 			}
 		}	
 
-		bool prefilterBasicDownscaleOnly(Settings& vars, Image &image)
+		bool prefilterBasicForceDownscale(Settings& vars, Image &image)
 		{
-			return PrefilterUtils::resampleImage(vars, image) &&
-				   prefilterBasicFullsize(vars, image);
+			logEnterFunction();
+
+			double base_ratio = 2.0;
+			double rescale_ratio = 1.0;
+
+			{
+				double remp_rescale_ratio = std::max(image.cols, image.rows) / vars.csr.RescaleImageDimensions;
+				if (remp_rescale_ratio > rescale_ratio)
+					rescale_ratio = remp_rescale_ratio;
+			}
+
+			if (vars.dynamic.CapitalHeight <= EPS)
+			{
+				base_ratio = 4.0;
+			}
+			else
+			{
+				// 16 gives 93.139
+				const double preferred_cap_height = 16.0;
+				double temp_base_ratio = vars.dynamic.CapitalHeight / preferred_cap_height;
+				if (temp_base_ratio > base_ratio)
+					base_ratio = temp_base_ratio;
+			}
+
+			double ratio = base_ratio * rescale_ratio;
+			getLogExt().append("ratio", ratio);
+
+			cv::resize(image, image, cv::Size(image.cols / ratio, image.rows / ratio), 0.0, 0.0, cv::INTER_AREA);
+
+			return prefilterBasicFullsize(vars, image);
 		}
 
 		bool prefilterBasicFullsize(Settings& vars, Image& raw)

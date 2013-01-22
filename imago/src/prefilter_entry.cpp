@@ -26,7 +26,7 @@ namespace imago
 					size.width = imago::round((double)image.cols * ((double)max_dim / image.rows));
 				}
 
-				cv::resize(image, image, size);		
+				cv::resize(image, image, size, 0.0, 0.0, cv::INTER_AREA);		
 				return true;
 			}
 			return false; // not required
