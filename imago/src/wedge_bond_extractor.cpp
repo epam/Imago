@@ -18,7 +18,7 @@
 #include "boost/graph/iteration_macros.hpp"
 #include "boost/foreach.hpp"
 
-#include "cv.h"
+#include <opencv2/opencv.hpp>
 
 #include "comdef.h"
 #include "log_ext.h"

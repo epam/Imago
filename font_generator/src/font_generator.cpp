@@ -16,10 +16,6 @@
 #include <fstream>
 #include <string>
 #include <vector>
-#include <boost/program_options.hpp>
-#include <boost/filesystem.hpp>
-#include <boost/foreach.hpp>
-#include <opencv2/opencv.hpp>
 
 #include "character_recognizer.h"
 
@@ -29,6 +25,12 @@ std::string EscapeCharacter(unsigned char c)
 	result += c;
 	if (c == '\\' || c == '\"')
 		result = "\\" + result;
+	else if (c >= 127)
+	{
+		char buf[16];
+		sprintf(buf, "%x", (unsigned int)c);
+		result = (std::string)("\" \"\\x") + buf + "\" \"";
+	}
 	return result;
 }
 

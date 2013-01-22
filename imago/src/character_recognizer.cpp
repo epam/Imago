@@ -374,7 +374,7 @@ namespace imago
 				value = _value;
 				text = _text;
 			}
-			bool operator <(const ResultEntry& second)
+			bool operator <(const ResultEntry& second) const
 			{
 				if (this->value < second.value)
 					return true;
