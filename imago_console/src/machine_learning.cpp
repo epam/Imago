@@ -7,6 +7,7 @@
 #include "scanner.h"
 #include "output.h"
 #include "virtual_fs.h"
+#include "exception.h"
 
 namespace machine_learning
 {
@@ -390,6 +391,12 @@ namespace machine_learning
 		return false;
 	}
 
+	class BreakIterationException : public imago::ImagoException
+	{
+	public:
+		BreakIterationException() : imago::ImagoException("break") { }
+	};
+
 	int performMachineLearning(imago::Settings& vars, const strings& imageSet, const std::string& configName)
 	{
 		int result = 0; // ok mark
@@ -513,7 +520,7 @@ namespace machine_learning
 			int zero_deltas = 0;
 
 			volatile bool work_continue = valid_indexes.size() > 0;
-			for (; work_continue; work_iteration++)
+			for (; work_continue; work_iteration++)			
 			{
 				// arrange configs by OK count, then by similarity
 				std::stable_sort(history.begin(), history.end());
@@ -529,6 +536,7 @@ namespace machine_learning
 				int cfg_best_idx = history.size() - 1;
 
 				for (int cfg_id = cfg_best_idx; cfg_id >= 0 && cfg_id >= limit; cfg_id--)
+				try
 				{
 					if (platform::checkMemoryFail())
 					{
@@ -630,9 +638,13 @@ namespace machine_learning
 									it->second.time > LEARNING_ABNORMAL_TIME)
 								{
 									printf("Process takes too much time (%g vs %g) on image ('%s'), probably bad constants set, ignoring\n", it->second.time, avg_time, it->first.c_str());									
-									goto break_iteration;
+									throw BreakIterationException();
 								}
 								delta += (it->second.similarity - it->second.best_similarity_achieved) / (double)(count);
+							}
+							catch(BreakIterationException&)
+							{
+								throw;
 							}
 							catch(std::exception& e)
 							{
@@ -651,14 +663,14 @@ namespace machine_learning
 								if (delta < getWorstAllowedDelta(count))
 								{
 									printf("[Learning] New results are probably worser, skipping\n");
-									goto break_iteration;
+									throw BreakIterationException();
 								}
 
 								int bad = res.valid_count - res.ok_count;
 								if (bad > (1.0 + LEARNING_MAX_BAD_COUNT_ADDITION) * current_best_bad_count)
 								{
 									printf("[Learning] Already have %u bad images, but maximal expected is %u\n", bad, current_best_bad_count);
-									goto break_iteration;
+									throw BreakIterationException();
 								}
 							}
 						} // for idx
@@ -668,7 +680,7 @@ namespace machine_learning
 						if (quick_check && delta < getWorstAllowedDelta(count))
 						{
 							printf("[Learning] Quickcheck results are not interesting.\n");
-							goto break_iteration;
+							throw BreakIterationException();
 						}
 
 						if (!quick_check)
@@ -721,9 +733,12 @@ namespace machine_learning
 						work_continue = false;
 						break;
 					}
-
-					break_iteration: continue;
-				} // for cfg_id
+				}
+				catch (BreakIterationException&)
+				{
+					continue;
+				}
+				// for cfg_id
 			} // while
 		}
 		catch (std::exception &e)

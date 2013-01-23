@@ -115,7 +115,7 @@ void internalInitTemplates(imago::CharacterRecognizerImp::Templates& templates)
 	{
 		#include "font.inc"
 	}
-	printf("Loaded font (%u entries) in %u ms\n", templates.size(), platform::TICKS() - start);
+	//printf("Loaded font (%u entries) in %u ms\n", templates.size(), platform::TICKS() - start);
 }
 
 
