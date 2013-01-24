@@ -49,7 +49,7 @@ const std::string CharacterRecognizer::all = CharacterRecognizer::upper + Charac
 	                                         CharacterRecognizer::digits + CharacterRecognizer::charges + 
 											 CharacterRecognizer::brackets + "=";
 const std::string CharacterRecognizer::graphics = "!";
-const std::string CharacterRecognizer::like_bonds = "lL1iIVv";
+const std::string CharacterRecognizer::like_bonds = "lL1iVv";
 
 
 bool imago::CharacterRecognizer::isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp, char* result)
@@ -111,7 +111,7 @@ qword CharacterRecognizer::getSegmentHash(const Segment &seg)
 
 void internalInitTemplates(imago::CharacterRecognizerImp::Templates& templates)
 {	
-	unsigned int start = platform::TICKS();
+	//unsigned int start = platform::TICKS();
 	{
 		#include "font.inc"
 	}

@@ -112,6 +112,7 @@ namespace imago
 	  int getDissolvingsCount() const { return _dissolvings; }
 	  
 	  void calcShortBondsPenalty(const Settings& vars);
+	  void calcCloseVerticiesPenalty(const Settings& vars);
 
    protected:
 

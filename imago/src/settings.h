@@ -139,6 +139,7 @@ namespace imago
 		int    DissolvingsFactor;
 		int    WarningsRecalcTreshold;
 		int    MinGoodCharactersSize; 
+		int    WarningsForTooSmallCharacters;
 	};
 
 	struct MultipleBondSettings // POD

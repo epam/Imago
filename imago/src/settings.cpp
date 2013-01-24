@@ -182,6 +182,7 @@ namespace imago
 		ASSIGN_REF(main.DissolvingsFactor);
 		ASSIGN_REF(main.WarningsRecalcTreshold);
 		ASSIGN_REF(main.MinGoodCharactersSize);
+		ASSIGN_REF(main.WarningsForTooSmallCharacters);
 
 		ASSIGN_REF(mbond.Case1Factor);
 		ASSIGN_REF(mbond.Case1LengthTresh);

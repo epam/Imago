@@ -62,14 +62,12 @@ namespace recognition_helpers
 		for (int iter = 0; ; iter++)
 		{
 			bool good = false;
-			bool good_characters_size = false;
 
 			vars.general.StartTime = 0;
 
 			try
 			{
 				imago::Image img;
-				//img.copy(src);
 
 				if (iter == 0)
 				{
@@ -88,10 +86,16 @@ namespace recognition_helpers
 				RecognitionResult result;
 				result.molecule = imago::expandSuperatoms(vars, mol);
 				result.warnings = mol.getWarningsCount() + mol.getDissolvingsCount() / vars.main.DissolvingsFactor;
+				
+				if (vars.dynamic.CapitalHeight < vars.main.MinGoodCharactersSize &&
+					!vars.general.ImageAlreadyBinarized)
+				{
+					result.warnings += vars.main.WarningsForTooSmallCharacters;
+				}
+
 				results.push_back(result);
 
-				good = result.warnings <= vars.main.WarningsRecalcTreshold;
-				good_characters_size = vars.dynamic.CapitalHeight >= vars.main.MinGoodCharactersSize;
+				good = result.warnings <= vars.main.WarningsRecalcTreshold;				
 			
 				if (verbose)
 					printf("Filter [%u] done, warnings: %u, good: %u.\n", vars.general.FilterIndex, result.warnings, good);
@@ -103,7 +107,7 @@ namespace recognition_helpers
 
 			}
 
-			if (good && good_characters_size)
+			if (good)
 				break;
 		} // for
 

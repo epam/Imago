@@ -322,6 +322,7 @@ void Skeleton::calcShortBondsPenalty(const Settings& vars)
 	logEnterFunction();
 
 	int probablyWarnings = 0;
+	int minSize = (std::max)((int)vars.dynamic.CapitalHeight / 2, vars.main.MinGoodCharactersSize);
 	BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
 	{
 		const Vertex &beg = boost::source(edge, _g);
@@ -329,16 +330,43 @@ void Skeleton::calcShortBondsPenalty(const Settings& vars)
 
 		double edge_len = boost::get(boost::edge_type, _g, edge).length;
 
-		if (edge_len < vars.dynamic.CapitalHeight / 4)
+		if (edge_len < minSize / 2)
 			probablyWarnings += 2;
-		else if (edge_len < vars.dynamic.CapitalHeight / 2)
+		else if (edge_len < minSize)
 			probablyWarnings += 1;
 	}
 	getLogExt().append("probablyWarnings", probablyWarnings);
-	getLogExt().append("_warnings", _warnings);
-	_warnings += probablyWarnings / 2; // TODO
+	_warnings += probablyWarnings / 2;
+	getLogExt().append("_warnings updated", _warnings);	
 }
 
+void Skeleton::calcCloseVerticiesPenalty(const Settings& vars)
+{
+	logEnterFunction();
+
+	int probablyWarnings = 0;
+	BGL_FORALL_VERTICES(one, _g, SkeletonGraph)
+	{
+		BGL_FORALL_VERTICES(two, _g, SkeletonGraph)
+		{
+			if (one == two)
+				continue;
+
+			double dist = Vec2d::distance(getVertexPos(one), getVertexPos(two));
+
+			if (!boost::edge(one, two, _g).second)
+			{
+				if (dist < vars.dynamic.CapitalHeight / 4)
+					probablyWarnings += 2;
+				else if (dist < vars.dynamic.CapitalHeight / 2)
+					probablyWarnings += 1;
+			}
+		}		
+	}
+	getLogExt().append("probablyWarnings", probablyWarnings);
+	_warnings += probablyWarnings / 2; // each counted twice
+	getLogExt().append("_warnings updated", _warnings);	
+}
 
 bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 {

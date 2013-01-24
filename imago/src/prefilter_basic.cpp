@@ -111,8 +111,10 @@ namespace imago
 					ws.appendData(image);
 
 					Rectangle viewport;
-					if (ws.needCrop(vars, viewport, vars.prefilterCV.MaxRectangleCropLineWidthAlreadyBinarized))
+					if (ws.needCrop(vars, viewport, vars.prefilterCV.MaxRectangleCropLineWidthAlreadyBinarized) 
+						&& viewport.height > vars.csr.SmallImageDim && viewport.width > vars.csr.SmallImageDim)
 					{
+						getLogExt().appendText("Crop appended");
 						image.crop(viewport.x1(), viewport.y1(), viewport.x2(), viewport.y2());
 					}
 				}
@@ -157,7 +159,8 @@ namespace imago
 			double ratio = base_ratio * rescale_ratio;
 			getLogExt().append("ratio", ratio);
 
-			cv::resize(image, image, cv::Size(image.cols / ratio, image.rows / ratio), 0.0, 0.0, cv::INTER_AREA);
+			cv::resize(image, image, cv::Size((int)(image.cols / ratio), (int)(image.rows / ratio)),
+				0.0, 0.0, cv::INTER_AREA);
 
 			return prefilterBasicFullsize(vars, image);
 		}
@@ -214,7 +217,13 @@ namespace imago
 				if (output == NULL)
 				{
 					viewport = Rectangle(0, 0, raw.getWidth(), raw.getHeight());
-					ws.needCrop(vars, viewport, vars.prefilterCV.MaxRectangleCropLineWidth);
+					Rectangle temp;
+					if (ws.needCrop(vars, temp, vars.prefilterCV.MaxRectangleCropLineWidth) &&
+						temp.width > vars.csr.SmallImageDim && temp.height > vars.csr.SmallImageDim)
+					{
+						getLogExt().appendText("Crop appended");
+						viewport = temp;
+					}
 
 					output = new Image(viewport.width, viewport.height);
 					output->fillWhite();

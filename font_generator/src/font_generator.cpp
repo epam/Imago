@@ -22,14 +22,10 @@
 std::string EscapeCharacter(unsigned char c)
 {
 	std::string result;
-	result += c;
-	if (c == '\\' || c == '\"')
-		result = "\\" + result;
-	else if (c >= 127)
 	{
-		char buf[16];
+		char buf[16] = {0};
 		sprintf(buf, "%x", (unsigned int)c);
-		result = (std::string)("\" \"\\x") + buf + "\" \"";
+		result = (std::string)("\\x") + buf;
 	}
 	return result;
 }
