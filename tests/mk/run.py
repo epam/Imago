@@ -41,7 +41,7 @@ def testImagoConsole(mol, image):
     else:
         execSuffix = ''
     beginTime = time()
-    os.system(os.path.join('..', '..', 'imago_console', 'imago_console%s "%s"' % (execSuffix, image)))
+    os.system(os.path.join('imago_console', 'imago_console%s "%s"' % (execSuffix, image)))
     totalTime = time() - beginTime
     error = None
     try:

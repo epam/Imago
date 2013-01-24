@@ -13,3 +13,5 @@ if (NOT APPLE AND UNIX)
         find_package(Freetype REQUIRED)
 	target_link_libraries(imago_console fontconfig freetype)
 endif()
+
+install(TARGETS imago_console DESTINATION imago_console)
