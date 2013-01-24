@@ -19,15 +19,3 @@ elseif(${SUBSYSTEM_NAME} STREQUAL "x64")
 else()
 	message(FATAL_ERROR "Wrong bitness!")
 endif()
-
-set(INDIGO_LIBS 
-	${INDIGO_LIBS_DIR}/libindigo-static.a
-	${INDIGO_LIBS_DIR}/libcommon.a 
-	${INDIGO_LIBS_DIR}/libmolecule.a  
-	${INDIGO_LIBS_DIR}/libreaction.a
-	${INDIGO_LIBS_DIR}/liblayout.a 
-	${INDIGO_LIBS_DIR}/libz.a 
-	${INDIGO_LIBS_DIR}/libtinyxml.a 
-	${INDIGO_LIBS_DIR}/libcommon.a 
-	${INDIGO_LIBS_DIR}/libmolecule.a  
-	${INDIGO_LIBS_DIR}/libgraph.a)

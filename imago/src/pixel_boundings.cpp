@@ -12,6 +12,8 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
+#include <limits.h>
+
 #include "pixel_boundings.h"
 #include "settings.h"
 
