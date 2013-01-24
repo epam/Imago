@@ -14,6 +14,7 @@ elseif(SYSTEM_NAME STREQUAL "Mac")
 	include(BuildOptionsMac)
 endif()
 
+
 if(UNIX OR APPLE)
     add_definitions("${IMAGO_C_FLAGS}")
     #add_definitions("-fvisibility=hidden")
@@ -36,9 +37,9 @@ include_directories(${OpenCV_INCLUDE_DIRS})
 
 include_directories(${INDIGO_INCLUDE_DIR})
 
-if(NOT UNIX OR APPLE)
+#if(NOT UNIX OR APPLE)
 file(GLOB INDIGO_LIBS "${INDIGO_LIBS_DIR}/*${CMAKE_STATIC_LIBRARY_SUFFIX}")
-endif()
+#endif()
 
 Find_Package(Java)
 
