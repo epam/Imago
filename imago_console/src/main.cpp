@@ -26,9 +26,10 @@ int main(int argc, char **argv)
 
 	if (argc <= 1)
 	{
-		printf("Usage: %s [option]* [batches] [mode] [image_path] \n", argv[0]);				
+		printf("Usage: %s [option]* [batches] [mode] [image_path] [-o output_file]\n", argv[0]);				
 		printf("\n MODE SWITCHES: \n");
 		printf("  image_path: full path to image to recognize (may be omitted if other switch is specified) \n");
+		printf("  -o output_file: save single recognition result to the specified file \n");
 		printf("  -characters: extracts only characters from image(s) and store in ./characters/ \n");
 		printf("  -learn dir_name: process machine learning for specified collection \n");
 		printf("  -compare molfile1 molfile2: calculate similarity between molfiles \n");
@@ -60,6 +61,7 @@ int main(int argc, char **argv)
 	std::string molfile1 = "";
 	std::string molfile2 = "";
 	std::string override_cfg = "";
+	std::string output = "molecule.mol";
 
 	bool next_arg_dir = false;
 	bool next_arg_config = false;
@@ -67,6 +69,7 @@ int main(int argc, char **argv)
 	bool next_arg_sim_param = false;
 	bool next_arg_tl = false;	
 	bool next_arg_override_cfg = false;
+	bool next_arg_output = false;
 	int next_arg_compare = 0; // two args
 
 	bool mode_recursive = false;
@@ -103,6 +106,9 @@ int main(int argc, char **argv)
 
 		else if (param == "-similarity")
 			next_arg_sim_tool = true;
+
+		else if (param == "-o")
+			next_arg_output = true;
 
 		else if (param == "-sparam")
 			next_arg_sim_param = true;		
@@ -159,6 +165,11 @@ int main(int argc, char **argv)
 				}
 				next_arg_compare--;
 			}			
+			else if (next_arg_output)
+			{
+				output = param;
+				next_arg_output = false;
+			}
 			else if (next_arg_config)
 			{
 				config = param;
@@ -280,8 +291,8 @@ int main(int argc, char **argv)
 				}
 				else
 				{
-					std::string output = files[u] + ".result.mol";
-					recognition_helpers::performFileAction(true, vars, files[u], config, output);	
+					std::string output_file = files[u] + ".result.mol";
+					recognition_helpers::performFileAction(true, vars, files[u], config, output_file);	
 				}
 			}
 		}
@@ -289,7 +300,7 @@ int main(int argc, char **argv)
 	else if (!image.empty())
 	{
 		// single item mode
-		return recognition_helpers::performFileAction(true, vars, image, config);	
+		return recognition_helpers::performFileAction(true, vars, image, config, output);	
 	}		
 	
 	return 1; // "nothing to do" error
