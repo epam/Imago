@@ -1,8 +1,9 @@
 option(USE_SYSTEM_INDIGO "Use system Indigo libs or download prebuilt from the server" OFF)
 
 if(NOT USE_SYSTEM_INDIGO)
-	set(INDIGO_INCLUDE_DIR  "${THIRD_PARTY_DIR}/indigo")
+	set(INDIGO_INCLUDE_DIR  "${THIRD_PARTY_DIR}/indigo/indigo_headers")
 	set(INDIGO_LIBS_DIR     "${THIRD_PARTY_DIR}/indigo/${SYSTEM_NAME}/${SUBSYSTEM_NAME}")
+	set(INDIGO_LIBS_SUBDIR  "${INDIGO_LIBS_DIR}/indigo_libs_${SYSTEM_NAME}_${SUBSYSTEM_NAME}")
 
 	set(INDIGO_HEADERS_FILENAME "indigo_headers.zip")
 	set(INDIGO_LIBS_FILENAME    "indigo_libs_${SYSTEM_NAME}_${SUBSYSTEM_NAME}.zip")
@@ -33,24 +34,22 @@ if(NOT USE_SYSTEM_INDIGO)
 
 	include_directories(${INDIGO_INCLUDE_DIR})
 	if(NOT UNIX OR APPLE)
-	file(GLOB INDIGO_LIBS "${INDIGO_LIBS_DIR}/*${CMAKE_STATIC_LIBRARY_SUFFIX}")
+	file(GLOB INDIGO_LIBS "${INDIGO_LIBS_SUBDIR}/*${CMAKE_STATIC_LIBRARY_SUFFIX}")
 	else()
 		set(INDIGO_LIBS 
-			${INDIGO_LIBS_DIR}/librender2d.a
-			${INDIGO_LIBS_DIR}/libindigo-static.a
-			${INDIGO_LIBS_DIR}/libindigo-renderer-static.a
-			${INDIGO_LIBS_DIR}/libcommon.a 
-			${INDIGO_LIBS_DIR}/libmolecule.a  
-			${INDIGO_LIBS_DIR}/libreaction.a
-			${INDIGO_LIBS_DIR}/liblayout.a 
-			${INDIGO_LIBS_DIR}/libz.a 
-			${INDIGO_LIBS_DIR}/libtinyxml.a 
-			${INDIGO_LIBS_DIR}/libcommon.a 
-			${INDIGO_LIBS_DIR}/libmolecule.a  
-			${INDIGO_LIBS_DIR}/libgraph.a
-			${INDIGO_LIBS_DIR}/libcairo.a
-			${INDIGO_LIBS_DIR}/libpixman.a
-			${INDIGO_LIBS_DIR}/libpng.a)
+			${INDIGO_LIBS_SUBDIR}/librender2d.a
+			${INDIGO_LIBS_SUBDIR}/libindigo-static.a
+			${INDIGO_LIBS_SUBDIR}/libindigo-renderer-static.a
+			${INDIGO_LIBS_SUBDIR}/libcommon.a 
+			${INDIGO_LIBS_SUBDIR}/libmolecule.a  
+			${INDIGO_LIBS_SUBDIR}/libreaction.a
+			${INDIGO_LIBS_SUBDIR}/liblayout.a 
+			${INDIGO_LIBS_SUBDIR}/libz.a 
+			${INDIGO_LIBS_SUBDIR}/libtinyxml.a 
+			${INDIGO_LIBS_SUBDIR}/libgraph.a
+			${INDIGO_LIBS_SUBDIR}/libcairo.a
+			${INDIGO_LIBS_SUBDIR}/libpixman.a
+			${INDIGO_LIBS_SUBDIR}/libpng.a)
 	endif()
 else()
 	message(FATAL_ERROR "Not implemented yet!")
