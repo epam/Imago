@@ -48,7 +48,7 @@ namespace imago
             used = true;
          }
 
-         int seginfo_index;
+         size_t seginfo_index;
          SegmentDeque::iterator seg_iterator;
          bool used;
          Vec2d center;

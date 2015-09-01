@@ -75,9 +75,9 @@ namespace imago
 			for (int x = 0; x < width(); x++)
 				if (at(x,y) == 0 && (img.getByte(x,y) != 255))
 				{
-					int id = SegmentPoints.size()+1;
+					int id = (int)SegmentPoints.size()+1;
 					fill(img, id, x, y, lookup_pattern, reconnect);			
-					added_pixels += SegmentPoints[id].size();
+					added_pixels += (int)SegmentPoints[id].size();
 				}
 
 		getLogExt().append("Currently added pixels", added_pixels);
@@ -94,7 +94,7 @@ namespace imago
 		for (size_t id = 1; id <= SegmentPoints.size(); id++)
 		{			
 			Rectangle bounds;
-			if (getRectangularArea(id) > area_pixels && hasRectangularStructure(vars, id, bounds, winSize))
+			if (getRectangularArea((int)id) > area_pixels && hasRectangularStructure(vars, (int)id, bounds, winSize))
 			{
 				getLogExt().append("Has rectangular structure, id", id);	
 				bounds.adjustBorder(winSize*2);

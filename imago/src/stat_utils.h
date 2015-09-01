@@ -118,7 +118,7 @@ namespace imago
       template<typename ForwardIterator> 
       static double /*typename ForwardIterator::value_type*/ interMean( ForwardIterator begin, ForwardIterator end )
       {
-         int count = std::distance(begin, end);
+         auto count = std::distance(begin, end);
 
          if (count == 0)
             throw LogicException("count == 0");
@@ -126,7 +126,7 @@ namespace imago
          if (count == 1)
             return *begin;
 
-         int l = count / 4, r = 3 * count / 4, m;
+         int l = (int)count / 4, r = 3 * (int)count / 4, m;
          double u;
 
          m = count % 4;

@@ -13,6 +13,7 @@
  ***************************************************************************/
 
 #include <memory.h>
+#include <stdint.h>
 #include "periodic_table.h"
 
 namespace imago
@@ -22,19 +23,19 @@ namespace imago
 
 	bool AtomSymbolMap::lookup(const std::string& str) const
 	{
-		char c_str[4] = {0};
+		char c_str[2] = {0};
 		for (size_t c = 0; c < str.size() && c < 2; c++)
 			c_str[c] = str[c];
-		return SymbolMap[*(unsigned short*)c_str] != 0;
+		return SymbolMap[*(uint16_t*)c_str] != 0;
 	}
 
 	void AtomSymbolMap::insert(const std::string& element)
 	{
 		Elements.push_back(element);
-		char c_str[4] = {0};
+		char c_str[2] = {0};
 		for (size_t c = 0; c < element.size() && c < 2; c++)
 			c_str[c] = element[c];
-		SymbolMap[*(unsigned short*)(c_str)] = Elements.size();
+		SymbolMap[*(uint16_t*)(c_str)] = (unsigned char)Elements.size();
 	}
 
     AtomSymbolMap::AtomSymbolMap()

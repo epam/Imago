@@ -213,7 +213,7 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 		  }
 	  }
 
-      int s = nearest.size();
+      size_t s = nearest.size();
       if (s == 0)
       {
          unmapped_labels.push_back(l);

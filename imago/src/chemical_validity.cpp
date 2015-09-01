@@ -162,8 +162,8 @@ namespace imago
 			for (size_t v = 0; v < data[u]->labels.size(); v++)
 			{
 				IterationRecord irec;
-				irec.atom = u;
-				irec.pos = v;
+				irec.atom = (int)u;
+				irec.pos = (int)v;
 				irec.counter = 0;
 				irec.alts = getAlternatives(data[u]->labels[v].selected_character, data[u]->labels[v].alternatives);
 				getLogExt().append("alternatives", irec.alts);
@@ -250,7 +250,7 @@ namespace imago
 			const std::string& word = split[u];
 			bool good = isProbable(word);
 			pattern_processed_len += word.length();
-			int part_index = atoms_current_index;
+			int part_index = (int)atoms_current_index;
 			int part_length = 0;
 			while (atoms_sequence_len < pattern_processed_len && atoms_current_index < sa.atoms.size())
 			{

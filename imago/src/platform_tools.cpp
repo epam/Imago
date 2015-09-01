@@ -57,7 +57,7 @@ unsigned int platform::MEM_AVAIL()
 	MEMORYSTATUSEX statex;
 	statex.dwLength = sizeof (statex);
 	GlobalMemoryStatusEx (&statex);
-	return static_cast<size_t>(statex.ullAvailVirtual / 1024);
+	return static_cast<unsigned int>(statex.ullAvailVirtual >> 10);
 }
 
 std::string platform::getLineEndings()

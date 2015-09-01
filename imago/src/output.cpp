@@ -127,9 +127,9 @@ void FileOutput::write( const void *data, int size )
    if (size < 1)
       return;
 
-   int res = fwrite(data, size, 1, _f);
+   size_t res = fwrite(data, size, 1, _f);
 
-   if (res == -1)
+   if (res != size)
       throw IOException("file writing error");
 }
 
@@ -186,11 +186,11 @@ ArrayOutput::ArrayOutput( std::string &arr ) : _buf(arr)
 
 void ArrayOutput::write( const void *data, int size )
 {
-   int old_size = _buf.size();
+   size_t old_size = _buf.size();
 
    _buf.resize(old_size + size);
 
-   for (int i = 0; i < size; i++)
+   for (size_t i = 0; i < size; i++)
       _buf[i + old_size] = *((byte *)data + i);
 }
 
@@ -201,7 +201,7 @@ void ArrayOutput::seek( int offset, int from )
 
 int ArrayOutput::tell()
 {
-   return _buf.size();
+   return (int)_buf.size();
 }
 
 ArrayOutput::~ArrayOutput()

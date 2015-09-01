@@ -267,7 +267,7 @@ bool ChemicalStructureRecognizer::isReconnectSegmentsRequired(const Settings& va
 
 	for (size_t u = 0; u < segments.size(); u++)
 	{
-		int count = SegmentTools::getAllFilled((*segments[u])).size();
+		size_t count = SegmentTools::getAllFilled((*segments[u])).size();
 		avg_fill += count;
 		if (count < vars.prefilterCV.MinGoodPixelsCount / 2)
 			surely_bad++;

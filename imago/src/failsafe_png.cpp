@@ -327,7 +327,7 @@ int decodePNG(std::vector<unsigned char>& out_image, unsigned long& image_width,
           {
 			if (linestart + linelength >= scanlines.size()) /*sic!*/
 			{
-				info.height = y;
+				info.height = (unsigned long)y;
 				break;
 			}
             unsigned long filterType = scanlines[linestart];

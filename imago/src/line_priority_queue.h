@@ -27,7 +27,7 @@ namespace imago
 	struct SegmentIndx
 	  {
 		  std::pair<Vec2d, Vec2d> _lineSegment;
-		  int _indx;
+		  size_t _indx;
 	  };
 	  
 	  class LineSegmentComparer

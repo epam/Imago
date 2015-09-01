@@ -45,7 +45,7 @@ namespace imago
 		for (size_t u = 0; u < size(); u++)
 		{
 			FileOutput dump((folder + at(u).filename).c_str());
-			dump.write(&at(u).data.at(0), at(u).data.size());
+			dump.write(&at(u).data.at(0), (int)at(u).data.size());
 		}
 	}
 

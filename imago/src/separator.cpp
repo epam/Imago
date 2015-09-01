@@ -336,7 +336,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 	int ri = -1;
 
 	PriorityQueue pq;
-	IntDeque symInds;
+	std::deque<size_t> symInds;
 	for(size_t i = 0;i<classes.size();i++)
 		if(classes[i] == 0)
 		{
@@ -357,17 +357,14 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 
 	// integrate the results by joining close to each other segments
 	
-	int i = -1, currInd;
-	int ncount;
-
-	do
+	for(size_t i = 0; i < symInds.size(); ++i)
 	{
 		if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
 
 		i++;
 		if(i == symInds.size())
 			break;
-		currInd = symInds[i];
+		size_t currInd = symInds[i];
 		
 		if(visited[currInd])
 			continue;
@@ -404,7 +401,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 			{
 				SegmentIndx si = pq.top();
 
-				int currInd2 = si._indx;
+				size_t currInd2 = si._indx;
 				if(visited[currInd2] || currInd == currInd2)
 				{
 					pq.pop();
@@ -453,11 +450,15 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 
 		}while(added);
 		
-		ncount = 0;
-		for(size_t nc=0;nc<visited.size();nc++)
-			ncount += visited[nc];
-
-	}while(ncount !=  symInds.size());
+		size_t ncount = 0;
+      for(size_t nc = 0; nc < visited.size(); nc++)
+      {
+         if(visited[nc])
+            ++ncount;
+      }
+      if(ncount >= symInds.size())
+         break;
+	}
 
 	if(symbRects.empty())
 		return;
@@ -1134,7 +1135,7 @@ int Separator::_getApproximationSegmentsCount(const Settings& vars, Segment *seg
    Points2d lsegments;
    tmp.copy(*seg);
    gd.detect(vars, tmp, lsegments);
-   return lsegments.size();
+   return (int)lsegments.size();
 }
 
 int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
@@ -1176,8 +1177,8 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
             break;
       }
 
-      p.first = i;
-      p.second = j;
+      p.first = (int)i;
+      p.second = (int)j;
 
 #ifdef DEBUG
       printf("%d %d\n", i, j);
@@ -1199,8 +1200,6 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
    DoubleVector densities(symbols_found.size(), 0.0);
    PairIntVector symbols_graphics(seq_pairs.size());
 
-   int symbols_seq = -1, max_seq_length_i;
-
    while (true)
    {
       int maximum;
@@ -1211,7 +1210,7 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
 		  break;
       
       maximum = *iter;
-      max_seq_length_i = std::distance(seq_lengths.begin(), iter);
+      auto max_seq_length_i = std::distance(seq_lengths.begin(), iter);
 
       if (maximum == -1)
          break;
@@ -1224,7 +1223,7 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
       if (_checkSequence(vars, p, symbols_graphics[max_seq_length_i], density))
       {
          densities.push_back(density);
-         symbols_found.push_back(max_seq_length_i);
+         symbols_found.push_back((int)max_seq_length_i);
       }
    }
 
@@ -1235,7 +1234,7 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
    }
 
    int count = 0;
-   symbols_seq = -1;
+   size_t symbols_seq;
 
    for (size_t i = 0; i < symbols_found.size(); i++)
       if (symbols_graphics[symbols_found[i]].first > count)

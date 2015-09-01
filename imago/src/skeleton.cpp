@@ -54,7 +54,7 @@ void Skeleton::setInitialAvgBondLength(Settings& vars, double avg_length )
 
 void Skeleton::recalcAvgBondLength()
 {
-   int bonds_num = num_edges(_g);
+   size_t bonds_num = num_edges(_g);
 
    if (bonds_num == 0)
       return;
@@ -163,12 +163,12 @@ Vec2d Skeleton::getVertexPos( const Vertex &v1 ) const
 
 int Skeleton::getVerticesCount() const
 {
-   return boost::num_vertices(_g);
+   return (int)boost::num_vertices(_g);
 }
 
 int Skeleton::getEdgesCount() const
 {
-   return boost::num_edges(_g);
+   return (int)boost::num_edges(_g);
 }
 
 Bond Skeleton::getBondInfo( const Edge &e ) const
@@ -657,7 +657,7 @@ void Skeleton::_findMultiple(const Settings& vars)
       std::vector<std::pair<Edge, Edge> > doubleBonds;
       std::vector<boost::tuple<Edge, Edge, Edge> > tripleBonds;
 
-      int end = toProcess.size();
+      size_t end = toProcess.size();
       for (int ii = 0; ii < end; ii++)
       {
 		  if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
@@ -941,7 +941,7 @@ double Skeleton::_avgEdgeLendth (const Vertex &v, int &nnei)
    boost::tie(b, e) = boost::adjacent_vertices(v, _g);
    neighbors.assign(b, e);
 
-   nnei = neighbors.size();
+   nnei = (int)neighbors.size();
 
    if (neighbors.size() < 1)
       return 0;
@@ -960,7 +960,7 @@ void Skeleton::_joinVertices(double eps)
 {
 	logEnterFunction();
    std::deque<std::deque<Vertex> > nearVertices;
-   std::deque<int> join_ind;
+   std::deque<size_t> join_ind;
    boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type pos =
            boost::get(boost::vertex_pos, _g);
 
@@ -999,12 +999,12 @@ void Skeleton::_joinVertices(double eps)
       }
       else
       {
-         int first = join_ind[0];
+         size_t first = join_ind[0];
          nearVertices[first].push_back(v);
 
          for (size_t i = join_ind.size() - 1; i >= 1; i--)
          {
-            int ii = join_ind[i];
+            size_t ii = join_ind[i];
             nearVertices[first].insert(nearVertices[first].end(),
                                        nearVertices[ii].begin(),
                                        nearVertices[ii].end());
@@ -1110,7 +1110,7 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 	//check edges to be connected
 	for(size_t i=0;i<edge_groups_k.size();i++)
 	{
-		int gr_count = edge_groups_k[i].size();
+		size_t gr_count = edge_groups_k[i].size();
 		if( gr_count == 1)
 			continue;
 		std::deque<Edge> otherE;

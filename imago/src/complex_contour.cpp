@@ -33,12 +33,12 @@ ComplexContour::~ComplexContour(void)
 {
 }
 
-ComplexNumber& ComplexContour::getContour(int shift)
+ComplexNumber& ComplexContour::getContour(size_t shift)
 {
 	return *(_contours[shift % _contours.size()]);
 }
 
-const ComplexNumber& ComplexContour::getContour(int shift) const
+const ComplexNumber& ComplexContour::getContour(size_t shift) const
 {
 	return *(_contours[shift % _contours.size()]);
 }
@@ -73,7 +73,7 @@ double ComplexContour::Norm() const
 	return sqrt(result);
 }
 
-ComplexNumber ComplexContour::Dot(const ComplexContour& c, int shift) const
+ComplexNumber ComplexContour::Dot(const ComplexContour& c, size_t shift) const
 {
 	ComplexNumber cn = ComplexNumber(0, 0);
 	for(size_t i=0;i<_contours.size();i++)
@@ -84,19 +84,19 @@ ComplexNumber ComplexContour::Dot(const ComplexContour& c, int shift) const
 
 std::vector<ComplexNumber> ComplexContour::InterCorrelation(const ComplexContour& c)
 {
-	int count = _contours.size();
+	size_t count = _contours.size();
 	std::vector<ComplexNumber> retVal;
-	for(int i=0;i< count;i++)
+	for(size_t i = 0; i < count; i++)
 		retVal.push_back(Dot(c, i));
 	return retVal;
 }
 
 std::vector<ComplexNumber> ComplexContour::AutoCorrelation(bool normalize)
 {
-	int count = _contours.size()/2;
+	size_t count = _contours.size()/2;
 	double maxNorm = 0;
 	std::vector<ComplexNumber> acf;
-	for(int i=0; i<count; i++)
+	for(size_t i=0; i<count; i++)
 	{
 		ComplexNumber cn = Dot(*this, i);
 		
@@ -169,20 +169,20 @@ double ComplexContour::Distance(const ComplexContour& c)
 	return n1 * n1 + n2 * n2 - 2 * (Dot(c).getReal());
 }
 
-void ComplexContour::EqualizeUp(int n)
+void ComplexContour::EqualizeUp(size_t n)
 {
 	ComplexNumber currPoint = _contours[0];
-	int count = _contours.size();
+	size_t count = _contours.size();
 
 	std::vector<ComplexNumber> newCont;
 
 	
-	int times = (n - count) / count;
-	int span = (n - count) % count;
+	size_t times = (n - count) / count;
+	size_t span = (n - count) % count;
 
-	for(int i=0; i < count;i ++)
+	for(size_t i=0; i < count; i++)
 	{
-		int slice = i < span ? times + 1 : times;
+		size_t slice = i < span ? times + 1 : times;
 
 		if(slice > 0)
 		{
@@ -218,9 +218,9 @@ void ComplexContour::EqualizeUp(int n)
 	_contours = newCont;
 }
 
-void ComplexContour::EqualizeDown(int n)
+void ComplexContour::EqualizeDown(size_t n)
 {
-	int count = _contours.size();
+	size_t count = _contours.size();
 	ComplexNumber currPoint = _contours[0];
 
 	std::vector<ComplexNumber> newCont;
@@ -228,7 +228,7 @@ void ComplexContour::EqualizeDown(int n)
 	for(int i = 0; i< n; i++)
 		newCont.push_back(ComplexNumber());
 
-	for(int i = 0; i < count; i++)
+	for(size_t i = 0; i < count; i++)
 	{
 		newCont[i * n / count] += _contours[i];
 	}
@@ -347,10 +347,10 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
 	boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b, e;
   
 	//Find start vertex with minimal degree
-	int minDeg = boost::num_vertices(_g);
+	size_t minDeg = boost::num_vertices(_g);
 	BGL_FORALL_VERTICES(v, _g, Skeleton::SkeletonGraph)
 	{
-		int deg = boost::degree(v, _g);
+		size_t deg = boost::degree(v, _g);
 		if(minDeg > deg)
 		{
 			minDeg = deg;

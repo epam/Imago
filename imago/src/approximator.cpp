@@ -53,7 +53,7 @@ void DPApproximator::_apply_int( double eps, const Points2d &input, Points2d &ou
    int i;
 
    output.clear();
-   stack.push_back(make_pair(0, input.size() - 1));
+   stack.push_back(make_pair(0, (int)input.size() - 1));
    
    while (stack.size() > 0)
    {
@@ -101,7 +101,7 @@ void DPApproximator::apply(const Settings& vars, double eps, const Points2d &inp
       else
       {
          //Or find two farthest points on contour
-         int half = input.size() / 2;
+         size_t half = input.size() / 2;
          Points2d ifirst(input.begin(), input.begin() + half),
             isecond(input.begin() + half, input.end());
 

@@ -93,7 +93,7 @@ void LabelCombiner::_locateLabels(const Settings& vars)
    int cc = boost::connected_components(seg_graph, &_components[0]);
    std::vector<std::vector<int> > components(cc);
    for (size_t i = 0; i < _components.size(); i++)
-      components[_components[i]].push_back(i);
+      components[_components[i]].push_back((int)i);
 
    boost::property_map<segments_graph::SegmentsGraph, boost::vertex_seg_ptr_t>::
                    type seg_ptrs = boost::get(boost::vertex_seg_ptr, seg_graph);
@@ -150,7 +150,7 @@ void LabelCombiner::_fillLabelInfo(const Settings& vars, Label &l )
 			if (y_end <= max_begin)
 				multiline = true;
 		}
-		l.baseline_y = sum / l.symbols.size();
+		l.baseline_y = sum / (int)l.symbols.size();
 		l.multiline = multiline;
 	}
 	else

@@ -42,7 +42,7 @@ namespace imago
             boost::edge_weight_t>::type weights = 
             boost::get(boost::edge_weight, g);
 
-         int n = boost::num_vertices(g);
+         int n = (int)boost::num_vertices(g);
 
          std::vector<typename boost::graph_traits<
                      EuclideanGraph>::vertex_descriptor> ind2vert(n);

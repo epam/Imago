@@ -77,7 +77,7 @@ void DoubleBondMaker::_disconnect( Vertex a, Vertex b, const Vertex *third )
 
 DoubleBondMaker::Result DoubleBondMaker::_simple()
 {
-   int dfb = boost::degree(fb, _g), dfe = boost::degree(fe, _g),
+   size_t dfb = boost::degree(fb, _g), dfe = boost::degree(fe, _g),
        dsb = boost::degree(sb, _g), dse = boost::degree(se, _g);
 
    if ((dfb > 1 || dfe > 1) && dsb == 1 && dse == 1)

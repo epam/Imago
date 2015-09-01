@@ -220,7 +220,7 @@ int WedgeBondExtractor::singleDownFetch(const Settings& vars, Skeleton &g )
 
                for (size_t k = 0; k < distances.size();)
                {
-                  int l = k + 1;
+                  size_t l = k + 1;
                   IntPair p;
 
                   for (; l != (int)distances.size(); l++)
@@ -229,8 +229,8 @@ int WedgeBondExtractor::singleDownFetch(const Settings& vars, Skeleton &g )
                         break;
                   }
 
-                  p.first = k;
-                  p.second = l;
+                  p.first = (int)k;
+                  p.second = (int)l;
 
                   same_dist_pairs.push_back(p);
 
@@ -445,7 +445,7 @@ bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex &v,
 	   conf.charge = elem->second->satom.atoms[0].charge;
    }
 
-   conf.degree = boost::in_degree(v, graph);
+   conf.degree = (int)boost::in_degree(v, graph);
    conf.n_double_bonds = 0;
 
    std::pair<Skeleton::EdgeIterator, Skeleton::EdgeIterator> p;

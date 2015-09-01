@@ -56,14 +56,14 @@ namespace imago{
 
 		~ComplexContour(void);
 		
-		  ComplexNumber& getContour(int shift);
-		  const ComplexNumber& getContour(int shift) const;
+		  ComplexNumber& getContour(size_t shift);
+		  const ComplexNumber& getContour(size_t shift) const;
 
 		  double DiffR2(const ComplexContour& lc) const;
 
 		  double Norm() const;
 
-		  ComplexNumber Dot(const ComplexContour& c, int shift=0) const;
+		  ComplexNumber Dot(const ComplexContour& c, size_t shift=0) const;
 
 		  std::vector<ComplexNumber> InterCorrelation(const ComplexContour& c);
 
@@ -87,7 +87,7 @@ namespace imago{
 
 		  ComplexNumber NormDot(const ComplexContour& c) const
 		  {
-			  int count = _contours.size();
+			  int count = (int)_contours.size();
 			  double  norm1 = 0,
 				  norm2 = 0;
 			  ComplexNumber S;
@@ -104,14 +104,14 @@ namespace imago{
 			  return S;
 		  }
 
-			int Size() const
+			size_t Size() const
 			{ 
 				return _contours.size();
 			}
 	  private:
 
-		  void EqualizeUp(int n);
-		  void EqualizeDown(int n);
+		  void EqualizeUp(size_t n);
+		  void EqualizeDown(size_t n);
 		  std::vector<ComplexNumber> _contours;
 	};
 }

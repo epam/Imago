@@ -238,21 +238,20 @@ bool MultipleBondChecker::checkTriple(const Settings& vars, Edge thrd )
 
    Edge mid_bond, far_bond;
    Vertex midb, mide, farb, fare;
-   int degs = boost::degree(tb, _g) +
-      boost::degree(te, _g);
+   int degs = (int)(boost::degree(tb, _g) + boost::degree(te, _g));
 
    double d;
    if (ddf < dds)
    {
       mid_bond = first, far_bond = second, d = ddf;
       midb = fb, mide = fe, farb = sb, fare = se;
-      degs += boost::degree(sb, _g) + boost::degree(se, _g);
+      degs += (int)(boost::degree(sb, _g) + boost::degree(se, _g));
    }
    else
    {
       mid_bond = second, far_bond = first, d = dds;
       midb = sb, mide = se, farb = fb, fare = fe;
-      degs += boost::degree(fb, _g) + boost::degree(fe, _g);
+      degs += (int)(boost::degree(fb, _g) + boost::degree(fe, _g));
    }
 
    if (degs != 4)
@@ -265,10 +264,16 @@ bool MultipleBondChecker::checkTriple(const Settings& vars, Edge thrd )
       else
          return false;
                      
-      if (vv == midb)
-         v = midb, degs += 1 - boost::degree(v, _g);
-      else if (vv == mide)
-         v = mide, degs += 1 - boost::degree(v, _g);
+      if(vv == midb)
+      {
+         v = midb;
+         degs += 1 - (int)boost::degree(v, _g);
+      }
+      else if(vv == mide)
+      {
+         v = mide;
+         degs += 1 - (int)boost::degree(v, _g);
+      }
       
       if (boost::degree(farb, _g) == 1)
          vv = fare;
@@ -277,10 +282,16 @@ bool MultipleBondChecker::checkTriple(const Settings& vars, Edge thrd )
       else
          return false;
 
-      if (vv == midb)
-         v = midb, degs += 1 - boost::degree(v, _g);
-      else if (vv == mide)
-         v = mide, degs += 1 - boost::degree(v, _g);
+      if(vv == midb)
+      {
+         v = midb;
+         degs += 1 - (int)boost::degree(v, _g);
+      }
+      else if(vv == mide)
+      {
+         v = mide;
+         degs += 1 - (int)boost::degree(v, _g);
+      }
 
       if (degs != 4)
          return false;

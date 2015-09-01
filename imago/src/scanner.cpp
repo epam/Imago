@@ -344,7 +344,7 @@ void Scanner::readAll( std::string &arr )
 
    char *res = new char[arr.size()];
 
-   read(arr.size(), res);
+   read((int)arr.size(), res);
 
    for (int i = 0; i < length(); i++)
       arr[i] = res[i];
@@ -503,7 +503,7 @@ BufferScanner::BufferScanner( const char *str )
 
 BufferScanner::BufferScanner( const std::string &arr )
 {
-   _init(arr.c_str(), arr.size());
+   _init(arr.c_str(), (int)arr.size());
 }
 
 bool BufferScanner::isEOF()
