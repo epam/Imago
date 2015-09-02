@@ -129,14 +129,14 @@ DoubleBondMaker::Result DoubleBondMaker::_simple()
 	  _s.addBond(nb, ne, BT_DOUBLE);
    }
 
-   return make_tuple(0, empty, empty);
+   return std::make_tuple(0, empty, empty);
 }
 
 DoubleBondMaker::Result DoubleBondMaker::_hard()
 {
    //Not really true
    if (boost::degree(sb, _g) + boost::degree(se, _g) != 2)
-      return boost::make_tuple(0, empty, empty);
+      return std::make_tuple(0, empty, empty);
    
    Vec2d p1, p2;
    boost::tie(p1, p2) = Algebra::segmentProjection(sb_pos, se_pos, fb_pos, fe_pos);
@@ -159,21 +159,21 @@ DoubleBondMaker::Result DoubleBondMaker::_hard()
       Edge e1 = _s.addBond(fb, v1);
       _s.addBond(v1, v2, BT_DOUBLE);
       Edge e2 = _s.addBond(v2, fe);
-      return boost::make_tuple(2, e1, e2);
+      return std::make_tuple(2, e1, e2);
    }
    else if (left)
    {
       Vertex v = _s.addVertex(p1);
       Edge e1 = _s.addBond(fb, v);
       Edge e2 = _s.addBond(v, fe, BT_DOUBLE);
-      return boost::make_tuple(1, e1, empty);
+      return std::make_tuple(1, e1, empty);
    }
    else if (right)
    {
       Vertex v = _s.addVertex(p2);
       Edge e1 = _s.addBond(fb, v, BT_DOUBLE);
       Edge e2 = _s.addBond(v, fe);
-      return boost::make_tuple(1, e2, empty);
+      return std::make_tuple(1, e2, empty);
    }
    else
    {
@@ -190,12 +190,12 @@ DoubleBondMaker::Result DoubleBondMaker::operator()( std::pair<Edge,Edge> edges 
 
    Result ret;
    ret = _validateVertices();
-   if (boost::get<0>(ret) != 2) //Both edges should be valid
+   if (std::get<0>(ret) != 2) //Both edges should be valid
       return ret;
    
    if (!boost::edge(fb, fe, _g).second ||
        !boost::edge(sb, se, _g).second)
-      return boost::make_tuple(0, empty, empty);
+      return std::make_tuple(0, empty, empty);
 
    fb_pos = boost::get(boost::vertex_pos, _g, fb);
    fe_pos = boost::get(boost::vertex_pos, _g, fe);
@@ -268,11 +268,11 @@ DoubleBondMaker::Result DoubleBondMaker::_validateVertices()
       secondValid = false;
 
    if (firstValid && secondValid)
-      return boost::make_tuple(2, first, second);
+      return std::make_tuple(2, first, second);
    else if (firstValid)
-      return boost::make_tuple(1, first, empty);
+      return std::make_tuple(1, first, empty);
    else if (secondValid)
-      return boost::make_tuple(1, second, empty);
+      return std::make_tuple(1, second, empty);
    else
-      return boost::make_tuple(0, empty, empty);
+      return std::make_tuple(0, empty, empty);
 }

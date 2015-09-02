@@ -655,7 +655,7 @@ void Skeleton::_findMultiple(const Settings& vars)
    do
    {
       std::vector<std::pair<Edge, Edge> > doubleBonds;
-      std::vector<boost::tuple<Edge, Edge, Edge> > tripleBonds;
+      std::vector<std::tuple<Edge, Edge, Edge> > tripleBonds;
 
       size_t end = toProcess.size();
       for (int ii = 0; ii < end; ii++)
@@ -717,9 +717,9 @@ void Skeleton::_findMultiple(const Settings& vars)
                if (is_triple)
                {
                   used[i] = used[j] = used[*arr[2].second] = true;
-                  tripleBonds.push_back(boost::make_tuple(*arr[0].second,
-                                                          *arr[1].second,
-                                                          *arr[2].second));
+                  tripleBonds.push_back(std::make_tuple(*arr[0].second,
+                                                        *arr[1].second,
+                                                        *arr[2].second));
                }
                else
                {
@@ -738,22 +738,22 @@ void Skeleton::_findMultiple(const Settings& vars)
       {
          TripleBondMaker::Result ret = _makeTriple(tripleBonds[i]);
 
-         int add = boost::get<0>(ret);
+         int add = std::get<0>(ret);
          if (add == 0)
             continue;
          
-         used[boost::get<0>(tripleBonds[i])] = false;
-         used[boost::get<1>(tripleBonds[i])] = false;
-         used[boost::get<2>(tripleBonds[i])] = false;
+         used[std::get<0>(tripleBonds[i])] = false;
+         used[std::get<1>(tripleBonds[i])] = false;
+         used[std::get<2>(tripleBonds[i])] = false;
 
          if (add == 1)
          {
-            toProcess.push_back(boost::get<1>(ret));
+            toProcess.push_back(std::get<1>(ret));
          }
          else if (add == 2)
          {
-            toProcess.push_back(boost::get<1>(ret));
-            toProcess.push_back(boost::get<2>(ret));
+            toProcess.push_back(std::get<1>(ret));
+            toProcess.push_back(std::get<2>(ret));
          }
          
       }
@@ -765,7 +765,7 @@ void Skeleton::_findMultiple(const Settings& vars)
       {
          DoubleBondMaker::Result ret = _makeDouble(doubleBonds[i]);
          
-         int add = boost::get<0>(ret);
+         int add = std::get<0>(ret);
          if (add == 0)
             continue;
 
@@ -773,12 +773,12 @@ void Skeleton::_findMultiple(const Settings& vars)
          used[doubleBonds[i].second] = false;
          if (add == 1)
          {
-            toProcess.push_back(boost::get<1>(ret));
+            toProcess.push_back(std::get<1>(ret));
          }
          else if (add == 2)
          {
-            toProcess.push_back(boost::get<1>(ret));
-            toProcess.push_back(boost::get<2>(ret));
+            toProcess.push_back(std::get<1>(ret));
+            toProcess.push_back(std::get<2>(ret));
          } 
       }
 

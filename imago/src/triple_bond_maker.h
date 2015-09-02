@@ -16,9 +16,9 @@
 #ifndef _triple_bond_maker_h
 #define _triple_bond_maker_h
 
-#include "boost/tuple/tuple.hpp"
 #include "skeleton.h"
 #include "settings.h"
+#include <tuple>
 
 namespace imago
 {
@@ -31,9 +31,9 @@ namespace imago
    public:
       TripleBondMaker( const Settings& settings, Skeleton &s );
 
-      typedef boost::tuple<int, Edge, Edge> Result;
+      typedef std::tuple<int, Edge, Edge> Result;
 
-      Result operator()( boost::tuple<Edge, Edge, Edge> edges );
+      Result operator()( std::tuple<Edge, Edge, Edge> edges );
       
       virtual ~TripleBondMaker();
    private:

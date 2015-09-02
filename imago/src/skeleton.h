@@ -138,9 +138,9 @@ namespace imago
    private:
       bool _dissolveIntermediateVertices (const Settings& vars);
       double _avgEdgeLendth (const Vertex &v, int &nnei);
-      typedef boost::tuple<bool, Edge, Edge> MakersReturn;
+      typedef std::tuple<bool, Edge, Edge> MakersReturn;
       //MakersReturn _makeDouble( std::pair<Edge, Edge> edges );
-      MakersReturn _makeTriple( boost::tuple<Edge, Edge, Edge> edges );
+      MakersReturn _makeTriple( std::tuple<Edge, Edge, Edge> edges );
       bool _isParallel( const Edge &first, const Edge &second ) const;
 	  bool _isEqualDirection( const Edge &first, const Edge &second ) const;
       bool _isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex &b2,const Vertex &e2)  const;

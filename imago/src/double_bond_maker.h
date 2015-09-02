@@ -17,9 +17,9 @@
 #define _double_bond_maker_h
 
 #include "boost/graph/graph_traits.hpp"
-#include "boost/tuple/tuple.hpp"
 #include "skeleton.h"
 #include "settings.h"
+#include <tuple>
 
 namespace imago
 {
@@ -32,7 +32,7 @@ namespace imago
    public:
       DoubleBondMaker( const Settings& settings, Skeleton &s );
 
-      typedef boost::tuple<int, Edge, Edge> Result;
+      typedef std::tuple<int, Edge, Edge> Result;
 
       Result operator()( std::pair<Edge, Edge> edges );
       

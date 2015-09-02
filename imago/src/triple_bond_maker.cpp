@@ -52,28 +52,28 @@ TripleBondMaker::Result TripleBondMaker::_validateVertices()
       thirdValid = false;   
 
    if (firstValid && secondValid && thirdValid)
-      return boost::make_tuple(3, empty, empty);
+      return std::make_tuple(3, empty, empty);
    else if (firstValid && secondValid)
-      return boost::make_tuple(2, first, second);
+      return std::make_tuple(2, first, second);
    else if (firstValid && thirdValid)
-      return boost::make_tuple(2, first, third);
+      return std::make_tuple(2, first, third);
    else if (thirdValid && secondValid)
-      return boost::make_tuple(2, second, third);
+      return std::make_tuple(2, second, third);
    else if (firstValid)
-      return boost::make_tuple(1, first, empty);
+      return std::make_tuple(1, first, empty);
    else if (secondValid)
-      return boost::make_tuple(1, second, empty);
+      return std::make_tuple(1, second, empty);
    else if (thirdValid)
-      return boost::make_tuple(1, third, empty);
+      return std::make_tuple(1, third, empty);
    else
-      return boost::make_tuple(0, empty, empty);
+      return std::make_tuple(0, empty, empty);
 }
 
 TripleBondMaker::Result TripleBondMaker::operator ()(
-                           boost::tuple<Edge,Edge,Edge> edges)
+                           std::tuple<Edge,Edge,Edge> edges)
 {
    std::set<Vertex> toRemove;
-   boost::tie(first, second, third) = edges;
+   std::tie(first, second, third) = edges;
 
    fb = boost::source(first, _g), fe = target(first, _g);
    sb = boost::source(second, _g), se = target(second, _g);
@@ -81,14 +81,14 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
 
    Result ret = _validateVertices();
 
-   if (boost::get<0>(ret) != 3)
+   if (std::get<0>(ret) != 3)
       return ret;
 
    //Validating edges
    if (!boost::edge(fb, fe, _g).second ||
        !boost::edge(sb, se, _g).second ||
        !boost::edge(tb, te, _g).second)
-      return boost::make_tuple(0, empty, empty);
+      return std::make_tuple(0, empty, empty);
    
    boost::property_map<Graph, boost::vertex_pos_t>::type
       positions = boost::get(boost::vertex_pos, _g);
@@ -140,7 +140,7 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
            e2 = _s.addBond(v1, v2, BT_TRIPLE),
            e3 = _s.addBond(v2, fe);
 
-      ret = boost::make_tuple(2, e1, e3);
+      ret = std::make_tuple(2, e1, e3);
    }
    else if (left)
    {
@@ -149,7 +149,7 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
       Edge e1 = _s.addBond(fb, v, BT_SINGLE),
            e2 = _s.addBond(v, fe, BT_TRIPLE);
       
-      ret = boost::make_tuple(1, e1, empty);
+      ret = std::make_tuple(1, e1, empty);
    }
    else if (right)
    {
@@ -157,7 +157,7 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
       
       Edge e1 = _s.addBond(fb, v, BT_TRIPLE),
            e2 = _s.addBond(v, fe, BT_SINGLE);
-      ret = boost::make_tuple(1, e2, empty);
+      ret = std::make_tuple(1, e2, empty);
    }
    else
    {
@@ -191,7 +191,7 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
       
       Edge e = _s.addBond(v1, v2, BT_TRIPLE);
 
-      ret = boost::make_tuple(0, empty, empty);
+      ret = std::make_tuple(0, empty, empty);
    }
 
    BOOST_FOREACH(Vertex v, toRemove)
