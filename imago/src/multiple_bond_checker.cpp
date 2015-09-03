@@ -17,7 +17,6 @@
 #include "log_ext.h"
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/iteration_macros.hpp"
-#include "boost/foreach.hpp"
 
 using namespace imago;
 

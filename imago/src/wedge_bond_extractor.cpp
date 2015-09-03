@@ -16,7 +16,6 @@
 #include <deque>
 
 #include "boost/graph/iteration_macros.hpp"
-#include "boost/foreach.hpp"
 
 #include <opencv2/opencv.hpp>
 
@@ -409,7 +408,7 @@ void WedgeBondExtractor::fixStereoCenters( Molecule &mol )
       }
    }
 
-   BOOST_FOREACH( Skeleton::Edge e, to_reverse_bonds )
+   for(Skeleton::Edge e: to_reverse_bonds)
    {
 	   Bond b_bond = boost::get(boost::edge_type, graph, e);
 	   BondType type = b_bond.type;
@@ -675,12 +674,12 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
    getLogExt().appendImage("image profile", img);
 
    double y_mean = 0, x_mean = 0;
-   int startProfile = round(vars.wbe.SingleUpInterpolateEps * profile.size());
-   int endProfile = profile.size() - startProfile;
+   size_t startProfile = round(vars.wbe.SingleUpInterpolateEps * profile.size());
+   size_t endProfile = profile.size() - startProfile;
    
-   int psize = endProfile - startProfile;//(profile.size() - 1);
+   size_t psize = endProfile - startProfile;//(profile.size() - 1);
    
-   for(int i = startProfile; i < endProfile; i++)
+   for(size_t i = startProfile; i < endProfile; i++)
    {
 	   
 	   if( profile[i] == 0)
@@ -701,7 +700,7 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 
    double Sxx=0, Sxy=0;
    double max_val = 0;
-   for(int i = startProfile; i < (startProfile + psize); i++)
+   for(size_t i = startProfile; i < (startProfile + psize); i++)
    {
 	   if(profile[i] != 0 )
 	   {
@@ -821,10 +820,10 @@ void WedgeBondExtractor::fetchArrows(const Settings& vars, Skeleton &g )
 		{
 			Skeleton::Vertex b = g.getBondBegin(e);
 			Skeleton::Vertex e_v = g.getBondEnd(e);
-			int b_deg = boost::degree(b, graph);
-			int e_deg = boost::degree(e_v, graph);
-			int min_deg = b_deg < e_deg ? b_deg : e_deg;
-			int max_deg = b_deg > e_deg ? b_deg : e_deg;
+			size_t b_deg = boost::degree(b, graph);
+			size_t e_deg = boost::degree(e_v, graph);
+			size_t min_deg = b_deg < e_deg ? b_deg : e_deg;
+			size_t max_deg = b_deg > e_deg ? b_deg : e_deg;
 
 			if(min_deg == 1  && max_deg == 2)
 			{

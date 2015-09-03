@@ -14,7 +14,6 @@
 
 #include "chemical_validity.h"
 #include "comdef.h"
-#include "boost/algorithm/string.hpp"
 #include "periodic_table.h"
 #include "log_ext.h"
 

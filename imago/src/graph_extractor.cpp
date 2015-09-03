@@ -14,8 +14,6 @@
 
 #include <deque>
 
-#include "boost/foreach.hpp"
-
 #include "comdef.h"
 #include "log_ext.h"
 #include "graph_extractor.h"
@@ -35,7 +33,7 @@ void GraphExtractor::extract(Settings& vars, const GraphicsDetector &gd, const S
    int w = 0, h = 0;
 
    // recreate image from segments
-   BOOST_FOREACH( Segment *s, segments )
+   for(Segment *s: segments)
    {
       if (s->getX() + s->getWidth() >= w)
          w = s->getX() + s->getWidth();
@@ -46,7 +44,7 @@ void GraphExtractor::extract(Settings& vars, const GraphicsDetector &gd, const S
    tmp.init(w + 10, h + 10);
    tmp.fillWhite();
 
-   BOOST_FOREACH( Segment *s, segments )
+   for(Segment *s: segments)
    {
       ImageUtils::putSegment(tmp, *s, true);
    }

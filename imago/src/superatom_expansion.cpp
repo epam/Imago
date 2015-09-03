@@ -12,9 +12,6 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
-#include "boost/foreach.hpp"
-#include "boost/algorithm/string.hpp"
-
 #include "superatom_expansion.h"
 
 #include <stdlib.h>

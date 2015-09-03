@@ -13,7 +13,6 @@
  ***************************************************************************/
 
 #include <set>
-#include "boost/foreach.hpp"
 #include "boost/graph/adjacency_list.hpp"
 #include "boost/graph/iteration_macros.hpp"
 
@@ -121,7 +120,7 @@ DoubleBondMaker::Result DoubleBondMaker::_simple()
       if (boost::degree(se, _g) == 0)
          toRemove.insert(se);
 
-      BOOST_FOREACH(Vertex v, toRemove)
+      for(Vertex v: toRemove)
       {
          boost::remove_vertex(v, _g);
       }

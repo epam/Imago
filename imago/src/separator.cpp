@@ -21,7 +21,6 @@
 #include <stack>
 #include <queue>
 
-#include "boost/foreach.hpp"
 #include <opencv2/opencv.hpp>
 
 #include "approximator.h"
@@ -90,7 +89,7 @@ bool Separator::_bIsTextContext(const Settings& vars, SegmentDeque &layer_symbol
 	Vec2i cntr(rec.x + rec.width/2, rec.y+rec.height/2);
 
 	//find first pair of symbols closer to rec
-	BOOST_FOREACH(Segment *s, layer_symbols)
+	for(Segment *s: layer_symbols)
 	{
 		imago::Rectangle srec = s->getRectangle();
 		Vec2i sc = s->getCenter();
@@ -684,7 +683,7 @@ int Separator::PredictGroup(const Settings& vars, Segment *seg, int mark,  Segme
 	double capital_height = 0;
 	if( layer_symbols.size() > 0 )
 	{
-		BOOST_FOREACH(Segment *s, layer_symbols)
+		for(Segment *s: layer_symbols)
 			capital_height += s->getHeight();
 
 		capital_height /= layer_symbols.size();
@@ -1147,7 +1146,7 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
    IntVector heights, seq_lengths;
    IntPair p;
 
-   BOOST_FOREACH( Segment *s, _segs )
+   for(Segment *s: _segs)
    {
 	   if (s->getHeight() >= vars.characters.MinimalRecognizableHeight)
 	   {
@@ -1368,7 +1367,7 @@ bool Separator::_testDoubleBondV(const Settings& vars, Segment &segment )
    ImageUtils::putSegment(tmp, segment_tmp, false);
    Segmentator::segmentate(tmp, segs);
 
-   BOOST_FOREACH( Segment *s, segs )
+   for(Segment *s: segs)
    {
 	   if (s->getRatio() <= vars.estimation.MinSymRatio)
 		   if (absolute(s->getX() - segment.getX()) < vars.estimation.DoubleBondDist) 
@@ -1378,7 +1377,7 @@ bool Separator::_testDoubleBondV(const Settings& vars, Segment &segment )
          }
    }
 
-   BOOST_FOREACH( Segment *s, segs )
+   for(Segment *s: segs)
       delete s;
 
    segs.clear();

@@ -17,8 +17,6 @@
 #include <memory>
 #include <deque>
 
-#include <boost/foreach.hpp>
-
 #include "chemical_structure_recognizer.h"
 #include "graph_extractor.h"
 #include "graphics_detector.h"
@@ -202,7 +200,7 @@ void ChemicalStructureRecognizer::storeSegments(const Settings& vars, SegmentDeq
 {
 	logEnterFunction();
 
-	BOOST_FOREACH( Segment *s, layer_symbols )
+	for(Segment *s: layer_symbols)
 	{
 		RecognitionDistance rd = getCharacterRecognizer().recognize(vars, *s, CharacterRecognizer::all);
 		double dist = 0.0;
@@ -238,7 +236,7 @@ void ChemicalStructureRecognizer::storeSegments(const Settings& vars, SegmentDeq
 		ImageUtils::saveImageToFile(*s, filename);
 	}
 
-	BOOST_FOREACH( Segment *s, layer_graphics )
+	for(Segment *s: layer_graphics)
 	{
 		char filename[MAX_TEXT_LINE] = {0};
 		platform::MKDIR("./graphics");			  
@@ -449,13 +447,13 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 				symbols.emptyCopy(_img);
 				graphics.emptyCopy(_img);
 
-				BOOST_FOREACH( Segment *s, layer_symbols )
+				for(Segment *s: layer_symbols)
 				{
 					getLogExt().append("draw symbol", (void*)s);
 					ImageUtils::putSegment(symbols, *s, true);
 				}
 
-				BOOST_FOREACH( Segment *s, layer_graphics )
+				for(Segment *s: layer_graphics)
 				{
 					getLogExt().append("draw graphics", (void*)s);
 					ImageUtils::putSegment(graphics, *s, true);
@@ -485,7 +483,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 				{
 					Image symbols;
 					symbols.emptyCopy(_img);
-					BOOST_FOREACH( Segment *s, layer_symbols )
+					for(Segment *s: layer_symbols)
 					{
 						ImageUtils::putSegment(symbols, *s, true);
 					}
@@ -542,7 +540,7 @@ void ChemicalStructureRecognizer::recognize(Settings& vars, Molecule &mol)
 				LabelLogic ll(_cr);
 				std::deque<Label> unmapped_labels;
                  
-				BOOST_FOREACH(Label &l, mol.getLabels())
+				for(Label &l: mol.getLabels())
 				{
 					if (vars.checkTimeLimit())
 						throw ImagoException("Timelimit exceeded");

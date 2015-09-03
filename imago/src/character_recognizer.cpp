@@ -15,8 +15,6 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
-#include <boost/foreach.hpp>
-#include <boost/tuple/tuple.hpp>
 #include <map>
 #include <cmath>
 #include <cfloat>
@@ -222,7 +220,7 @@ namespace imago
 
 								if (img(j,i) == value)
 								{
-									min_dist = radius;
+									min_dist = (double)radius;
 									goto found;
 								}
 							}

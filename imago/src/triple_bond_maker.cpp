@@ -13,7 +13,6 @@
  ***************************************************************************/
 
 #include <set>
-#include "boost/foreach.hpp"
 #include <cstdio>
 #include "triple_bond_maker.h"
 #include "algebra.h"
@@ -194,7 +193,7 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
       ret = std::make_tuple(0, empty, empty);
    }
 
-   BOOST_FOREACH(Vertex v, toRemove)
+   for(Vertex v: toRemove)
       if (boost::degree(v, _g) == 0)
          boost::remove_vertex(v, _g);
    

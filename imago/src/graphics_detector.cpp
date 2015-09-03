@@ -16,8 +16,6 @@
 #include <deque>
 #include <vector>
 
-#include "boost/foreach.hpp"
-
 #include "graphics_detector.h"
 #include "image.h"
 #include "segment.h"
@@ -314,7 +312,7 @@ void GraphicsDetector::analyzeUnmappedLabels( std::deque<Label> &unmapped_labels
 {
 	logEnterFunction();
 
-   BOOST_FOREACH( Label &l, unmapped_labels )
+   for(Label &l: unmapped_labels)
    {
 	   // this code is not required now
       /*if (l.satom.atoms[0].label_first == 'O')
@@ -349,7 +347,7 @@ void GraphicsDetector::detect(const Settings& vars, const Image &img, Points2d &
 
    Segmentator::segmentate(tmp, segs);
 
-   BOOST_FOREACH( Segment *s, segs )
+   for(Segment *s: segs)
    {
       poly.clear();
       _extractPolygon(vars, *s, poly);

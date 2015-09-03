@@ -14,7 +14,6 @@
 
 #include <deque>
 #include <vector>
-#include <boost/foreach.hpp>
 
 #include "rectangle.h"
 #include "segment.h"

@@ -16,7 +16,6 @@
 #include <set>
 #include "boost/graph/graph_traits.hpp"
 #include "boost/graph/iteration_macros.hpp"
-#include "boost/foreach.hpp"
 
 #include "comdef.h"
 #include "algebra.h"
@@ -262,7 +261,7 @@ void Skeleton::_repairBroken(const Settings& vars)
       }
    }
 
-   BOOST_FOREACH(Vertex v, toRemove)
+   for(Vertex v: toRemove)
       boost::remove_vertex(v, _g);
 }
 
@@ -1337,7 +1336,7 @@ void Skeleton::modifyGraph(Settings& vars)
           edgesToRemove.push_back(edge);
        }
     }
-    BOOST_FOREACH(Edge e, edgesToRemove)
+    for(Edge e: edgesToRemove)
     {
        Vertex beg = boost::source(e, _g);
        Vertex end = boost::target(e, _g);
@@ -1392,7 +1391,7 @@ void Skeleton::modifyGraph(Settings& vars)
 		   }
 	   }
 
-	    BOOST_FOREACH(Skeleton::Edge e, bad_edges)
+      for(Skeleton::Edge e: bad_edges)
 		{
 		   Skeleton::Vertex beg = boost::source(e, _g);
 		   Skeleton::Vertex end = boost::target(e, _g);
@@ -1445,7 +1444,7 @@ void Skeleton::deleteBadTriangles( double eps )
       end_neigh.insert(b2, e2);
       std::set_intersection(beg_neigh.begin(), beg_neigh.end(), end_neigh.begin(), end_neigh.end(), std::inserter(intrsect, intrsect.begin()));
       
-      BOOST_FOREACH(Vertex v, intrsect)
+      for(Vertex v: intrsect)
       {
          if (v == beg || v == end || vertices_to_delete.find(v) != vertices_to_delete.end())
             continue;
@@ -1500,9 +1499,9 @@ void Skeleton::deleteBadTriangles( double eps )
       }
    }
 
-   BOOST_FOREACH(Edge edge, edges_to_delete)
+   for(Edge edge: edges_to_delete)
       boost::remove_edge(edge, _g);
-   BOOST_FOREACH(Vertex v, vertices_to_delete)
+   for(Vertex v: vertices_to_delete)
       boost::remove_vertex(v, _g);
 }
 

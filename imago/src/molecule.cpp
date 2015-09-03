@@ -12,7 +12,6 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
-#include "boost/foreach.hpp"
 #include "boost/graph/iteration_macros.hpp"
 
 #include "algebra.h"
@@ -295,13 +294,13 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
    
 
 
-   BOOST_FOREACH(Skeleton::Vertex v, deck)
+   for(Skeleton::Vertex v: deck)
       boost::remove_vertex(v, _g);
 }
 
 void Molecule::aromatize( Points2d &aromatic_centers )
 {      
-   BOOST_FOREACH( Vec2d arom_center, aromatic_centers )
+   for(Vec2d arom_center: aromatic_centers)
    {
       Vertex begin_vertex = (Vertex)0; 
       double distance = DIST_INF;
@@ -362,7 +361,7 @@ void Molecule::aromatize( Points2d &aromatic_centers )
 
       //TODO: Aromatizing only closed contours! Not sure if it's true.
       if (cur_vertex == begin_vertex)
-         BOOST_FOREACH( Edge e, aromatized_bonds )
+         for(Edge e: aromatized_bonds)
             setBondType(e, BT_AROMATIC);
 
       aromatized_bonds.clear();

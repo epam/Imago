@@ -16,7 +16,6 @@
 #include <vector>
 #include <cfloat>
 
-#include "boost/foreach.hpp"
 #include "boost/graph/connected_components.hpp"
 
 #include "label_combiner.h"
@@ -40,7 +39,7 @@ LabelCombiner::LabelCombiner(Settings& vars, SegmentDeque &symbols_layer, Segmen
 	{
 		_labels.clear();
 		_locateLabels(vars);
-		BOOST_FOREACH(Label &l, _labels)
+		for(Label &l: _labels)
 		{
 			_fillLabelInfo(vars, l);
 		}
