@@ -17,7 +17,6 @@
 #define _image_draw_utils_h
 
 #include "boost/graph/adjacency_list.hpp"
-#include "boost/graph/iteration_macros.hpp"
 
 #include "comdef.h"
 #include "vec2d.h"
@@ -43,12 +42,20 @@ namespace imago
            typename boost::property_map<EuclideanGraph,
                                         boost::vertex_pos_t>::const_type
                               positions = boost::get(boost::vertex_pos, g);
-           BGL_FORALL_VERTICES_T(v, g, EuclideanGraph)
+           for(std::pair<typename boost::graph_traits<EuclideanGraph>::vertex_iterator, typename boost::graph_traits<EuclideanGraph>::vertex_iterator> range = vertices(g);
+               range.first != range.second; range.first = range.second)
+              for(typename boost::graph_traits<EuclideanGraph>::vertex_descriptor v;
+                  range.first != range.second ? (v = *range.first, true):false;
+                  ++range.first)
            {
               Vec2d pos = positions[v];
               ImageDrawUtils::putCircle(img, round(pos.x), round(pos.y), 4, 100);
            }
-           BGL_FORALL_EDGES_T(e, g, EuclideanGraph)
+           for(std::pair<typename boost::graph_traits<EuclideanGraph>::edge_iterator, typename boost::graph_traits<EuclideanGraph>::edge_iterator> range = edges(g);
+               range.first != range.second; range.first = range.second)
+              for(typename boost::graph_traits<EuclideanGraph>::edge_descriptor e;
+                  range.first != range.second ? (e = *range.first, true):false;
+                  ++range.first)
            {
               Vec2d b_pos = positions[boost::source(e, g)],
                     e_pos = positions[boost::target(e, g)];

@@ -16,8 +16,6 @@
 #include <ctime>
 #include <map>
 
-#include "boost/graph/iteration_macros.hpp"
-
 #include "label_combiner.h"
 #include "molecule.h"
 #include "molfile_saver.h"
@@ -77,7 +75,11 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 
    bond_length = vars.dynamic.AvgBondLength;
 
-   BGL_FORALL_VERTICES(v, graph, Skeleton::SkeletonGraph)
+   for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::vertex_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::vertex_iterator> range = vertices(graph);
+       range.first != range.second; range.first = range.second)
+      for (boost::graph_traits<Skeleton::SkeletonGraph>::vertex_descriptor v;
+           range.first != range.second ? (v = *range.first, true):false;
+           ++range.first)
    {
       _out.printf("M  V30 %d ", i);
       mapping[v] = i;
@@ -187,7 +189,12 @@ void MolfileSaver::_writeCtab(const Settings& vars)
    _out.writeStringCR("M  V30 BEGIN BOND");
 
    j = 1;
-   BGL_FORALL_EDGES(e, graph, Skeleton::SkeletonGraph)
+   for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator> range = edges(graph);
+       range.first != range.second;
+       range.first = range.second)
+      for(boost::graph_traits<Skeleton::SkeletonGraph>::edge_descriptor e;
+          range.first != range.second ? (e = *range.first, true) : false;
+          ++range.first)
    {
       int type;
       const Bond bond = boost::get(boost::edge_type, graph, e);

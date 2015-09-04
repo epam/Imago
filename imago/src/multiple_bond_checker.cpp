@@ -16,7 +16,6 @@
 #include "algebra.h"
 #include "log_ext.h"
 #include "boost/graph/graph_traits.hpp"
-#include "boost/graph/iteration_macros.hpp"
 
 using namespace imago;
 
@@ -127,7 +126,11 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
       return false;
    }
    
-   BGL_FORALL_VERTICES(v, _g, Graph)
+   for(std::pair<boost::graph_traits<Graph>::vertex_iterator, boost::graph_traits<Graph>::vertex_iterator> range = vertices(_g);
+       range.first != range.second; range.first = range.second)
+      for (boost::graph_traits<Graph>::vertex_descriptor v;
+           range.first != range.second ? (v = *range.first, true):false;
+           ++range.first)
    {
       if (v == fb || v == fe || v == sb || v == se)
          continue;

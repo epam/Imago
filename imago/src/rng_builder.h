@@ -16,7 +16,6 @@
 #ifndef _rng_builder_h
 #define _rng_builder_h
 
-#include "boost/graph/iteration_macros.hpp"
 #include "boost/property_map/property_map.hpp"
 #include "boost/graph/adjacency_list.hpp"
 
@@ -48,7 +47,11 @@ namespace imago
                      EuclideanGraph>::vertex_descriptor> ind2vert(n);
          DoubleVector distances(n * n, 0);
 
-         BGL_FORALL_VERTICES_T(v, g, EuclideanGraph)
+         for(std::pair<typename boost::graph_traits<EuclideanGraph>::vertex_iterator, typename boost::graph_traits<EuclideanGraph>::vertex_iterator> range = vertices(g);
+             range.first != range.second; range.first = range.second)
+            for(typename boost::graph_traits<EuclideanGraph>::vertex_descriptor v;
+                range.first != range.second ? (v = *range.first, true):false;
+                ++range.first)
             ind2vert[vert2ind[v]] = v;
 
          for (int i = 0; i < n; i++)

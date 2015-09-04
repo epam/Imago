@@ -16,7 +16,6 @@
 #include "settings.h"
 #include "approximator.h"
 #include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/iteration_macros.hpp>
 #include <boost/graph/graph_traits.hpp>
 #include "algebra.h"
 #include "log_ext.h"
@@ -348,7 +347,11 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
   
 	//Find start vertex with minimal degree
 	size_t minDeg = boost::num_vertices(_g);
-	BGL_FORALL_VERTICES(v, _g, Skeleton::SkeletonGraph)
+   for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::vertex_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::vertex_iterator> range = vertices(_g);
+       range.first != range.second; range.first = range.second)
+      for (boost::graph_traits<Skeleton::SkeletonGraph>::vertex_descriptor v;
+           range.first != range.second ? (v = *range.first, true):false;
+           ++range.first)
 	{
 		size_t deg = boost::degree(v, _g);
 		if(minDeg > deg)

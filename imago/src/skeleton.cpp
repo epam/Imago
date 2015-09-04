@@ -15,7 +15,6 @@
 #include <cmath>
 #include <set>
 #include "boost/graph/graph_traits.hpp"
-#include "boost/graph/iteration_macros.hpp"
 
 #include "comdef.h"
 #include "algebra.h"
@@ -61,7 +60,12 @@ void Skeleton::recalcAvgBondLength()
    _avg_bond_length = 0;
    _min_bond_length = DIST_INF;
 
-   BGL_FORALL_EDGES(e, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
+       range.first != range.second;
+       range.first = range.second)
+      for(boost::graph_traits<SkeletonGraph>::edge_descriptor e;
+          range.first != range.second ? (e = *range.first, true) : false;
+          ++range.first)
    {
       double len = (boost::get(boost::edge_type, _g, e)).length;
       _avg_bond_length += len;
@@ -202,7 +206,11 @@ void Skeleton::_repairBroken(const Settings& vars)
 
    std::deque<Vertex> toRemove;
 
-   BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
+       range.first != range.second; range.first = range.second)
+      for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
+           range.first != range.second ? (v = *range.first, true):false;
+           ++range.first)
    {
       if (boost::degree(v, _g) != 2)
          continue;
@@ -322,7 +330,12 @@ void Skeleton::calcShortBondsPenalty(const Settings& vars)
 
 	int probablyWarnings = 0;
 	int minSize = (std::max)((int)vars.dynamic.CapitalHeight / 2, vars.main.MinGoodCharactersSize);
-	BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
+       range.first != range.second;
+       range.first = range.second)
+      for(boost::graph_traits<SkeletonGraph>::edge_descriptor edge;
+          range.first != range.second ? (edge = *range.first, true) : false;
+          ++range.first)
 	{
 		const Vertex &beg = boost::source(edge, _g);
 		const Vertex &end = boost::target(edge, _g);
@@ -344,9 +357,17 @@ void Skeleton::calcCloseVerticiesPenalty(const Settings& vars)
 	logEnterFunction();
 
 	int probablyWarnings = 0;
-	BGL_FORALL_VERTICES(one, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
+       range.first != range.second; range.first = range.second)
+      for (boost::graph_traits<SkeletonGraph>::vertex_descriptor one;
+           range.first != range.second ? (one = *range.first, true):false;
+           ++range.first)
 	{
-		BGL_FORALL_VERTICES(two, _g, SkeletonGraph)
+      for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
+          range.first != range.second; range.first = range.second)
+         for (boost::graph_traits<SkeletonGraph>::vertex_descriptor two;
+              range.first != range.second ? (two = *range.first, true):false;
+              ++range.first)
 		{
 			if (one == two)
 				continue;
@@ -370,7 +391,12 @@ void Skeleton::calcCloseVerticiesPenalty(const Settings& vars)
 bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 {
 
-   BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
+       range.first != range.second;
+       range.first = range.second)
+      for(boost::graph_traits<SkeletonGraph>::edge_descriptor edge;
+          range.first != range.second ? (edge = *range.first, true) : false;
+          ++range.first)
    {
       const Vertex &beg = boost::source(edge, _g);
       const Vertex &end = boost::target(edge, _g);
@@ -665,7 +691,12 @@ void Skeleton::_findMultiple(const Settings& vars)
          if (used[i])
             continue;
 
-         BGL_FORALL_EDGES(j, _g, SkeletonGraph)
+         for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
+             range.first != range.second;
+             range.first = range.second)
+            for(boost::graph_traits<SkeletonGraph>::edge_descriptor j;
+                range.first != range.second ? (j = *range.first, true) : false;
+                ++range.first)
          {
             if (i == j || boost::get(types, j).type != BT_SINGLE ||
                 used[j])
@@ -686,7 +717,12 @@ void Skeleton::_findMultiple(const Settings& vars)
 
                bool is_triple = false;
 
-               BGL_FORALL_EDGES(k, _g, SkeletonGraph)
+               for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
+                   range.first != range.second;
+                   range.first = range.second)
+                  for(boost::graph_traits<SkeletonGraph>::edge_descriptor k;
+                      range.first != range.second ? (k = *range.first, true) : false;
+                      ++range.first)
                {
 				   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
 
@@ -801,7 +837,12 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
 	   toSmallErr = vars.skeleton.BaseSmallErr;
    toSmallErr *= _avg_bond_length;
 
-	BGL_FORALL_EDGES(j, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
+       range.first != range.second;
+       range.first = range.second)
+      for(boost::graph_traits<SkeletonGraph>::edge_descriptor j;
+          range.first != range.second ? (j = *range.first, true) : false;
+          ++range.first)
 	{
 		if(getBondType(j) == BT_SINGLE)
 			singles.push_back(j);
@@ -967,7 +1008,11 @@ void Skeleton::_joinVertices(double eps)
    LPRINT(0, "joining vertices, eps = %lf", eps);
 #endif /* DEBUG */
 
-   BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
+       range.first != range.second; range.first = range.second)
+      for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
+           range.first != range.second ? (v = *range.first, true):false;
+           ++range.first)
    {
       Vec2d v_pos = pos[v];
       int v_nnei;
@@ -1073,7 +1118,12 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 	std::vector<double> kFactor;
 	std::vector<std::vector<Edge> > edge_groups_k;
 	//group all parallel edges by similar factors
-	BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
+       range.first != range.second;
+       range.first = range.second)
+      for(boost::graph_traits<SkeletonGraph>::edge_descriptor edge;
+          range.first != range.second ? (edge = *range.first, true) : false;
+          ++range.first)
 	{
 		Bond f = boost::get(boost::edge_type, _g, edge);
 		Vec2d p1 = getVertexPos(getBondBegin(edge));
@@ -1264,7 +1314,11 @@ void Skeleton::modifyGraph(Settings& vars)
 
    if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
    
-   BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
+       range.first != range.second; range.first = range.second)
+      for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
+           range.first != range.second ? (v = *range.first, true):false;
+           ++range.first)
    {
       if (boost::degree(v, _g) > 2)
       {
@@ -1321,7 +1375,12 @@ void Skeleton::modifyGraph(Settings& vars)
 
     //Shrinking short bonds (dots)
     std::vector<Edge> edgesToRemove;
-    BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
+       range.first != range.second;
+       range.first = range.second)
+      for(boost::graph_traits<SkeletonGraph>::edge_descriptor edge;
+          range.first != range.second ? (edge = *range.first, true) : false;
+          ++range.first)
     {
        const Vertex &beg = boost::source(edge, _g);
        const Vertex &end = boost::target(edge, _g);
@@ -1359,7 +1418,12 @@ void Skeleton::modifyGraph(Settings& vars)
 		   distTresh = _avg_bond_length/vars.skeleton.DistTreshLimFactor;
 
 	   std::vector<Skeleton::Edge> bad_edges;
-	   BGL_FORALL_EDGES(e, _g, SkeletonGraph)
+      for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
+          range.first != range.second;
+          range.first = range.second)
+         for(boost::graph_traits<SkeletonGraph>::edge_descriptor e;
+             range.first != range.second ? (e = *range.first, true) : false;
+             ++range.first)
 	   {
 		   const Skeleton::Vertex &beg = boost::source(e, _g);
 		   const Skeleton::Vertex &end = boost::target(e, _g);
@@ -1368,7 +1432,11 @@ void Skeleton::modifyGraph(Settings& vars)
 		   double d = Vec2d::distance(pos_beg, pos_end);
 		   if (d < distTresh)
 		   {
-			   BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
+            for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
+                range.first != range.second; range.first = range.second)
+               for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
+                    range.first != range.second ? (v = *range.first, true):false;
+                    ++range.first)
 			   {
 				   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
 
@@ -1409,7 +1477,12 @@ void Skeleton::modifyGraph(Settings& vars)
 
 	   vars.dynamic.AvgBondLength = _avg_bond_length;
    
-   BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
+       range.first != range.second;
+       range.first = range.second)
+      for(boost::graph_traits<SkeletonGraph>::edge_descriptor edge;
+          range.first != range.second ? (edge = *range.first, true) : false;
+          ++range.first)
    {
       const Vertex &beg = boost::source(edge, _g);
       const Vertex &end = boost::target(edge, _g);
@@ -1428,7 +1501,12 @@ void Skeleton::deleteBadTriangles( double eps )
    std::set<Edge> edges_to_delete;
    std::set<Vertex> vertices_to_delete;
    
-   BGL_FORALL_EDGES(edge, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
+       range.first != range.second;
+       range.first = range.second)
+      for(boost::graph_traits<SkeletonGraph>::edge_descriptor edge;
+          range.first != range.second ? (edge = *range.first, true) : false;
+          ++range.first)
    {
       if (edges_to_delete.find(edge) != edges_to_delete.end())
          continue;

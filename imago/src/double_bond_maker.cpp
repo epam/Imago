@@ -14,7 +14,6 @@
 
 #include <set>
 #include "boost/graph/adjacency_list.hpp"
-#include "boost/graph/iteration_macros.hpp"
 
 #include "double_bond_maker.h"
 #include "algebra.h"
@@ -46,12 +45,20 @@ void DoubleBondMaker::_disconnect( Vertex a, Vertex b, const Vertex *third )
    
    std::vector<Vertex> toDelete;
 
-   BGL_FORALL_ADJ(a, v, _g, Graph)
+   for(std::pair<boost::graph_traits<Graph>::adjacency_iterator, boost::graph_traits<Graph>::adjacency_iterator> range = adjacent_vertices(a, _g);
+       range.first != range.second; range.first = range.second)
+      for(boost::graph_traits<Graph>::vertex_descriptor v;
+          range.first != range.second? (v = *range.first, true) : false;
+          ++range.first)
    {
       if (third && v == *third)
          continue;
       
-      BGL_FORALL_ADJ(v, u, _g, Graph)
+      for(std::pair<boost::graph_traits<Graph>::adjacency_iterator, boost::graph_traits<Graph>::adjacency_iterator> range = adjacent_vertices(v, _g);
+          range.first != range.second; range.first = range.second)
+         for(boost::graph_traits<Graph>::vertex_descriptor u;
+             range.first != range.second? (u = *range.first, true) : false;
+             ++range.first)
       {
          if (u == a)
             continue;

@@ -12,8 +12,6 @@
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
 
-#include "boost/graph/iteration_macros.hpp"
-
 #include "algebra.h"
 #include "molecule.h"
 #include "skeleton.h"
@@ -139,7 +137,12 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 	     boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type
                               positions = boost::get(boost::vertex_pos, _g);
 
-      BGL_FORALL_EDGES(e, _g, SkeletonGraph)
+      for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
+          range.first != range.second;
+          range.first = range.second)
+         for(boost::graph_traits<SkeletonGraph>::edge_descriptor e;
+             range.first != range.second ? (e = *range.first, true) : false;
+             ++range.first)
       {
 		  if (vars.checkTimeLimit())
 			  throw ImagoException("Timelimit exceeded");
@@ -169,7 +172,11 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
             nearest.push_back(boost::target(e, _g));
 	  }
 
-	  BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
+      for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
+          range.first != range.second; range.first = range.second)
+         for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
+              range.first != range.second ? (v = *range.first, true):false;
+              ++range.first)
 	  {
 		  if(boost::degree(v, _g) != 2)
 			  continue;
@@ -286,7 +293,11 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
    //Removing dots without labels
    
 
-   BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
+   for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
+       range.first != range.second; range.first = range.second)
+      for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
+           range.first != range.second ? (v = *range.first, true):false;
+           ++range.first)
    {
       if (boost::degree(v, _g) == 0 && _mapping.find(v) == _mapping.end())
          deck.push_back(v);
@@ -305,7 +316,11 @@ void Molecule::aromatize( Points2d &aromatic_centers )
       Vertex begin_vertex = (Vertex)0; 
       double distance = DIST_INF;
   
-      BGL_FORALL_VERTICES(v, _g, SkeletonGraph)
+      for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
+          range.first != range.second; range.first = range.second)
+         for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
+              range.first != range.second ? (v = *range.first, true):false;
+              ++range.first)
       {
          double tmp = Vec2d::distance(arom_center, getVertexPos(v));
    
@@ -327,7 +342,11 @@ void Molecule::aromatize( Points2d &aromatic_centers )
       {         
          distance = DIST_INF;
 
-         BGL_FORALL_ADJ(cur_vertex, u, _g, SkeletonGraph)
+         for(std::pair<boost::graph_traits<SkeletonGraph>::adjacency_iterator, boost::graph_traits<SkeletonGraph>::adjacency_iterator> range = adjacent_vertices(cur_vertex, _g);
+             range.first != range.second; range.first = range.second)
+            for(boost::graph_traits<SkeletonGraph>::vertex_descriptor u;
+                range.first != range.second? (u = *range.first, true) : false;
+                ++range.first)
          {
             Vec2d bond_middle;
             bond_middle.middle(getVertexPos(cur_vertex), getVertexPos(u));

@@ -15,8 +15,6 @@
 #include <cmath>
 #include <utility>
 
-#include "boost/graph/iteration_macros.hpp"
-
 #include "exception.h"
 #include "image.h"
 #include "image_draw_utils.h"
