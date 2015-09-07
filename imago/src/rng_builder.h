@@ -16,7 +16,6 @@
 #ifndef _rng_builder_h
 #define _rng_builder_h
 
-#include "boost/property_map/property_map.hpp"
 #include "boost/graph/adjacency_list.hpp"
 
 #include "stl_fwd.h"
