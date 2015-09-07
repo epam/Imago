@@ -16,7 +16,6 @@
 #ifndef _euclidean_graph_h
 #define _euclidean_graph_h
 
-#include "boost/bind.hpp"
 #include "boost/graph/adjacency_list.hpp"
 
 #include "comdef.h"
@@ -48,7 +47,7 @@ namespace imago
       inline void add_segment_range( InputIterator begin, InputIterator end,
                                                           SegmentsGraph &g )
       {
-         std::for_each(begin, end, boost::bind(&add_segment, _1, boost::ref(g)));
+         std::for_each(begin, end, std::bind(&add_segment, std::placeholders::_1, boost::ref(g)));
       }
    }
 }
