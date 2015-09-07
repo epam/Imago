@@ -362,7 +362,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
 	}
 
 	vertIt = vert1;
-	boost::tie(b, e) = boost::adjacent_vertices(vert1, _g);
+	std::tie(b, e) = boost::adjacent_vertices(vert1, _g);
 	neighbours.assign(b, e);
 
 	// TODO: FIND appropriate vert2 for a clokcwise traversal 
@@ -387,7 +387,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
 			std::deque<Skeleton::Vertex> neighbours2;
 			std::deque<Skeleton::Vertex>::iterator vit2;
 			boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b2, e2;
-			boost::tie(b2, e2) = boost::adjacent_vertices(vert2, _g);
+			std::tie(b2, e2) = boost::adjacent_vertices(vert2, _g);
 			neighbours2.assign(b2, e2);
 
 			minIt = neighbours2.begin();

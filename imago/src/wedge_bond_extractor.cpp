@@ -506,7 +506,7 @@ int WedgeBondExtractor::getVertexValence(Skeleton::Vertex &v, Skeleton &mol)
 	std::deque<Skeleton::Vertex> neighbors;
 	boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b_e, e_e;
 				
-	boost::tie(b_e, e_e) = boost::adjacent_vertices(v, mol.getGraph());
+	std::tie(b_e, e_e) = boost::adjacent_vertices(v, mol.getGraph());
 	neighbors.assign(b_e, e_e);
 
 	int retVal = 0;
@@ -786,7 +786,7 @@ void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 
 			std::deque<Skeleton::Vertex> neighbors;
 			boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b_e, e_e;
-			boost::tie(b_e, e_e) = boost::adjacent_vertices(b_v, g);
+			std::tie(b_e, e_e) = boost::adjacent_vertices(b_v, g);
 			neighbors.assign(b_e, e_e);
 			
 			//check edges from beginning vertex
@@ -804,7 +804,7 @@ void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 			}
 
 			//check edges from ending vertex
-			boost::tie(b_e, e_e) = boost::adjacent_vertices(e_v, g);
+			std::tie(b_e, e_e) = boost::adjacent_vertices(e_v, g);
 			neighbors.assign(b_e, e_e);
 			for(size_t i = 0; i < neighbors.size(); i++)
 			{
@@ -864,7 +864,7 @@ void WedgeBondExtractor::fetchArrows(const Settings& vars, Skeleton &g )
 					v = e_v;
 				std::deque<Skeleton::Vertex> neighbors;
 				boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b_e, e_e;
-				boost::tie(b_e, e_e) = boost::adjacent_vertices(v, graph);
+				std::tie(b_e, e_e) = boost::adjacent_vertices(v, graph);
 				neighbors.assign(b_e, e_e);
 
 				for(size_t i = 0; i < neighbors.size(); i++)

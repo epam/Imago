@@ -185,7 +185,7 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 
 		  std::deque<Skeleton::Vertex> neighbors;
 		  boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b_e, e_e;
-		  boost::tie(b_e, e_e) = boost::adjacent_vertices(v, _g);
+		  std::tie(b_e, e_e) = boost::adjacent_vertices(v, _g);
 		  neighbors.assign(b_e, e_e);
 
 		  Skeleton::Edge edge1 = boost::edge(neighbors[0], v, _g).first;

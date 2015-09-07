@@ -411,7 +411,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 		 bool state_conected_b = false;
          std::deque<Vertex> neighbors_b;
          boost::graph_traits<SkeletonGraph>::adjacency_iterator b_b, e_b;
-         boost::tie(b_b, e_b) = boost::adjacent_vertices(beg, _g);
+         std::tie(b_b, e_b) = boost::adjacent_vertices(beg, _g);
          neighbors_b.assign(b_b, e_b);
 
 		 if(neighbors_b.size() > 1)
@@ -436,7 +436,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 		 bool state_conected_e = false;
          std::deque<Vertex> neighbors_e;
          boost::graph_traits<SkeletonGraph>::adjacency_iterator b_e, e_e;
-         boost::tie(b_e, e_e) = boost::adjacent_vertices(end, _g);
+         std::tie(b_e, e_e) = boost::adjacent_vertices(end, _g);
          neighbors_e.assign(b_e, e_e);
 		 if(neighbors_e.size() > 1)
 			 for (size_t i = 0; i < neighbors_e.size(); i++)
@@ -570,7 +570,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 bool Skeleton::_dissolveIntermediateVertices (const Settings& vars)
 {
    boost::graph_traits<SkeletonGraph>::vertex_iterator vi, vi_end;
-   boost::tie(vi, vi_end) = boost::vertices(_g);
+   std::tie(vi, vi_end) = boost::vertices(_g);
 
    Vertex to_dissolve;
    double min_err = 10000; // inf
@@ -583,7 +583,7 @@ bool Skeleton::_dissolveIntermediateVertices (const Settings& vars)
 
       std::deque<Vertex> neighbors;
       boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-      boost::tie(b, e) = boost::adjacent_vertices(vertex, _g);
+      std::tie(b, e) = boost::adjacent_vertices(vertex, _g);
       neighbors.assign(b, e);
 
       if (neighbors.size() != 2)
@@ -650,7 +650,7 @@ bool Skeleton::_dissolveIntermediateVertices (const Settings& vars)
 
       std::deque<Vertex> neighbors;
       boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-      boost::tie(b, e) = boost::adjacent_vertices(to_dissolve, _g);
+      std::tie(b, e) = boost::adjacent_vertices(to_dissolve, _g);
       neighbors.assign(b, e);
       addBond(neighbors[0], neighbors[1], BT_SINGLE);
       boost::clear_vertex(to_dissolve, _g); 
@@ -671,7 +671,7 @@ void Skeleton::_findMultiple(const Settings& vars)
    boost::property_map<SkeletonGraph, boost::edge_type_t>::type types =
       boost::get(boost::edge_type, _g);
    boost::graph_traits<SkeletonGraph>::edge_iterator ei, ei_e;
-   boost::tie(ei, ei_e) = boost::edges(_g);
+   std::tie(ei, ei_e) = boost::edges(_g);
    for (; ei != ei_e; ++ei)
       if (boost::get(types, *ei).type == BT_SINGLE)
          toProcess.push_back(*ei);
@@ -916,7 +916,7 @@ void Skeleton::_reconnectBonds( Vertex from, Vertex to )
 {
    std::deque<Vertex> neighbours;
    boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-   boost::tie(b, e) = boost::adjacent_vertices(from, _g);
+   std::tie(b, e) = boost::adjacent_vertices(from, _g);
    neighbours.assign(b, e);
 
    for (size_t i = 0; i < neighbours.size(); i++)
@@ -937,7 +937,7 @@ bool Skeleton::_checkMidBonds( Vertex from, Vertex to )
 {
    std::deque<Vertex> neighbours;
    boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-   boost::tie(b, e) = boost::adjacent_vertices(from, _g);
+   std::tie(b, e) = boost::adjacent_vertices(from, _g);
    neighbours.assign(b, e);
    bool ret = false;
 
@@ -958,7 +958,7 @@ void Skeleton::_reconnectBondsRWT( Vertex from, Vertex to, BondType new_t)
 {
    std::deque<Vertex> neighbours;
    boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-   boost::tie(b, e) = boost::adjacent_vertices(from, _g);
+   std::tie(b, e) = boost::adjacent_vertices(from, _g);
    neighbours.assign(b, e);
 
    for (size_t i = 0; i < neighbours.size(); i++)
@@ -978,7 +978,7 @@ double Skeleton::_avgEdgeLendth (const Vertex &v, int &nnei)
 {
    std::deque<Vertex> neighbors;
    boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-   boost::tie(b, e) = boost::adjacent_vertices(v, _g);
+   std::tie(b, e) = boost::adjacent_vertices(v, _g);
    neighbors.assign(b, e);
 
    nnei = (int)neighbors.size();
@@ -1516,8 +1516,8 @@ void Skeleton::deleteBadTriangles( double eps )
 
       boost::graph_traits<SkeletonGraph>::adjacency_iterator b1, e1, b2, e2;
       std::set<Vertex> intrsect, beg_neigh, end_neigh;
-      boost::tie(b1, e1) = boost::adjacent_vertices(beg, _g);
-      boost::tie(b2, e2) = boost::adjacent_vertices(end, _g);
+      std::tie(b1, e1) = boost::adjacent_vertices(beg, _g);
+      std::tie(b2, e2) = boost::adjacent_vertices(end, _g);
       beg_neigh.insert(b1, e1);
       end_neigh.insert(b2, e2);
       std::set_intersection(beg_neigh.begin(), beg_neigh.end(), end_neigh.begin(), end_neigh.end(), std::inserter(intrsect, intrsect.begin()));

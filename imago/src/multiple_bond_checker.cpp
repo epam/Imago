@@ -61,7 +61,7 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
    double ratio;
    if (bf.length > bs.length)
    {
-      boost::tie(p1, p2) = Algebra::segmentProjection(sb_pos, se_pos, fb_pos, fe_pos);
+      std::tie(p1, p2) = Algebra::segmentProjection(sb_pos, se_pos, fb_pos, fe_pos);
       m1.middle(p1, p2);
       m2.middle(sb_pos, se_pos);
 
@@ -73,7 +73,7 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
    }
    else
    {
-      boost::tie(p1, p2) = Algebra::segmentProjection(fb_pos, fe_pos, sb_pos, se_pos);
+      std::tie(p1, p2) = Algebra::segmentProjection(fb_pos, fe_pos, sb_pos, se_pos);
       m1.middle(p1, p2);
       m2.middle(fb_pos, fe_pos);
 
@@ -225,13 +225,13 @@ bool MultipleBondChecker::checkTriple(const Settings& vars, Edge thrd )
    Vec2d p1, p2;
    if (bf.length > bs.length)
    {
-      boost::tie(p1, p2) = Algebra::segmentProjection(sb_pos, se_pos, fb_pos, fe_pos);
+      std::tie(p1, p2) = Algebra::segmentProjection(sb_pos, se_pos, fb_pos, fe_pos);
       fm.middle(p1, p2);
       sm.middle(sb_pos, se_pos);
    }
    else
    {
-      boost::tie(p1, p2) = Algebra::segmentProjection(fb_pos, fe_pos, sb_pos, se_pos);
+      std::tie(p1, p2) = Algebra::segmentProjection(fb_pos, fe_pos, sb_pos, se_pos);
       sm.middle(p1, p2);
       fm.middle(fb_pos, fe_pos);
    }

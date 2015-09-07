@@ -89,8 +89,7 @@ namespace imago
                      bool isAdded;
                      typename boost::graph_traits<EuclideanGraph>::edge_descriptor e;
 
-                     boost::tie(e, isAdded) = 
-                     boost::add_edge(ind2vert[i], ind2vert[j], g);
+                     std::tie(e, isAdded) = boost::add_edge(ind2vert[i], ind2vert[j], g);
 
                      if (!isAdded)
 					 {

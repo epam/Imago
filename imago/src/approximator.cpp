@@ -57,7 +57,7 @@ void DPApproximator::_apply_int( double eps, const Points2d &input, Points2d &ou
    
    while (stack.size() > 0)
    {
-      boost::tie(l, r) = stack.back();
+      std::tie(l, r) = stack.back();
       stack.pop_back();
 
       const Vec2d &lp = input[l], &rp = input[r];

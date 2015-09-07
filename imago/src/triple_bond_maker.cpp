@@ -33,7 +33,7 @@ TripleBondMaker::Result TripleBondMaker::_validateVertices()
 {
    std::set<Vertex> vertices;
    boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
-   boost::tie(vi, vi_end) = boost::vertices(_g);
+   std::tie(vi, vi_end) = boost::vertices(_g);
    vertices.insert(vi, vi_end);
    std::set<Vertex>::iterator it_end = vertices.end();
    bool firstValid, secondValid, thirdValid;
@@ -110,7 +110,7 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
    Vec2d p1, p2;
    double l1, l2;
 
-   boost::tie(p1, p2) = Algebra::segmentProjection(sb_pos, se_pos,
+   std::tie(p1, p2) = Algebra::segmentProjection(sb_pos, se_pos,
                                                    fb_pos, fe_pos);
 
    l1 = Vec2d::distance(fb_pos, p1);

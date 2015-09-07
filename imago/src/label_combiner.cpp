@@ -64,7 +64,7 @@ void LabelCombiner::_locateLabels(const Settings& vars)
    
    VertexPosMap::type positions = get(boost::vertex_pos, seg_graph);
    SegmentsGraph::edge_iterator ei, ei_end, next;
-   boost::tie(ei, ei_end) = boost::edges(seg_graph);
+   std::tie(ei, ei_end) = boost::edges(seg_graph);
 
    double distance_constraint = vars.dynamic.CapitalHeight * vars.lcomb.MaximalDistanceFactor;
    double distance_constraint_y = vars.dynamic.CapitalHeight * vars.lcomb.MaximalYDistanceFactor;

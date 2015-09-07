@@ -39,7 +39,7 @@ void DoubleBondMaker::_disconnect( Vertex a, Vertex b, const Vertex *third )
    bool exists;
    Edge e;
    
-   boost::tie(e, exists) = edge(a, b, _g);
+   std::tie(e, exists) = edge(a, b, _g);
    if (exists)
       boost::remove_edge(e, _g);
    
@@ -145,7 +145,7 @@ DoubleBondMaker::Result DoubleBondMaker::_hard()
       return std::make_tuple(0, empty, empty);
    
    Vec2d p1, p2;
-   boost::tie(p1, p2) = Algebra::segmentProjection(sb_pos, se_pos, fb_pos, fe_pos);
+   std::tie(p1, p2) = Algebra::segmentProjection(sb_pos, se_pos, fb_pos, fe_pos);
 
    double l1 = Vec2d::distance(fb_pos, p1), l2 = Vec2d::distance(fe_pos, p2);
 
@@ -261,7 +261,7 @@ DoubleBondMaker::Result DoubleBondMaker::_validateVertices()
 {
    std::set<Vertex> vertices;
    boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
-   boost::tie(vi, vi_end) = boost::vertices(_g);
+   std::tie(vi, vi_end) = boost::vertices(_g);
    vertices.insert(vi, vi_end);
    std::set<Vertex>::iterator it_end = vertices.end();
    bool firstValid, secondValid;
