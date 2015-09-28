@@ -23,7 +23,7 @@
 using namespace imago;
 
 void Segmentator::_walkSegment( const Image &img, BitArray &visited,
-                                Segment *segment, int windowSize, byte validColor )
+                                Segment *segment, int windowSize, unsigned char validColor )
 {
    IntDeque q;
    IntDeque segment_elements;  

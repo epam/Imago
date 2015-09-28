@@ -61,12 +61,11 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 {
 	logEnterFunction();
 
-   const Skeleton::SkeletonGraph &graph = _mol->getSkeleton();
+   /*const*/ Skeleton::SkeletonGraph &graph = const_cast<Skeleton::SkeletonGraph&>(_mol->getSkeleton());
    const Molecule::ChemMapping &labels = _mol->getMappedLabels();
    std::map<Skeleton::Vertex, int> mapping;
    _out.writeStringCR("M  V30 BEGIN CTAB");
-   _out.printf("M  V30 COUNTS %d %d 0 0 0\n", boost::num_vertices(graph), 
-      boost::num_edges(graph));
+   _out.printf("M  V30 COUNTS %d %d 0 0 0\n", graph.vertexCount(), graph.edgeCount());
    _out.writeStringCR("M  V30 BEGIN ATOM");
 
    int i = 1, j;
@@ -75,11 +74,11 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 
    bond_length = vars.dynamic.AvgBondLength;
 
-   for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::vertex_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::vertex_iterator> range = vertices(graph);
-       range.first != range.second; range.first = range.second)
-      for (boost::graph_traits<Skeleton::SkeletonGraph>::vertex_descriptor v;
-           range.first != range.second ? (v = *range.first, true):false;
-           ++range.first)
+   for(Skeleton::SkeletonGraph::vertex_iterator begin = graph.vertexBegin(), end = graph.vertexEnd();
+       begin != end; begin = end)
+      for (Skeleton::SkeletonGraph::vertex_descriptor v;
+           begin != end ? (v = *begin, true):false;
+           ++begin)
    {
       _out.printf("M  V30 %d ", i);
       mapping[v] = i;
@@ -158,7 +157,7 @@ void MolfileSaver::_writeCtab(const Settings& vars)
          }
       }
 
-      Vec2d vert_pos = boost::get(boost::vertex_pos, graph, v);
+      Vec2d vert_pos = graph.getVertexPosition(v);
 
       if (!satom)
          _out.printf(" %lf %lf 0 0", vert_pos.x / bond_length, -vert_pos.y / bond_length);
@@ -189,20 +188,20 @@ void MolfileSaver::_writeCtab(const Settings& vars)
    _out.writeStringCR("M  V30 BEGIN BOND");
 
    j = 1;
-   for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator> range = edges(graph);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<Skeleton::SkeletonGraph>::edge_descriptor e;
-          range.first != range.second ? (e = *range.first, true) : false;
-          ++range.first)
+   for(Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd();
+       begin != end;
+       begin = end)
+      for(Skeleton::SkeletonGraph::edge_descriptor e;
+          begin != end ? (e = *begin, true) : false;
+          ++begin)
    {
       int type;
-      const Bond bond = boost::get(boost::edge_type, graph, e);
+      const Bond bond = graph.getEdgeBond(e);
 
       type = bond.type;
 
-      int begin = mapping.find(boost::source(e, graph))->second,
-          end = mapping.find(boost::target(e, graph))->second;
+      int begin = mapping.find(e.m_source)->second,
+          end = mapping.find(e.m_target)->second;
 
       if (type == BT_SINGLE_DOWN || type == BT_SINGLE_UP)
          _out.printf("M  V30 %d %d %d %d", j++, BT_SINGLE, begin, end);

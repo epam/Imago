@@ -134,15 +134,12 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 	  space = l.MaxSymbolWidth() * vars.molecule.SpaceMultiply;
 	  space2 = l.rect.width < l.rect.height ? l.rect.width : l.rect.height;
 	   
-	     boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type
-                              positions = boost::get(boost::vertex_pos, _g);
-
-      for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
-          range.first != range.second;
-          range.first = range.second)
-         for(boost::graph_traits<SkeletonGraph>::edge_descriptor e;
-             range.first != range.second ? (e = *range.first, true) : false;
-             ++range.first)
+      for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
+          begin != end;
+          begin = end)
+         for(SkeletonGraph::edge_descriptor e;
+             begin != end ? (e = *begin, true) : false;
+             ++begin)
       {
 		  if (vars.checkTimeLimit())
 			  throw ImagoException("Timelimit exceeded");
@@ -150,55 +147,54 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
          double d1, d2;
          d1 = d2 = DIST_INF;
 
-		 if(boost::degree(boost::source(e, _g), _g) > 1 &&
-			 boost::degree(boost::target(e, _g), _g) > 1)
+		 if(_g.getDegree(e.m_source) > 1 &&
+			 _g.getDegree(e.m_target) > 1)
 			 continue;
 
-		 if (boost::degree(boost::source(e, _g), _g) == 1)
-            d1 = Algebra::distance2rect(boost::get(positions,
-                                                 boost::source(e, _g)), l.rect);
+		 if (_g.getDegree(e.m_source) == 1)
+            d1 = Algebra::distance2rect(_g.getVertexPosition(e.m_source), l.rect);
 
-         if (boost::degree(boost::target(e, _g), _g) == 1)
-            d2 = Algebra::distance2rect(boost::get(positions,
-                                                 boost::target(e, _g)), l.rect);
+         if (_g.getDegree(e.m_target) == 1)
+            d2 = Algebra::distance2rect(_g.getVertexPosition(e.m_target), l.rect);
 
-		 if (d1 <= d2 && ((testCollision(boost::get(positions, boost::target(e, _g)), boost::get(positions, boost::source(e, _g)), l.rect) &&
-			 testNear(boost::get(positions, boost::source(e, _g)), l.rect, space)) ||
-			 testNear(boost::get(positions, boost::source(e, _g)), l.rect, space2/2)))
-            nearest.push_back(boost::source(e, _g));
-         else if (d2 < d1 && ((testCollision(boost::get(positions, boost::source(e, _g)), boost::get(positions, boost::target(e, _g)), l.rect) &&
-			 testNear(boost::get(positions, boost::target(e, _g)), l.rect, space)) ||
-			 testNear(boost::get(positions, boost::target(e, _g)), l.rect, space2/2)))
-            nearest.push_back(boost::target(e, _g));
+		 if (d1 <= d2 && ((testCollision(_g.getVertexPosition(e.m_target), _g.getVertexPosition(e.m_source), l.rect) &&
+			 testNear(_g.getVertexPosition(e.m_source), l.rect, space)) ||
+			 testNear(_g.getVertexPosition(e.m_source), l.rect, space2/2)))
+            nearest.push_back(e.m_source);
+         else if (d2 < d1 && ((testCollision(_g.getVertexPosition(e.m_source), _g.getVertexPosition(e.m_target), l.rect) &&
+			 testNear(_g.getVertexPosition(e.m_target), l.rect, space)) ||
+			 testNear(_g.getVertexPosition(e.m_target), l.rect, space2/2)))
+            nearest.push_back(e.m_target);
 	  }
 
-      for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
-          range.first != range.second; range.first = range.second)
-         for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
-              range.first != range.second ? (v = *range.first, true):false;
-              ++range.first)
+      for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
+          begin != end; begin = end)
+         for (SkeletonGraph::vertex_descriptor v;
+              begin != end ? (v = *begin, true):false;
+              ++begin)
 	  {
-		  if(boost::degree(v, _g) != 2)
+		  if(_g.getDegree(v) != 2)
 			  continue;
-		  if(!testNear(boost::get(positions, v), l.rect, space2/2))
+		  if(!testNear(_g.getVertexPosition( v), l.rect, space2/2))
 			  continue;
 
 		  std::deque<Skeleton::Vertex> neighbors;
-		  boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b_e, e_e;
-		  std::tie(b_e, e_e) = boost::adjacent_vertices(v, _g);
+		  Skeleton::SkeletonGraph::adjacency_iterator b_e, e_e;
+		  b_e = _g.adjacencyBegin(v);
+		  e_e = _g.adjacencyEnd(v);
 		  neighbors.assign(b_e, e_e);
 
-		  Skeleton::Edge edge1 = boost::edge(neighbors[0], v, _g).first;
-		  Skeleton::Edge edge2 = boost::edge(neighbors[1], v, _g).first;
+		  Skeleton::Edge edge1 = _g.getEdge(neighbors[0], v).first;
+		  Skeleton::Edge edge2 = _g.getEdge(neighbors[1], v).first;
 		  BondType t1 = getBondType(edge1);
 		  BondType t2 = getBondType(edge2);
 
 		  if( t1 != BT_SINGLE || t2 != BT_SINGLE)
 			  continue;
 
-		  Vec2d p_v = boost::get(positions, v);
-		  Vec2d p1 = boost::get(positions, neighbors[0]);
-		  Vec2d p2 = boost::get(positions, neighbors[1]);
+		  Vec2d p_v = _g.getVertexPosition(v);
+		  Vec2d p1 = _g.getVertexPosition(neighbors[0]);
+		  Vec2d p2 = _g.getVertexPosition(neighbors[1]);
 
 		  Vec2d ap1, ap2;
 		  ap1.diff(p1, p_v);
@@ -243,15 +239,15 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
             Skeleton::Vertex c, d;
             a = nearest[j];
             b = nearest[k];
-            c = *boost::adjacent_vertices(a, _g).first;
-            d = *boost::adjacent_vertices(b, _g).first;
+            c = *_g.adjacencyBegin(a);
+            d = *_g.adjacencyBegin(b);
 
             Vec2d n1, n2;
             Vec2d v_a, v_b, v_c, v_d;
-            v_a = boost::get(positions, a);
-            v_b = boost::get(positions, b);
-            v_c = boost::get(positions, c);
-            v_d = boost::get(positions, d);
+            v_a = _g.getVertexPosition(a);
+            v_b = _g.getVertexPosition(b);
+            v_c = _g.getVertexPosition(c);
+            v_d = _g.getVertexPosition(d);
             n1.diff(v_a, v_c);
             n2.diff(v_b, v_d);
 
@@ -277,12 +273,12 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
       for (int j = 0; j < s; j++)
       {
          Vertex e = nearest[j];
-         Vertex b = *boost::adjacent_vertices(e, _g).first;
-         Edge bond = boost::edge(e, b, _g).first;
-         BondType t = boost::get(boost::edge_type, _g, bond).type;
+         Vertex b = *_g.adjacencyBegin(e);
+         Edge bond = _g.getEdge(e, b).first;
+         BondType t = _g.getEdgeBond(bond).type;
 
-         boost::remove_edge(bond, _g);
-         boost::remove_vertex(e, _g);
+         _g.removeEdge(bond);
+         _g.removeVertex(e);
          addBond(b, newVertex, t);
       }
       _mapping[newVertex] = &l;
@@ -293,20 +289,20 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
    //Removing dots without labels
    
 
-   for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
-       range.first != range.second; range.first = range.second)
-      for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
-           range.first != range.second ? (v = *range.first, true):false;
-           ++range.first)
+   for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
+       begin != end; begin = end)
+      for (SkeletonGraph::vertex_descriptor v;
+           begin != end ? (v = *begin, true):false;
+           ++begin)
    {
-      if (boost::degree(v, _g) == 0 && _mapping.find(v) == _mapping.end())
+      if (_g.getDegree(v) == 0 && _mapping.find(v) == _mapping.end())
          deck.push_back(v);
    }
    
 
 
    for(Skeleton::Vertex v: deck)
-      boost::remove_vertex(v, _g);
+      _g.removeVertex(v);
 }
 
 void Molecule::aromatize( Points2d &aromatic_centers )
@@ -316,11 +312,11 @@ void Molecule::aromatize( Points2d &aromatic_centers )
       Vertex begin_vertex = (Vertex)0; 
       double distance = DIST_INF;
   
-      for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
-          range.first != range.second; range.first = range.second)
-         for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
-              range.first != range.second ? (v = *range.first, true):false;
-              ++range.first)
+      for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
+          begin != end; begin = end)
+         for (SkeletonGraph::vertex_descriptor v;
+              begin != end ? (v = *begin, true):false;
+              ++begin)
       {
          double tmp = Vec2d::distance(arom_center, getVertexPos(v));
    
@@ -342,11 +338,11 @@ void Molecule::aromatize( Points2d &aromatic_centers )
       {         
          distance = DIST_INF;
 
-         for(std::pair<boost::graph_traits<SkeletonGraph>::adjacency_iterator, boost::graph_traits<SkeletonGraph>::adjacency_iterator> range = adjacent_vertices(cur_vertex, _g);
-             range.first != range.second; range.first = range.second)
-            for(boost::graph_traits<SkeletonGraph>::vertex_descriptor u;
-                range.first != range.second? (u = *range.first, true) : false;
-                ++range.first)
+         for(SkeletonGraph::adjacency_iterator begin = _g.adjacencyBegin(cur_vertex), end = _g.adjacencyEnd(cur_vertex);
+             begin != end; begin = end)
+            for(SkeletonGraph::vertex_descriptor u;
+                begin != end? (u = *begin, true) : false;
+                ++begin)
          {
             Vec2d bond_middle;
             bond_middle.middle(getVertexPos(cur_vertex), getVertexPos(u));
@@ -365,7 +361,7 @@ void Molecule::aromatize( Points2d &aromatic_centers )
          if (next_vertex == cur_vertex || next_vertex == (Vertex)NULL)
             break;
 
-         std::pair<Edge, bool> p = boost::edge(cur_vertex, next_vertex, _g);
+         std::pair<Edge, bool> p = _g.getEdge(cur_vertex, next_vertex);
 
          if (p.second)
             aromatized_bonds.push_back(p.first);

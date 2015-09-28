@@ -16,8 +16,6 @@
 #ifndef _image_draw_utils_h
 #define _image_draw_utils_h
 
-#include "boost/graph/adjacency_list.hpp"
-
 #include "comdef.h"
 #include "vec2d.h"
 
@@ -37,28 +35,24 @@ namespace imago
         static void putCircle( int cx, int cy, int r, byte color, void *userdata, bool (*plot)( int x, int y, int color, void *userdata ) );
 
         template <class EuclideanGraph>
-        static void putGraph( Image &img, const EuclideanGraph &g )
+        static void putGraph( Image &img, const EuclideanGraph &cg )
         {
-           typename boost::property_map<EuclideanGraph,
-                                        boost::vertex_pos_t>::const_type
-                              positions = boost::get(boost::vertex_pos, g);
-           for(std::pair<typename boost::graph_traits<EuclideanGraph>::vertex_iterator, typename boost::graph_traits<EuclideanGraph>::vertex_iterator> range = vertices(g);
-               range.first != range.second; range.first = range.second)
-              for(typename boost::graph_traits<EuclideanGraph>::vertex_descriptor v;
-                  range.first != range.second ? (v = *range.first, true):false;
-                  ++range.first)
+           EuclideanGraph &g = const_cast<EuclideanGraph&>(cg);
+           for(EuclideanGraph::vertex_iterator begin = g.vertexBegin(), end = g.vertexEnd(); begin != end; begin = end)
+              for(typename EuclideanGraph::vertex_descriptor v;
+                  begin != end ? (v = *begin, true):false;
+                  ++begin)
            {
-              Vec2d pos = positions[v];
+              Vec2d pos = g.getVertexPosition(v);
               ImageDrawUtils::putCircle(img, round(pos.x), round(pos.y), 4, 100);
            }
-           for(std::pair<typename boost::graph_traits<EuclideanGraph>::edge_iterator, typename boost::graph_traits<EuclideanGraph>::edge_iterator> range = edges(g);
-               range.first != range.second; range.first = range.second)
-              for(typename boost::graph_traits<EuclideanGraph>::edge_descriptor e;
-                  range.first != range.second ? (e = *range.first, true):false;
-                  ++range.first)
+           for(auto begin = g.edgeBegin(), end = g.edgeEnd(); begin != end; begin = end)
+              for(typename EuclideanGraph::edge_descriptor e;
+                  begin != end ? (e = *begin, true):false;
+                  ++begin)
            {
-              Vec2d b_pos = positions[boost::source(e, g)],
-                    e_pos = positions[boost::target(e, g)];
+              Vec2d b_pos = g.getVertexPosition(e.m_source),
+                    e_pos = g.getVertexPosition(e.m_target);
               ImageDrawUtils::putLineSegment(img, b_pos, e_pos, 100);
            }
         }

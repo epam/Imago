@@ -13,7 +13,6 @@
  ***************************************************************************/
 
 #include <set>
-#include "boost/graph/adjacency_list.hpp"
 
 #include "double_bond_maker.h"
 #include "algebra.h"
@@ -39,26 +38,26 @@ void DoubleBondMaker::_disconnect( Vertex a, Vertex b, const Vertex *third )
    bool exists;
    Edge e;
    
-   std::tie(e, exists) = edge(a, b, _g);
+   std::tie(e, exists) = _g.getEdge(a, b);
    if (exists)
-      boost::remove_edge(e, _g);
+      _g.removeEdge(e);
    
    std::vector<Vertex> toDelete;
 
-   for(std::pair<boost::graph_traits<Graph>::adjacency_iterator, boost::graph_traits<Graph>::adjacency_iterator> range = adjacent_vertices(a, _g);
-       range.first != range.second; range.first = range.second)
-      for(boost::graph_traits<Graph>::vertex_descriptor v;
-          range.first != range.second? (v = *range.first, true) : false;
-          ++range.first)
+   for(Graph::adjacency_iterator begin = _g.adjacencyBegin(a), end = _g.adjacencyEnd(a);
+       begin != end; begin = end)
+      for(Graph::vertex_descriptor v;
+          begin != end? (v = *begin, true) : false;
+          ++begin)
    {
       if (third && v == *third)
          continue;
       
-      for(std::pair<boost::graph_traits<Graph>::adjacency_iterator, boost::graph_traits<Graph>::adjacency_iterator> range = adjacent_vertices(v, _g);
-          range.first != range.second; range.first = range.second)
-         for(boost::graph_traits<Graph>::vertex_descriptor u;
-             range.first != range.second? (u = *range.first, true) : false;
-             ++range.first)
+      for(Graph::adjacency_iterator begin = _g.adjacencyBegin(v), end = _g.adjacencyEnd(v);
+          begin != end; begin = end)
+         for(Graph::vertex_descriptor u;
+             begin != end? (u = *begin, true) : false;
+             ++begin)
       {
          if (u == a)
             continue;
@@ -74,30 +73,30 @@ void DoubleBondMaker::_disconnect( Vertex a, Vertex b, const Vertex *third )
    for (std::vector<Vertex>::iterator it = toDelete.begin();
         it != toDelete.end(); ++it)
    {
-      boost::remove_edge(boost::edge(a, *it, _g).first, _g);
-      boost::remove_edge(boost::edge(*it, b, _g).first, _g);
-      if (boost::degree(*it, _g) == 0)
-         boost::remove_vertex(*it, _g);
+      _g.removeEdge(_g.getEdge(a, *it).first);
+      _g.removeEdge(_g.getEdge(*it, b).first);
+      if (_g.getDegree(*it) == 0)
+         _g.removeVertex(*it);
    }
 }
 
 DoubleBondMaker::Result DoubleBondMaker::_simple()
 {
-   size_t dfb = boost::degree(fb, _g), dfe = boost::degree(fe, _g),
-       dsb = boost::degree(sb, _g), dse = boost::degree(se, _g);
+   size_t dfb = _g.getDegree(fb), dfe = _g.getDegree(fe),
+       dsb = _g.getDegree(sb), dse = _g.getDegree(se);
 
    if ((dfb > 1 || dfe > 1) && dsb == 1 && dse == 1)
    {
-      boost::remove_edge(second, _g);
-      boost::remove_vertex(sb, _g);
-      boost::remove_vertex(se, _g);
+      _g.removeEdge(second);
+      _g.removeVertex(sb);
+      _g.removeVertex(se);
       _s.setBondType(first, BT_DOUBLE);
    }
    else if ((dsb > 1 || dse > 1) && dfb == 1 && dfe == 1)
    {
-      boost::remove_edge(first, _g);
-      boost::remove_vertex(fb, _g);
-      boost::remove_vertex(fe, _g);
+      _g.removeEdge(first);
+      _g.removeVertex(fb);
+      _g.removeVertex(fe);
       _s.setBondType(second, BT_DOUBLE);
    }
    else
@@ -106,8 +105,8 @@ DoubleBondMaker::Result DoubleBondMaker::_simple()
       p1.middle(fb_pos, sb_pos);
       p2.middle(fe_pos, se_pos);
 
-      boost::remove_edge(first, _g);
-      boost::remove_edge(second, _g);
+      _g.removeEdge(first);
+      _g.removeEdge(second);
 
       Vertex nb = _s.addVertex(p1),
              ne = _s.addVertex(p2);
@@ -118,18 +117,18 @@ DoubleBondMaker::Result DoubleBondMaker::_simple()
       _s._reconnectBonds(se, ne);
       std::set<Vertex> toRemove;
 
-      if (boost::degree(fb, _g) == 0)
+      if (_g.getDegree(fb) == 0)
          toRemove.insert(fb);
-      if (boost::degree(sb, _g) == 0)
+      if (_g.getDegree(sb) == 0)
          toRemove.insert(sb);
-      if (boost::degree(fe, _g) == 0)
+      if (_g.getDegree(fe) == 0)
          toRemove.insert(fe);
-      if (boost::degree(se, _g) == 0)
+      if (_g.getDegree(se) == 0)
          toRemove.insert(se);
 
       for(Vertex v: toRemove)
       {
-         boost::remove_vertex(v, _g);
+         _g.removeVertex(v);
       }
 
 	  _s.addBond(nb, ne, BT_DOUBLE);
@@ -141,7 +140,7 @@ DoubleBondMaker::Result DoubleBondMaker::_simple()
 DoubleBondMaker::Result DoubleBondMaker::_hard()
 {
    //Not really true
-   if (boost::degree(sb, _g) + boost::degree(se, _g) != 2)
+   if (_g.getDegree(sb) + _g.getDegree(se) != 2)
       return std::make_tuple(0, empty, empty);
    
    Vec2d p1, p2;
@@ -149,12 +148,12 @@ DoubleBondMaker::Result DoubleBondMaker::_hard()
 
    double l1 = Vec2d::distance(fb_pos, p1), l2 = Vec2d::distance(fe_pos, p2);
 
-   boost::remove_edge(first, _g);
-   boost::remove_edge(second, _g);
+   _g.removeEdge(first);
+   _g.removeEdge(second);
    if (fb != sb)
-      boost::remove_vertex(sb, _g);
+      _g.removeVertex(sb);
    if (fe != se)
-      boost::remove_vertex(se, _g);
+      _g.removeVertex(se);
 
    bool left = l1 > vars.mbond.DoubleLeftLengthTresh * _avgBondLength;
    bool right = l2 > vars.mbond.DoubleRightLengthTresh * _avgBondLength;
@@ -191,25 +190,25 @@ DoubleBondMaker::Result DoubleBondMaker::operator()( std::pair<Edge,Edge> edges 
 {
    first = edges.first; second = edges.second;
 
-   fb = source(first, _g); fe = target(first, _g);
-   sb = source(second, _g), se = target(second, _g);
+   fb = first.m_source; fe = first.m_target;
+   sb = second.m_source, se = second.m_target;
 
    Result ret;
    ret = _validateVertices();
    if (std::get<0>(ret) != 2) //Both edges should be valid
       return ret;
    
-   if (!boost::edge(fb, fe, _g).second ||
-       !boost::edge(sb, se, _g).second)
+   if (!_g.getEdge(fb, fe).second ||
+       !_g.getEdge(sb, se).second)
       return std::make_tuple(0, empty, empty);
 
-   fb_pos = boost::get(boost::vertex_pos, _g, fb);
-   fe_pos = boost::get(boost::vertex_pos, _g, fe);
-   sb_pos = boost::get(boost::vertex_pos, _g, sb);
-   se_pos = boost::get(boost::vertex_pos, _g, se);
+   fb_pos = _g.getVertexPosition(fb);
+   fe_pos = _g.getVertexPosition(fe);
+   sb_pos = _g.getVertexPosition(sb);
+   se_pos = _g.getVertexPosition(se);
 
-   bf = boost::get(boost::edge_type, _g, first);
-   bs = boost::get(boost::edge_type, _g, second);
+   bf = _g.getEdgeBond(first);
+   bs = _g.getEdgeBond(second);
 
    double dbb = Vec2d::distance(fb_pos, sb_pos) + Vec2d::distance(fe_pos, se_pos),
       dbe = Vec2d::distance(fb_pos, se_pos) + Vec2d::distance(fe_pos, sb_pos);
@@ -220,8 +219,8 @@ DoubleBondMaker::Result DoubleBondMaker::operator()( std::pair<Edge,Edge> edges 
       std::swap(sb_pos, se_pos);
    }
 
-   if (boost::degree(fb, _g) < boost::degree(fe, _g) &&
-       boost::degree(sb, _g) < boost::degree(se, _g))
+   if (_g.getDegree(fb) < _g.getDegree(fe) &&
+       _g.getDegree(sb) < _g.getDegree(se))
    {
       std::swap(fb, fe);
       std::swap(fb_pos, fe_pos);
@@ -260,8 +259,9 @@ DoubleBondMaker::Result DoubleBondMaker::operator()( std::pair<Edge,Edge> edges 
 DoubleBondMaker::Result DoubleBondMaker::_validateVertices()
 {
    std::set<Vertex> vertices;
-   boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
-   std::tie(vi, vi_end) = boost::vertices(_g);
+   Graph::vertex_iterator vi, vi_end;
+   vi = _g.vertexBegin();
+   vi_end = _g.vertexEnd();
    vertices.insert(vi, vi_end);
    std::set<Vertex>::iterator it_end = vertices.end();
    bool firstValid, secondValid;

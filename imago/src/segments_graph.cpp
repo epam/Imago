@@ -18,16 +18,13 @@ namespace imago
 {
    namespace segments_graph
    {
-      Vertex add_segment( Segment *seg, SegmentsGraph &g )
+      void add_segment( Segment *seg, SegmentsGraph &g )
       {
          Vec2d pos = seg->getCenter();
 
-         Vertex v = add_vertex(g);
-         VertexPosMap::type positions = boost::get(boost::vertex_pos, g);
-         VertexSegMap::type segments = boost::get(boost::vertex_seg_ptr, g);
-         positions[v] = pos;
-         segments[v] = seg;
-         return v;
+         SegmentsGraph::vertex_descriptor v = g.addVertex();
+         g.setVertexPosition(v, pos);
+         g.setVertexSegment(v, seg);
       }
    }
 }

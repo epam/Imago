@@ -14,7 +14,6 @@
 
 #include <cmath>
 #include <set>
-#include "boost/graph/graph_traits.hpp"
 
 #include "comdef.h"
 #include "algebra.h"
@@ -52,7 +51,7 @@ void Skeleton::setInitialAvgBondLength(Settings& vars, double avg_length )
 
 void Skeleton::recalcAvgBondLength()
 {
-   size_t bonds_num = num_edges(_g);
+   size_t bonds_num = _g.edgeCount();
 
    if (bonds_num == 0)
       return;
@@ -60,14 +59,14 @@ void Skeleton::recalcAvgBondLength()
    _avg_bond_length = 0;
    _min_bond_length = DIST_INF;
 
-   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<SkeletonGraph>::edge_descriptor e;
-          range.first != range.second ? (e = *range.first, true) : false;
-          ++range.first)
+   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
+       begin != end;
+       begin = end)
+      for(SkeletonGraph::edge_descriptor e;
+          begin != end ? (e = *begin, true) : false;
+          ++begin)
    {
-      double len = (boost::get(boost::edge_type, _g, e)).length;
+      double len = _g.getEdgeBond(e).length;
       _avg_bond_length += len;
       if (_min_bond_length > len)
          _min_bond_length = len;
@@ -80,7 +79,7 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type, bool th
 {
    std::pair<Edge, bool> p;
 
-   p = boost::edge(v1, v2, _g);
+   p = _g.getEdge(v1, v2);
    if (p.second)
    {
 	   // Graph already has the edge
@@ -98,10 +97,10 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type, bool th
 	   }
    }
 
-   p = boost::add_edge(v1, v2, _g);
+   p = _g.addEdge(v1, v2);
 
-   Vec2d begin = boost::get(boost::vertex_pos, _g, v1),
-         end = boost::get(boost::vertex_pos, _g, v2);
+   Vec2d begin = _g.getVertexPosition(v1),
+         end = _g.getVertexPosition(v2);
 
    if (!p.second)
    {
@@ -127,7 +126,7 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type, bool th
 
    Bond b(Vec2d::distance(begin, end), k, type);
 
-   boost::put(boost::edge_type, _g, e, b);
+   _g.setEdgeBond(e, b);
 
    return e;
 }
@@ -142,51 +141,51 @@ Skeleton::Edge Skeleton::addBond( const Vec2d &begin, const Vec2d &end,
 
 void Skeleton::removeBond( Vertex &v1, Vertex &v2 )
 {
-   boost::remove_edge(v1, v2, _g);
+   _g.removeEdge(v1, v2);
 }
 
 void Skeleton::removeBond( Edge &e )
 {
-   boost::remove_edge(e, _g);
+   _g.removeEdge(e);
 }
 
 Skeleton::Vertex Skeleton::addVertex( const Vec2d &pos )
 {
-   Vertex v = boost::add_vertex(_g);
+   Vertex v = _g.addVertex();
 
-   boost::put(boost::vertex_pos, _g, v, pos);
+   _g.setVertexPosition(v, pos);
 
    return v;
 }
 
 Vec2d Skeleton::getVertexPos( const Vertex &v1 ) const
 {
-   return boost::get(boost::vertex_pos, _g, v1);
+   return _g.getVertexPosition(v1);
 }
 
 int Skeleton::getVerticesCount() const
 {
-   return (int)boost::num_vertices(_g);
+   return (int)_g.vertexCount();
 }
 
 int Skeleton::getEdgesCount() const
 {
-   return (int)boost::num_edges(_g);
+   return (int)_g.edgeCount();
 }
 
 Bond Skeleton::getBondInfo( const Edge &e ) const
 {
-   return boost::get(boost::edge_type, _g, e);
+   return _g.getEdgeBond(e);
 }
 
 Skeleton::Vertex Skeleton::getBondBegin( const Skeleton::Edge &e ) const
 {
-   return boost::source(e, _g);
+   return e.m_source;
 }
 
 Skeleton::Vertex Skeleton::getBondEnd( const Skeleton::Edge &e ) const
 {
-   return boost::target(e, _g);
+   return e.m_target;
 }
 
 void Skeleton::_repairBroken(const Settings& vars)
@@ -206,24 +205,23 @@ void Skeleton::_repairBroken(const Settings& vars)
 
    std::deque<Vertex> toRemove;
 
-   for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
-       range.first != range.second; range.first = range.second)
-      for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
-           range.first != range.second ? (v = *range.first, true):false;
-           ++range.first)
+   for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
+       begin != end; begin = end)
+      for (SkeletonGraph::vertex_descriptor v;
+           begin != end ? (v = *begin, true):false;
+           ++begin)
    {
-      if (boost::degree(v, _g) != 2)
+      if (_g.getDegree(v) != 2)
          continue;
       
-      boost::graph_traits<SkeletonGraph>::adjacency_iterator
-         vi = boost::adjacent_vertices(v, _g).first;
+      SkeletonGraph::adjacency_iterator vi = _g.adjacencyBegin(v);
       Vertex x, y;
       x = *vi;
       y = *(++vi);
       Edge e1, e2;
       Bond e1b, e2b;
-      e1 = boost::edge(x, v, _g).first;
-      e2 = boost::edge(v, y, _g).first;
+      e1 = _g.getEdge(x, v).first;
+      e2 = _g.getEdge(v, y).first;
       e1b = getBondInfo(e1);
       e2b = getBondInfo(e2);
 
@@ -237,9 +235,9 @@ void Skeleton::_repairBroken(const Settings& vars)
          coef = vars.skeleton.BrokenRepairCoef2;
 
       Vec2d x_pos, y_pos, v_pos;
-      x_pos = boost::get(boost::vertex_pos, _g, x);
-      y_pos = boost::get(boost::vertex_pos, _g, y);
-      v_pos = boost::get(boost::vertex_pos, _g, v);
+      x_pos = _g.getVertexPosition(x);
+      y_pos = _g.getVertexPosition(y);
+      v_pos = _g.getVertexPosition(v);
       Vec2d v1, v2;
       v1.diff(x_pos, v_pos);
       v2.diff(y_pos, v_pos);
@@ -263,31 +261,31 @@ void Skeleton::_repairBroken(const Settings& vars)
          else
             e = e2, to = y;
 
-         boost::remove_edge(e, _g);
+         _g.removeEdge(e);
          _reconnectBonds(v, to);
          toRemove.push_back(v);
       }
    }
 
    for(Vertex v: toRemove)
-      boost::remove_vertex(v, _g);
+      _g.removeVertex(v);
 }
 
 bool Skeleton::_isEqualDirection( const Edge &first, const Edge &second ) const
 {
-   Bond f = boost::get(boost::edge_type, _g, first),
-        s = boost::get(boost::edge_type, _g, second);
+   Bond f = _g.getEdgeBond(first),
+        s = _g.getEdgeBond(second);
 
    return (fabs(f.k - s.k) < _parLinesEps);
 }
 
 bool Skeleton::_isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex &b2,const Vertex &e2)  const
 {
-   Vec2d begin1 = boost::get(boost::vertex_pos, _g, b1),
-         end1 = boost::get(boost::vertex_pos, _g, e1);
+   Vec2d begin1 = _g.getVertexPosition(b1),
+         end1 = _g.getVertexPosition(e1);
 
-   Vec2d begin2 = boost::get(boost::vertex_pos, _g, b2),
-         end2 = boost::get(boost::vertex_pos, _g, e2);
+   Vec2d begin2 = _g.getVertexPosition(b2),
+         end2 = _g.getVertexPosition(e2);
    
    int dx1 = round(end1.x - begin1.x), dy1 = round(end1.y - begin1.y);
    double k1 = 0;
@@ -317,8 +315,8 @@ bool Skeleton::_isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex
 
 bool Skeleton::_isParallel( const Edge &first, const Edge &second ) const
 {
-   Bond f = boost::get(boost::edge_type, _g, first),
-        s = boost::get(boost::edge_type, _g, second);
+   Bond f = _g.getEdgeBond(first),
+        s = _g.getEdgeBond(second);
 
    return (fabs(f.k - s.k) < _parLinesEps ||
                     fabs(fabs(f.k - s.k) - PI) < _parLinesEps);
@@ -330,17 +328,17 @@ void Skeleton::calcShortBondsPenalty(const Settings& vars)
 
 	int probablyWarnings = 0;
 	int minSize = (std::max)((int)vars.dynamic.CapitalHeight / 2, vars.main.MinGoodCharactersSize);
-   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<SkeletonGraph>::edge_descriptor edge;
-          range.first != range.second ? (edge = *range.first, true) : false;
-          ++range.first)
+   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
+       begin != end;
+       begin = end)
+      for(SkeletonGraph::edge_descriptor edge;
+          begin != end ? (edge = *begin, true) : false;
+          ++begin)
 	{
-		const Vertex &beg = boost::source(edge, _g);
-		const Vertex &end = boost::target(edge, _g);
+		const Vertex &beg = edge.m_source;
+		const Vertex &end = edge.m_target;
 
-		double edge_len = boost::get(boost::edge_type, _g, edge).length;
+		double edge_len = _g.getEdgeBond(edge).length;
 
 		if (edge_len < minSize / 2)
 			probablyWarnings += 2;
@@ -357,24 +355,24 @@ void Skeleton::calcCloseVerticiesPenalty(const Settings& vars)
 	logEnterFunction();
 
 	int probablyWarnings = 0;
-   for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
-       range.first != range.second; range.first = range.second)
-      for (boost::graph_traits<SkeletonGraph>::vertex_descriptor one;
-           range.first != range.second ? (one = *range.first, true):false;
-           ++range.first)
+   for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
+       begin != end; begin = end)
+      for (SkeletonGraph::vertex_descriptor one;
+           begin != end ? (one = *begin, true):false;
+           ++begin)
 	{
-      for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
-          range.first != range.second; range.first = range.second)
-         for (boost::graph_traits<SkeletonGraph>::vertex_descriptor two;
-              range.first != range.second ? (two = *range.first, true):false;
-              ++range.first)
+      for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
+          begin != end; begin = end)
+         for (SkeletonGraph::vertex_descriptor two;
+              begin != end ? (two = *begin, true):false;
+              ++begin)
 		{
 			if (one == two)
 				continue;
 
 			double dist = Vec2d::distance(getVertexPos(one), getVertexPos(two));
 
-			if (!boost::edge(one, two, _g).second)
+			if (!_g.getEdge(one, two).second)
 			{
 				if (dist < vars.dynamic.CapitalHeight / 4)
 					probablyWarnings += 2;
@@ -391,17 +389,17 @@ void Skeleton::calcCloseVerticiesPenalty(const Settings& vars)
 bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 {
 
-   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<SkeletonGraph>::edge_descriptor edge;
-          range.first != range.second ? (edge = *range.first, true) : false;
-          ++range.first)
+   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
+       begin != end;
+       begin = end)
+      for(SkeletonGraph::edge_descriptor edge;
+          begin != end ? (edge = *begin, true) : false;
+          ++begin)
    {
-      const Vertex &beg = boost::source(edge, _g);
-      const Vertex &end = boost::target(edge, _g);
+      const Vertex &beg = edge.m_source;
+      const Vertex &end = edge.m_target;
 
-      double edge_len = boost::get(boost::edge_type, _g, edge).length;
+      double edge_len = _g.getEdgeBond(edge).length;
       double max_edge_beg = 0, max_edge_end = 0;
 	  bool  pb_e = false, pb_b = false;
 
@@ -410,8 +408,9 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
       {
 		 bool state_conected_b = false;
          std::deque<Vertex> neighbors_b;
-         boost::graph_traits<SkeletonGraph>::adjacency_iterator b_b, e_b;
-         std::tie(b_b, e_b) = boost::adjacent_vertices(beg, _g);
+         SkeletonGraph::adjacency_iterator b_b, e_b;
+         b_b = _g.adjacencyBegin(beg);
+         e_b = _g.adjacencyEnd(beg);
          neighbors_b.assign(b_b, e_b);
 
 		 if(neighbors_b.size() > 1)
@@ -419,8 +418,8 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 			 {
 				 if(neighbors_b[i] != end)
 				 {
-					 Edge ee = boost::edge(neighbors_b[i], beg, _g).first; // order is significant for taking edge with eqval direction
-					 double len = boost::get(boost::edge_type, _g, ee).length;
+					 Edge ee = _g.getEdge(neighbors_b[i], beg).first; // order is significant for taking edge with eqval direction
+					 double len = _g.getEdgeBond(ee).length;
 					 state_conected_b = state_conected_b | _checkMidBonds(neighbors_b[i], beg);
 
 					 if (len > max_edge_beg)
@@ -435,16 +434,17 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
       
 		 bool state_conected_e = false;
          std::deque<Vertex> neighbors_e;
-         boost::graph_traits<SkeletonGraph>::adjacency_iterator b_e, e_e;
-         std::tie(b_e, e_e) = boost::adjacent_vertices(end, _g);
+         SkeletonGraph::adjacency_iterator b_e, e_e;
+         b_e = _g.adjacencyBegin(end);
+         e_e = _g.adjacencyEnd(end);
          neighbors_e.assign(b_e, e_e);
 		 if(neighbors_e.size() > 1)
 			 for (size_t i = 0; i < neighbors_e.size(); i++)
 			 {				 
 				 if(neighbors_e[i] != beg)
 				 {
-					 Edge ee = boost::edge(neighbors_e[i], end, _g).first; // order is significant for taking edge with eqval direction
-					 double len = boost::get(boost::edge_type, _g, ee).length;
+					 Edge ee = _g.getEdge(neighbors_e[i], end).first; // order is significant for taking edge with eqval direction
+					 double len = _g.getEdgeBond(ee).length;
 
 					 if (len > max_edge_end)
 						 max_edge_end = len;
@@ -470,12 +470,12 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 				  if (max_edge_end < max_edge_beg)
 				  {          
 					  _reconnectBonds(end, beg);
-					  boost::remove_vertex(end, _g);
+					  _g.removeVertex(end);
 				  }
 				  else
 				  {
 					  _reconnectBonds(beg, end);
-					  boost::remove_vertex(beg, _g);
+					  _g.removeVertex(beg);
 				  }
 				  return true;
 			  }
@@ -491,7 +491,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 							   if(neighbors_e[i] != beg)
 							   {
 								   _reconnectBonds(neighbors_e[i], end);
-								   boost::remove_vertex(neighbors_e[i], _g);
+								   _g.removeVertex(neighbors_e[i]);
 								   ret = true;
 							   }
 						   }
@@ -510,7 +510,7 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 							   if(neighbors_b[i] != end)
 							   {
 								   _reconnectBonds(neighbors_b[i], beg);
-								   boost::remove_vertex(neighbors_b[i], _g);
+								   _g.removeVertex(neighbors_b[i]);
 								   ret = true;
 							   }
 						   }
@@ -524,14 +524,14 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 				  if(pb_e && !state_conected_b && type == BT_SINGLE)
 				  {
 					  _reconnectBonds(beg, end);
-					  boost::remove_vertex(beg, _g);
+					  _g.removeVertex(beg);
 					  return true;
 					  
 				  }
 				  if(pb_b && !state_conected_e && type == BT_SINGLE)
 				  {
 					  _reconnectBonds(end, beg);
-					  boost::remove_vertex(end, _g);
+					  _g.removeVertex(end);
 					  return true;
 				  }
 			  }
@@ -551,12 +551,12 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 				 if (max_edge_end < max_edge_beg)
 				 {
 					_reconnectBonds(end, beg);
-					boost::remove_vertex(end, _g);
+					_g.removeVertex(end);
 				 }
 				 else
 				 {
 					_reconnectBonds(beg, end);
-					boost::remove_vertex(beg, _g);
+					_g.removeVertex(beg);
 				 }
 				 return true;
 			  }
@@ -569,8 +569,9 @@ bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 
 bool Skeleton::_dissolveIntermediateVertices (const Settings& vars)
 {
-   boost::graph_traits<SkeletonGraph>::vertex_iterator vi, vi_end;
-   std::tie(vi, vi_end) = boost::vertices(_g);
+   SkeletonGraph::vertex_iterator vi, vi_end;
+   vi = _g.vertexBegin();
+   vi_end = _g.vertexEnd();
 
    Vertex to_dissolve;
    double min_err = 10000; // inf
@@ -582,8 +583,9 @@ bool Skeleton::_dissolveIntermediateVertices (const Settings& vars)
       const Vertex &vertex = *vi;
 
       std::deque<Vertex> neighbors;
-      boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-      std::tie(b, e) = boost::adjacent_vertices(vertex, _g);
+      SkeletonGraph::adjacency_iterator b, e;
+      b = _g.adjacencyBegin(vertex);
+      e = _g.adjacencyEnd(vertex);
       neighbors.assign(b, e);
 
       if (neighbors.size() != 2)
@@ -591,29 +593,29 @@ bool Skeleton::_dissolveIntermediateVertices (const Settings& vars)
 
       //TODO: Need something more accurate
 
-	  const Edge &edge1 = boost::edge(vertex, neighbors[0], _g).first;
-      const Edge &edge2 = boost::edge(vertex, neighbors[1], _g).first;
+      const Edge &edge1 = _g.getEdge(vertex, neighbors[0]).first;
+      const Edge &edge2 = _g.getEdge(vertex, neighbors[1]).first;
 
-      const Vertex &beg1 = boost::source(edge1, _g);
-      const Vertex &beg2 = boost::source(edge2, _g);
-      const Vertex &end1 = boost::target(edge1, _g);
-      const Vertex &end2 = boost::target(edge2, _g);
+      const Vertex &beg1 = edge1.m_source;
+      const Vertex &beg2 = edge2.m_source;
+      const Vertex &end1 = edge1.m_target;
+      const Vertex &end2 = edge2.m_target;
       
       Vec2d dir1, dir2;
 
       if (beg1 == beg2 || end1 == end2)
       {
-         dir1.diff(boost::get(boost::vertex_pos, _g, end1),
-                   boost::get(boost::vertex_pos, _g, beg1));
-         dir2.diff(boost::get(boost::vertex_pos, _g, end2),
-                   boost::get(boost::vertex_pos, _g, beg2));
+         dir1.diff(_g.getVertexPosition(end1),
+                   _g.getVertexPosition(beg1));
+         dir2.diff(_g.getVertexPosition(end2),
+                   _g.getVertexPosition(beg2));
       }
       else if (beg1 == end2 || beg2 == end1)
       {
-         dir1.diff(boost::get(boost::vertex_pos, _g, end1),
-                   boost::get(boost::vertex_pos, _g, beg1));
-         dir2.diff(boost::get(boost::vertex_pos, _g, beg2),
-                   boost::get(boost::vertex_pos, _g, end2));
+         dir1.diff(_g.getVertexPosition(end1),
+                   _g.getVertexPosition(beg1));
+         dir2.diff(_g.getVertexPosition(beg2),
+                   _g.getVertexPosition(end2));
       }
       else
       {
@@ -649,12 +651,13 @@ bool Skeleton::_dissolveIntermediateVertices (const Settings& vars)
 	   getLogExt().append("dissolving vertex, err", min_err);
 
       std::deque<Vertex> neighbors;
-      boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-      std::tie(b, e) = boost::adjacent_vertices(to_dissolve, _g);
+      SkeletonGraph::adjacency_iterator b, e;
+      b = _g.adjacencyBegin(to_dissolve);
+      e = _g.adjacencyEnd(to_dissolve);
       neighbors.assign(b, e);
       addBond(neighbors[0], neighbors[1], BT_SINGLE);
-      boost::clear_vertex(to_dissolve, _g); 
-      boost::remove_vertex(to_dissolve, _g);
+		_g.clearVertex(to_dissolve);
+		_g.removeVertex(to_dissolve);
       return true;
    }
 
@@ -668,12 +671,11 @@ void Skeleton::_findMultiple(const Settings& vars)
    MultipleBondChecker _checker(vars, *this);
    
    std::vector<Edge> toProcess;
-   boost::property_map<SkeletonGraph, boost::edge_type_t>::type types =
-      boost::get(boost::edge_type, _g);
-   boost::graph_traits<SkeletonGraph>::edge_iterator ei, ei_e;
-   std::tie(ei, ei_e) = boost::edges(_g);
+   SkeletonGraph::edge_iterator ei, ei_e;
+   ei = _g.edgeBegin();
+   ei_e = _g.edgeEnd();
    for (; ei != ei_e; ++ei)
-      if (boost::get(types, *ei).type == BT_SINGLE)
+      if (_g.getEdgeBond(*ei).type == BT_SINGLE)
          toProcess.push_back(*ei);
 
    std::map<Edge, bool> used;
@@ -691,14 +693,14 @@ void Skeleton::_findMultiple(const Settings& vars)
          if (used[i])
             continue;
 
-         for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
-             range.first != range.second;
-             range.first = range.second)
-            for(boost::graph_traits<SkeletonGraph>::edge_descriptor j;
-                range.first != range.second ? (j = *range.first, true) : false;
-                ++range.first)
+         for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
+             begin != end;
+             begin = end)
+            for(SkeletonGraph::edge_descriptor j;
+                begin != end ? (j = *begin, true) : false;
+                ++begin)
          {
-            if (i == j || boost::get(types, j).type != BT_SINGLE ||
+            if (i == j || _g.getEdgeBond(j).type != BT_SINGLE ||
                 used[j])
                continue;
 
@@ -707,9 +709,9 @@ void Skeleton::_findMultiple(const Settings& vars)
 
             {
                std::pair<double, Edge*> arr[3];
-               arr[0].first = boost::get(boost::edge_type, _g, i).length;
+               arr[0].first = _g.getEdgeBond(i).length;
                arr[0].second = &i;
-               arr[1].first = boost::get(boost::edge_type, _g, j).length;
+               arr[1].first = _g.getEdgeBond(j).length;
                arr[1].second = &j;
 
                if (arr[1].first > arr[0].first)
@@ -717,17 +719,17 @@ void Skeleton::_findMultiple(const Settings& vars)
 
                bool is_triple = false;
 
-               for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
-                   range.first != range.second;
-                   range.first = range.second)
-                  for(boost::graph_traits<SkeletonGraph>::edge_descriptor k;
-                      range.first != range.second ? (k = *range.first, true) : false;
-                      ++range.first)
+               for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
+                   begin != end;
+                   begin = end)
+                  for(SkeletonGraph::edge_descriptor k;
+                      begin != end ? (k = *begin, true) : false;
+                      ++begin)
                {
 				   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
 
                   if (k == i || k == j ||
-                      boost::get(types, k).type != BT_SINGLE ||
+                      _g.getEdgeBond(k).type != BT_SINGLE ||
                       used[k])
                      continue;
                   
@@ -735,7 +737,7 @@ void Skeleton::_findMultiple(const Settings& vars)
                      continue;
                   
                   //Check degrees!
-                  arr[2].first = boost::get(boost::edge_type, _g, k).length;
+                  arr[2].first = _g.getEdgeBond(k).length;
                   arr[2].second = &k;
 
                   if (arr[2].first > arr[0].first)
@@ -816,10 +818,7 @@ void Skeleton::_findMultiple(const Settings& vars)
             toProcess.push_back(std::get<2>(ret));
          } 
       }
-
-      types = boost::get(boost::edge_type, _g);
    } while (false);
-   //} while (toProcess.size() != 0);
    _processInlineDoubleBond(vars);
 }
 
@@ -837,12 +836,12 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
 	   toSmallErr = vars.skeleton.BaseSmallErr;
    toSmallErr *= _avg_bond_length;
 
-   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<SkeletonGraph>::edge_descriptor j;
-          range.first != range.second ? (j = *range.first, true) : false;
-          ++range.first)
+   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
+       begin != end;
+       begin = end)
+      for(SkeletonGraph::edge_descriptor j;
+          begin != end ? (j = *begin, true) : false;
+          ++begin)
 	{
 		if(getBondType(j) == BT_SINGLE)
 			singles.push_back(j);
@@ -915,16 +914,17 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
 void Skeleton::_reconnectBonds( Vertex from, Vertex to )
 {
    std::deque<Vertex> neighbours;
-   boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-   std::tie(b, e) = boost::adjacent_vertices(from, _g);
+   SkeletonGraph::adjacency_iterator b, e;
+   b = _g.adjacencyBegin(from);
+   e = _g.adjacencyEnd(from);
    neighbours.assign(b, e);
 
    for (size_t i = 0; i < neighbours.size(); i++)
    {
       Vertex v = neighbours[i];
-      Edge e = boost::edge(from, v, _g).first;
-      BondType t = get(boost::edge_type, _g, e).type;
-      boost::remove_edge(e, _g);
+      Edge e = _g.getEdge(from, v).first;
+      BondType t = _g.getEdgeBond(e).type;
+      _g.removeEdge(e);
 
       if (v == to)
          continue;
@@ -936,15 +936,16 @@ void Skeleton::_reconnectBonds( Vertex from, Vertex to )
 bool Skeleton::_checkMidBonds( Vertex from, Vertex to )
 {
    std::deque<Vertex> neighbours;
-   boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-   std::tie(b, e) = boost::adjacent_vertices(from, _g);
+   SkeletonGraph::adjacency_iterator b, e;
+   b = _g.adjacencyBegin(from);
+   e = _g.adjacencyEnd(from);
    neighbours.assign(b, e);
    bool ret = false;
 
    for (size_t i = 0; i < neighbours.size(); i++)
    {
       Vertex v = neighbours[i];
-      Edge e = boost::edge(from, v, _g).first;
+      Edge e = _g.getEdge(from, v).first;
 
       if (v == to)
          continue;
@@ -957,15 +958,16 @@ bool Skeleton::_checkMidBonds( Vertex from, Vertex to )
 void Skeleton::_reconnectBondsRWT( Vertex from, Vertex to, BondType new_t)
 {
    std::deque<Vertex> neighbours;
-   boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-   std::tie(b, e) = boost::adjacent_vertices(from, _g);
+   SkeletonGraph::adjacency_iterator b, e;
+   b = _g.adjacencyBegin(from);
+   e = _g.adjacencyEnd(from);
    neighbours.assign(b, e);
 
    for (size_t i = 0; i < neighbours.size(); i++)
    {
       Vertex v = neighbours[i];
-      Edge e = boost::edge(from, v, _g).first;
-      boost::remove_edge(e, _g);
+      Edge e = _g.getEdge(from, v).first;
+      _g.removeEdge(e);
 
       if (v == to)
          continue;
@@ -977,8 +979,9 @@ void Skeleton::_reconnectBondsRWT( Vertex from, Vertex to, BondType new_t)
 double Skeleton::_avgEdgeLendth (const Vertex &v, int &nnei)
 {
    std::deque<Vertex> neighbors;
-   boost::graph_traits<SkeletonGraph>::adjacency_iterator b, e;
-   std::tie(b, e) = boost::adjacent_vertices(v, _g);
+   SkeletonGraph::adjacency_iterator b, e;
+   b = _g.adjacencyBegin(v);
+   e = _g.adjacencyEnd(v);
    neighbors.assign(b, e);
 
    nnei = (int)neighbors.size();
@@ -990,8 +993,8 @@ double Skeleton::_avgEdgeLendth (const Vertex &v, int &nnei)
 
    for (size_t i = 0; i < neighbors.size(); i++)
    {
-      Edge e = boost::edge(v, neighbors[i], _g).first;
-      avg += boost::get(boost::edge_type, _g, e).length;
+      Edge e = _g.getEdge(v, neighbors[i]).first;
+      avg += _g.getEdgeBond(e).length;
    }
    return avg / neighbors.size();
 }
@@ -1001,20 +1004,18 @@ void Skeleton::_joinVertices(double eps)
 	logEnterFunction();
    std::deque<std::deque<Vertex> > nearVertices;
    std::deque<size_t> join_ind;
-   boost::property_map<SkeletonGraph, boost::vertex_pos_t>::type pos =
-           boost::get(boost::vertex_pos, _g);
 
 #ifdef DEBUG
    LPRINT(0, "joining vertices, eps = %lf", eps);
 #endif /* DEBUG */
 
-   for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
-       range.first != range.second; range.first = range.second)
-      for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
-           range.first != range.second ? (v = *range.first, true):false;
-           ++range.first)
+   for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
+       begin != end; begin = end)
+      for (SkeletonGraph::vertex_descriptor v;
+           begin != end ? (v = *begin, true):false;
+           ++begin)
    {
-      Vec2d v_pos = pos[v];
+      Vec2d v_pos = _g.getVertexPosition(v);
       int v_nnei;
       double v_avg_edge_len = _avgEdgeLendth(v, v_nnei);
 
@@ -1029,7 +1030,7 @@ void Skeleton::_joinVertices(double eps)
                (v_nnei + nei_nnei);
 
             if (v_nnei + nei_nnei > 0 &&
-                Vec2d::distance(v_pos, pos[nei]) < thresh)
+                Vec2d::distance(v_pos, _g.getVertexPosition(nei)) < thresh)
             {
                join_ind.push_back(i);
                break;
@@ -1066,7 +1067,7 @@ void Skeleton::_joinVertices(double eps)
       
       Vec2d newPos;
       for (size_t j = 0; j < size; j++)
-         newPos.add(pos[nearVertices[i][j]]);
+         newPos.add(_g.getVertexPosition(nearVertices[i][j]));
       newPos.scale(1.0 / size);
 
       Vertex newVertex = addVertex(newPos);
@@ -1074,7 +1075,7 @@ void Skeleton::_joinVertices(double eps)
       for (size_t j = 0; j < size; j++)
       {
          _reconnectBonds(nearVertices[i][j], newVertex);
-         boost::remove_vertex(nearVertices[i][j], _g);
+         _g.removeVertex(nearVertices[i][j]);
       }
    }
 }
@@ -1118,14 +1119,14 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 	std::vector<double> kFactor;
 	std::vector<std::vector<Edge> > edge_groups_k;
 	//group all parallel edges by similar factors
-   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<SkeletonGraph>::edge_descriptor edge;
-          range.first != range.second ? (edge = *range.first, true) : false;
-          ++range.first)
+   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
+       begin != end;
+       begin = end)
+      for(SkeletonGraph::edge_descriptor edge;
+          begin != end ? (edge = *begin, true) : false;
+          ++begin)
 	{
-		Bond f = boost::get(boost::edge_type, _g, edge);
+		Bond f = _g.getEdgeBond(edge);
 		Vec2d p1 = getVertexPos(getBondBegin(edge));
 		Vec2d p2 = getVertexPos(getBondEnd(edge));
 		double slope = Algebra::slope(p1, p2);
@@ -1271,8 +1272,8 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 			std::find(verticies_to_remove.begin(), verticies_to_remove.end(), v4) != verticies_to_remove.end())
 			continue;
 
-		if(boost::degree(v1, _g) > 1 ||
-			boost::degree(v2, _g) > 1 )
+		if(_g.getDegree(v1) > 1 ||
+			_g.getDegree(v2) > 1 )
 		{
 			continue;
 		}
@@ -1285,8 +1286,8 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 
 	for (size_t u = 0; u < verticies_to_remove.size(); u++)
 	{
-		boost::clear_vertex(verticies_to_remove[u], _g); 
-		boost::remove_vertex(verticies_to_remove[u], _g);
+		_g.clearVertex(verticies_to_remove[u]); 
+		_g.removeVertex(verticies_to_remove[u]);
 	}
 }
 
@@ -1314,15 +1315,15 @@ void Skeleton::modifyGraph(Settings& vars)
 
    if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
    
-   for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
-       range.first != range.second; range.first = range.second)
-      for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
-           range.first != range.second ? (v = *range.first, true):false;
-           ++range.first)
+   for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
+       begin != end; begin = end)
+      for (SkeletonGraph::vertex_descriptor v;
+           begin != end ? (v = *begin, true):false;
+           ++begin)
    {
-      if (boost::degree(v, _g) > 2)
+      if (_g.getDegree(v) > 2)
       {
-         Vec2d pos = boost::get(boost::vertex_pos, _g, v);
+         Vec2d pos = _g.getVertexPosition(v);
          _vertices_big_degree.push_back(pos);
       }
    }
@@ -1375,19 +1376,19 @@ void Skeleton::modifyGraph(Settings& vars)
 
     //Shrinking short bonds (dots)
     std::vector<Edge> edgesToRemove;
-   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<SkeletonGraph>::edge_descriptor edge;
-          range.first != range.second ? (edge = *range.first, true) : false;
-          ++range.first)
+   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
+       begin != end;
+       begin = end)
+      for(SkeletonGraph::edge_descriptor edge;
+          begin != end ? (edge = *begin, true) : false;
+          ++begin)
     {
-       const Vertex &beg = boost::source(edge, _g);
-       const Vertex &end = boost::target(edge, _g);
-       Vec2d beg_pos = boost::get(boost::vertex_pos, _g, beg);
-       const Vec2d &end_pos = boost::get(boost::vertex_pos, _g, end);
-       if (boost::degree(beg, _g) == 1 && boost::degree(end, _g) == 1 &&
-           boost::get(boost::edge_type, _g, edge).length < vars.skeleton.ShrinkEps * _avg_bond_length)
+       const Vertex &beg = edge.m_source;
+       const Vertex &end = edge.m_target;
+       Vec2d beg_pos = _g.getVertexPosition(beg);
+       const Vec2d &end_pos = _g.getVertexPosition(end);
+       if (_g.getDegree(beg) == 1 && _g.getDegree(end) == 1 &&
+           _g.getEdgeBond(edge).length < vars.skeleton.ShrinkEps * _avg_bond_length)
        {
           beg_pos.add(end_pos);
           beg_pos.scale(0.5); // average
@@ -1397,11 +1398,11 @@ void Skeleton::modifyGraph(Settings& vars)
     }
     for(Edge e: edgesToRemove)
     {
-       Vertex beg = boost::source(e, _g);
-       Vertex end = boost::target(e, _g);
-       boost::remove_edge(e, _g);
-       boost::remove_vertex(beg, _g);
-       boost::remove_vertex(end, _g);
+       Vertex beg = e.m_source;
+       Vertex end = e.m_target;
+       _g.removeEdge(e);
+       _g.removeVertex(beg);
+       _g.removeVertex(end);
     }
 
 
@@ -1418,31 +1419,31 @@ void Skeleton::modifyGraph(Settings& vars)
 		   distTresh = _avg_bond_length/vars.skeleton.DistTreshLimFactor;
 
 	   std::vector<Skeleton::Edge> bad_edges;
-      for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
-          range.first != range.second;
-          range.first = range.second)
-         for(boost::graph_traits<SkeletonGraph>::edge_descriptor e;
-             range.first != range.second ? (e = *range.first, true) : false;
-             ++range.first)
+      for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
+          begin != end;
+          begin = end)
+         for(SkeletonGraph::edge_descriptor e;
+             begin != end ? (e = *begin, true) : false;
+             ++begin)
 	   {
-		   const Skeleton::Vertex &beg = boost::source(e, _g);
-		   const Skeleton::Vertex &end = boost::target(e, _g);
-		   Vec2d pos_beg = boost::get(boost::vertex_pos, _g, beg);
-		   Vec2d pos_end = boost::get(boost::vertex_pos, _g, end);
+		   const Skeleton::Vertex &beg = e.m_source;
+		   const Skeleton::Vertex &end = e.m_target;
+		   Vec2d pos_beg = _g.getVertexPosition(beg);
+		   Vec2d pos_end = _g.getVertexPosition(end);
 		   double d = Vec2d::distance(pos_beg, pos_end);
 		   if (d < distTresh)
 		   {
-            for(std::pair<boost::graph_traits<SkeletonGraph>::vertex_iterator, boost::graph_traits<SkeletonGraph>::vertex_iterator> range = vertices(_g);
-                range.first != range.second; range.first = range.second)
-               for (boost::graph_traits<SkeletonGraph>::vertex_descriptor v;
-                    range.first != range.second ? (v = *range.first, true):false;
-                    ++range.first)
+            for(SkeletonGraph::vertex_iterator range_begin = _g.vertexBegin(), range_end = _g.vertexEnd();
+                range_begin != range_end; range_begin = range_end)
+               for (SkeletonGraph::vertex_descriptor v;
+                    range_begin != range_end ? (v = *range_begin, true):false;
+                    ++range_begin)
 			   {
 				   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
 
 				   if (v != beg && v != end)
 				   {
-					   Vec2d pos = boost::get(boost::vertex_pos, _g, v);
+					   Vec2d pos = _g.getVertexPosition(v);
 					   if (Vec2i::distance(pos,pos_beg) < distTresh &&
 						   Vec2i::distance(pos,pos_end) < distTresh)
 					   {
@@ -1461,13 +1462,13 @@ void Skeleton::modifyGraph(Settings& vars)
 
       for(Skeleton::Edge e: bad_edges)
 		{
-		   Skeleton::Vertex beg = boost::source(e, _g);
-		   Skeleton::Vertex end = boost::target(e, _g);
-		   boost::remove_edge(e, _g);
-		   if (boost::degree(beg, _g) == 0)
-			   boost::remove_vertex(beg, _g);
-		   if (boost::degree(end, _g) == 0)
-			   boost::remove_vertex(end, _g);
+		   Skeleton::Vertex beg = e.m_source;
+		   Skeleton::Vertex end = e.m_target;
+		   _g.removeEdge(e);
+		   if (_g.getDegree(beg) == 0)
+			   _g.removeVertex(beg);
+		   if (_g.getDegree(end) == 0)
+			   _g.removeVertex(end);
 		}
 
 	   getLogExt().appendImage("Suspicious edges", temp);
@@ -1477,19 +1478,19 @@ void Skeleton::modifyGraph(Settings& vars)
 
 	   vars.dynamic.AvgBondLength = _avg_bond_length;
    
-   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<SkeletonGraph>::edge_descriptor edge;
-          range.first != range.second ? (edge = *range.first, true) : false;
-          ++range.first)
+   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
+       begin != end;
+       begin = end)
+      for(SkeletonGraph::edge_descriptor edge;
+          begin != end ? (edge = *begin, true) : false;
+          ++begin)
    {
-      const Vertex &beg = boost::source(edge, _g);
-      const Vertex &end = boost::target(edge, _g);
-      Vec2d beg_pos = boost::get(boost::vertex_pos, _g, beg);
-      const Vec2d &end_pos = boost::get(boost::vertex_pos, _g, end);
+      const Vertex &beg = edge.m_source;
+      const Vertex &end = edge.m_target;
+      Vec2d beg_pos = _g.getVertexPosition(beg);
+      const Vec2d &end_pos = _g.getVertexPosition(end);
 #ifdef DEBUG
-      printf("(%lf, %lf) - (%lf, %lf) | %lf\n", beg_pos.x, beg_pos.y, end_pos.x, end_pos.y, boost::get(boost::edge_type, _g, edge).length);
+      printf("(%lf, %lf) - (%lf, %lf) | %lf\n", beg_pos.x, beg_pos.y, end_pos.x, end_pos.y, _g.getEdgeBond(edge).length);
 #endif
    }
 
@@ -1501,23 +1502,25 @@ void Skeleton::deleteBadTriangles( double eps )
    std::set<Edge> edges_to_delete;
    std::set<Vertex> vertices_to_delete;
    
-   for(std::pair<boost::graph_traits<SkeletonGraph>::edge_iterator, boost::graph_traits<SkeletonGraph>::edge_iterator> range = edges(_g);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<SkeletonGraph>::edge_descriptor edge;
-          range.first != range.second ? (edge = *range.first, true) : false;
-          ++range.first)
+   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
+       begin != end;
+       begin = end)
+      for(SkeletonGraph::edge_descriptor edge;
+          begin != end ? (edge = *begin, true) : false;
+          ++begin)
    {
       if (edges_to_delete.find(edge) != edges_to_delete.end())
          continue;
       
-      Vertex beg = boost::source(edge, _g);
-      Vertex end = boost::target(edge, _g);
+      Vertex beg = edge.m_source;
+      Vertex end = edge.m_target;
 
-      boost::graph_traits<SkeletonGraph>::adjacency_iterator b1, e1, b2, e2;
+      SkeletonGraph::adjacency_iterator b1, e1, b2, e2;
       std::set<Vertex> intrsect, beg_neigh, end_neigh;
-      std::tie(b1, e1) = boost::adjacent_vertices(beg, _g);
-      std::tie(b2, e2) = boost::adjacent_vertices(end, _g);
+      b1 = _g.adjacencyBegin(beg);
+      e1 = _g.adjacencyEnd(beg);
+      b2 = _g.adjacencyBegin(end);
+      e2 = _g.adjacencyEnd(end);
       beg_neigh.insert(b1, e1);
       end_neigh.insert(b2, e2);
       std::set_intersection(beg_neigh.begin(), beg_neigh.end(), end_neigh.begin(), end_neigh.end(), std::inserter(intrsect, intrsect.begin()));
@@ -1529,20 +1532,20 @@ void Skeleton::deleteBadTriangles( double eps )
          
          double l_b, l_e, l_be;
          //add asserts
-         l_b = boost::get(boost::edge_type, _g, boost::edge(v, beg, _g).first).length;
-         l_e = boost::get(boost::edge_type, _g, boost::edge(v, end, _g).first).length;         
-         l_be = boost::get(boost::edge_type, _g, edge).length;
+         l_b = _g.getEdgeBond(_g.getEdge(v, beg).first).length;
+         l_e = _g.getEdgeBond(_g.getEdge(v, end).first).length;
+         l_be = _g.getEdgeBond(edge).length;
          if (fabs(l_b - (l_e + l_be)) < eps) //v - b
          {
-            if (boost::degree(end, _g) == 2)
+            if (_g.getDegree(end) == 2)
             {
                edges_to_delete.insert(edge);
-               edges_to_delete.insert(boost::edge(v, end, _g).first);
+               edges_to_delete.insert(_g.getEdge(v, end).first);
                vertices_to_delete.insert(end);
-               setBondType(boost::edge(v, beg, _g).first, BT_SINGLE_UP);
+               setBondType(_g.getEdge(v, beg).first, BT_SINGLE_UP);
             }
             else
-               edges_to_delete.insert(boost::edge(v, beg, _g).first);
+               edges_to_delete.insert(_g.getEdge(v, beg).first);
             //v - e
             //edge
          }
@@ -1550,24 +1553,24 @@ void Skeleton::deleteBadTriangles( double eps )
          {
             //v - b
             //edge
-            if (boost::degree(beg, _g) == 2)
+            if (_g.getDegree(beg) == 2)
             {
                edges_to_delete.insert(edge);
-               edges_to_delete.insert(boost::edge(v, beg, _g).first);
+               edges_to_delete.insert(_g.getEdge(v, beg).first);
                vertices_to_delete.insert(beg);
-               setBondType(boost::edge(v, end, _g).first, BT_SINGLE_UP);      
+               setBondType(_g.getEdge(v, end).first, BT_SINGLE_UP);
             }
             else
-               edges_to_delete.insert(boost::edge(v, end, _g).first);
+               edges_to_delete.insert(_g.getEdge(v, end).first);
          }
          else if (fabs(l_be - (l_b + l_e)) < eps) //edge
          {
             //v - e
             //v - b
-            if (boost::degree(v, _g) == 2)
+            if (_g.getDegree(v) == 2)
             {
-               edges_to_delete.insert(boost::edge(v, end, _g).first);
-               edges_to_delete.insert(boost::edge(v, beg, _g).first);
+               edges_to_delete.insert(_g.getEdge(v, end).first);
+               edges_to_delete.insert(_g.getEdge(v, beg).first);
                vertices_to_delete.insert(v);
                setBondType(edge, BT_SINGLE_UP);               
             }
@@ -1578,23 +1581,23 @@ void Skeleton::deleteBadTriangles( double eps )
    }
 
    for(Edge edge: edges_to_delete)
-      boost::remove_edge(edge, _g);
+      _g.removeEdge(edge);
    for(Vertex v: vertices_to_delete)
-      boost::remove_vertex(v, _g);
+      _g.removeVertex(v);
 }
 
 void Skeleton::setBondType( Edge e, BondType t )
 {
-   Bond b = boost::get(boost::edge_type, _g, e);
+   Bond b = _g.getEdgeBond(e);
 
    b.type = t;
 
-   boost::put(boost::edge_type, _g, e, b);
+   _g.setEdgeBond(e, b);
 }
 
 BondType Skeleton::getBondType( const Edge &e ) const
 {
-   return boost::get(boost::edge_type, _g, e).type;
+   return _g.getEdgeBond(e).type;
 }
 
 void Skeleton::reverseEdge( const Edge &e )

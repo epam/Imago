@@ -17,7 +17,7 @@
 #define _skeleton_h
 
 #include <deque>
-#include "boost/graph/adjacency_list.hpp"
+#include "beast.h"
 
 #include "comdef.h"
 #include "vec2d.h"
@@ -53,7 +53,7 @@ namespace imago
    class Skeleton
    {
    public: 
-
+#if 0
       typedef boost::property<boost::vertex_pos_t, Vec2d>
          SkeletonVertexProperties;
       typedef boost::property<boost::edge_type_t, Bond>
@@ -71,8 +71,34 @@ namespace imago
 
       typedef boost::graph_traits<SkeletonGraph>::vertex_descriptor Vertex;
       typedef boost::graph_traits<SkeletonGraph>::edge_descriptor Edge;
-      typedef boost::graph_traits<SkeletonGraph>::vertex_iterator VertexIterator;
+      //typedef boost::graph_traits<SkeletonGraph>::vertex_iterator VertexIterator;   // unused
       typedef boost::graph_traits<SkeletonGraph>::out_edge_iterator EdgeIterator;
+#else
+      typedef boost::property<boost::vertex_pos_t, Vec2d>
+            VertexProperties;
+      typedef boost::property<boost::edge_type_t, Bond/*, boost::edge_weight_t*/>
+            EdgeProperties;
+      typedef boost::adjacency_list<boost::listS, boost::listS, boost::undirectedS, VertexProperties, EdgeProperties> boost_adjacency_list_type;
+
+      class SkeletonGraph : public beast::Graph<boost_adjacency_list_type>
+      {
+      public:
+         SkeletonGraph():
+            positions(boost::get(boost::vertex_pos, _boost_adjacency_list_implementation)),
+            bonds(boost::get(boost::edge_type, _boost_adjacency_list_implementation))
+         {}
+         Vec2d getVertexPosition(vertex_descriptor v) const { return boost::get(positions, v); }
+         void setVertexPosition(vertex_descriptor v, Vec2d val) { boost::get(positions, v) = val; }
+         Bond getEdgeBond(edge_descriptor e) const { return boost::get(bonds, e); }
+         void setEdgeBond(edge_descriptor e, Bond &val) { boost::get(bonds, e) = val; }
+      private:
+         boost::property_map<boost_adjacency_list_type, boost::vertex_pos_t>::type positions;
+         boost::property_map<boost_adjacency_list_type, boost::edge_type_t>::type bonds;
+      };
+
+      typedef beast::Graph<boost_adjacency_list_type>::vertex_descriptor Vertex;
+      typedef beast::Graph<boost_adjacency_list_type>::edge_descriptor Edge;
+#endif
 
       Skeleton();
 

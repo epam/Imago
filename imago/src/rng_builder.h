@@ -16,8 +16,6 @@
 #ifndef _rng_builder_h
 #define _rng_builder_h
 
-#include "boost/graph/adjacency_list.hpp"
-
 #include "stl_fwd.h"
 #include "comdef.h"
 
@@ -29,36 +27,23 @@ namespace imago
       template <class EuclideanGraph>
       static void build( EuclideanGraph &g )
       {
-         typename boost::property_map<EuclideanGraph, boost::vertex_pos_t>::type 
-            positions = boost::get(boost::vertex_pos, g);
+         int n = (int)g.vertexCount();
 
-         typename boost::property_map<EuclideanGraph, 
-            boost::vertex_index_t>::type vert2ind = 
-            boost::get(boost::vertex_index, g);
-
-         typename boost::property_map<EuclideanGraph, 
-            boost::edge_weight_t>::type weights = 
-            boost::get(boost::edge_weight, g);
-
-         int n = (int)boost::num_vertices(g);
-
-         std::vector<typename boost::graph_traits<
-                     EuclideanGraph>::vertex_descriptor> ind2vert(n);
+         std::vector<typename EuclideanGraph::vertex_descriptor> ind2vert(n);
          DoubleVector distances(n * n, 0);
 
-         for(std::pair<typename boost::graph_traits<EuclideanGraph>::vertex_iterator, typename boost::graph_traits<EuclideanGraph>::vertex_iterator> range = vertices(g);
-             range.first != range.second; range.first = range.second)
-            for(typename boost::graph_traits<EuclideanGraph>::vertex_descriptor v;
-                range.first != range.second ? (v = *range.first, true):false;
-                ++range.first)
-            ind2vert[vert2ind[v]] = v;
+         for(EuclideanGraph::vertex_iterator begin = g.vertexBegin(), end = g.vertexEnd(); begin != end; begin = end)
+            for(EuclideanGraph::vertex_descriptor v;
+               begin != end ? (v = *begin, true) : false;
+               ++begin)
+                  ind2vert[g.getVertexIndex(v)] = v;
 
          for (int i = 0; i < n; i++)
          {
             for (int j = 0; j < n; j++)
             {
-               distances[i + j * n] = Vec2d::distance(positions[ind2vert[i]],
-                                                      positions[ind2vert[j]]);
+               distances[i + j * n] = Vec2d::distance(g.getVertexPosition(ind2vert[i]),
+                                                      g.getVertexPosition(ind2vert[j]));
             }
          }
 
@@ -86,17 +71,14 @@ namespace imago
 
                   if (add_edge)
                   {
-                     bool isAdded;
-                     typename boost::graph_traits<EuclideanGraph>::edge_descriptor e;
+                     std::pair<typename EuclideanGraph::edge_descriptor, bool> added = g.addEdge(ind2vert[i], ind2vert[j]);
 
-                     std::tie(e, isAdded) = boost::add_edge(ind2vert[i], ind2vert[j], g);
-
-                     if (!isAdded)
+                     if (!added.second)
 					 {
 						 getLogExt().appendText("Warning: <RNG::build> edge is not added");
 					 }
 
-                     weights[e] = distances[i + j * n];
+                     g.setWeight(added.first, distances[i + j * n]);
                   }
                }
             }

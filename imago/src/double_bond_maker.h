@@ -16,7 +16,6 @@
 #ifndef _double_bond_maker_h
 #define _double_bond_maker_h
 
-#include "boost/graph/graph_traits.hpp"
 #include "skeleton.h"
 #include "settings.h"
 #include <tuple>
@@ -65,19 +64,16 @@ namespace imago
    public:
       DoubleBondComparator( Graph &g ) : _g(g)
       {
-         types = boost::get(boost::edge_type, _g);
       }
-      typedef typename boost::graph_traits<Graph>::edge_descriptor Edge;
+      typedef typename Graph::edge_descriptor Edge;
       int operator() ( const std::pair<Edge, Edge> &a,
                        const std::pair<Edge, Edge> &b )
       {
-         double average_len_a = 0.5 * (types[a.first].length + types[a.second].length);
-         double average_len_b = 0.5 * (types[b.first].length + types[b.second].length);
+         double average_len_a = 0.5 * (_g.getEdgeBond(a.first).length + _g.getEdgeBond(a.second).length);
+         double average_len_b = 0.5 * (_g.getEdgeBond(b.first).length + _g.getEdgeBond(b.second).length);
          return average_len_a > average_len_b;
       }
    private:
-      typename boost::property_map<Graph, boost::edge_type_t>::type
-         types;
       Graph &_g;
    };
 }

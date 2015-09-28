@@ -15,8 +15,6 @@
 #include "complex_contour.h"
 #include "settings.h"
 #include "approximator.h"
-#include <boost/graph/adjacency_list.hpp>
-#include <boost/graph/graph_traits.hpp>
 #include "algebra.h"
 #include "log_ext.h"
 #include <opencv2/opencv.hpp>
@@ -337,23 +335,23 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
 
 	Skeleton::SkeletonGraph _g = graph.getGraph();
 	getLogExt().appendSkeleton(vars, "retrieved contour", _g);
-	Skeleton::Vertex vert1 = *(_g.m_vertices.begin());
+	Skeleton::Vertex vert1 = *(_g.vertexBegin());
 	Skeleton::Vertex vert2;
 	Skeleton::Vertex vertIt = vert1;
 
 	std::deque<Skeleton::Vertex> neighbours;
 	std::deque<Skeleton::Vertex>::iterator minIt;
-	boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b, e;
+	Skeleton::SkeletonGraph::adjacency_iterator b, e;
   
 	//Find start vertex with minimal degree
-	size_t minDeg = boost::num_vertices(_g);
-   for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::vertex_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::vertex_iterator> range = vertices(_g);
-       range.first != range.second; range.first = range.second)
-      for (boost::graph_traits<Skeleton::SkeletonGraph>::vertex_descriptor v;
-           range.first != range.second ? (v = *range.first, true):false;
-           ++range.first)
+	size_t minDeg = _g.vertexCount();
+   for(Skeleton::SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
+       begin != end; begin = end)
+      for (Skeleton::SkeletonGraph::vertex_descriptor v;
+           begin != end ? (v = *begin, true):false;
+           ++begin)
 	{
-		size_t deg = boost::degree(v, _g);
+		size_t deg = _g.getDegree(v);
 		if(minDeg > deg)
 		{
 			minDeg = deg;
@@ -362,7 +360,8 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
 	}
 
 	vertIt = vert1;
-	std::tie(b, e) = boost::adjacent_vertices(vert1, _g);
+	b = _g.adjacencyBegin(vert1);
+	e = _g.adjacencyEnd(vert1);
 	neighbours.assign(b, e);
 
 	// TODO: FIND appropriate vert2 for a clokcwise traversal 
@@ -377,8 +376,8 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
 		double min_angle = 2*PI;
 		
 			//add contour
-			Vec2d bpos = boost::get(boost::vertex_pos, _g, vert1);
-			Vec2d epos = boost::get(boost::vertex_pos, _g, vert2);
+			Vec2d bpos = _g.getVertexPosition(vert1);
+			Vec2d epos = _g.getVertexPosition(vert2);
 
 			contours.push_back(ComplexNumber(bpos.x, bpos.y));
 			contours.push_back(ComplexNumber(epos.x, epos.y));
@@ -386,8 +385,9 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
 			//find adjacent vertices of vert2
 			std::deque<Skeleton::Vertex> neighbours2;
 			std::deque<Skeleton::Vertex>::iterator vit2;
-			boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b2, e2;
-			std::tie(b2, e2) = boost::adjacent_vertices(vert2, _g);
+			Skeleton::SkeletonGraph::adjacency_iterator b2, e2;
+			b2 = _g.adjacencyBegin(vert2);
+			e2 = _g.adjacencyEnd(vert2);
 			neighbours2.assign(b2, e2);
 
 			minIt = neighbours2.begin();
@@ -403,7 +403,7 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
 				if(v == vert1)
 					continue;
 
-				Vec2d vpos = boost::get(boost::vertex_pos, _g, v);
+				Vec2d vpos = _g.getVertexPosition(v);
 
 				Vec2d e1, e2, e;
 				e1.diff(bpos, epos);
@@ -429,15 +429,6 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
 
 			vert1 = vert2;
 			vert2 = *(minIt);
-
-		
-		/*const Skeleton::Vertex &beg = boost::source(edge, _g);
-		const Skeleton::Vertex &end = boost::target(edge, _g);
-
-		Vec2d bpos = boost::get(boost::vertex_pos, _g, beg);
-
-		contours.push_back(ComplexNumber(bpos.x, bpos.y));*/
-
 	}while(vert1 != vertIt);
 
 	std::string directions;

@@ -39,12 +39,12 @@ void edge_summary(imago::Skeleton &g)
 	{
 		std::map<std::string, int> bondtypes;
 		Skeleton::SkeletonGraph graph = g.getGraph();
-      for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator> range = edges(graph);
-          range.first != range.second;
-          range.first = range.second)
-         for(boost::graph_traits<Skeleton::SkeletonGraph>::edge_descriptor b;
-             range.first != range.second ? (b = *range.first, true) : false;
-             ++range.first)
+      for(Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd();
+          begin != end;
+          begin = end)
+         for(Skeleton::SkeletonGraph::edge_descriptor b;
+             begin != end ? (b = *begin, true) : false;
+             ++begin)
 		{
 			BondType bt = g.getBondType(b);
 			std::string bts;
@@ -381,21 +381,21 @@ void WedgeBondExtractor::fixStereoCenters( Molecule &mol )
    Skeleton::SkeletonGraph &graph = mol.getSkeleton();
    const Molecule::ChemMapping &labels = mol.getMappedLabels();
    std::vector<Skeleton::Edge> to_reverse_bonds;
-   for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator> range = edges(graph);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<Skeleton::SkeletonGraph>::edge_descriptor b;
-          range.first != range.second ? (b = *range.first, true) : false;
-          ++range.first)
+   for(Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd();
+       begin != end;
+       begin = end)
+      for(Skeleton::SkeletonGraph::edge_descriptor b;
+          begin != end ? (b = *begin, true) : false;
+          ++begin)
    {
-      Bond b_bond = boost::get(boost::edge_type, graph, b);
+      Bond b_bond = graph.getEdgeBond(b);
       BondType type = b_bond.type;
 
       if (type == BT_SINGLE_DOWN || type == BT_SINGLE_UP_C)
       {
          bool begin_stereo = false, end_stereo = false;         
-         Skeleton::Vertex v1 = boost::source(b, graph), 
-            v2 = boost::target(b, graph);
+         Skeleton::Vertex v1 = b.m_source, 
+            v2 = b.m_target;
 
          if (_checkStereoCenter(v1, mol))
             begin_stereo = true;
@@ -418,7 +418,7 @@ void WedgeBondExtractor::fixStereoCenters( Molecule &mol )
 
    for(Skeleton::Edge e: to_reverse_bonds)
    {
-	   Bond b_bond = boost::get(boost::edge_type, graph, e);
+	   Bond b_bond = graph.getEdgeBond(e);
 	   BondType type = b_bond.type;
 
 	   if (type == BT_SINGLE_UP_C)
@@ -452,16 +452,17 @@ bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex &v,
 	   conf.charge = elem->second->satom.atoms[0].charge;
    }
 
-   conf.degree = (int)boost::in_degree(v, graph);
+   conf.degree = (int)graph.getDegree(v);
    conf.n_double_bonds = 0;
 
-   std::pair<Skeleton::EdgeIterator, Skeleton::EdgeIterator> p;
+   Skeleton::SkeletonGraph::out_edge_iterator begin, end;
 
-   p = boost::out_edges(v, graph);
+   begin = graph.outEdgeBegin(v);
+   end = graph.outEdgeEnd(v);
 
-   for (Skeleton::EdgeIterator it = p.first; it != p.second; ++it)
+   for (Skeleton::SkeletonGraph::out_edge_iterator it = begin; it != end; ++it)
    {
-      BondType type = boost::get(boost::edge_type, graph, *it).type;
+      BondType type = graph.getEdgeBond(*it).type;
 
       if (type == BT_DOUBLE)
          conf.n_double_bonds++;
@@ -504,16 +505,16 @@ bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex &v,
 int WedgeBondExtractor::getVertexValence(Skeleton::Vertex &v, Skeleton &mol)
 {
 	std::deque<Skeleton::Vertex> neighbors;
-	boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b_e, e_e;
-				
-	std::tie(b_e, e_e) = boost::adjacent_vertices(v, mol.getGraph());
+	Skeleton::SkeletonGraph::adjacency_iterator b_e, e_e;
+	b_e = mol.getGraph().adjacencyBegin(v);
+	e_e = mol.getGraph().adjacencyEnd(v);
 	neighbors.assign(b_e, e_e);
 
 	int retVal = 0;
 
 	for(size_t i = 0; i < neighbors.size(); i++)
 	{
-		Skeleton::Edge edge = boost::edge(neighbors[i], v, mol.getGraph()).first;
+		Skeleton::Edge edge = mol.getGraph().getEdge(neighbors[i], v).first;
 		BondType bType = mol.getBondType(edge);
 		switch(bType)
 		{
@@ -545,11 +546,11 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
       _bfs_state.resize(_img.getWidth() * _img.getHeight());
       IntVector iqm_thick;
 
-      for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::vertex_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::vertex_iterator> range = vertices(graph);
-          range.first != range.second; range.first = range.second)
-         for (boost::graph_traits<Skeleton::SkeletonGraph>::vertex_descriptor v;
-              range.first != range.second ? (v = *range.first, true):false;
-              ++range.first)
+      for(Skeleton::SkeletonGraph::vertex_iterator begin = graph.vertexBegin(), end = graph.vertexEnd();
+          begin != end; begin = end)
+         for (Skeleton::SkeletonGraph::vertex_descriptor v;
+              begin != end ? (v = *begin, true):false;
+              ++begin)
       {
          Vec2d v_vec2d = g.getVertexPos(v);
 
@@ -561,15 +562,15 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
       std::sort(iqm_thick.begin(), iqm_thick.end());
       _mean_thickness = StatUtils::interMean(iqm_thick.begin(), iqm_thick.end());
 	 
-      for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator> range = edges(graph);
-          range.first != range.second;
-          range.first = range.second)
-         for(boost::graph_traits<Skeleton::SkeletonGraph>::edge_descriptor b;
-             range.first != range.second ? (b = *range.first, true) : false;
-             ++range.first)
+      for(Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd();
+          begin != end;
+          begin = end)
+         for(Skeleton::SkeletonGraph::edge_descriptor b;
+             begin != end ? (b = *begin, true) : false;
+             ++begin)
       {
-		  Skeleton::Vertex v1 = boost::source(b, graph),
-			  v2 = boost::target(b, graph);
+		  Skeleton::Vertex v1 = b.m_source,
+			  v2 = b.m_target;
 		 
 		 BondType bond_type = BT_SINGLE;
 
@@ -760,12 +761,12 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 {
 	Skeleton::SkeletonGraph &g = graph.getGraph();
-   for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator> range = edges(g);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<Skeleton::SkeletonGraph>::edge_descriptor e;
-          range.first != range.second ? (e = *range.first, true) : false;
-          ++range.first)
+   for(Skeleton::SkeletonGraph::edge_iterator begin = g.edgeBegin(), end = g.edgeEnd();
+       begin != end;
+       begin = end)
+      for(Skeleton::SkeletonGraph::edge_descriptor e;
+          begin != end ? (e = *begin, true) : false;
+          ++begin)
 	{
 		BondType edge_type = graph.getBondType(e);
 		if(edge_type == BT_SINGLE_UP)
@@ -785,8 +786,9 @@ void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 				has_single_end = false;
 
 			std::deque<Skeleton::Vertex> neighbors;
-			boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b_e, e_e;
-			std::tie(b_e, e_e) = boost::adjacent_vertices(b_v, g);
+			Skeleton::SkeletonGraph::adjacency_iterator b_e, e_e;
+			b_e = g.adjacencyBegin(b_v);
+			e_e = g.adjacencyEnd(b_v);
 			neighbors.assign(b_e, e_e);
 			
 			//check edges from beginning vertex
@@ -794,7 +796,7 @@ void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 			{
 				if(neighbors[i] != e_v)
 				{
-					Skeleton::Edge edge = boost::edge(neighbors[i], b_v, g).first;
+					Skeleton::Edge edge = g.getEdge(neighbors[i], b_v).first;
 					if(graph.getBondType(edge) == BT_SINGLE_UP)
 					{
 						has_single_begin = true;
@@ -804,13 +806,14 @@ void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 			}
 
 			//check edges from ending vertex
-			std::tie(b_e, e_e) = boost::adjacent_vertices(e_v, g);
+			b_e = g.adjacencyBegin(e_v);
+			e_e = g.adjacencyEnd(e_v);
 			neighbors.assign(b_e, e_e);
 			for(size_t i = 0; i < neighbors.size(); i++)
 			{
 				if(neighbors[i] != b_v)
 				{
-					Skeleton::Edge edge = boost::edge(neighbors[i], e_v, g).first;
+					Skeleton::Edge edge = g.getEdge(neighbors[i], e_v).first;
 					if(graph.getBondType(edge) == BT_SINGLE_UP)
 					{
 						has_single_end = true;
@@ -824,12 +827,12 @@ void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 		}
 	}
 
-   for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator> range = edges(g);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<Skeleton::SkeletonGraph>::edge_descriptor e;
-          range.first != range.second ? (e = *range.first, true) : false;
-          ++range.first)
+   for(Skeleton::SkeletonGraph::edge_iterator begin = g.edgeBegin(), end = g.edgeEnd();
+       begin != end;
+       begin = end)
+      for(Skeleton::SkeletonGraph::edge_descriptor e;
+          begin != end ? (e = *begin, true) : false;
+          ++begin)
 	{
 		BondType edge_type = graph.getBondType(e);
 		if(edge_type == BT_WEDGE)
@@ -840,20 +843,20 @@ void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 void WedgeBondExtractor::fetchArrows(const Settings& vars, Skeleton &g )
 {
 	Skeleton::SkeletonGraph &graph = g.getGraph();
-   for(std::pair<boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator, boost::graph_traits<Skeleton::SkeletonGraph>::edge_iterator> range = edges(graph);
-       range.first != range.second;
-       range.first = range.second)
-      for(boost::graph_traits<Skeleton::SkeletonGraph>::edge_descriptor e;
-          range.first != range.second ? (e = *range.first, true) : false;
-          ++range.first)
+   for(Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd();
+       begin != end;
+       begin = end)
+      for(Skeleton::SkeletonGraph::edge_descriptor e;
+          begin != end ? (e = *begin, true) : false;
+          ++begin)
 	{
 		BondType edge_type = g.getBondType(e);
 		if(edge_type == BT_SINGLE_UP)
 		{
 			Skeleton::Vertex b = g.getBondBegin(e);
 			Skeleton::Vertex e_v = g.getBondEnd(e);
-			size_t b_deg = boost::degree(b, graph);
-			size_t e_deg = boost::degree(e_v, graph);
+			size_t b_deg = graph.getDegree(b);
+			size_t e_deg = graph.getDegree(e_v);
 			size_t min_deg = b_deg < e_deg ? b_deg : e_deg;
 			size_t max_deg = b_deg > e_deg ? b_deg : e_deg;
 
@@ -863,16 +866,17 @@ void WedgeBondExtractor::fetchArrows(const Settings& vars, Skeleton &g )
 				if(e_deg == 2)
 					v = e_v;
 				std::deque<Skeleton::Vertex> neighbors;
-				boost::graph_traits<Skeleton::SkeletonGraph>::adjacency_iterator b_e, e_e;
-				std::tie(b_e, e_e) = boost::adjacent_vertices(v, graph);
+				Skeleton::SkeletonGraph::adjacency_iterator b_e, e_e;
+				b_e = graph.adjacencyBegin(v);
+				e_e = graph.adjacencyEnd(v);
 				neighbors.assign(b_e, e_e);
 
 				for(size_t i = 0; i < neighbors.size(); i++)
 				{
 					if(neighbors[i] != b && neighbors[i] != e_v && 
-						boost::degree(neighbors[i], graph) == 1)
+						graph.getDegree(neighbors[i]) == 1)
 					{
-						Skeleton::Edge edge = boost::edge(neighbors[i], v, graph).first;
+						Skeleton::Edge edge = graph.getEdge(neighbors[i], v).first;
 
 						if (g.getBondType(edge) == BT_SINGLE)
 						{

@@ -15,7 +15,6 @@
 #include "multiple_bond_checker.h"
 #include "algebra.h"
 #include "log_ext.h"
-#include "boost/graph/graph_traits.hpp"
 
 using namespace imago;
 
@@ -42,13 +41,13 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
    first = frst, second = scnd;
    bf = _s.getBondInfo(first); bs = _s.getBondInfo(second);
 
-   fb = boost::source(first, _g); fe = boost::target(first, _g);
-   sb = boost::source(second, _g); se = boost::target(second, _g);
+   fb = first.m_source; fe = first.m_target;
+   sb = second.m_source; se = second.m_target;
 
-   fb_pos = boost::get(boost::vertex_pos, _g, fb);
-   fe_pos = boost::get(boost::vertex_pos, _g, fe);
-   sb_pos = boost::get(boost::vertex_pos, _g, sb);
-   se_pos = boost::get(boost::vertex_pos, _g, se);
+   fb_pos = _g.getVertexPosition(fb);
+   fe_pos = _g.getVertexPosition(fe);
+   sb_pos = _g.getVertexPosition(sb);
+   se_pos = _g.getVertexPosition(se);
 
    double d;
    double dd;
@@ -101,8 +100,8 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
    
    if (fe != se && fb != sb)
    {
-      if (boost::edge(fb, se, _g).second ||
-          boost::edge(fe, sb, _g).second)
+      if (_g.getEdge(fb, se).second ||
+          _g.getEdge(fe, sb).second)
          return false;
 
       dd = Vec2d::distance(m1, m2); 
@@ -126,16 +125,16 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
       return false;
    }
    
-   for(std::pair<boost::graph_traits<Graph>::vertex_iterator, boost::graph_traits<Graph>::vertex_iterator> range = vertices(_g);
-       range.first != range.second; range.first = range.second)
-      for (boost::graph_traits<Graph>::vertex_descriptor v;
-           range.first != range.second ? (v = *range.first, true):false;
-           ++range.first)
+   for(Graph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
+       begin != end; begin = end)
+      for (Graph::vertex_descriptor v;
+           begin != end ? (v = *begin, true):false;
+           ++begin)
    {
       if (v == fb || v == fe || v == sb || v == se)
          continue;
 
-      Vec2d v_pos = boost::get(boost::vertex_pos, _g, v);
+      Vec2d v_pos = _g.getVertexPosition(v);
       double d1 = Algebra::distance2segment(v_pos, fb_pos, fe_pos);
       double d2 = Algebra::distance2segment(v_pos, sb_pos, se_pos);
 
@@ -212,9 +211,9 @@ bool MultipleBondChecker::checkTriple(const Settings& vars, Edge thrd )
    third = thrd;
    bt = _s.getBondInfo(third);
 
-   tb = boost::source(third, _g); te = boost::target(third, _g);
-   tb_pos = boost::get(boost::vertex_pos, _g, tb);
-   te_pos = boost::get(boost::vertex_pos, _g, te);
+   tb = third.m_source; te = third.m_target;
+   tb_pos = _g.getVertexPosition(tb);
+   te_pos = _g.getVertexPosition(te);
    
    double dtf, dts;
    if (!Algebra::segmentsParallel(tb_pos, te_pos, fb_pos, fe_pos, _parLinesEps, &dtf) &&
@@ -240,28 +239,28 @@ bool MultipleBondChecker::checkTriple(const Settings& vars, Edge thrd )
 
    Edge mid_bond, far_bond;
    Vertex midb, mide, farb, fare;
-   int degs = (int)(boost::degree(tb, _g) + boost::degree(te, _g));
+   int degs = (int)(_g.getDegree(tb) + _g.getDegree(te));
 
    double d;
    if (ddf < dds)
    {
       mid_bond = first, far_bond = second, d = ddf;
       midb = fb, mide = fe, farb = sb, fare = se;
-      degs += (int)(boost::degree(sb, _g) + boost::degree(se, _g));
+      degs += (int)(_g.getDegree(sb) + _g.getDegree(se));
    }
    else
    {
       mid_bond = second, far_bond = first, d = dds;
       midb = sb, mide = se, farb = fb, fare = fe;
-      degs += (int)(boost::degree(fb, _g) + boost::degree(fe, _g));
+      degs += (int)(_g.getDegree(fb) + _g.getDegree(fe));
    }
 
    if (degs != 4)
    {
       Vertex vv, v;
-      if (boost::degree(tb, _g) == 1)
+      if (_g.getDegree(tb) == 1)
          vv = te;
-      else if (boost::degree(te, _g) == 1)
+      else if (_g.getDegree(te) == 1)
          vv = tb;
       else
          return false;
@@ -269,17 +268,17 @@ bool MultipleBondChecker::checkTriple(const Settings& vars, Edge thrd )
       if(vv == midb)
       {
          v = midb;
-         degs += 1 - (int)boost::degree(v, _g);
+         degs += 1 - (int)_g.getDegree(v);
       }
       else if(vv == mide)
       {
          v = mide;
-         degs += 1 - (int)boost::degree(v, _g);
+         degs += 1 - (int)_g.getDegree(v);
       }
       
-      if (boost::degree(farb, _g) == 1)
+      if (_g.getDegree(farb) == 1)
          vv = fare;
-      else if (boost::degree(fare, _g) == 1)
+      else if (_g.getDegree(fare) == 1)
          vv = farb;
       else
          return false;
@@ -287,12 +286,12 @@ bool MultipleBondChecker::checkTriple(const Settings& vars, Edge thrd )
       if(vv == midb)
       {
          v = midb;
-         degs += 1 - (int)boost::degree(v, _g);
+         degs += 1 - (int)_g.getDegree(v);
       }
       else if(vv == mide)
       {
          v = mide;
-         degs += 1 - (int)boost::degree(v, _g);
+         degs += 1 - (int)_g.getDegree(v);
       }
 
       if (degs != 4)

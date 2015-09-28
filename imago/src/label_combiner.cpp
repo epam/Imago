@@ -16,8 +16,6 @@
 #include <vector>
 #include <cfloat>
 
-#include "boost/graph/connected_components.hpp"
-
 #include "label_combiner.h"
 #include "log_ext.h"
 #include "character_recognizer.h"
@@ -62,40 +60,34 @@ void LabelCombiner::_locateLabels(const Settings& vars)
 
    RNGBuilder::build(seg_graph);
    
-   VertexPosMap::type positions = get(boost::vertex_pos, seg_graph);
    SegmentsGraph::edge_iterator ei, ei_end, next;
-   std::tie(ei, ei_end) = boost::edges(seg_graph);
+   ei = seg_graph.edgeBegin();
+   ei_end = seg_graph.edgeEnd();
 
    double distance_constraint = vars.dynamic.CapitalHeight * vars.lcomb.MaximalDistanceFactor;
    double distance_constraint_y = vars.dynamic.CapitalHeight * vars.lcomb.MaximalYDistanceFactor;
 
-   boost::property_map<segments_graph::SegmentsGraph, boost::vertex_seg_ptr_t>::
-	   type img_ptrs = boost::get(boost::vertex_seg_ptr, seg_graph);
-
-   
    for (next = ei; ei != ei_end; ei = next)
    {
-	  Segment *s_b = boost::get(img_ptrs, boost::vertex(boost::source(*ei, seg_graph), seg_graph));
-	  Segment *s_e = boost::get(img_ptrs, boost::vertex(boost::target(*ei, seg_graph), seg_graph));
+	  Segment *s_b = seg_graph.getVertexSegment(ei->m_source);
+	  Segment *s_e = seg_graph.getVertexSegment(ei->m_target);
       
       ++next;
 	  if (SegmentTools::getRealDistance(*s_b,*s_e, SegmentTools::dtEuclidian) < distance_constraint &&
 		  SegmentTools::getRealDistance(*s_b,*s_e, SegmentTools::dtDeltaY) < distance_constraint_y )
 		  continue;
 	  else
-         boost::remove_edge(*ei, seg_graph);
+         seg_graph.removeEdge(*ei);
    }
    
    getLogExt().appendGraph(vars, "seg_graph", seg_graph);
 
-   std::vector<int> _components(boost::num_vertices(seg_graph));
-   int cc = boost::connected_components(seg_graph, &_components[0]);
+   std::vector<int> _components(seg_graph.vertexCount());
+   size_t cc = seg_graph.connected_components(_components);
    std::vector<std::vector<int> > components(cc);
    for (size_t i = 0; i < _components.size(); i++)
       components[_components[i]].push_back((int)i);
 
-   boost::property_map<segments_graph::SegmentsGraph, boost::vertex_seg_ptr_t>::
-                   type seg_ptrs = boost::get(boost::vertex_seg_ptr, seg_graph);
    _labels.resize(cc);
    for (size_t i = 0; i < components.size(); i++)
    {      
@@ -104,11 +96,9 @@ void LabelCombiner::_locateLabels(const Settings& vars)
       _labels[i].symbols.resize(components[i].size());
       for (int j = 0; j < (int)components[i].size(); j++)
       {
-         _labels[i].symbols[j] = boost::get(seg_ptrs, boost::vertex(
-                                            components[i][j], seg_graph));
+         _labels[i].symbols[j] = seg_graph.getVertexSegmentByInd(components[i][j]);
       }
    }
-
 }
 
 void LabelCombiner::_fillLabelInfo(const Settings& vars, Label &l )

@@ -199,21 +199,21 @@ namespace imago
 		}
 
 		template <typename data_t>
-		void cvBasedCDT(std::vector<data_t>& data, size_t nx, size_t ny, int flags = 0)
+		void cvBasedCDT(std::vector<data_t>& data, int nx, int ny, int flags = 0)
 		{
 			logEnterFunction();
 
 			cv::Mat1d temp(ny, nx);			
-			int idx = 0;
-			for (size_t y = 0; y < ny; y++)
-				for (size_t x = 0; x < nx; x++)				
+			size_t idx = 0;
+			for (int y = 0; y < ny; y++)
+				for (int x = 0; x < nx; x++)
 					temp(y,x) = data[idx++];
 
 			cv::dct(temp, temp, flags);
 
 			idx = 0;
-			for (size_t y = 0; y < ny; y++)
-				for (size_t x = 0; x < nx; x++)				
+			for (int y = 0; y < ny; y++)
+				for (int x = 0; x < nx; x++)
 					data[idx++] = (data_t)temp(y,x);
 		}
 
@@ -228,14 +228,14 @@ namespace imago
 			computeDLT(temp, data, nx, ny, thresh); // data -> temp
 
 			getLogExt().appendText("Compute simple discrete cosine transform");
-			cvBasedCDT(temp, nx, ny);
+			cvBasedCDT(temp, (int)nx, (int)ny);
  
 			getLogExt().appendText("Solve the Poisson PDE in Fourier space");
 			data_t normDCT = (data_t)(1.0 / (data_t)(nx * ny));			
 			retinexPoissonDCT(temp, nx, ny, normDCT);
 	
 			getLogExt().appendText("Compute inversed discrete cosine transform");
-			cvBasedCDT(temp, nx, ny, cv::DCT_INVERSE);
+			cvBasedCDT(temp, (int)nx, (int)ny, cv::DCT_INVERSE);
 			
 			data = temp; // temp -> data
 

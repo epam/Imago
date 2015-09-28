@@ -32,8 +32,9 @@ TripleBondMaker::~TripleBondMaker()
 TripleBondMaker::Result TripleBondMaker::_validateVertices()
 {
    std::set<Vertex> vertices;
-   boost::graph_traits<Graph>::vertex_iterator vi, vi_end;
-   std::tie(vi, vi_end) = boost::vertices(_g);
+   Graph::vertex_iterator vi, vi_end;
+   vi = _g.vertexBegin();
+   vi_end = _g.vertexEnd();
    vertices.insert(vi, vi_end);
    std::set<Vertex>::iterator it_end = vertices.end();
    bool firstValid, secondValid, thirdValid;
@@ -74,9 +75,9 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
    std::set<Vertex> toRemove;
    std::tie(first, second, third) = edges;
 
-   fb = boost::source(first, _g), fe = target(first, _g);
-   sb = boost::source(second, _g), se = target(second, _g);
-   tb = boost::source(third, _g), te = target(third, _g);
+   fb = first.m_source, fe = first.m_target;
+   sb = second.m_source, se = second.m_target;
+   tb = third.m_source, te = third.m_target;
 
    Result ret = _validateVertices();
 
@@ -84,17 +85,14 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
       return ret;
 
    //Validating edges
-   if (!boost::edge(fb, fe, _g).second ||
-       !boost::edge(sb, se, _g).second ||
-       !boost::edge(tb, te, _g).second)
+   if (!_g.getEdge(fb, fe).second ||
+       !_g.getEdge(sb, se).second ||
+       !_g.getEdge(tb, te).second)
       return std::make_tuple(0, empty, empty);
    
-   boost::property_map<Graph, boost::vertex_pos_t>::type
-      positions = boost::get(boost::vertex_pos, _g);
-
-   Vec2d fb_pos = positions[fb], fe_pos = positions[fe],
-         sb_pos = positions[sb], se_pos = positions[se],
-         tb_pos = positions[tb], te_pos = positions[te];
+   Vec2d fb_pos = _g.getVertexPosition(fb), fe_pos = _g.getVertexPosition(fe),
+         sb_pos = _g.getVertexPosition(sb), se_pos = _g.getVertexPosition(se),
+         tb_pos = _g.getVertexPosition(tb), te_pos = _g.getVertexPosition(te);
 
    if (Vec2d::distance(fb_pos, sb_pos) > Vec2d::distance(fb_pos, se_pos))
    {
@@ -119,9 +117,9 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
    bool left = l1 > vars.mbond.TripleLeftLengthTresh * _avgBondLength;
    bool right = l2 > vars.mbond.TripleRightLengthTresh * _avgBondLength;
    
-   boost::remove_edge(first, _g);
-   boost::remove_edge(second, _g);
-   boost::remove_edge(third, _g);
+   _g.removeEdge(first);
+   _g.removeEdge(second);
+   _g.removeEdge(third);
 
    if (left || right)
    {
@@ -194,8 +192,8 @@ TripleBondMaker::Result TripleBondMaker::operator ()(
    }
 
    for(Vertex v: toRemove)
-      if (boost::degree(v, _g) == 0)
-         boost::remove_vertex(v, _g);
+      if (_g.getDegree(v) == 0)
+         _g.removeVertex(v);
    
    return ret;
 }
