@@ -1,13 +1,13 @@
 /****************************************************************************
  * Copyright (C) 2011 GGA Software Services LLC
- * 
+ *
  * This file is part of Imago toolkit.
- * 
+ *
  * This file may be distributed and/or modified under the terms of the
  * GNU General Public License version 3 as published by the Free Software
  * Foundation and appearing in the file LICENSE.GPL included in the
  * packaging of this file.
- * 
+ *
  * This file is provided AS IS with NO WARRANTY OF ANY KIND, INCLUDING THE
  * WARRANTY OF DESIGN, MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE.
  ***************************************************************************/
@@ -32,12 +32,12 @@ public class Imago {
         ADAPTIVE("prefilter_adaptive"),
         CV("prefilter_basic"),
         PASSTHRU("prefilter_binarized");
-        
+
         private String filterName;
         Filters(String name) {
             this.filterName = name;
         }
-        
+
         public String getName() {
             return this.filterName;
         }
@@ -55,7 +55,7 @@ public class Imago {
         public LogRecord() {
         }
     }
-    
+
     static private int checkResult(int result) {
         if (result < 0) {
             throw new ImagoException(_lib.imagoGetLastError());
@@ -67,7 +67,7 @@ public class Imago {
     public String getVersion() {
         return _lib.imagoGetVersion();
     }
-    
+
     public void setSessionID()
     {
         _lib.imagoSetSessionId(_sid);
@@ -81,7 +81,7 @@ public class Imago {
         else
             _lib.imagoSetLogging(1);
     }
-    
+
     public void disableLog() {
         setSessionID();
         _lib.imagoSetLogging(0);
@@ -96,23 +96,23 @@ public class Imago {
         setSessionID();
         return _lib.imagoGetConfigsList();
     }
-    
+
     public void setFilter(Filters filter) {
         setSessionID();
         checkResult(_lib.imagoSetFilter(filter.getName()));
     }
-    
+
     public void filterImage() {
         setSessionID();
         checkResult(_lib.imagoFilterImage());
     }
-    
+
     public Image getFilteredImage() {
         IntByReference width = new IntByReference(),
-                       height = new IntByReference();        
+                       height = new IntByReference();
         PointerByReference data = new PointerByReference(Pointer.NULL);
         _lib.imagoGetPrefilteredImage(data, width, height);
-        
+
         int w = width.getValue(), h = height.getValue();
         BufferedImage img = new BufferedImage(w, h, BufferedImage.TYPE_BYTE_GRAY);
         for (int i = 0; i < width.getValue(); i++) {
@@ -122,13 +122,13 @@ public class Imago {
         }
         return img;
     }
-    
+
     public void recognize() {
         setSessionID();
         IntByReference warnings = new IntByReference();
         checkResult(_lib.imagoRecognize(warnings));
     }
-    
+
     public String getResultMolecule() {
         setSessionID();
 
@@ -139,7 +139,7 @@ public class Imago {
 
         return result.getValue().getString(0);
     }
-    
+
     public void saveImage(String filename) {
         setSessionID();
         checkResult(_lib.imagoSaveImageToFile(filename));
@@ -158,17 +158,17 @@ public class Imago {
     public void loadImage(BufferedImage image) throws ImagoException {
         setSessionID();
         BufferedImage img = new BufferedImage(image.getWidth(), image.getHeight(),
-            BufferedImage.TYPE_BYTE_GRAY);  
-        Graphics g = img.getGraphics();  
-        g.drawImage(image, 0, 0, null);  
-        g.dispose(); 
+            BufferedImage.TYPE_BYTE_GRAY);
+        Graphics g = img.getGraphics();
+        g.drawImage(image, 0, 0, null);
+        g.dispose();
 
         DataBuffer buf = img.getData().getDataBuffer();
-        byte[] simple_buf = new byte[buf.getSize()];  
+        byte[] simple_buf = new byte[buf.getSize()];
         for (int j = 0; j < buf.getSize(); j++) {
             simple_buf[j] = (byte)buf.getElem(j);
         }
-            
+
         int w = img.getWidth(), h = img.getHeight();
 
         checkResult(_lib.imagoLoadGreyscaleRawImage(simple_buf, w, h));
@@ -179,7 +179,7 @@ public class Imago {
 
         IntByReference count = new IntByReference();
         _lib.imagoGetLogCount(count);
-        
+
         if (count.getValue() == 0)
             return null;
 
@@ -196,7 +196,7 @@ public class Imago {
 
         return log;
     }
-    
+
     public static class LibraryRemover {
 
         ArrayList<String> files = new ArrayList<String>();
@@ -354,7 +354,8 @@ public class Imago {
             _lib = (ImagoLib) Native.loadLibrary(getPathToBinary(path, "libimago_c.dylib"), ImagoLib.class);
         } else // _os == OS_WINDOWS
         {
-            System.load(getPathToBinary(path, "msvcr100.dll"));
+            System.load(getPathToBinary(path, "msvcr120.dll"));
+            System.load(getPathToBinary(path, "msvcp120.dll"));
             _lib = (ImagoLib) Native.loadLibrary(getPathToBinary(path, "imago_c.dll"), ImagoLib.class);
         }
     }
@@ -397,7 +398,7 @@ public class Imago {
 
     private String _path;
     private long _sid;
-    
+
     private static final int OS_WINDOWS = 1;
     private static final int OS_MACOS = 2;
     private static final int OS_LINUX = 3;

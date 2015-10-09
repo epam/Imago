@@ -1,10 +1,8 @@
-
-
 file(GLOB_RECURSE Ego_SRC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} src/*.java)
 file(GLOB Ego_RES RELATIVE ${CMAKE_CURRENT_SOURCE_DIR} resources/*)
 file(GLOB Ego_LIBS lib/*.jar)
 
-find_package(Java REQUIRED) 
+find_package(Java REQUIRED)
 include(UseJava)
 
 get_target_property(imago_jar_filename imago_java JAR_FILE)
@@ -23,6 +21,6 @@ add_custom_command(TARGET ego POST_BUILD
 				   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 install_jar(ego ego)
-install(FILES ${Ego_LIBS} DESTINATION ego/lib)
+install(FILES ${CMAKE_JAVA_INCLUDE_PATH} DESTINATION ego/lib)
 
 message(STATUS "Ego added")
