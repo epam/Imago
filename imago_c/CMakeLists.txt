@@ -1,7 +1,18 @@
-include_directories(../imago/src)
-include_directories(${Boost_INCLUDE_DIR})
-include_directories(${INDIGO_INCLUDE_DIR})
-include_directories(${OpenCV_INCLUDE_DIRS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../imago/src)
+include_directories(${THIRD_PARTY_DIR}/boost/include)
+include_directories(${THIRD_PARTY_DIR}/indigo/api)
+include_directories(${THIRD_PARTY_DIR}/opencv/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/core/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/flann/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/imgproc/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/photo/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/video/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/features2d/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/objdetect/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/calib3d/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/ml/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/highgui/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/contrib/include)
 
 include(imago_version.cmake)
 message(STATUS "Imago version is ${IMAGO_VERSION} (${IMAGO_VERSION_EXT})")
@@ -28,7 +39,7 @@ install(FILES ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS} DESTINATION imago_shared)
 add_library(imago_c_static STATIC ${SRC})
 add_dependencies(imago_c_static imago)
 target_link_libraries(imago_c_static imago)
-set_target_properties(imago_c_static PROPERTIES 
+set_target_properties(imago_c_static PROPERTIES
 	OUTPUT_NAME imago_c
 	ARCHIVE_OUTPUT_DIRECTORY imago_static)
 
