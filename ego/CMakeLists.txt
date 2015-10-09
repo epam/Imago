@@ -23,4 +23,10 @@ add_custom_command(TARGET ego POST_BUILD
 install_jar(ego ego)
 install(FILES ${CMAKE_JAVA_INCLUDE_PATH} DESTINATION ego/lib)
 
+if (UNIX)
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/runscripts/ego DESTINATION ego)
+else()
+	install(FILES ${CMAKE_CURRENT_SOURCE_DIR}/runscripts/ego.bat DESTINATION ego)
+endif()
+
 message(STATUS "Ego added")

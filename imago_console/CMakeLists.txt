@@ -48,3 +48,5 @@ if(UNIX AND NOT APPLE)
 endif()
 target_link_libraries(imago_console render2d indigo indigo-renderer common molecule reaction graph layout z tinyxml cairo pixman png)
 target_link_libraries(imago_console imago)
+
+install(TARGETS imago_console RUNTIME  DESTINATION imago_console)
