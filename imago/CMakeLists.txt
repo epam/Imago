@@ -3,6 +3,9 @@ file(GLOB SRC src/*.cpp)
 FILE(GLOB HEADERS "src/*.h")
 list(APPEND SRC ${HEADERS})
 
+if(NOT MSVC)
+ list(REMOVE_ITEM HEADERS src/dirent.h)
+endif()
 
 include_directories(${THIRD_PARTY_DIR}/boost/include)
 include_directories(${THIRD_PARTY_DIR}/indigo/api)
