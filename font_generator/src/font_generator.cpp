@@ -45,7 +45,7 @@ int main(int argc, char **argv)
 		imago::CharacterRecognizerImp::Templates templates;
 		if (imago::CharacterRecognizerImp::initializeTemplates(vars, dir, templates))
 		{
-			printf("Initialized %u templates.\n", templates.size());
+			printf("Initialized %u templates.\n", (unsigned)templates.size());
 			FILE* f = fopen(file.c_str(), "w");
 			if (f != NULL)
 			{
@@ -83,7 +83,7 @@ int main(int argc, char **argv)
 
 				printf("Maximal penalty_ink = %u [%s]\n", (unsigned int)max1, (max1 < 255) ? "OK" : "FAIL");
 				printf("Maximal penalty_white = %u [%s]\n", (unsigned int)max2, (max2 < 255) ? "OK" : "FAIL");
-				printf("Stored %u templates.\n", templates.size());
+				printf("Stored %u templates.\n", (unsigned)templates.size());
 
 				fclose(f);
 			}

@@ -6,7 +6,7 @@ file(GLOB SRC src/*.cpp)
 
 
 if(UNIX OR APPLE)
-    SET(COMPILE_FLAGS "${COMPILE_FLAGS} -std=c++11 -fPIC")
+    SET(COMPILE_FLAGS "${COMPILE_FLAGS} -fPIC")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
 endif()
 
