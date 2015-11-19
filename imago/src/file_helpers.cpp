@@ -4,7 +4,7 @@
 
 
 #ifdef _WIN32
-#include "dirent.h"
+#include "imago_dirent.h"
 #else
 #include <dirent.h>
 #include <errno.h>
