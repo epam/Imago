@@ -19,6 +19,12 @@ message(STATUS "Imago version is ${IMAGO_VERSION} (${IMAGO_VERSION_EXT})")
 set(IMAGO_VERSION "${IMAGO_VERSION}" PARENT_SCOPE) # promote Imago version
 configure_file(src/imago_version.h.in ${CMAKE_CURRENT_SOURCE_DIR}/src/imago_version.h)
 
+if(UNIX OR APPLE)
+    SET(COMPILE_FLAGS "${COMPILE_FLAGS} -std=c++11 -fPIC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
+endif()
+
+
 file(GLOB SRC src/*.cpp)
 file(GLOB HEADERS src/*.h)
 list(APPEND SRC ${HEADERS})

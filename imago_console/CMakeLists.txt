@@ -4,6 +4,13 @@ include_directories(
 
 file(GLOB SRC src/*.cpp)
 
+
+if(UNIX OR APPLE)
+    SET(COMPILE_FLAGS "${COMPILE_FLAGS} -std=c++11 -fPIC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
+endif()
+
+
 FILE(GLOB HEADERS "src/*.h")
 list(APPEND SRC ${HEADERS})
 

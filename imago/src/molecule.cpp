@@ -156,14 +156,17 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 
          if (_g.getDegree(e.m_target) == 1)
             d2 = Algebra::distance2rect(_g.getVertexPosition(e.m_target), l.rect);
+         
+         auto v_m_target = _g.getVertexPosition(e.m_target);
+         auto v_m_source = _g.getVertexPosition(e.m_source);
 
-		 if (d1 <= d2 && ((testCollision(_g.getVertexPosition(e.m_target), _g.getVertexPosition(e.m_source), l.rect) &&
-			 testNear(_g.getVertexPosition(e.m_source), l.rect, space)) ||
-			 testNear(_g.getVertexPosition(e.m_source), l.rect, space2/2)))
+		 if (d1 <= d2 && ((testCollision(v_m_target, v_m_source, l.rect) &&
+			 testNear(v_m_source, l.rect, space)) ||
+			 testNear(v_m_source, l.rect, space2/2)))
             nearest.push_back(e.m_source);
-         else if (d2 < d1 && ((testCollision(_g.getVertexPosition(e.m_source), _g.getVertexPosition(e.m_target), l.rect) &&
-			 testNear(_g.getVertexPosition(e.m_target), l.rect, space)) ||
-			 testNear(_g.getVertexPosition(e.m_target), l.rect, space2/2)))
+         else if (d2 < d1 && ((testCollision(v_m_source, v_m_target, l.rect) &&
+			 testNear(v_m_target, l.rect, space)) ||
+			 testNear(v_m_target, l.rect, space2/2)))
             nearest.push_back(e.m_target);
 	  }
 
@@ -173,9 +176,11 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
               begin != end ? (v = *begin, true):false;
               ++begin)
 	  {
+         auto v_position = _g.getVertexPosition( v);
+            
 		  if(_g.getDegree(v) != 2)
 			  continue;
-		  if(!testNear(_g.getVertexPosition( v), l.rect, space2/2))
+		  if(!testNear(v_position, l.rect, space2/2))
 			  continue;
 
 		  std::deque<Skeleton::Vertex> neighbors;

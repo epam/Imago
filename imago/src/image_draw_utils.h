@@ -38,7 +38,7 @@ namespace imago
         static void putGraph( Image &img, const EuclideanGraph &cg )
         {
            EuclideanGraph &g = const_cast<EuclideanGraph&>(cg);
-           for(EuclideanGraph::vertex_iterator begin = g.vertexBegin(), end = g.vertexEnd(); begin != end; begin = end)
+           for(typename EuclideanGraph::vertex_iterator begin = g.vertexBegin(), end = g.vertexEnd(); begin != end; begin = end)
               for(typename EuclideanGraph::vertex_descriptor v;
                   begin != end ? (v = *begin, true):false;
                   ++begin)

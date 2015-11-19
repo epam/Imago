@@ -412,7 +412,7 @@ namespace machine_learning
 
 			if (readLearningProgress(base, history, true))
 			{
-				printf("[Learning] Loaded previous progress (%u, %u)\n", base.size(), history.size());
+				printf("[Learning] Loaded previous progress (%u, %u)\n", (unsigned)base.size(), (unsigned)history.size());
 
 				if (base.size() != imageSet.size())
 				{
@@ -435,7 +435,7 @@ namespace machine_learning
 				history.clear();
 
 				// step 0: prepare learning base
-				printf("[Learning] filling learning base for %u images\n", imageSet.size());
+				printf("[Learning] filling learning base for %u images\n", (unsigned)imageSet.size());
 				for (size_t u = 0; u < imageSet.size(); u++)
 				{			
 					const std::string& file = imageSet[u];
@@ -466,15 +466,15 @@ namespace machine_learning
 				}
 				
 				// step 1: get initial results
-				printf("[Learning] getting initial results for %u images\n", base.size());
+				printf("[Learning] getting initial results for %u images\n", (unsigned)base.size());
 		
-				int visual_counter = 0;
+				unsigned visual_counter = 0;
 				LearningResultRecord result_record;
 				vars.saveToDataStream(result_record.config);
 
 				for (LearningBase::iterator it = base.begin(); it != base.end(); it++)
 				{
-					printf("Image (%u/%u): %s... ", ++visual_counter, base.size(), it->first.c_str());
+					printf("Image (%u/%u): %s... ", ++visual_counter, (unsigned)base.size(), it->first.c_str());
 
 					if (!it->second.valid)
 					{
@@ -588,7 +588,7 @@ namespace machine_learning
 					
 					printf("Starting indexes: ");
 					for (size_t i = 0; i < valid_indexes.size() && i < 18; i++)
-						printf("%u ", std::distance(base.begin(), valid_indexes[i]));
+						printf("%u ", (unsigned)std::distance(base.begin(), valid_indexes[i]));
 					printf("\n");
 
 					int qc_pos = int(LEARNING_QUICKCHECK_BASE_PERCENT * (double)(valid_indexes.size()));
@@ -609,13 +609,13 @@ namespace machine_learning
 						if (quick_check)
 						{
 							end_idx = qc_pos;
-							printf("[Learning] Quick pre-check (%u images)...\n", end_idx - start_idx);
+							printf("[Learning] Quick pre-check (%u images)...\n", (unsigned)(end_idx - start_idx));
 						
 						}
 						else
 						{
 							start_idx = qc_pos;
-							printf("[Learning] Full check (%u images)...\n", end_idx - start_idx);
+							printf("[Learning] Full check (%u images)...\n", (unsigned)(end_idx - start_idx));
 						}
 					
 						delta = 0.0;

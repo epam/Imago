@@ -7,6 +7,12 @@ if(NOT MSVC)
  list(REMOVE_ITEM HEADERS src/dirent.h)
 endif()
 
+if(UNIX OR APPLE)
+    SET(COMPILE_FLAGS "${COMPILE_FLAGS} -std=c++11 -fPIC")
+    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -fPIC")
+endif()
+
+
 include_directories(${THIRD_PARTY_DIR}/boost/include)
 include_directories(${THIRD_PARTY_DIR}/indigo/api)
 include_directories(${THIRD_PARTY_DIR}/indigo/api/plugins/indigo-inchi)

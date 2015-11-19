@@ -18,6 +18,7 @@
 
 #include <deque>
 #include "beast.h"
+#include <tuple>
 
 #include "comdef.h"
 #include "vec2d.h"
