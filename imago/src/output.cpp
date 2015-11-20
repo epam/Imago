@@ -129,7 +129,7 @@ void FileOutput::write( const void *data, int size )
 
    size_t res = fwrite(data, size, 1, _f);
 
-   if (res != size)
+   if (res == 0)
       throw IOException("file writing error");
 }
 
