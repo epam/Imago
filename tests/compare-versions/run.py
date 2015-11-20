@@ -6,8 +6,8 @@ import StringIO
 import collections
 import glob
 
-from indigo.indigo_renderer import *
-from indigo.indigo import *
+from indigo_renderer import *
+from indigo import *
 
 out_dir = "results"
 tmp_dir = "tmp"
@@ -193,6 +193,7 @@ class Item:
         
         ref_mol_name = os.path.join(self.dirname, basename_group + ".mol")
         self.reference = None
+        
         if os.path.exists(ref_mol_name):
             self.reference = ref_mol_name
         else:
