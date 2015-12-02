@@ -69,8 +69,8 @@ void LabelCombiner::_locateLabels(const Settings& vars)
 
    for (next = ei; ei != ei_end; ei = next)
    {
-	  Segment *s_b = seg_graph.getVertexSegment(ei->m_source);
-	  Segment *s_e = seg_graph.getVertexSegment(ei->m_target);
+	  Segment *s_b = seg_graph.getVertexSegment(ei.get_source());
+	  Segment *s_e = seg_graph.getVertexSegment(ei.get_target());
       
       ++next;
 	  if (SegmentTools::getRealDistance(*s_b,*s_e, SegmentTools::dtEuclidian) < distance_constraint &&
