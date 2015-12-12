@@ -34,9 +34,9 @@ namespace imago
       BT_AROMATIC,
       BT_SINGLE_UP,
       BT_SINGLE_DOWN,
-	  BT_ARROW,
-	  BT_WEDGE,
-	  BT_SINGLE_UP_C, // single up bonds that need to be checked
+      BT_ARROW,
+      BT_WEDGE,
+      BT_SINGLE_UP_C, // single up bonds that need to be checked
       BT_UNKNOWN
    };
 
@@ -54,52 +54,31 @@ namespace imago
    class Skeleton
    {
    public: 
-#if 0
-      typedef boost::property<boost::vertex_pos_t, Vec2d>
-         SkeletonVertexProperties;
-      typedef boost::property<boost::edge_type_t, Bond>
-         SkeletonEdgeProperties;
-
-      // note: Check if setS is really necessary. Parallel edges are forbidden in Skeleton, but add_vertex works slower.
-      typedef boost::adjacency_list<boost::listS, boost::listS, boost::undirectedS,
-         SkeletonVertexProperties, SkeletonEdgeProperties> SkeletonGraph;
-
-      typedef boost::property_map<SkeletonGraph, boost::vertex_pos_t>
-         VertexPosMap;
-
-      typedef boost::property_map<SkeletonGraph, boost::edge_type_t>
-         EdgeTypeMap;
-
-      typedef boost::graph_traits<SkeletonGraph>::vertex_descriptor Vertex;
-      typedef boost::graph_traits<SkeletonGraph>::edge_descriptor Edge;
-      //typedef boost::graph_traits<SkeletonGraph>::vertex_iterator VertexIterator;   // unused
-      typedef boost::graph_traits<SkeletonGraph>::out_edge_iterator EdgeIterator;
-#else
-      typedef boost::property<boost::vertex_pos_t, Vec2d>
-            VertexProperties;
-      typedef boost::property<boost::edge_type_t, Bond/*, boost::edge_weight_t*/>
-            EdgeProperties;
-      typedef boost::adjacency_list<boost::listS, boost::listS, boost::undirectedS, VertexProperties, EdgeProperties> boost_adjacency_list_type;
-
-      class SkeletonGraph : public beast::Graph<boost_adjacency_list_type>
-      {
-      public:
-         SkeletonGraph():
-            positions(boost::get(boost::vertex_pos, _boost_adjacency_list_implementation)),
-            bonds(boost::get(boost::edge_type, _boost_adjacency_list_implementation))
-         {}
-         Vec2d getVertexPosition(vertex_descriptor v) const { return boost::get(positions, v); }
-         void setVertexPosition(vertex_descriptor v, Vec2d val) { boost::get(positions, v) = val; }
-         Bond getEdgeBond(edge_descriptor e) const { return boost::get(bonds, e); }
-         void setEdgeBond(edge_descriptor e, Bond &val) { boost::get(bonds, e) = val; }
-      private:
-         boost::property_map<boost_adjacency_list_type, boost::vertex_pos_t>::type positions;
-         boost::property_map<boost_adjacency_list_type, boost::edge_type_t>::type bonds;
+      struct VertexData {
+         //size_t index;
+         //Segment* segment;
+         Vec2d position;
       };
 
-      typedef beast::Graph<boost_adjacency_list_type>::vertex_descriptor Vertex;
-      typedef beast::Graph<boost_adjacency_list_type>::edge_descriptor Edge;
-#endif
+      struct EdgeData {
+         Bond bond;
+      };
+
+      class SkeletonGraph : public beast::Graph<VertexData, EdgeData>
+      {
+      public:
+         typedef beast::Graph<VertexData, EdgeData> base_type;
+
+         SkeletonGraph()
+         {}
+         Vec2d getVertexPosition(vertex_descriptor v) const { return _vertex_indices[v.id]->data.position; }
+         void setVertexPosition(vertex_descriptor v, const Vec2d &val) { _vertex_indices[v.id]->data.position = val; }
+         Bond getEdgeBond(edge_descriptor e) const { return _edge_indices[e.id]->data.bond; }
+         void setEdgeBond(edge_descriptor e, Bond &val) { _edge_indices[e.id]->data.bond = val; }
+      };
+
+      typedef SkeletonGraph::base_type::vertex_descriptor Vertex;
+      typedef SkeletonGraph::base_type::edge_descriptor Edge;
 
       Skeleton();
 

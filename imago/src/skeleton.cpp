@@ -91,7 +91,7 @@ Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type, bool th
 	   {
 		   _warnings++;
 		   std::ostringstream temp;
-		   temp << "WARNING: Already has edge (" << v1 << ", " << v2 << ")";
+         temp << "WARNING: Already has edge (" << v1.id << ", " << v2.id << ")";
 		   getLogExt().appendText(temp.str());
 		   return p.first;
 	   }
@@ -656,7 +656,8 @@ bool Skeleton::_dissolveIntermediateVertices (const Settings& vars)
       e = _g.adjacencyEnd(to_dissolve);
       neighbors.assign(b, e);
       addBond(neighbors[0], neighbors[1], BT_SINGLE);
-		_g.clearVertex(to_dissolve);
+// The clear function for vertex was needed by boost. Now clearing is implemented in removeVertex.
+//      _g.clearVertex(to_dissolve);
 		_g.removeVertex(to_dissolve);
       return true;
    }
@@ -1286,9 +1287,10 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 
 	for (size_t u = 0; u < verticies_to_remove.size(); u++)
 	{
-		_g.clearVertex(verticies_to_remove[u]); 
-		_g.removeVertex(verticies_to_remove[u]);
-	}
+// The clear function for vertex was needed by boost. Now clearing is implemented in removeVertex.
+//      _g.clearVertex(verticies_to_remove[u]); 
+      _g.removeVertex(verticies_to_remove[u]);
+   }
 }
 
 void Skeleton::modifyGraph(Settings& vars)

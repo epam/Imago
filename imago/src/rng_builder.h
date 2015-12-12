@@ -32,11 +32,12 @@ namespace imago
          std::vector<typename EuclideanGraph::vertex_descriptor> ind2vert(n);
          DoubleVector distances(n * n, 0);
 
-         for(typename EuclideanGraph::vertex_iterator begin = g.vertexBegin(), end = g.vertexEnd(); begin != end; begin = end)
+         int i = 0;
+         for(typename EuclideanGraph::vertex_iterator begin = g.vertexBegin(), end = g.vertexEnd(); begin != end; begin = end, ++i)
             for(typename EuclideanGraph::vertex_descriptor v;
                begin != end ? (v = *begin, true) : false;
                ++begin)
-                  ind2vert[g.getVertexIndex(v)] = v;
+                  ind2vert[i] = v;
 
          for (int i = 0; i < n; i++)
          {

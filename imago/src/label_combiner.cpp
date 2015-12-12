@@ -49,6 +49,34 @@ void LabelCombiner::extractLabels( std::deque<Label> &labels )
    labels.assign(_labels.begin(), _labels.end());
 }
 
+using namespace segments_graph;
+
+size_t Dfs(SegmentsGraph &g, SegmentsGraph::vertex_descriptor v, std::vector<int> &comps, size_t &curr)
+{
+   size_t index = g.getVertexIndex(v);
+   if (comps[index] != -1)
+      return 0;
+   size_t result = 0;
+   comps[index] = (int)curr++;
+   for (auto adj_iter = g.adjacencyBegin(v), end = g.adjacencyEnd(v); adj_iter != end; ++adj_iter)
+      result += Dfs(g, *adj_iter, comps, curr);
+
+   return result;
+}
+
+size_t connected_components(SegmentsGraph &g, std::vector<int> &comps)
+{
+   size_t cc = 0;
+   for (auto &v : comps)
+      v = -1;
+   size_t curr = 0;
+   for (auto iter = g.vertexBegin(), end = g.vertexEnd(); iter != end; ++iter)
+   {
+      cc += Dfs(g, *iter, comps, curr);
+   }
+   return cc;
+}
+
 void LabelCombiner::_locateLabels(const Settings& vars)
 {
 	logEnterFunction();
@@ -83,10 +111,21 @@ void LabelCombiner::_locateLabels(const Settings& vars)
    getLogExt().appendGraph(vars, "seg_graph", seg_graph);
 
    std::vector<int> _components(seg_graph.vertexCount());
-   size_t cc = seg_graph.connected_components(_components);
+   size_t cc = connected_components(seg_graph, _components);
    std::vector<std::vector<int> > components(cc);
    for (size_t i = 0; i < _components.size(); i++)
       components[_components[i]].push_back((int)i);
+
+   size_t n = seg_graph.vertexCount();
+   std::vector<typename SegmentsGraph::vertex_descriptor> ind2vert(n);
+   size_t i = 0;
+   for (auto begin = seg_graph.vertexBegin(), end = seg_graph.vertexEnd(); begin != end; begin = end)
+      for (SegmentsGraph::vertex_descriptor v;
+         begin != end ? (v = *begin, true) : false;
+         ++begin, ++i)
+            ind2vert[i] = v;
+   for (size_t i = 0; i < ind2vert.size(); ++i)
+      seg_graph.setVertexIndex(ind2vert[i], i);
 
    _labels.resize(cc);
    for (size_t i = 0; i < components.size(); i++)
@@ -96,7 +135,7 @@ void LabelCombiner::_locateLabels(const Settings& vars)
       _labels[i].symbols.resize(components[i].size());
       for (int j = 0; j < (int)components[i].size(); j++)
       {
-         _labels[i].symbols[j] = seg_graph.getVertexSegmentByInd(components[i][j]);
+         _labels[i].symbols[j] = seg_graph.getVertexSegment(ind2vert[components[i][j]]);
       }
    }
 }
