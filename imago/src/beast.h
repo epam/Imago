@@ -228,6 +228,8 @@ namespace beast
             size_t id = _edge_indices.size();
             auto iter = _edges.insert(_edges.end(), _Edge(edge_descriptor(id, u, v), u, v));
             _edge_indices.push_back(iter);
+            _vertex_indices[u.id]->neighbors.push_back(std::make_pair(v.id, id));
+            _vertex_indices[v.id]->neighbors.push_back(std::make_pair(u.id, id));
             result.first = _edges.back().desc;//edge_descriptor(id, u, v);
             result.second = true;
          }
@@ -237,6 +239,20 @@ namespace beast
       {
          auto iter = _edge_indices[desc.id];
          // remove links in vertices
+         for (auto iter = _vertex_indices[desc.m_source.id]->neighbors.begin(),
+                   end = _vertex_indices[desc.m_source.id]->neighbors.end(); iter != end; ++iter)
+            if (iter->second == desc.id)
+            {
+               _vertex_indices[desc.m_source.id]->neighbors.erase(iter);
+               break;
+            }
+         for (auto iter = _vertex_indices[desc.m_target.id]->neighbors.begin(),
+            end = _vertex_indices[desc.m_target.id]->neighbors.end(); iter != end; ++iter)
+            if (iter->second == desc.id)
+            {
+               _vertex_indices[desc.m_target.id]->neighbors.erase(iter);
+               break;
+            }
          _edges.erase(iter);
          _edge_indices[desc.id] = _edges.end();
       }

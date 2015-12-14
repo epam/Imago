@@ -33,11 +33,14 @@ namespace imago
          DoubleVector distances(n * n, 0);
 
          int i = 0;
-         for(typename EuclideanGraph::vertex_iterator begin = g.vertexBegin(), end = g.vertexEnd(); begin != end; begin = end, ++i)
-            for(typename EuclideanGraph::vertex_descriptor v;
+         for(typename EuclideanGraph::vertex_iterator begin = g.vertexBegin(), end = g.vertexEnd(); begin != end; begin = end)
+            for (typename EuclideanGraph::vertex_descriptor v;
                begin != end ? (v = *begin, true) : false;
                ++begin)
-                  ind2vert[i] = v;
+            {
+               ind2vert[i] = v;
+               g.setVertexIndex(v, i++);
+            }
 
          for (int i = 0; i < n; i++)
          {

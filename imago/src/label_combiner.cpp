@@ -51,17 +51,15 @@ void LabelCombiner::extractLabels( std::deque<Label> &labels )
 
 using namespace segments_graph;
 
-size_t Dfs(SegmentsGraph &g, SegmentsGraph::vertex_descriptor v, std::vector<int> &comps, size_t &curr)
+size_t Dfs(SegmentsGraph &g, SegmentsGraph::vertex_descriptor v, std::vector<int> &comps, size_t curr)
 {
    size_t index = g.getVertexIndex(v);
    if (comps[index] != -1)
       return 0;
-   size_t result = 0;
-   comps[index] = (int)curr++;
+   comps[index] = (int)curr;
    for (auto adj_iter = g.adjacencyBegin(v), end = g.adjacencyEnd(v); adj_iter != end; ++adj_iter)
-      result += Dfs(g, *adj_iter, comps, curr);
-
-   return result;
+      Dfs(g, *adj_iter, comps, curr);
+   return 1;
 }
 
 size_t connected_components(SegmentsGraph &g, std::vector<int> &comps)
@@ -72,7 +70,7 @@ size_t connected_components(SegmentsGraph &g, std::vector<int> &comps)
    size_t curr = 0;
    for (auto iter = g.vertexBegin(), end = g.vertexEnd(); iter != end; ++iter)
    {
-      cc += Dfs(g, *iter, comps, curr);
+      cc += Dfs(g, *iter, comps, cc);
    }
    return cc;
 }
