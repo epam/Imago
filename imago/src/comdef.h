@@ -25,19 +25,6 @@
 #include <string>
 #include <algorithm>
 
-#include "boost/graph/properties.hpp"
-namespace boost
-{
-   enum vertex_seg_ptr_t { vertex_seg_ptr };
-   enum vertex_pos_t { vertex_pos };
-   enum edge_type_t { edge_type };
-   enum edge_weight4_t { edge_weight4 };
-   BOOST_INSTALL_PROPERTY(vertex, seg_ptr);
-   BOOST_INSTALL_PROPERTY(vertex, pos);
-   BOOST_INSTALL_PROPERTY(edge, type);
-   BOOST_INSTALL_PROPERTY(edge, weight4);
-}
-
 #ifdef _WIN32
 
 #define DLLEXPORT __declspec(dllexport)

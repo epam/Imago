@@ -26,10 +26,6 @@ namespace imago
 {
    namespace segments_graph
    {
-      typedef boost::property<boost::vertex_pos_t, Vec2d,
-            boost::property<boost::vertex_seg_ptr_t, Segment*, boost::property<boost::vertex_index_t, size_t>> >
-            SegmentsGraphVertexProperties;
-
       struct VertexData {
          size_t index;
          Segment* segment;
@@ -44,7 +40,6 @@ namespace imago
       {
       public:
          SegmentsGraph() {}
-//         Segment* getVertexSegmentByInd(size_t ind);
          Segment* getVertexSegment(vertex_descriptor v) { return _vertex_indices[v.id]->data.segment; }
          Vec2d getVertexPosition(vertex_descriptor v) { return _vertex_indices[v.id]->data.position; }
          size_t getVertexIndex(vertex_descriptor v) const { return _vertex_indices[v.id]->data.index; }

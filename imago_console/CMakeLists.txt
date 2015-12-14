@@ -14,7 +14,6 @@ endif()
 FILE(GLOB HEADERS "src/*.h")
 list(APPEND SRC ${HEADERS})
 
-INCLUDE_DIRECTORIES(${THIRD_PARTY_DIR}/boost/include)
 INCLUDE_DIRECTORIES(${THIRD_PARTY_DIR}/opencv/include)
 INCLUDE_DIRECTORIES(${THIRD_PARTY_DIR}/indigo/api)
 INCLUDE_DIRECTORIES(${THIRD_PARTY_DIR}/indigo/api/plugins/inchi)
@@ -45,7 +44,6 @@ get_directory_property(JPEG_INCLUDE_DIR DIRECTORY ${THIRD_PARTY_DIR}/opencv/thir
 add_subdirectory(${THIRD_PARTY_DIR}/opencv/third_party/tiff ${CMAKE_CURRENT_BINARY_DIR}/tiff)
 get_directory_property(TIFF_INCLUDE_DIR DIRECTORY ${THIRD_PARTY_DIR}/opencv/third_party/tiff DEFINITION TIFF_INCLUDE_DIR)
 add_subdirectory(${THIRD_PARTY_DIR}/opencv/ ${CMAKE_CURRENT_BINARY_DIR}/opencv)
-add_subdirectory(${THIRD_PARTY_DIR}/boost/ ${CMAKE_CURRENT_BINARY_DIR}/boost)
 
 
 add_executable(imago_console ${SRC})

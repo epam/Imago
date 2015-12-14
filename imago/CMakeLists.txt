@@ -9,7 +9,6 @@ if(UNIX OR APPLE)
 endif()
 
 
-include_directories(${THIRD_PARTY_DIR}/boost/include)
 include_directories(${THIRD_PARTY_DIR}/indigo/api)
 include_directories(${THIRD_PARTY_DIR}/indigo/api/plugins/indigo-inchi)
 include_directories(${THIRD_PARTY_DIR}/indigo/api/plugins/indigo-renderer)
@@ -33,7 +32,6 @@ add_library(imago STATIC ${SRC})
 target_link_libraries(imago ${CMAKE_THREAD_LIBS_INIT})
 target_link_libraries(imago render2d indigo indigo-renderer common molecule reaction graph layout z tinyxml cairo pixman png)
 target_link_libraries(imago opencv_contrib opencv_features2d opencv_video opencv_calib3d opencv_objdetect opencv_imgproc opencv_core opencv_ml opencv_photo opencv_legacy opencv_highgui opencv_gpu opencv_flann)
-target_link_libraries(imago boost_chrono boost_thread boost_system boost_program_options boost_filesystem boost_date_time)
 
 if(IRECO)
 set_target_properties(imago PROPERTIES
