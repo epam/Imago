@@ -1,5 +1,4 @@
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/../imago/src)
-include_directories(${THIRD_PARTY_DIR}/boost/include)
 include_directories(${THIRD_PARTY_DIR}/indigo/api)
 include_directories(${THIRD_PARTY_DIR}/opencv/include)
 include_directories(${THIRD_PARTY_DIR}/opencv/modules/core/include)
