@@ -334,7 +334,7 @@ void Molecule::aromatize( Points2d &aromatic_centers )
 
       Vertex cur_vertex = begin_vertex, prev_vertex = (Vertex)0, next_vertex = (Vertex)0;
 
-	  if (cur_vertex == NULL)
+	  if (cur_vertex == 0)
 		  return;
    
       std::vector<Edge> aromatized_bonds;
@@ -363,7 +363,7 @@ void Molecule::aromatize( Points2d &aromatic_centers )
             }
          } 
 
-         if (next_vertex == cur_vertex || next_vertex == (Vertex)NULL)
+         if (next_vertex == cur_vertex || next_vertex == 0)
             break;
 
          std::pair<Edge, bool> p = _g.getEdge(cur_vertex, next_vertex);

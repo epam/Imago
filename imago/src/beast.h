@@ -16,6 +16,7 @@
 
 #include <list>
 #include <vector>
+#include<stddef.h>
 
 namespace beast
 {
@@ -72,6 +73,7 @@ namespace beast
       public:
          vertex_iterator() {}
          vertex_iterator(typename std::list<_Vertex>::iterator &iter) : m_iter(iter) {}
+         vertex_iterator(const typename std::list<_Vertex>::iterator &iter) : m_iter(iter) {}
          vertex_iterator(const vertex_iterator &other) : m_iter(other.m_iter) {}
          vertex_iterator& operator = (const vertex_iterator &other) { m_iter = other.m_iter; return *this; }
          bool operator == (const vertex_iterator &other) const { return m_iter == other.m_iter; }
@@ -88,6 +90,7 @@ namespace beast
       public:
          edge_iterator() {}
          edge_iterator(typename std::list<_Edge>::iterator &iter) : m_iter(iter) {}
+         edge_iterator(const typename std::list<_Edge>::iterator &iter) : m_iter(iter) {}
          edge_iterator(const edge_iterator &other) : m_iter(other.m_iter) {}
          edge_iterator& operator = (const edge_iterator &other) { m_iter = other.m_iter; return *this; }
          bool operator == (const edge_iterator &other) const { return m_iter == other.m_iter; }
@@ -106,6 +109,7 @@ namespace beast
       public:
          adjacency_iterator() {}
          adjacency_iterator(typename std::list<std::pair<size_t, size_t>>::iterator &iter) : m_iter(iter) {}
+         adjacency_iterator(const typename std::list<std::pair<size_t, size_t>>::iterator &iter) : m_iter(iter) {}
 
          bool operator == (const adjacency_iterator &other) const { return m_iter == other.m_iter; }
          bool operator != (const adjacency_iterator &other) const { return !(*this == other); }
@@ -120,6 +124,8 @@ namespace beast
       public:
          out_edge_iterator() {}
          out_edge_iterator(typename std::list<std::pair<size_t, size_t>>::iterator &iter, const std::vector<typename std::list<_Edge>::iterator> *edge_indices)
+            : m_iter(iter), m_edge_indices(edge_indices) {}
+         out_edge_iterator(const typename std::list<std::pair<size_t, size_t>>::iterator &iter, const std::vector<typename std::list<_Edge>::iterator> *edge_indices)
             : m_iter(iter), m_edge_indices(edge_indices) {}
          bool operator == (const out_edge_iterator& other) const { return m_iter == other.m_iter; }
          bool operator != (const out_edge_iterator &other) const { return !(*this == other); }
