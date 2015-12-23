@@ -1,3 +1,9 @@
 [submodule "ireco/Ketcher"]
 	path = ireco/Ketcher
 	url = https://git.ggasoftware.com/git/ketcher
+[submodule "third_party/indigo"]
+	path = third_party/indigo
+	url = git@github.com:epam/Indigo.git
+[submodule "third_party/opencv"]
+	path = third_party/opencv
+	url = https://git.epam.com/epm-lsop/imago-opencv.git
