@@ -30,7 +30,7 @@ include_directories(${THIRD_PARTY_DIR}/opencv/modules/highgui/include)
 add_library(imago STATIC ${SRC})
 
 target_link_libraries(imago ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(imago render2d indigo indigo-renderer common molecule reaction graph layout z tinyxml cairo pixman png)
+target_link_libraries(imago indigo indigo-renderer  z tinyxml cairo pixman png)
 target_link_libraries(imago opencv_contrib opencv_features2d opencv_video opencv_calib3d opencv_objdetect opencv_imgproc opencv_core opencv_ml opencv_photo opencv_legacy opencv_highgui opencv_gpu opencv_flann)
 
 if(IRECO)
