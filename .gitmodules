@@ -1,6 +1,6 @@
-[submodule "ireco/Ketcher"]
-	path = ireco/Ketcher
-	url = https://git.ggasoftware.com/git/ketcher
+[submodule "third_party/ketcher"]
+	path = third_party/ketcher
+	url = https://git.epam.com/epm-lsop/ketcher.git
 [submodule "third_party/indigo"]
 	path = third_party/indigo
 	url = git@github.com:epam/Indigo.git
