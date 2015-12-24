@@ -10,6 +10,7 @@ include(BuildOptions)
 
 message(STATUS "Subsystem: ${SUBSYSTEM_NAME}")
 
+message(STATUS "**** Imago ****")
 add_subdirectory(imago)
 
 if(SUBSYSTEM_NAME STREQUAL "iOS")
