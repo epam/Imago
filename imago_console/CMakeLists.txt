@@ -42,15 +42,8 @@ add_subdirectory(${THIRD_PARTY_DIR}/indigo/build_scripts/indigo ${CMAKE_CURRENT_
 message(STATUS "**** Indigo-renderer  ****")
 add_subdirectory(${THIRD_PARTY_DIR}/indigo/build_scripts/indigo-renderer ${CMAKE_CURRENT_BINARY_DIR}/indigo-renderer)
 
-message(STATUS "**** Utilities (jpeg,tiff) ****")
-add_subdirectory(${THIRD_PARTY_DIR}/opencv/third_party/jpeg ${CMAKE_CURRENT_BINARY_DIR}/jpeg)
-get_directory_property(JPEG_INCLUDE_DIR DIRECTORY ${THIRD_PARTY_DIR}/opencv/third_party/jpeg DEFINITION JPEG_INCLUDE_DIR)
-add_subdirectory(${THIRD_PARTY_DIR}/opencv/third_party/tiff ${CMAKE_CURRENT_BINARY_DIR}/tiff)
-get_directory_property(TIFF_INCLUDE_DIR DIRECTORY ${THIRD_PARTY_DIR}/opencv/third_party/tiff DEFINITION TIFF_INCLUDE_DIR)
-
 message(STATUS "****** OpenCV *******")
 add_subdirectory(${THIRD_PARTY_DIR}/opencv/ ${CMAKE_CURRENT_BINARY_DIR}/opencv)
-
 
 add_executable(imago_console ${SRC})
 if(UNIX AND NOT APPLE)
