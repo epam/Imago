@@ -336,7 +336,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 
 	PriorityQueue pq;
 	IntDeque symInds;
-	for(size_t i = 0;i<classes.size();i++)
+	for(int i = 0;i<classes.size();i++)
 		if(classes[i] == 0)
 		{
 			symInds.push_back(i);
@@ -403,7 +403,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque &layer
 			{
 				SegmentIndx si = pq.top();
 
-				int currInd2 = si._indx;
+				size_t currInd2 = si._indx;
 				if(visited[currInd2] || currInd == currInd2)
 				{
 					pq.pop();
@@ -1198,7 +1198,7 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
    DoubleVector densities(symbols_found.size(), 0.0);
    PairIntVector symbols_graphics(seq_pairs.size());
 
-   int symbols_seq = -1, max_seq_length_i;
+   size_t symbols_seq = -1, max_seq_length_i;
 
    while (true)
    {
@@ -1223,7 +1223,7 @@ int Separator::_estimateCapHeight(const Settings& vars, bool &restrictedHeight)
       if (_checkSequence(vars, p, symbols_graphics[max_seq_length_i], density))
       {
          densities.push_back(density);
-         symbols_found.push_back(max_seq_length_i);
+         symbols_found.push_back((int) max_seq_length_i);
       }
    }
 
