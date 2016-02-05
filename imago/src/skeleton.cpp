@@ -59,13 +59,9 @@ void Skeleton::recalcAvgBondLength()
    _avg_bond_length = 0;
    _min_bond_length = DIST_INF;
 
-   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
-       begin != end;
-       begin = end)
-      for(SkeletonGraph::edge_descriptor e;
-          begin != end ? (e = *begin, true) : false;
-          ++begin)
+   for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; ++begin)
    {
+      SkeletonGraph::edge_descriptor e = *begin;
       double len = _g.getEdgeBond(e).length;
       _avg_bond_length += len;
       if (_min_bond_length > len)
@@ -205,12 +201,9 @@ void Skeleton::_repairBroken(const Settings& vars)
 
    std::deque<Vertex> toRemove;
 
-   for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
-       begin != end; begin = end)
-      for (SkeletonGraph::vertex_descriptor v;
-           begin != end ? (v = *begin, true):false;
-           ++begin)
+   for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
    {
+      SkeletonGraph::vertex_descriptor v = *begin;
       if (_g.getDegree(v) != 2)
          continue;
       
@@ -328,13 +321,9 @@ void Skeleton::calcShortBondsPenalty(const Settings& vars)
 
 	int probablyWarnings = 0;
 	int minSize = (std::max)((int)vars.dynamic.CapitalHeight / 2, vars.main.MinGoodCharactersSize);
-   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
-       begin != end;
-       begin = end)
-      for(SkeletonGraph::edge_descriptor edge;
-          begin != end ? (edge = *begin, true) : false;
-          ++begin)
+   for (SkeletonGraph::edge_iterator begin_range = _g.edgeBegin(), end_range = _g.edgeEnd(); begin_range != end_range; ++begin_range)
 	{
+      SkeletonGraph::edge_descriptor edge = *begin_range;
 		const Vertex &beg = edge.m_source;
 		const Vertex &end = edge.m_target;
 
@@ -355,18 +344,12 @@ void Skeleton::calcCloseVerticiesPenalty(const Settings& vars)
 	logEnterFunction();
 
 	int probablyWarnings = 0;
-   for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
-       begin != end; begin = end)
-      for (SkeletonGraph::vertex_descriptor one;
-           begin != end ? (one = *begin, true):false;
-           ++begin)
+   for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
 	{
-      for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
-          begin != end; begin = end)
-         for (SkeletonGraph::vertex_descriptor two;
-              begin != end ? (two = *begin, true):false;
-              ++begin)
+      SkeletonGraph::vertex_descriptor one = *begin;
+      for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
 		{
+         SkeletonGraph::vertex_descriptor two = *begin;
 			if (one == two)
 				continue;
 
@@ -388,14 +371,9 @@ void Skeleton::calcCloseVerticiesPenalty(const Settings& vars)
 
 bool Skeleton::_dissolveShortEdges (double coeff, const bool has2nb)
 {
-
-   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
-       begin != end;
-       begin = end)
-      for(SkeletonGraph::edge_descriptor edge;
-          begin != end ? (edge = *begin, true) : false;
-          ++begin)
+   for (SkeletonGraph::edge_iterator begin_range = _g.edgeBegin(), end_range = _g.edgeEnd(); begin_range != end_range; ++begin_range)
    {
+      SkeletonGraph::edge_descriptor edge = *begin_range;
       const Vertex &beg = edge.m_source;
       const Vertex &end = edge.m_target;
 
@@ -694,13 +672,9 @@ void Skeleton::_findMultiple(const Settings& vars)
          if (used[i])
             continue;
 
-         for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
-             begin != end;
-             begin = end)
-            for(SkeletonGraph::edge_descriptor j;
-                begin != end ? (j = *begin, true) : false;
-                ++begin)
+         for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; ++begin)
          {
+            SkeletonGraph::edge_descriptor j = *begin;
             if (i == j || _g.getEdgeBond(j).type != BT_SINGLE ||
                 used[j])
                continue;
@@ -720,14 +694,10 @@ void Skeleton::_findMultiple(const Settings& vars)
 
                bool is_triple = false;
 
-               for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
-                   begin != end;
-                   begin = end)
-                  for(SkeletonGraph::edge_descriptor k;
-                      begin != end ? (k = *begin, true) : false;
-                      ++begin)
+               for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; ++begin)
                {
-				   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+                  SkeletonGraph::edge_descriptor k = *begin;
+                  if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
 
                   if (k == i || k == j ||
                       _g.getEdgeBond(k).type != BT_SINGLE ||
@@ -837,13 +807,9 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
 	   toSmallErr = vars.skeleton.BaseSmallErr;
    toSmallErr *= _avg_bond_length;
 
-   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
-       begin != end;
-       begin = end)
-      for(SkeletonGraph::edge_descriptor j;
-          begin != end ? (j = *begin, true) : false;
-          ++begin)
+   for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; ++begin)
 	{
+      SkeletonGraph::edge_descriptor j = *begin;
 		if(getBondType(j) == BT_SINGLE)
 			singles.push_back(j);
 		if(getBondType(j) == BT_DOUBLE)
@@ -1010,12 +976,9 @@ void Skeleton::_joinVertices(double eps)
    LPRINT(0, "joining vertices, eps = %lf", eps);
 #endif /* DEBUG */
 
-   for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
-       begin != end; begin = end)
-      for (SkeletonGraph::vertex_descriptor v;
-           begin != end ? (v = *begin, true):false;
-           ++begin)
+   for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
    {
+      SkeletonGraph::vertex_descriptor v = *begin;
       Vec2d v_pos = _g.getVertexPosition(v);
       int v_nnei;
       double v_avg_edge_len = _avgEdgeLendth(v, v_nnei);
@@ -1120,13 +1083,9 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
 	std::vector<double> kFactor;
 	std::vector<std::vector<Edge> > edge_groups_k;
 	//group all parallel edges by similar factors
-   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
-       begin != end;
-       begin = end)
-      for(SkeletonGraph::edge_descriptor edge;
-          begin != end ? (edge = *begin, true) : false;
-          ++begin)
+   for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; ++begin)
 	{
+      SkeletonGraph::edge_descriptor edge = *begin;
 		Bond f = _g.getEdgeBond(edge);
 		Vec2d p1 = getVertexPos(getBondBegin(edge));
 		Vec2d p2 = getVertexPos(getBondEnd(edge));
@@ -1317,12 +1276,9 @@ void Skeleton::modifyGraph(Settings& vars)
 
    if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
    
-   for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
-       begin != end; begin = end)
-      for (SkeletonGraph::vertex_descriptor v;
-           begin != end ? (v = *begin, true):false;
-           ++begin)
+   for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
    {
+      SkeletonGraph::vertex_descriptor v = *begin;
       if (_g.getDegree(v) > 2)
       {
          Vec2d pos = _g.getVertexPosition(v);
@@ -1378,13 +1334,9 @@ void Skeleton::modifyGraph(Settings& vars)
 
     //Shrinking short bonds (dots)
     std::vector<Edge> edgesToRemove;
-   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
-       begin != end;
-       begin = end)
-      for(SkeletonGraph::edge_descriptor edge;
-          begin != end ? (edge = *begin, true) : false;
-          ++begin)
+    for (SkeletonGraph::edge_iterator begin_range = _g.edgeBegin(), end_range = _g.edgeEnd(); begin_range != end_range; ++begin_range)
     {
+       SkeletonGraph::edge_descriptor edge = *begin_range;
        const Vertex &beg = edge.m_source;
        const Vertex &end = edge.m_target;
        Vec2d beg_pos = _g.getVertexPosition(beg);
@@ -1421,13 +1373,9 @@ void Skeleton::modifyGraph(Settings& vars)
 		   distTresh = _avg_bond_length/vars.skeleton.DistTreshLimFactor;
 
 	   std::vector<Skeleton::Edge> bad_edges;
-      for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
-          begin != end;
-          begin = end)
-         for(SkeletonGraph::edge_descriptor e;
-             begin != end ? (e = *begin, true) : false;
-             ++begin)
+      for (SkeletonGraph::edge_iterator begin_range = _g.edgeBegin(), end_range = _g.edgeEnd(); begin_range != end_range; ++begin_range)
 	   {
+         SkeletonGraph::edge_descriptor e = *begin_range;
 		   const Skeleton::Vertex &beg = e.m_source;
 		   const Skeleton::Vertex &end = e.m_target;
 		   Vec2d pos_beg = _g.getVertexPosition(beg);
@@ -1435,12 +1383,9 @@ void Skeleton::modifyGraph(Settings& vars)
 		   double d = Vec2d::distance(pos_beg, pos_end);
 		   if (d < distTresh)
 		   {
-            for(SkeletonGraph::vertex_iterator range_begin = _g.vertexBegin(), range_end = _g.vertexEnd();
-                range_begin != range_end; range_begin = range_end)
-               for (SkeletonGraph::vertex_descriptor v;
-                    range_begin != range_end ? (v = *range_begin, true):false;
-                    ++range_begin)
+            for (SkeletonGraph::vertex_iterator range_begin = _g.vertexBegin(), range_end = _g.vertexEnd(); range_begin != range_end; ++range_begin)
 			   {
+               SkeletonGraph::vertex_descriptor v = *range_begin;
 				   if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
 
 				   if (v != beg && v != end)
@@ -1480,13 +1425,9 @@ void Skeleton::modifyGraph(Settings& vars)
 
 	   vars.dynamic.AvgBondLength = _avg_bond_length;
    
-   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
-       begin != end;
-       begin = end)
-      for(SkeletonGraph::edge_descriptor edge;
-          begin != end ? (edge = *begin, true) : false;
-          ++begin)
+   for (SkeletonGraph::edge_iterator begin_range = _g.edgeBegin(), end_range = _g.edgeEnd(); begin_range != end_range; ++begin_range)
    {
+      SkeletonGraph::edge_descriptor edge = *begin_range;
       const Vertex &beg = edge.m_source;
       const Vertex &end = edge.m_target;
       Vec2d beg_pos = _g.getVertexPosition(beg);
@@ -1504,13 +1445,9 @@ void Skeleton::deleteBadTriangles( double eps )
    std::set<Edge> edges_to_delete;
    std::set<Vertex> vertices_to_delete;
    
-   for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
-       begin != end;
-       begin = end)
-      for(SkeletonGraph::edge_descriptor edge;
-          begin != end ? (edge = *begin, true) : false;
-          ++begin)
+   for (SkeletonGraph::edge_iterator begin_range = _g.edgeBegin(), end_range = _g.edgeEnd(); begin_range != end_range; ++begin_range)
    {
+      SkeletonGraph::edge_descriptor edge = *begin_range;
       if (edges_to_delete.find(edge) != edges_to_delete.end())
          continue;
       

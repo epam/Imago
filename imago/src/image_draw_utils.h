@@ -38,19 +38,17 @@ namespace imago
         static void putGraph( Image &img, const EuclideanGraph &cg )
         {
            EuclideanGraph &g = const_cast<EuclideanGraph&>(cg);
-           for(typename EuclideanGraph::vertex_iterator begin = g.vertexBegin(), end = g.vertexEnd(); begin != end; begin = end)
-              for(typename EuclideanGraph::vertex_descriptor v;
-                  begin != end ? (v = *begin, true):false;
-                  ++begin)
+           for (typename EuclideanGraph::vertex_iterator begin = g.vertexBegin(), end = g.vertexEnd();
+                begin != end;
+                ++begin)
            {
+              typename EuclideanGraph::vertex_descriptor v = *begin;
               Vec2d pos = g.getVertexPosition(v);
               ImageDrawUtils::putCircle(img, round(pos.x), round(pos.y), 4, 100);
            }
-           for(auto begin = g.edgeBegin(), end = g.edgeEnd(); begin != end; begin = end)
-              for(typename EuclideanGraph::edge_descriptor e;
-                  begin != end ? (e = *begin, true):false;
-                  ++begin)
+           for (auto begin = g.edgeBegin(), end = g.edgeEnd(); begin != end; ++begin)
            {
+              typename EuclideanGraph::edge_descriptor e = *begin;
               Vec2d b_pos = g.getVertexPosition(e.m_source),
                     e_pos = g.getVertexPosition(e.m_target);
               ImageDrawUtils::putLineSegment(img, b_pos, e_pos, 100);

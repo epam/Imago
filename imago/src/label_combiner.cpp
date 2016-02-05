@@ -117,11 +117,13 @@ void LabelCombiner::_locateLabels(const Settings& vars)
    size_t n = seg_graph.vertexCount();
    std::vector<typename SegmentsGraph::vertex_descriptor> ind2vert(n);
    size_t i = 0;
-   for (auto begin = seg_graph.vertexBegin(), end = seg_graph.vertexEnd(); begin != end; begin = end)
-      for (SegmentsGraph::vertex_descriptor v;
-         begin != end ? (v = *begin, true) : false;
-         ++begin, ++i)
-            ind2vert[i] = v;
+   for (auto begin = seg_graph.vertexBegin(), end = seg_graph.vertexEnd();
+      begin != end;
+      ++begin, ++i)
+   {
+      SegmentsGraph::vertex_descriptor v = *begin;
+      ind2vert[i] = v;
+   }
    for (size_t i = 0; i < ind2vert.size(); ++i)
       seg_graph.setVertexIndex(ind2vert[i], i);
 

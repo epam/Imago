@@ -33,14 +33,14 @@ namespace imago
          DoubleVector distances(n * n, 0);
 
          int i = 0;
-         for(typename EuclideanGraph::vertex_iterator begin = g.vertexBegin(), end = g.vertexEnd(); begin != end; begin = end)
-            for (typename EuclideanGraph::vertex_descriptor v;
-               begin != end ? (v = *begin, true) : false;
-               ++begin)
-            {
-               ind2vert[i] = v;
-               g.setVertexIndex(v, i++);
-            }
+         for (typename EuclideanGraph::vertex_iterator begin = g.vertexBegin(), end = g.vertexEnd();
+            begin != end;
+            ++begin)
+         {
+            typename EuclideanGraph::vertex_descriptor v = *begin;
+            ind2vert[i] = v;
+            g.setVertexIndex(v, i++);
+         }
 
          for (int i = 0; i < n; i++)
          {
@@ -78,9 +78,9 @@ namespace imago
                      std::pair<typename EuclideanGraph::edge_descriptor, bool> added = g.addEdge(ind2vert[i], ind2vert[j]);
 
                      if (!added.second)
-					 {
-						 getLogExt().appendText("Warning: <RNG::build> edge is not added");
-					 }
+                     {
+                        getLogExt().appendText("Warning: <RNG::build> edge is not added");
+                     }
 
                      g.setWeight(added.first, distances[i + j * n]);
                   }

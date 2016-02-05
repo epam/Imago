@@ -44,21 +44,19 @@ void DoubleBondMaker::_disconnect( Vertex a, Vertex b, const Vertex *third )
    
    std::vector<Vertex> toDelete;
 
-   for(Graph::adjacency_iterator begin = _g.adjacencyBegin(a), end = _g.adjacencyEnd(a);
-       begin != end; begin = end)
-      for(Graph::vertex_descriptor v;
-          begin != end? (v = *begin, true) : false;
-          ++begin)
+   for (Graph::adjacency_iterator begin = _g.adjacencyBegin(a), end = _g.adjacencyEnd(a);
+        begin != end;
+        ++begin)
    {
+      Graph::vertex_descriptor v = *begin;
       if (third && v == *third)
          continue;
       
-      for(Graph::adjacency_iterator begin = _g.adjacencyBegin(v), end = _g.adjacencyEnd(v);
-          begin != end; begin = end)
-         for(Graph::vertex_descriptor u;
-             begin != end? (u = *begin, true) : false;
-             ++begin)
+      for (Graph::adjacency_iterator begin = _g.adjacencyBegin(v), end = _g.adjacencyEnd(v);
+         begin != end;
+         ++begin)
       {
+         Graph::vertex_descriptor u = *begin;
          if (u == a)
             continue;
 

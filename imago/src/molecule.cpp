@@ -134,14 +134,10 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 	  space = l.MaxSymbolWidth() * vars.molecule.SpaceMultiply;
 	  space2 = l.rect.width < l.rect.height ? l.rect.width : l.rect.height;
 	   
-      for(SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd();
-          begin != end;
-          begin = end)
-         for(SkeletonGraph::edge_descriptor e;
-             begin != end ? (e = *begin, true) : false;
-             ++begin)
+      for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; ++begin)
       {
-		  if (vars.checkTimeLimit())
+         SkeletonGraph::edge_descriptor e = *begin;
+         if (vars.checkTimeLimit())
 			  throw ImagoException("Timelimit exceeded");
 
          double d1, d2;
@@ -170,13 +166,10 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
             nearest.push_back(e.m_target);
 	  }
 
-      for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
-          begin != end; begin = end)
-         for (SkeletonGraph::vertex_descriptor v;
-              begin != end ? (v = *begin, true):false;
-              ++begin)
+     for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
 	  {
-         auto v_position = _g.getVertexPosition( v);
+        SkeletonGraph::vertex_descriptor v = *begin;
+        auto v_position = _g.getVertexPosition( v);
             
 		  if(_g.getDegree(v) != 2)
 			  continue;
@@ -294,12 +287,9 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
    //Removing dots without labels
    
 
-   for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
-       begin != end; begin = end)
-      for (SkeletonGraph::vertex_descriptor v;
-           begin != end ? (v = *begin, true):false;
-           ++begin)
+   for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
    {
+      SkeletonGraph::vertex_descriptor v = *begin;
       if (_g.getDegree(v) == 0 && _mapping.find(v) == _mapping.end())
          deck.push_back(v);
    }
@@ -317,12 +307,9 @@ void Molecule::aromatize( Points2d &aromatic_centers )
       Vertex begin_vertex = (Vertex)0; 
       double distance = DIST_INF;
   
-      for(SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
-          begin != end; begin = end)
-         for (SkeletonGraph::vertex_descriptor v;
-              begin != end ? (v = *begin, true):false;
-              ++begin)
+      for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
       {
+         SkeletonGraph::vertex_descriptor v = *begin;
          double tmp = Vec2d::distance(arom_center, getVertexPos(v));
    
          if (tmp < distance)
@@ -343,12 +330,10 @@ void Molecule::aromatize( Points2d &aromatic_centers )
       {         
          distance = DIST_INF;
 
-         for(SkeletonGraph::adjacency_iterator begin = _g.adjacencyBegin(cur_vertex), end = _g.adjacencyEnd(cur_vertex);
-             begin != end; begin = end)
-            for(SkeletonGraph::vertex_descriptor u;
-                begin != end? (u = *begin, true) : false;
-                ++begin)
+
+         for (SkeletonGraph::adjacency_iterator begin = _g.adjacencyBegin(cur_vertex), end = _g.adjacencyEnd(cur_vertex); begin != end; ++begin)
          {
+            SkeletonGraph::vertex_descriptor u = *begin;
             Vec2d bond_middle;
             bond_middle.middle(getVertexPos(cur_vertex), getVertexPos(u));
             double tmp = Vec2d::distance(arom_center, bond_middle); 

@@ -39,13 +39,9 @@ void edge_summary(imago::Skeleton &g)
 	{
 		std::map<std::string, int> bondtypes;
 		Skeleton::SkeletonGraph graph = g.getGraph();
-      for(Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd();
-          begin != end;
-          begin = end)
-         for(Skeleton::SkeletonGraph::edge_descriptor b;
-             begin != end ? (b = *begin, true) : false;
-             ++begin)
+      for (Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd(); begin != end; ++begin)
 		{
+         Skeleton::SkeletonGraph::edge_descriptor b = *begin;
 			BondType bt = g.getBondType(b);
 			std::string bts;
 			switch(bt){
@@ -381,13 +377,9 @@ void WedgeBondExtractor::fixStereoCenters( Molecule &mol )
    Skeleton::SkeletonGraph &graph = mol.getSkeleton();
    const Molecule::ChemMapping &labels = mol.getMappedLabels();
    std::vector<Skeleton::Edge> to_reverse_bonds;
-   for(Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd();
-       begin != end;
-       begin = end)
-      for(Skeleton::SkeletonGraph::edge_descriptor b;
-          begin != end ? (b = *begin, true) : false;
-          ++begin)
+   for (Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd(); begin != end; ++begin)
    {
+      Skeleton::SkeletonGraph::edge_descriptor b = *begin;
       Bond b_bond = graph.getEdgeBond(b);
       BondType type = b_bond.type;
 
@@ -546,12 +538,9 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
       _bfs_state.resize(_img.getWidth() * _img.getHeight());
       IntVector iqm_thick;
 
-      for(Skeleton::SkeletonGraph::vertex_iterator begin = graph.vertexBegin(), end = graph.vertexEnd();
-          begin != end; begin = end)
-         for (Skeleton::SkeletonGraph::vertex_descriptor v;
-              begin != end ? (v = *begin, true):false;
-              ++begin)
+      for (Skeleton::SkeletonGraph::vertex_iterator begin = graph.vertexBegin(), end = graph.vertexEnd(); begin != end; ++begin)
       {
+         Skeleton::SkeletonGraph::vertex_descriptor v = *begin;
          Vec2d v_vec2d = g.getVertexPos(v);
 
          int r = _radiusFinder(v_vec2d);
@@ -562,17 +551,13 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
       std::sort(iqm_thick.begin(), iqm_thick.end());
       _mean_thickness = StatUtils::interMean(iqm_thick.begin(), iqm_thick.end());
 	 
-      for(Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd();
-          begin != end;
-          begin = end)
-         for(Skeleton::SkeletonGraph::edge_descriptor b;
-             begin != end ? (b = *begin, true) : false;
-             ++begin)
+      for (Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd(); begin != end; ++begin)
       {
-		  Skeleton::Vertex v1 = b.m_source,
-			  v2 = b.m_target;
+         Skeleton::SkeletonGraph::edge_descriptor b = *begin;
+         Skeleton::Vertex v1 = b.m_source,
+            v2 = b.m_target;
 		 
-		 BondType bond_type = BT_SINGLE;
+         BondType bond_type = BT_SINGLE;
 
          if (_isSingleUp(vars, g, b, bond_type))
          {
@@ -761,13 +746,9 @@ bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton
 void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 {
 	Skeleton::SkeletonGraph &g = graph.getGraph();
-   for(Skeleton::SkeletonGraph::edge_iterator begin = g.edgeBegin(), end = g.edgeEnd();
-       begin != end;
-       begin = end)
-      for(Skeleton::SkeletonGraph::edge_descriptor e;
-          begin != end ? (e = *begin, true) : false;
-          ++begin)
+   for (Skeleton::SkeletonGraph::edge_iterator begin = g.edgeBegin(), end = g.edgeEnd(); begin != end; ++begin)
 	{
+      Skeleton::SkeletonGraph::edge_descriptor e = *begin;
 		BondType edge_type = graph.getBondType(e);
 		if(edge_type == BT_SINGLE_UP)
 		{
@@ -827,13 +808,9 @@ void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 		}
 	}
 
-   for(Skeleton::SkeletonGraph::edge_iterator begin = g.edgeBegin(), end = g.edgeEnd();
-       begin != end;
-       begin = end)
-      for(Skeleton::SkeletonGraph::edge_descriptor e;
-          begin != end ? (e = *begin, true) : false;
-          ++begin)
+   for (Skeleton::SkeletonGraph::edge_iterator begin = g.edgeBegin(), end = g.edgeEnd(); begin != end; ++begin)
 	{
+      Skeleton::SkeletonGraph::edge_descriptor e = *begin;
 		BondType edge_type = graph.getBondType(e);
 		if(edge_type == BT_WEDGE)
 			graph.setBondType(e, BT_SINGLE_UP_C);
@@ -843,13 +820,9 @@ void WedgeBondExtractor::CurateSingleUpBonds(Skeleton &graph)
 void WedgeBondExtractor::fetchArrows(const Settings& vars, Skeleton &g )
 {
 	Skeleton::SkeletonGraph &graph = g.getGraph();
-   for(Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd();
-       begin != end;
-       begin = end)
-      for(Skeleton::SkeletonGraph::edge_descriptor e;
-          begin != end ? (e = *begin, true) : false;
-          ++begin)
+   for (Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd(); begin != end; ++begin)
 	{
+      Skeleton::SkeletonGraph::edge_descriptor e = *begin;
 		BondType edge_type = g.getBondType(e);
 		if(edge_type == BT_SINGLE_UP)
 		{

@@ -125,12 +125,9 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
       return false;
    }
    
-   for(Graph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd();
-       begin != end; begin = end)
-      for (Graph::vertex_descriptor v;
-           begin != end ? (v = *begin, true):false;
-           ++begin)
+   for (Graph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
    {
+      Graph::vertex_descriptor v = *begin;
       if (v == fb || v == fe || v == sb || v == se)
          continue;
 

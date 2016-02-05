@@ -74,12 +74,9 @@ void MolfileSaver::_writeCtab(const Settings& vars)
 
    bond_length = vars.dynamic.AvgBondLength;
 
-   for(Skeleton::SkeletonGraph::vertex_iterator begin = graph.vertexBegin(), end = graph.vertexEnd();
-       begin != end; begin = end)
-      for (Skeleton::SkeletonGraph::vertex_descriptor v;
-           begin != end ? (v = *begin, true):false;
-           ++begin)
+   for (Skeleton::SkeletonGraph::vertex_iterator begin = graph.vertexBegin(), end = graph.vertexEnd(); begin != end; ++begin)
    {
+      Skeleton::SkeletonGraph::vertex_descriptor v = *begin;
       _out.printf("M  V30 %d ", i);
       mapping[v] = i;
       Molecule::ChemMapping::const_iterator it = labels.find(v);
@@ -188,13 +185,11 @@ void MolfileSaver::_writeCtab(const Settings& vars)
    _out.writeStringCR("M  V30 BEGIN BOND");
 
    j = 1;
-   for(Skeleton::SkeletonGraph::edge_iterator begin = graph.edgeBegin(), end = graph.edgeEnd();
-       begin != end;
-       begin = end)
-      for(Skeleton::SkeletonGraph::edge_descriptor e;
-          begin != end ? (e = *begin, true) : false;
-          ++begin)
+   for (Skeleton::SkeletonGraph::edge_iterator begin_range = graph.edgeBegin(), end_range = graph.edgeEnd();
+        begin_range != end_range;
+        ++begin_range)
    {
+      Skeleton::SkeletonGraph::edge_descriptor e = *begin_range;
       int type;
       const Bond bond = graph.getEdgeBond(e);
 
