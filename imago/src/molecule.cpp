@@ -57,7 +57,7 @@ Skeleton::SkeletonGraph & Molecule::getSkeleton()
    return _g;
 }
 
-bool testNear(Vec2d &point, Rectangle &rec, double margin)
+bool testNear(const Vec2d &point, const Rectangle &rec, double margin)
 {
 	double top = rec.y - margin;  //std::max<int>(0, rec.y - margin);
 	double left = rec.x - margin; //std::max<int>(0, rec.x - margin);
@@ -70,7 +70,7 @@ bool testNear(Vec2d &point, Rectangle &rec, double margin)
 
 //returns true if edge is directed to rectangle
 // end is the closest point to rectangle
-bool testCollision(Vec2d &beg, Vec2d &end, Rectangle &rec)
+bool testCollision(const Vec2d &beg, const Vec2d &end, const Rectangle &rec)
 {
 	Vec2d perp(-(end.y - beg.y), end.x - beg.x);
 	try
@@ -176,14 +176,14 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 		  if(!testNear(v_position, l.rect, space2/2))
 			  continue;
 
-		  std::deque<Skeleton::Vertex> neighbors;
+        std::deque<Skeleton::Vertex> neighbors;
 		  Skeleton::SkeletonGraph::adjacency_iterator b_e, e_e;
 		  b_e = _g.adjacencyBegin(v);
 		  e_e = _g.adjacencyEnd(v);
 		  neighbors.assign(b_e, e_e);
 
-		  Skeleton::Edge edge1 = _g.getEdge(neighbors[0], v).first;
-		  Skeleton::Edge edge2 = _g.getEdge(neighbors[1], v).first;
+        Skeleton::Edge edge1 = _g.getEdge(neighbors[0], v).first;
+        Skeleton::Edge edge2 = _g.getEdge(neighbors[1], v).first;
 		  BondType t1 = getBondType(edge1);
 		  BondType t2 = getBondType(edge2);
 
@@ -206,7 +206,7 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 		  {
 			
 			  removeBond(edge1);
-			  Vertex v_d = addVertex( p_v );
+           Vertex v_d = addVertex(p_v);
 			  addBond(neighbors[0], v_d, BT_SINGLE, true);
 			  nearest.push_back(v_d);
 			  nearest.push_back(v);
@@ -231,8 +231,8 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
       {
          for (int k = j + 1; k < s; k++)
          {
-			 if (vars.checkTimeLimit())
-			  throw ImagoException("Timelimit exceeded");
+			   if (vars.checkTimeLimit())
+			      throw ImagoException("Timelimit exceeded");
             Skeleton::Vertex a, b;
             Skeleton::Vertex c, d;
             a = nearest[j];
@@ -251,16 +251,16 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
 
             Vec2d m;
 
-			double ang = Vec2d::angle(n1, n2);
-			if (fabs(ang) < vars.molecule.AngleTreshold ||
+            double ang = Vec2d::angle(n1, n2);
+            if (fabs(ang) < vars.molecule.AngleTreshold ||
                 fabs(ang - PI) < vars.molecule.AngleTreshold )
-			{
-				m.middle(v_a, v_b);
-			}
+            {
+               m.middle(v_a, v_b);
+            }
             else
-			{
-                m.copy(Algebra::linesIntersection(vars, v_a, v_c, v_b, v_d));
-			}
+            {
+               m.copy(Algebra::linesIntersection(vars, v_a, v_c, v_b, v_d));
+            }
 
             middle.add(m);
          }
@@ -296,7 +296,7 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label> &unmapped_label
    
 
 
-   for(Skeleton::Vertex v: deck)
+   for (Skeleton::Vertex v : deck)
       _g.removeVertex(v);
 }
 
@@ -304,14 +304,14 @@ void Molecule::aromatize( Points2d &aromatic_centers )
 {      
    for(Vec2d arom_center: aromatic_centers)
    {
-      Vertex begin_vertex = (Vertex)0; 
+      Vertex begin_vertex = (Vertex)0;
       double distance = DIST_INF;
-  
+
       for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
       {
          SkeletonGraph::vertex_descriptor v = *begin;
          double tmp = Vec2d::distance(arom_center, getVertexPos(v));
-   
+
          if (tmp < distance)
          {
             distance = tmp;
@@ -319,15 +319,17 @@ void Molecule::aromatize( Points2d &aromatic_centers )
          }
       }
 
-      Vertex cur_vertex = begin_vertex, prev_vertex = (Vertex)0, next_vertex = (Vertex)0;
+      Vertex cur_vertex = begin_vertex;
+      Vertex prev_vertex = (Vertex)0;
+      Vertex next_vertex = (Vertex)0;
 
-	  if (cur_vertex == 0)
-		  return;
-   
+      if (cur_vertex == 0)
+         return;
+
       std::vector<Edge> aromatized_bonds;
 
       do
-      {         
+      {
          distance = DIST_INF;
 
 
@@ -366,7 +368,7 @@ void Molecule::aromatize( Points2d &aromatic_centers )
 
       //TODO: Aromatizing only closed contours! Not sure if it's true.
       if (cur_vertex == begin_vertex)
-         for(Edge e: aromatized_bonds)
+         for (Edge e : aromatized_bonds)
             setBondType(e, BT_AROMATIC);
 
       aromatized_bonds.clear();

@@ -112,7 +112,7 @@ struct PointsComparator : public std::binary_function<WedgeBondExtractor::SegCen
 };
 
 
-void WedgeBondExtractor::_fitSingleDownBorders( Vec2d &p1, Vec2d &p2, Vec2d &v1, Vec2d &v2 )
+void WedgeBondExtractor::_fitSingleDownBorders( Vec2d &p1, Vec2d &p2, const Vec2d &v1, const Vec2d &v2 )
 {
    _intersectionContext ic;
 
@@ -422,7 +422,7 @@ void WedgeBondExtractor::fixStereoCenters( Molecule &mol )
    edge_summary(mol);
 }
 
-bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex &v, 
+bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex v, 
    Molecule &mol )
 {
    _Configuration conf;
@@ -494,7 +494,7 @@ bool WedgeBondExtractor::_checkStereoCenter( Skeleton::Vertex &v,
    return false;
 }
 
-int WedgeBondExtractor::getVertexValence(Skeleton::Vertex &v, Skeleton &mol)
+int WedgeBondExtractor::getVertexValence(Skeleton::Vertex v, Skeleton &mol)
 {
 	std::deque<Skeleton::Vertex> neighbors;
 	Skeleton::SkeletonGraph::adjacency_iterator b_e, e_e;
@@ -588,7 +588,7 @@ void WedgeBondExtractor::singleUpFetch(const Settings& vars, Skeleton &g )
    getLogExt().append("Single-up bonds", count);
 }
 
-bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, Skeleton::Edge &e1, BondType &return_type )
+bool WedgeBondExtractor::_isSingleUp(const Settings& vars, Skeleton &g, const Skeleton::Edge &e1, BondType &return_type )
 {
 	logEnterFunction();
 	

@@ -70,7 +70,7 @@ TripleBondMaker::Result TripleBondMaker::_validateVertices()
 }
 
 TripleBondMaker::Result TripleBondMaker::operator ()(
-                           std::tuple<Edge,Edge,Edge> edges)
+                           const std::tuple<Edge,Edge,Edge> &edges)
 {
    std::set<Vertex> toRemove;
    std::tie(first, second, third) = edges;

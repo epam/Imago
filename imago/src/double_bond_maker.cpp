@@ -107,7 +107,7 @@ DoubleBondMaker::Result DoubleBondMaker::_simple()
       _g.removeEdge(second);
 
       Vertex nb = _s.addVertex(p1),
-             ne = _s.addVertex(p2);
+                       ne = _s.addVertex(p2);
 
       _s._reconnectBonds(fb, nb);
       _s._reconnectBonds(sb, nb);
@@ -124,7 +124,7 @@ DoubleBondMaker::Result DoubleBondMaker::_simple()
       if (_g.getDegree(se) == 0)
          toRemove.insert(se);
 
-      for(Vertex v: toRemove)
+      for ( Vertex v: toRemove )
       {
          _g.removeVertex(v);
       }
@@ -184,7 +184,7 @@ DoubleBondMaker::Result DoubleBondMaker::_hard()
    }
 }
 
-DoubleBondMaker::Result DoubleBondMaker::operator()( std::pair<Edge,Edge> edges )
+DoubleBondMaker::Result DoubleBondMaker::operator()(const std::pair<Edge, Edge> &edges)
 {
    first = edges.first; second = edges.second;
 

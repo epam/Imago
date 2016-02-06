@@ -43,14 +43,14 @@ namespace imago
                 ++begin)
            {
               typename EuclideanGraph::vertex_descriptor v = *begin;
-              Vec2d pos = g.getVertexPosition(v);
+              const Vec2d &pos = g.getVertexPosition(v);
               ImageDrawUtils::putCircle(img, round(pos.x), round(pos.y), 4, 100);
            }
            for (auto begin = g.edgeBegin(), end = g.edgeEnd(); begin != end; ++begin)
            {
               typename EuclideanGraph::edge_descriptor e = *begin;
-              Vec2d b_pos = g.getVertexPosition(e.m_source),
-                    e_pos = g.getVertexPosition(e.m_target);
+              const Vec2d &b_pos = g.getVertexPosition(e.m_source);
+              const Vec2d &e_pos = g.getVertexPosition(e.m_target);
               ImageDrawUtils::putLineSegment(img, b_pos, e_pos, 100);
            }
         }

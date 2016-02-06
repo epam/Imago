@@ -33,7 +33,7 @@ namespace imago
 
       typedef std::tuple<int, Edge, Edge> Result;
 
-      Result operator()( std::pair<Edge, Edge> edges );
+      Result operator()(const std::pair<Edge, Edge> &edges);
       
       virtual ~DoubleBondMaker();
    private:
@@ -55,8 +55,8 @@ namespace imago
       Skeleton &_s;
       Graph &_g;
       double _avgBondLength;
-	  
-	  const Settings& vars;
+
+      const Settings& vars;
    };
 
    template <class Graph> class DoubleBondComparator

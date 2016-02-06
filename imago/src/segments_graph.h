@@ -40,11 +40,11 @@ namespace imago
       {
       public:
          SegmentsGraph() {}
-         Segment* getVertexSegment(vertex_descriptor v) { return _vertex_indices[v.id]->data.segment; }
-         Vec2d getVertexPosition(vertex_descriptor v) { return _vertex_indices[v.id]->data.position; }
+         Segment* getVertexSegment(vertex_descriptor v) const { return _vertex_indices[v.id]->data.segment; }
+         const Vec2d &getVertexPosition(vertex_descriptor v) const { return _vertex_indices[v.id]->data.position; }
          size_t getVertexIndex(vertex_descriptor v) const { return _vertex_indices[v.id]->data.index; }
          void setVertexSegment(vertex_descriptor v, Segment* val) { _vertex_indices[v.id]->data.segment = val; }
-         void setVertexPosition(vertex_descriptor v, Vec2d val) { _vertex_indices[v.id]->data.position = val; }
+         void setVertexPosition(vertex_descriptor v, const Vec2d &val) { _vertex_indices[v.id]->data.position = val; }
          void setVertexIndex(vertex_descriptor v, size_t val) { _vertex_indices[v.id]->data.index = val; }
          void setWeight(edge_descriptor e, double val) { _edge_indices[e.id]->data.weight = val; }
       private:

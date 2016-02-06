@@ -71,7 +71,7 @@ void Skeleton::recalcAvgBondLength()
    _avg_bond_length /= bonds_num;
 }
 
-Skeleton::Edge Skeleton::addBond( Vertex &v1, Vertex &v2, BondType type, bool throw_if_error )
+Skeleton::Edge Skeleton::addBond( Vertex v1, Vertex v2, BondType type, bool throw_if_error )
 {
    std::pair<Edge, bool> p;
 
@@ -135,12 +135,12 @@ Skeleton::Edge Skeleton::addBond( const Vec2d &begin, const Vec2d &end,
    return addBond(v1, v2, type, throw_if_error);
 }
 
-void Skeleton::removeBond( Vertex &v1, Vertex &v2 )
+void Skeleton::removeBond( Vertex v1, Vertex v2 )
 {
    _g.removeEdge(v1, v2);
 }
 
-void Skeleton::removeBond( Edge &e )
+void Skeleton::removeBond( const Edge &e )
 {
    _g.removeEdge(e);
 }
@@ -154,7 +154,7 @@ Skeleton::Vertex Skeleton::addVertex( const Vec2d &pos )
    return v;
 }
 
-Vec2d Skeleton::getVertexPos( const Vertex &v1 ) const
+const Vec2d &Skeleton::getVertexPos( Vertex v1 ) const
 {
    return _g.getVertexPosition(v1);
 }
@@ -272,7 +272,7 @@ bool Skeleton::_isEqualDirection( const Edge &first, const Edge &second ) const
    return (fabs(f.k - s.k) < _parLinesEps);
 }
 
-bool Skeleton::_isEqualDirection( const Vertex &b1,const Vertex &e1,const Vertex &b2,const Vertex &e2)  const
+bool Skeleton::_isEqualDirection( Vertex b1, Vertex e1, Vertex b2, Vertex e2 ) const
 {
    Vec2d begin1 = _g.getVertexPosition(b1),
          end1 = _g.getVertexPosition(e1);
@@ -943,7 +943,7 @@ void Skeleton::_reconnectBondsRWT( Vertex from, Vertex to, BondType new_t)
    }
 }
 
-double Skeleton::_avgEdgeLendth (const Vertex &v, int &nnei)
+double Skeleton::_avgEdgeLendth (Vertex v, int &nnei)
 {
    std::deque<Vertex> neighbors;
    SkeletonGraph::adjacency_iterator b, e;
@@ -1044,9 +1044,9 @@ void Skeleton::_joinVertices(double eps)
    }
 }
 
-bool Skeleton::_isSegmentIntersectedByEdge(const Settings& vars, Vec2d &b, Vec2d &e, std::deque<Edge> edges)
+bool Skeleton::_isSegmentIntersectedByEdge(const Settings& vars, const Vec2d &b, const Vec2d &e, const std::deque<Edge> &edges) const
 {
-	std::deque<Edge>::iterator it;
+	std::deque<Edge>::const_iterator it;
 
 	for(it=edges.begin();it != edges.end(); ++it)
 	{
@@ -1525,7 +1525,7 @@ void Skeleton::deleteBadTriangles( double eps )
       _g.removeVertex(v);
 }
 
-void Skeleton::setBondType( Edge e, BondType t )
+void Skeleton::setBondType( const Edge &e, BondType t )
 {
    Bond b = _g.getEdgeBond(e);
 

@@ -33,8 +33,8 @@ namespace imago
 
       typedef std::tuple<int, Edge, Edge> Result;
 
-      Result operator()( std::tuple<Edge, Edge, Edge> edges );
-      
+      Result operator()( const std::tuple<Edge, Edge, Edge> &edges );
+
       virtual ~TripleBondMaker();
    private:
       TripleBondMaker( const TripleBondMaker & );
