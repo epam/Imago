@@ -20,11 +20,6 @@ add_subdirectory(${THIRD_PARTY_DIR}/indigo/build_scripts/indigo-inchi)
 message(STATUS "**** Imago ****")
 add_subdirectory(imago)
 
-if(MSVC)
-	string(APPEND CMAKE_C_FLAGS " -MP")
-	string(APPEND CMAKE_CXX_FLAGS " -MP")
-endif()
-
 if(SUBSYSTEM_NAME STREQUAL "iOS")
 	add_subdirectory(ireco)
 else()
