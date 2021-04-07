@@ -55,7 +55,7 @@ if(APPLE)
     FIND_FRAMEWORK(ApplicationServices)
     target_link_libraries(imago_console ${FRAMEWORK_ApplicationServices})
 endif()
-target_link_libraries(imago_console indigo indigo-renderer z tinyxml cairo pixman)
+target_link_libraries(imago_console indigo-renderer z tinyxml cairo pixman)
 target_link_libraries(imago_console imago)
 
 install(TARGETS imago_console RUNTIME  DESTINATION imago_console)
