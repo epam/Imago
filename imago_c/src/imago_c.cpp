@@ -36,16 +36,18 @@
 
 #define IMAGO_BEGIN try {                                                    
 
-#define IMAGO_END   } catch ( ImagoException &e )                            \
-                    {                                                        \
-                       RecognitionContext *context = getCurrentContext();    \
-                       std::string &error_buf = context->error_buf;          \
-                       error_buf.erase();                                    \
-                       ArrayOutput aout(error_buf);                          \
-                       aout.writeBinaryString(e.what());                     \
-                       return 0;                                             \
-                    }                                                        \
-                    return 1;
+#define IMAGO_END_SUCCESS_FAIL(SUCCESS, FAIL)   } catch ( ImagoException &e )                            \
+                                                {                                                        \
+                                                   RecognitionContext *context = getCurrentContext();    \
+                                                   std::string &error_buf = context->error_buf;          \
+                                                   error_buf.erase();                                    \
+                                                   ArrayOutput aout(error_buf);                          \
+                                                   aout.writeBinaryString(e.what());                     \
+                                                   return FAIL;                                          \
+                                                }                                                        \
+                                                return SUCCESS;
+
+#define IMAGO_END IMAGO_END_SUCCESS_FAIL(1, 0)
 
 using namespace imago;
 
@@ -309,6 +311,16 @@ CEXPORT int imagoSaveMolToBuffer( char **buf, int *buf_size )
 
    IMAGO_END;
 }
+
+CEXPORT const char* imagoGetMol()
+{
+   IMAGO_BEGIN
+   {
+      return getCurrentContext()->molfile.c_str();
+   }
+   IMAGO_END_SUCCESS_FAIL(0, 0);
+}
+
 
 CEXPORT int imagoSetLogging( int mode )
 {

@@ -1,0 +1,2 @@
+class ImagoException(RuntimeError):
+    pass

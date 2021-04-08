@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 2.8.6)
+cmake_minimum_required(VERSION 3.0)
 
 project("Imago")
 
@@ -35,10 +35,12 @@ else()
 	if(Java_JAVAC_EXECUTABLE)
 		Include(UseJava)
 		add_subdirectory(imago_java)
-	#	add_subdirectory(ego)
+		# add_subdirectory(ego)
 	else()
 		message(STATUS "Java is not found!")
 	endif()
+
+	add_subdirectory(imago_python)
 
 	add_subdirectory(imago_console)
 endif()

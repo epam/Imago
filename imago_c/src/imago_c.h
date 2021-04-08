@@ -103,6 +103,7 @@ CEXPORT int imagoRecognize( int *warningsCountDataOut = NULL );
 /* Molfile (.mol) output functions. */
 CEXPORT int imagoSaveMolToBuffer( char **buf, int *buf_size );
 CEXPORT int imagoSaveMolToFile( const char *fileName );
+CEXPORT const char* imagoGetMol();
 
 /* Process image filtering. */
 CEXPORT int imagoFilterImage();

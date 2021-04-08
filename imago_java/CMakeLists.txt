@@ -12,7 +12,6 @@ add_custom_command(TARGET imago_java POST_BUILD
 				   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR})
 
 #Add libraries
-get_target_property(imago_dll_filename imago_c_shared LOCATION)
 set(IMAGO_DLL_DIR "com/ggasoftware/imago/${SYSTEM_NAME}/${SUBSYSTEM_NAME}")
 add_custom_command(TARGET imago_java POST_BUILD
 	               COMMAND "${CMAKE_COMMAND}" "-E" "make_directory" "${IMAGO_DLL_DIR}"
@@ -25,7 +24,7 @@ foreach(lib ${CMAKE_INSTALL_SYSTEM_RUNTIME_LIBS})
 endforeach()
 
 add_custom_command(TARGET imago_java POST_BUILD
-	               COMMAND "${CMAKE_COMMAND}" "-E" "copy" "${imago_dll_filename}" "${IMAGO_DLL_DIR}/"
+	               COMMAND "${CMAKE_COMMAND}" "-E" "copy" "$<TARGET_FILE:imago_c_shared>" "${IMAGO_DLL_DIR}/"
 				   COMMAND "${Java_JAR_EXECUTABLE}" "uf" "${imago_jar_filename}" "com"
 				   WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
 

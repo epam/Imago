@@ -9,3 +9,13 @@ imago_gen
 /jimago/dist/
 /ego/dist/
 /dist/
+
+.idea/
+build/
+cmake-build-*/
+imago_python/dist/
+imago_python/imago/lib/
+imago_python/epam.imago.egg-info/
+imago_python/tests/output/
+__pycache__/
+imago_c/src/imago_version.h
