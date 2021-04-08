@@ -8,5 +8,5 @@ cd ..
 if [ -z "$1" ]; then
   cmake --build build --config Release
 else
-  cmake --build build --config Release --target $1
+  cmake --build build --config Release --target $@
 fi

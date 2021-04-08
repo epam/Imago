@@ -9,5 +9,5 @@ cd ..
 if "%~1" == "" (
     cmake --build build --config Release
 ) else (
-    cmake --build build --config Release --target %1
+    cmake --build build --config Release --target %*
 )
