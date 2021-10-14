@@ -1,10 +1,10 @@
 
-BrandingText "GGA Software Services LLC"
+BrandingText "EPAM Systems"
 
 !define PRODUCT_NAME "Imago Toolkit"
 !define PRODUCT_VERSION "1.0 Release Candidate"
-!define PRODUCT_PUBLISHER "GGA Software Services LLC"
-!define PRODUCT_WEB_SITE "http://www.ggasoftware.com"
+!define PRODUCT_PUBLISHER "EPAM Systems"
+!define PRODUCT_WEB_SITE "https://lifescience.opensource.epam.com"
 !define PRODUCT_DIR_REGKEY "Software\Microsoft\Windows\CurrentVersion\App Paths\alter_ego.exe"
 !define PRODUCT_UNINST_KEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\${PRODUCT_NAME}"
 !define PRODUCT_UNINST_ROOT_KEY "HKLM"
