@@ -48,7 +48,7 @@ FunctionEnd
 !insertmacro MUI_PAGE_WELCOME
 ;Page custom nsDialogsPage
 
-!insertmacro MUI_PAGE_LICENSE "LICENSE.GPL"
+!insertmacro MUI_PAGE_LICENSE "LICENSE"
 !insertmacro MUI_PAGE_README "readme.txt"
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
@@ -123,7 +123,7 @@ Section "MainSection" SEC01
   SetOutPath "$INSTDIR"
   SetOverwrite try
   File "output\release\ego\ego.jar"
-  File "LICENSE.GPL"
+  File "LICENSE"
   SetOutPath "$INSTDIR\lib"
   File "output\release\ego\lib\imago.jar"
   File "output\release\ego\lib\indigo-java.jar"
@@ -204,7 +204,7 @@ Function un.onInit
 FunctionEnd
 
 Section Uninstall
-  Delete "$INSTDIR\LICENSE.GPL"
+  Delete "$INSTDIR\LICENSE"
   Delete "$INSTDIR\uninst.exe"
   Delete "$INSTDIR\examples\1.png"
   Delete "$INSTDIR\examples\2.png"
