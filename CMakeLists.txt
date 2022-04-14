@@ -13,6 +13,7 @@ message(STATUS "Subsystem: ${SUBSYSTEM_NAME}")
 message(STATUS "**** Third-party ****")
 set(WITH_STATIC ON)
 add_subdirectory(${THIRD_PARTY_DIR}/indigo)
+set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(${THIRD_PARTY_DIR}/opencv)
 
 message(STATUS "**** Imago ****")
