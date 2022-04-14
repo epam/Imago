@@ -11,11 +11,8 @@ include(BuildOptions)
 message(STATUS "Subsystem: ${SUBSYSTEM_NAME}")
 
 message(STATUS "**** Third-party ****")
-list(APPEND CMAKE_MODULE_PATH ${THIRD_PARTY_DIR}/indigo/common/cmake/)
-include(ConfigureCommon)
 set(WITH_STATIC ON)
-add_subdirectory(${THIRD_PARTY_DIR}/indigo/build_scripts/indigo)
-add_subdirectory(${THIRD_PARTY_DIR}/indigo/build_scripts/indigo-inchi)
+add_subdirectory(${THIRD_PARTY_DIR}/indigo)
 
 message(STATUS "**** Imago ****")
 add_subdirectory(imago)

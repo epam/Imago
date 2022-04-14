@@ -282,7 +282,7 @@ namespace imago
 		cv::Mat1b prepareImage(const Settings& vars, const cv::Mat1b& src, double &ratio)
 		{
 			imago::Image temp;
-			cv::threshold(src, temp, vars.characters.InternalBinarizationThreshold, 255, CV_THRESH_BINARY);
+			cv::threshold(src, temp, vars.characters.InternalBinarizationThreshold, 255, cv::THRESH_BINARY);
 			temp.crop();
 			
 			if (temp.cols * temp.rows == 0)
@@ -298,7 +298,7 @@ namespace imago
 
 			cv::resize(temp, temp, cv::Size(size_x, size_y), 0.0, 0.0, cv::INTER_CUBIC);
 
-			cv::threshold(temp, temp, vars.characters.InternalBinarizationThreshold, 255, CV_THRESH_BINARY);
+			cv::threshold(temp, temp, vars.characters.InternalBinarizationThreshold, 255, cv::THRESH_BINARY);
 		
 			return temp;
 		}	

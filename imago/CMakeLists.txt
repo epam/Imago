@@ -9,6 +9,7 @@ if(UNIX OR APPLE)
 endif()
 
 
+include_directories(${CMAKE_BINARY_DIR})
 include_directories(${THIRD_PARTY_DIR}/indigo/api)
 include_directories(${THIRD_PARTY_DIR}/indigo/api/plugins/indigo-inchi)
 include_directories(${THIRD_PARTY_DIR}/indigo/api/plugins/indigo-renderer)
@@ -26,12 +27,16 @@ include_directories(${THIRD_PARTY_DIR}/opencv/modules/photo/include)
 include_directories(${THIRD_PARTY_DIR}/opencv/modules/ml/include)
 include_directories(${THIRD_PARTY_DIR}/opencv/modules/legacy/include)
 include_directories(${THIRD_PARTY_DIR}/opencv/modules/highgui/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/dnn/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/imgcodecs/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/videoio/include)
+include_directories(${THIRD_PARTY_DIR}/opencv/modules/stitching/include)
 
 add_library(imago STATIC ${SRC})
 
 target_link_libraries(imago ${CMAKE_THREAD_LIBS_INIT})
-target_link_libraries(imago indigo z tinyxml cairo pixman png)
-target_link_libraries(imago opencv_contrib opencv_features2d opencv_video opencv_calib3d opencv_objdetect opencv_imgproc opencv_core opencv_ml opencv_photo opencv_legacy opencv_highgui opencv_gpu opencv_flann)
+target_link_libraries(imago indigo z tinyxml2 cairo pixman png)
+target_link_libraries(imago opencv_features2d opencv_video opencv_calib3d opencv_objdetect opencv_imgproc opencv_core opencv_ml opencv_photo opencv_highgui opencv_flann opencv_dnn opencv_imgcodecs opencv_videoio opencv_stitching)
 
 if(IRECO)
 set_target_properties(imago PROPERTIES

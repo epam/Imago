@@ -52,7 +52,7 @@ def testImagoConsole(mol, image):
         else:
             error = 'Imago'
         totalImages += 1
-    except IndigoException, e:
+    except IndigoException as e:
         sys.stderr.write('Indigo: ' + e.value + '\n')
         indigoFailedImages += 1
         error = 'Indigo: ' + e.value
@@ -81,11 +81,11 @@ if __name__ == '__main__':
 
     testSuite.append(results)
     xmlReport.append(testSuite)
-    with open('report.xml', 'wt') as f:
+    with open('report.xml', 'wb') as f:
         indent(xmlReport)
         f.write(tostring(xmlReport))
 
-    print 'Test results:'
-    print 'Total images: %s' % totalImages
-    print 'Successfully recognized images: %s, rate: %s ' % (successfullyRecognizedImages, float(successfullyRecognizedImages) / float(totalImages))
-    print 'Indigo fails: %s' % indigoFailedImages
+    print('Test results:')
+    print('Total images: %s' % totalImages)
+    print('Successfully recognized images: %s, rate: %s ' % (successfullyRecognizedImages, float(successfullyRecognizedImages) / float(totalImages)))
+    print('Indigo fails: %s' % indigoFailedImages)

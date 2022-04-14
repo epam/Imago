@@ -104,7 +104,7 @@ namespace recognition_helpers
 			{
 				if (verbose)
 					printf("Filter [%u] exception '%s'.\n", vars.general.FilterIndex, e.what());
-
+                                throw e;
 			}
 
 			if (good)
@@ -143,6 +143,7 @@ namespace recognition_helpers
 		{
 			puts(e.what());
 			result = 1;
+                        throw e;
 		}
 		return result;
 	}
@@ -212,6 +213,7 @@ namespace recognition_helpers
 		{
 			result = 2; // error mark
 			puts(e.what());
+                        throw e;
 		}
 
 		dumpVFS(vfs, "log_vfs.txt");
