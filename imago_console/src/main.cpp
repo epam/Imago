@@ -23,8 +23,11 @@
 #include "settings.h"
 #include "log_ext.h"
 
+#include <indigo.h>
+
 int main(int argc, char **argv)
 {
+    qword sid = indigoAllocSessionId();
 	imago::Settings vars;
 	vars.general.TimeLimit = 8000; // ms, default timelimit value
 
