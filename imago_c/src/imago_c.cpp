@@ -62,7 +62,9 @@ CEXPORT const char *imagoGetVersion()
 
 CEXPORT qword imagoAllocSessionId()
 {
-   return SessionManager::getInstance().allocSID();
+    qword sid = SessionManager::getInstance().allocSID();
+    indigoAllocSessionId();
+    return sid;
 }
 
 CEXPORT void imagoSetSessionId( qword id )
