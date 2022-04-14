@@ -5,7 +5,7 @@ from pathlib import Path
 import threading
 from typing import Optional, TypeVar, Generic, List, Tuple, AnyStr
 
-import PIL
+from PIL import Image
 
 from imago.imago_exception import ImagoException
 from imago.imago_filters import ImagoFilter
@@ -16,6 +16,7 @@ T = TypeVar('T')
 
 class Imago:
     _lib: Optional[CDLL] = None
+    _lib_indigo: Optional[CDLL] = None
     _lib_lock: threading.Lock = threading.Lock()
 
     @staticmethod
@@ -47,17 +48,18 @@ class Imago:
         return f'{library_prefix}{basename}{library_suffix}'
 
     @staticmethod
-    def _get_path_to_native_library() -> Path:
+    def _get_path_to_native_library(lib_name: str) -> Path:
         package_path = Path(__file__).parent
         system = Imago._get_system_name()
         arch = Imago._get_arch_name()
         folder = package_path / 'lib' / f"{system}-{arch}"
-        return folder / Imago._get_shared_library_name('imago_c')
+        return folder / Imago._get_shared_library_name(lib_name)
 
     @staticmethod
     def _init_native_lib() -> None:
         with Imago._lib_lock:
-            Imago._lib = CDLL(str(Imago._get_path_to_native_library()))
+            Imago._lib_indigo = CDLL(str(Imago._get_path_to_native_library("indigo")))
+            Imago._lib = CDLL(str(Imago._get_path_to_native_library("imago_c")))
             # imagoAllocSessionId
             Imago._lib.imagoAllocSessionId.restype = c_ulonglong
             Imago._lib.imagoAllocSessionId.argtypes = None
@@ -128,7 +130,6 @@ class Imago:
             # imagoSetSessionId
             Imago._lib.imagoSetSessionId.restype = None
             Imago._lib.imagoSetSessionId.argtypes = [c_ulonglong]
-            
             # Archive
             # TODO: check if we need any of this
             # # imagoGetSessionSpecificData
@@ -170,7 +171,7 @@ class Imago:
     def __del__(self) -> None:
         Imago._lib.imagoReleaseSessionId(self._session_id)
 
-    def load_image_from_pillow(self, image: PIL.Image) -> None:
+    def load_image_from_pillow(self, image: Image) -> None:
         """Load raw grayscale image from Pillow Image instance"""
         image = image.convert('L')
         width = c_int(image.width)
@@ -227,7 +228,7 @@ class Imago:
         return warnings_count.value
 
     @property
-    def image(self) -> PIL.Image:
+    def image(self) -> Image:
         """Returns filtered image"""
         width = c_int()
         height = c_int()
@@ -236,7 +237,7 @@ class Imago:
         Imago._check_result(Imago._lib.imagoGetPrefilteredImage(pointer(buffer), byref(width), byref(height)))
         size = width.value * height.value
         data = memoryview(cast(buffer, POINTER(c_ubyte * size))[0]).tobytes()
-        return PIL.Image.frombytes(mode='L', size=(width.value, height.value), data=bytes(data))
+        return Image.frombytes(mode='L', size=(width.value, height.value), data=bytes(data))
 
     @property
     def image_size(self) -> Tuple[int, int]:
