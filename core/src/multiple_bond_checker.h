@@ -1,54 +1,52 @@
 /****************************************************************************
-* Copyright (C) from 2009 to Present EPAM Systems.
-*
-* This file is part of Imago toolkit.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-***************************************************************************/
+ * Copyright (C) from 2009 to Present EPAM Systems.
+ *
+ * This file is part of Imago toolkit.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ***************************************************************************/
 
 #pragma once
-#ifndef _multiple_bond_checker_h
-#define _multiple_bond_checker_h
 
-#include "skeleton.h"
 #include "settings.h"
+#include "skeleton.h"
 
 namespace imago
 {
-   class MultipleBondChecker
-   {
-   private:
-      typedef Skeleton::SkeletonGraph Graph;
-      typedef Skeleton::Vertex Vertex;
-      typedef Skeleton::Edge Edge;
-   public:
-      MultipleBondChecker(const Settings& vars, Skeleton &s );
-      ~MultipleBondChecker();
+    class MultipleBondChecker
+    {
+    private:
+        typedef Skeleton::SkeletonGraph Graph;
+        typedef Skeleton::Vertex Vertex;
+        typedef Skeleton::Edge Edge;
 
-      bool checkDouble(const Settings& vars, Edge frst, Edge scnd );
-      bool checkTriple(const Settings& vars, Edge thrd );
-   private:
-      Edge first, second, third;
-      Vertex fb, fe, sb, se, tb, te;
-      Vec2d fb_pos, fe_pos, sb_pos, se_pos, tb_pos, te_pos;
-      Bond bf, bs, bt;
+    public:
+        MultipleBondChecker(const Settings& vars, Skeleton& s);
+        ~MultipleBondChecker();
 
-      double _multiBondErr;
-      double _avgBondLength;
-      double _parLinesEps;
-      Skeleton &_s;
-      Graph &_g;
-   };
+        bool checkDouble(const Settings& vars, Edge frst, Edge scnd);
+        bool checkTriple(const Settings& vars, Edge thrd);
+
+    private:
+        Edge first, second, third;
+        Vertex fb, fe, sb, se, tb, te;
+        Vec2d fb_pos, fe_pos, sb_pos, se_pos, tb_pos, te_pos;
+        Bond bf, bs, bt;
+
+        double _multiBondErr;
+        double _avgBondLength;
+        double _parLinesEps;
+        Skeleton& _s;
+        Graph& _g;
+    };
 }
-
-#endif /* _multiple_bond_checker_h */

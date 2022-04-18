@@ -1,30 +1,31 @@
 /****************************************************************************
-* Copyright (C) from 2009 to Present EPAM Systems.
-*
-* This file is part of Imago toolkit.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-***************************************************************************/
+ * Copyright (C) from 2009 to Present EPAM Systems.
+ *
+ * This file is part of Imago toolkit.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ***************************************************************************/
 
-#include <cstring>
-#include <cstdio>
+#include "scanner.h"
+
 #include <cstdarg>
-#include <ctype.h>
+#include <cstdio>
+#include <cstring>
+#include <cctype>
 #include <string>
 
-#include "exception.h"
 #include "comdef.h"
-#include "scanner.h"
+#include "exception.h"
 
 using namespace imago;
 
@@ -34,517 +35,515 @@ Scanner::~Scanner()
 
 int Scanner::readInt1()
 {
-   std::string buf;
-   char c;
-   int result;
+    std::string buf;
+    char c;
+    int result;
 
-   buf.clear();
+    buf.clear();
 
-   while (!isEOF())
-   {
-      c = readChar();
-      if (!isdigit(c) && c != '-' && c != '+')
-         break;
-      buf.push_back(c);
-   }
+    while (!isEOF())
+    {
+        c = readChar();
+        if (!isdigit(c) && c != '-' && c != '+')
+            break;
+        buf.push_back(c);
+    }
 
-   buf.push_back(0);
+    buf.push_back(0);
 
-   if (sscanf(buf.c_str(), "%d", &result) < 1)
-      throw IOException("readInt(): error parsing " + buf);
+    if (sscanf(buf.c_str(), "%d", &result) < 1)
+        throw IOException("readInt(): error parsing " + buf);
 
-   return result;
+    return result;
 }
 
 int Scanner::readInt()
 {
-   std::string buf;
-   char c;
-   int result;
+    std::string buf;
+    char c;
+    int result;
 
-   buf.clear();
+    buf.clear();
 
-   c = readChar();
+    c = readChar();
 
-   if (c == '+' || c == '-' || isdigit(c))
-      buf.push_back(c);
+    if (c == '+' || c == '-' || isdigit(c))
+        buf.push_back(c);
 
-   while (isdigit(lookNext()))
-      buf.push_back(readChar());
+    while (isdigit(lookNext()))
+        buf.push_back(readChar());
 
-   buf.push_back(0);
+    buf.push_back(0);
 
-   if (sscanf(buf.c_str(), "%d", &result) < 1)
-      throw IOException("readInt(): error parsing " + buf);
+    if (sscanf(buf.c_str(), "%d", &result) < 1)
+        throw IOException("readInt(): error parsing " + buf);
 
-   return result;
+    return result;
 }
 
 int Scanner::readUnsigned()
 {
-   int result = 0;
-   bool was_digit = false;
+    int result = 0;
+    bool was_digit = false;
 
-   while (!isEOF())
-   {
-      char c = readChar();
-      if (isdigit(c))
-      {
-         was_digit = true;
-         result = (int)(c - '0') + result * 10;
-      }
-      else
-      {
-         seek(-1, SEEK_CUR);
-         break;
-      }
-   }
+    while (!isEOF())
+    {
+        char c = readChar();
+        if (isdigit(c))
+        {
+            was_digit = true;
+            result = (int)(c - '0') + result * 10;
+        }
+        else
+        {
+            seek(-1, SEEK_CUR);
+            break;
+        }
+    }
 
-   if (!was_digit)
-      throw IOException("readUnsigned(): no digits");
+    if (!was_digit)
+        throw IOException("readUnsigned(): no digits");
 
-   return result;
+    return result;
 }
 
 double Scanner::readDouble()
 {
-   std::string buf;
-   double result;
+    std::string buf;
+    double result;
 
-   buf.clear();
+    buf.clear();
 
-   while (!isEOF())
-   {
-      char c = readChar();
+    while (!isEOF())
+    {
+        char c = readChar();
 
-      if (!isdigit(c) && c != '-' && c != '+' && c != '.')
-         break;
-      buf.push_back(c);
-   }
+        if (!isdigit(c) && c != '-' && c != '+' && c != '.')
+            break;
+        buf.push_back(c);
+    }
 
-   buf.push_back(0);
+    buf.push_back(0);
 
-   if (sscanf(buf.c_str(), "%lf", &result) < 1)
-      throw IOException("readDouble(): error parsing " + buf);
+    if (sscanf(buf.c_str(), "%lf", &result) < 1)
+        throw IOException("readDouble(): error parsing " + buf);
 
-   return result;
+    return result;
 }
 
-bool Scanner::tryReadDouble( double &value )
+bool Scanner::tryReadDouble(double& value)
 {
-   std::string buf;
+    std::string buf;
 
-   int pos = tell();
+    int pos = tell();
 
-   buf.clear();
+    buf.clear();
 
-   while (!isEOF())
-   {
-      char c = readChar();
+    while (!isEOF())
+    {
+        char c = readChar();
 
-      if (!isdigit(c) && c != '-' && c != '+' && c != '.')
-         break;
-      buf.push_back(c);
-   }
+        if (!isdigit(c) && c != '-' && c != '+' && c != '.')
+            break;
+        buf.push_back(c);
+    }
 
-   buf.push_back(0);
+    buf.push_back(0);
 
-   if (sscanf(buf.c_str(), "%lf", &value) < 1)
-   {
-      seek(pos, SEEK_SET);
-      return false;
-   }
+    if (sscanf(buf.c_str(), "%lf", &value) < 1)
+    {
+        seek(pos, SEEK_SET);
+        return false;
+    }
 
-   return true;
+    return true;
 }
 
-void Scanner::readWord( std::string &word, const char *delimiters )
+void Scanner::readWord(std::string& word, const char* delimiters)
 {
-   word.clear();
+    word.clear();
 
-   while (!isEOF())
-   {
-      int next = lookNext();
+    while (!isEOF())
+    {
+        int next = lookNext();
 
-      if (next == -1)
-         break;
+        if (next == -1)
+            break;
 
-      if (delimiters == 0 && isspace((char)next))
-         break;
+        if (delimiters == 0 && isspace((char)next))
+            break;
 
-      if (delimiters != 0 && strchr(delimiters, (char)next) != NULL)
-         break;
+        if (delimiters != 0 && strchr(delimiters, (char)next) != NULL)
+            break;
 
-      word.push_back(readChar());
-   }
+        word.push_back(readChar());
+    }
 
-   word.push_back(0);
+    word.push_back(0);
 }
 
 char Scanner::readChar()
 {
-   char c;
+    char c;
 
-   read(sizeof(char), &c);
+    read(sizeof(char), &c);
 
-   return c;
+    return c;
 }
 
 byte Scanner::readByte()
 {
-   byte c;
+    byte c;
 
-   read(1, &c);
-   return c;
+    read(1, &c);
+    return c;
 }
 
 bool Scanner::skipString()
 {
-   char c;
+    char c;
 
-   if (isEOF())
-      return false;
+    if (isEOF())
+        return false;
 
-   while (!isEOF())
-   {  
-      c = readChar();
-      if (c == '\n')
-      {
-         if (lookNext() == '\r')
-            skip(1);
-         return true;
-      }
-      if (c == '\r')
-      {
-         if (lookNext() == '\n')
-            skip(1);
-         return true;
-      }
-   }
+    while (!isEOF())
+    {
+        c = readChar();
+        if (c == '\n')
+        {
+            if (lookNext() == '\r')
+                skip(1);
+            return true;
+        }
+        if (c == '\r')
+        {
+            if (lookNext() == '\n')
+                skip(1);
+            return true;
+        }
+    }
 
-   return false;
+    return false;
 }
 
 void Scanner::skipSpace()
 {
-   while (isspace(lookNext()))
-      skip(1);
+    while (isspace(lookNext()))
+        skip(1);
 }
 
-void Scanner::readBinaryString( std::string &out)
+void Scanner::readBinaryString(std::string& out)
 {
-   char c;
+    char c;
 
-   out.clear();
+    out.clear();
 
-   while (!isEOF())
-   {  
-      c = readChar();
+    while (!isEOF())
+    {
+        c = readChar();
 
-      if (c == '\0')
-      {
-		  break;
-      }
+        if (c == '\0')
+        {
+            break;
+        }
 
-      out.push_back(c);
-   }
+        out.push_back(c);
+    }
 }
 
-
-void Scanner::readString( std::string &out, bool append_zero )
+void Scanner::readString(std::string& out, bool append_zero)
 {
-   char c;
+    char c;
 
-   out.clear();
+    out.clear();
 
-   while (!isEOF())
-   {  
-      c = readChar();
+    while (!isEOF())
+    {
+        c = readChar();
 
-      if (c == '\r')
-      {
-         if (lookNext() == '\n')
-            continue;
-         break;
-      }
-      if (c == '\n')
-         break;
+        if (c == '\r')
+        {
+            if (lookNext() == '\n')
+                continue;
+            break;
+        }
+        if (c == '\n')
+            break;
 
-      out.push_back(c);
-   }
+        out.push_back(c);
+    }
 
-   if (append_zero)
-      out.push_back(0);
+    if (append_zero)
+        out.push_back(0);
 }
 
-void Scanner::readCharsFix( int n, char *chars_out )
+void Scanner::readCharsFix(int n, char* chars_out)
 {
-   read(n, chars_out);
+    read(n, chars_out);
 }
 
 word Scanner::readBinaryWord()
 {
-   word res;
+    word res;
 
-   read(sizeof(word), &res);
+    read(sizeof(word), &res);
 
-   return res;
+    return res;
 }
 
 dword Scanner::readBinaryDword()
 {
-   dword res;
+    dword res;
 
-   read(sizeof(dword), &res);
+    read(sizeof(dword), &res);
 
-   return res;
+    return res;
 }
 
 int Scanner::readBinaryInt()
 {
-   int res;
+    int res;
 
-   read(sizeof(int), &res);
+    read(sizeof(int), &res);
 
-   return res;
+    return res;
 }
 
 float Scanner::readBinaryFloat()
 {
-   float res;
+    float res;
 
-   read(sizeof(float), &res);
+    read(sizeof(float), &res);
 
-   return res;
+    return res;
 }
 
 double Scanner::readBinaryDouble()
 {
-   double res;
+    double res;
 
-   read(sizeof(double), &res);
+    read(sizeof(double), &res);
 
-   return res;
+    return res;
 }
-
 
 short Scanner::readPackedShort()
 {
-   byte high = readByte();
+    byte high = readByte();
 
-   if (high < 128)
-      return high;
+    if (high < 128)
+        return high;
 
-   byte low = readByte();
+    byte low = readByte();
 
-   high -= 128;
+    high -= 128;
 
-   return high * (short)256 + low;
+    return high * (short)256 + low;
 }
 
-void Scanner::readAll( std::string &arr )
+void Scanner::readAll(std::string& arr)
 {
-   arr.resize(length());
+    arr.resize(length());
 
-   char *res = new char[arr.size()];
+    char* res = new char[arr.size()];
 
-   read((int)arr.size(), res);
+    read((int)arr.size(), res);
 
-   for (int i = 0; i < length(); i++)
-      arr[i] = res[i];
+    for (int i = 0; i < length(); i++)
+        arr[i] = res[i];
 
-   delete []res;
+    delete[] res;
 }
 
-bool Scanner::isSingleLine( Scanner &scanner )
+bool Scanner::isSingleLine(Scanner& scanner)
 {
-   int pos = scanner.tell();
+    int pos = scanner.tell();
 
-   scanner.skipString();
+    scanner.skipString();
 
-   bool res = scanner.isEOF();
+    bool res = scanner.isEOF();
 
-   scanner.seek(pos, SEEK_SET);
-   return res;
+    scanner.seek(pos, SEEK_SET);
+    return res;
 }
 
-FileScanner::FileScanner( const char *format, ... ) : Scanner()
+FileScanner::FileScanner(const char* format, ...) : Scanner()
 {
-   char filename[MAX_TEXT_LINE];
+    char filename[MAX_TEXT_LINE];
 
-   va_list args;
+    va_list args;
 
-   va_start(args, format);
-   vsnprintf(filename, sizeof(filename), format, args);
-   va_end(args);
+    va_start(args, format);
+    vsnprintf(filename, sizeof(filename), format, args);
+    va_end(args);
 
-   _file_len = 0;
-   _file = fopen(filename, "rb");
+    _file_len = 0;
+    _file = fopen(filename, "rb");
 
-   if (_file == NULL)
-      throw FileNotFoundException("can't open file " + std::string(filename));
+    if (_file == NULL)
+        throw FileNotFoundException("can't open file " + std::string(filename));
 
-   fseek(_file, 0, SEEK_END);
-   _file_len = ftell(_file);
-   fseek(_file, 0, SEEK_SET);
+    fseek(_file, 0, SEEK_END);
+    _file_len = ftell(_file);
+    fseek(_file, 0, SEEK_SET);
 }
 
 int FileScanner::lookNext()
 {
-   char res;
-   size_t nread = fread(&res, 1, 1, _file);
+    char res;
+    size_t nread = fread(&res, 1, 1, _file);
 
-   if (nread == 0)
-      return -1;
+    if (nread == 0)
+        return -1;
 
-   fseek(_file, -1, SEEK_CUR);
+    fseek(_file, -1, SEEK_CUR);
 
-   return res;
+    return res;
 }
 
 int FileScanner::tell()
 {
-   return ftell(_file);
+    return ftell(_file);
 }
 
-void FileScanner::read( int length, void *res )
+void FileScanner::read(int length, void* res)
 {
-   size_t nread = fread(res, 1, length, _file);
+    size_t nread = fread(res, 1, length, _file);
 
-   if (nread != (size_t)length)
-      throw IOException("FileScanner::read() error");
+    if (nread != (size_t)length)
+        throw IOException("FileScanner::read() error");
 }
 
-void BufferScanner::skip( int n )
+void BufferScanner::skip(int n)
 {
-   _offset += n;
+    _offset += n;
 
-   if (_size >= 0 && _offset > _size)
-      throw IOException("skip() passes after end of buffer");
+    if (_size >= 0 && _offset > _size)
+        throw IOException("skip() passes after end of buffer");
 }
 
-void BufferScanner::seek( int pos, int from )
+void BufferScanner::seek(int pos, int from)
 {
-   if (from == SEEK_SET)
-      _offset = pos;
-   else if (from == SEEK_CUR)
-      _offset += pos;
-   else // SEEK_END
-   {
-      if (_size < 0)
-         throw IOException("can not seek from end: buffer is unlimited");
-      _offset = _size - pos;
-   }
+    if (from == SEEK_SET)
+        _offset = pos;
+    else if (from == SEEK_CUR)
+        _offset += pos;
+    else // SEEK_END
+    {
+        if (_size < 0)
+            throw IOException("can not seek from end: buffer is unlimited");
+        _offset = _size - pos;
+    }
 
-   if ((_size >= 0 && _offset > _size) || _offset < 0)
-      throw IOException("size < offset after seek()");
+    if ((_size >= 0 && _offset > _size) || _offset < 0)
+        throw IOException("size < offset after seek()");
 }
 
-byte BufferScanner::readByte ()
+byte BufferScanner::readByte()
 {
-   if (_size >= 0 && _offset >= _size)
-      throw IOException("readByte(): end of buffer");
+    if (_size >= 0 && _offset >= _size)
+        throw IOException("readByte(): end of buffer");
 
-   return _buffer[_offset++];
+    return _buffer[_offset++];
 }
 
 bool FileScanner::isEOF()
 {
-   if (_file == NULL)
-      return true;
+    if (_file == NULL)
+        return true;
 
-   return ftell(_file) == _file_len;
+    return ftell(_file) == _file_len;
 }
 
-void FileScanner::skip( int n )
+void FileScanner::skip(int n)
 {
-   int res = fseek(_file, n, SEEK_CUR);
+    int res = fseek(_file, n, SEEK_CUR);
 
-   if (res != 0)
-      throw IOException("skip() passes after end of file");
+    if (res != 0)
+        throw IOException("skip() passes after end of file");
 }
 
-void FileScanner::seek( int pos, int from )
+void FileScanner::seek(int pos, int from)
 {
-   fseek(_file, pos, from);
+    fseek(_file, pos, from);
 }
 
 int FileScanner::length()
 {
-   return _file_len;
+    return _file_len;
 }
 
-FileScanner::~FileScanner ()
+FileScanner::~FileScanner()
 {
-   if (_file != NULL)
-      fclose(_file);
+    if (_file != NULL)
+        fclose(_file);
 }
 
-void BufferScanner::_init( const char *buffer, int size )
+void BufferScanner::_init(const char* buffer, int size)
 {
-   if (size < -1 || (size > 0 && buffer == 0))
-      throw IOException("incorrect parameters in BufferScanner constructor");
+    if (size < -1 || (size > 0 && buffer == 0))
+        throw IOException("incorrect parameters in BufferScanner constructor");
 
-   _buffer = buffer;
-   _size = size;
-   _offset = 0;
+    _buffer = buffer;
+    _size = size;
+    _offset = 0;
 }
 
-BufferScanner::BufferScanner( const char *buffer, int buffer_size )
+BufferScanner::BufferScanner(const char* buffer, int buffer_size)
 {
-   _init(buffer, buffer_size);
+    _init(buffer, buffer_size);
 }
 
-BufferScanner::BufferScanner( const byte *buffer, int buffer_size )
+BufferScanner::BufferScanner(const byte* buffer, int buffer_size)
 {
-   _init((const char *)buffer, buffer_size);
+    _init((const char*)buffer, buffer_size);
 }
 
-BufferScanner::BufferScanner( const char *str )
+BufferScanner::BufferScanner(const char* str)
 {
-   _init(str, (int)strlen(str));
+    _init(str, (int)strlen(str));
 }
 
-BufferScanner::BufferScanner( const std::string &arr )
+BufferScanner::BufferScanner(const std::string& arr)
 {
-   _init(arr.c_str(), (int)arr.size());
+    _init(arr.c_str(), (int)arr.size());
 }
 
 bool BufferScanner::isEOF()
 {
-   if (_size < 0)
-      throw IOException("isEOF() called to unlimited buffer");
-   return _size >= 0 && _offset >= _size;
+    if (_size < 0)
+        throw IOException("isEOF() called to unlimited buffer");
+    return _size >= 0 && _offset >= _size;
 }
 
-void BufferScanner::read( int length, void *res )
+void BufferScanner::read(int length, void* res)
 {
-   if (_size >= 0 && _offset + length > _size)
-      throw IOException("BufferScanner::read() error");
+    if (_size >= 0 && _offset + length > _size)
+        throw IOException("BufferScanner::read() error");
 
-   memcpy(res, &_buffer[_offset], length);
-   _offset += length;
+    memcpy(res, &_buffer[_offset], length);
+    _offset += length;
 }
 
 int BufferScanner::lookNext()
 {
-   if (_size >= 0 && _offset >= _size)
-      return -1;
+    if (_size >= 0 && _offset >= _size)
+        return -1;
 
-   return _buffer[_offset];
+    return _buffer[_offset];
 }
 
 int BufferScanner::length()
 {
-   return _size;
+    return _size;
 }
 
 int BufferScanner::tell()
 {
-   return _offset;
+    return _offset;
 }
 
-const void *BufferScanner::curptr()
+const void* BufferScanner::curptr()
 {
-   return _buffer + _offset;
+    return _buffer + _offset;
 }

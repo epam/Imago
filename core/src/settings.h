@@ -1,407 +1,403 @@
 /****************************************************************************
-* Copyright (C) from 2009 to Present EPAM Systems.
-*
-* This file is part of Imago toolkit.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-***************************************************************************/
+ * Copyright (C) from 2009 to Present EPAM Systems.
+ *
+ * This file is part of Imago toolkit.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ***************************************************************************/
 
 #pragma once
-#ifndef _settings_h
-#define _settings_h
 
 #include "recognition_distance.h"
 #include "reference_object.h"
 
 namespace imago
 {
-	/// ------------------ cluster-independ settings ------------------ ///
+    /// ------------------ cluster-independ settings ------------------ ///
 
-	struct GeneralSettings
-	{		
-		int    ClusterIndex;
-		int    FilterIndex;
-		int    OriginalImageWidth;
-		int    OriginalImageHeight;
-		int    ImageWidth;
-		int    ImageHeight;
-		int    StartTime;
-		int    TimeLimit;		
-		bool   LogEnabled;
-		bool   LogVFSEnabled;		
-		bool   ExtractCharactersOnly;
-		bool   UseProbablistics;		
-		bool   ImageAlreadyBinarized;
-		bool   ExpandAbbreviations;
-		GeneralSettings();
-	};
+    struct GeneralSettings
+    {
+        int ClusterIndex;
+        int FilterIndex;
+        int OriginalImageWidth;
+        int OriginalImageHeight;
+        int ImageWidth;
+        int ImageHeight;
+        int StartTime;
+        int TimeLimit;
+        bool LogEnabled;
+        bool LogVFSEnabled;
+        bool ExtractCharactersOnly;
+        bool UseProbablistics;
+        bool ImageAlreadyBinarized;
+        bool ExpandAbbreviations;
+        GeneralSettings();
+    };
 
-	struct DynamicEstimationSettings
-	{		
-		double AvgBondLength;
-		double CapitalHeight;
-		double LineThickness;
-		DynamicEstimationSettings();
-	};
+    struct DynamicEstimationSettings
+    {
+        double AvgBondLength;
+        double CapitalHeight;
+        double LineThickness;
+        DynamicEstimationSettings();
+    };
 
-	struct RecognitionCaches // caches for character recognizer, etc
-	{
-		RecognitionDistanceCacheType* PCacheSymbolsRecognition;
-		
-		RecognitionCaches();
-		virtual ~RecognitionCaches();
-	};	
+    struct RecognitionCaches // caches for character recognizer, etc
+    {
+        RecognitionDistanceCacheType* PCacheSymbolsRecognition;
 
-	/// ------------------ cluster-depending settings ------------------ ///
+        RecognitionCaches();
+        virtual ~RecognitionCaches();
+    };
 
-	// DO NOT FORGET TO ADD REFERENCES TO ALL NEW VARIABLES IN SETTINGS.CPP:fillReferenceMap()
+    /// ------------------ cluster-depending settings ------------------ ///
 
-	#pragma pack (push, 4)
+    // DO NOT FORGET TO ADD REFERENCES TO ALL NEW VARIABLES IN SETTINGS.CPP:fillReferenceMap()
 
-	struct PrefilterCVSettings // POD
-	{		
-		int    OtsuThresholdValue;
-		int    MaxNonBWPixelsProportion;
-		int    MinGoodPixelsCount;
-		int    MaxBadToGoodRatio;
-		int    BorderPartProportion;
-		int    MaxRectangleCropLineWidth;
-		int    MaxRectangleCropLineWidthAlreadyBinarized;
-		int    StrongBinarizeSize;
-		int    WeakBinarizeSize;
-		int    BinarizerFrameGap;
-		int    BinarizerThreshold;
-		double StrongBinarizeTresh;
-		double WeakBinarizeTresh;		
-		bool   UseOtsuPixelsAddition;
-	};
+#pragma pack(push, 4)
 
-	struct WeakSegmentatorSettings // POD
-	{
-		double RectangularCropAreaTreshold;
-		double RectangularCropFitTreshold;
-	};
+    struct PrefilterCVSettings // POD
+    {
+        int OtsuThresholdValue;
+        int MaxNonBWPixelsProportion;
+        int MinGoodPixelsCount;
+        int MaxBadToGoodRatio;
+        int BorderPartProportion;
+        int MaxRectangleCropLineWidth;
+        int MaxRectangleCropLineWidthAlreadyBinarized;
+        int StrongBinarizeSize;
+        int WeakBinarizeSize;
+        int BinarizerFrameGap;
+        int BinarizerThreshold;
+        double StrongBinarizeTresh;
+        double WeakBinarizeTresh;
+        bool UseOtsuPixelsAddition;
+    };
 
-	struct RetinexFilterSettings // POD
-	{
-		int StartIteration;
-		int EndIteration;
-		int IterationStep;
-		int ContrastNominal;
-		double ContrastDropPercentage;
-	};
+    struct WeakSegmentatorSettings // POD
+    {
+        double RectangularCropAreaTreshold;
+        double RectangularCropFitTreshold;
+    };
 
-	struct LabelRemoverSettings // POD
-	{
-		int    MinCapitalHeight;
-		int    MaxCapitalHeight;
-		int    MinLabelChars;
-		int    MaxLabelLines;
-		int    PixGapX;
-		int    PixGapY;
-		double HeightFactor;
-		double CenterShiftMax;
-		double MinimalDensity;		
-	};
+    struct RetinexFilterSettings // POD
+    {
+        int StartIteration;
+        int EndIteration;
+        int IterationStep;
+        int ContrastNominal;
+        double ContrastDropPercentage;
+    };
 
-	struct EstimationSettings // POD
-	{
-		int    DoubleBondDist;
-		int    SegmentVerEps;		
-		double CapitalHeightError;		
-		double ParLinesEps;
-		double MaxSymRatio;
-		double MinSymRatio;
-		double SymHeightErr;
-		double CharactersSpaceCoeff;
-		double MaxSymbolHeightPercentsOfImage;
-	};
+    struct LabelRemoverSettings // POD
+    {
+        int MinCapitalHeight;
+        int MaxCapitalHeight;
+        int MinLabelChars;
+        int MaxLabelLines;
+        int PixGapX;
+        int PixGapY;
+        double HeightFactor;
+        double CenterShiftMax;
+        double MinimalDensity;
+    };
 
-	struct MoleculeSettings // POD
-	{
-		double LengthFactor_long;
-		double LengthFactor_medium;
-		double LengthFactor_default; 
-		double LengthValue_long;
-		double LengthValue_medium; 
-		double SpaceMultiply;
-		double AngleTreshold;
-	};
+    struct EstimationSettings // POD
+    {
+        int DoubleBondDist;
+        int SegmentVerEps;
+        double CapitalHeightError;
+        double ParLinesEps;
+        double MaxSymRatio;
+        double MinSymRatio;
+        double SymHeightErr;
+        double CharactersSpaceCoeff;
+        double MaxSymbolHeightPercentsOfImage;
+    };
 
-	struct MainSettings // POD
-	{
-		int    DissolvingsFactor;
-		int    WarningsRecalcTreshold;
-		int    MinGoodCharactersSize; 
-		int    WarningsForTooSmallCharacters;
-	};
+    struct MoleculeSettings // POD
+    {
+        double LengthFactor_long;
+        double LengthFactor_medium;
+        double LengthFactor_default;
+        double LengthValue_long;
+        double LengthValue_medium;
+        double SpaceMultiply;
+        double AngleTreshold;
+    };
 
-	struct MultipleBondSettings // POD
-	{
-		double LongBond;
-		double LongErr;
-		double MediumBond;
-		double MediumErr;
-		double DefaultErr;
-		double ParBondsEps;
-		double DoubleRatioTresh;
-		double DoubleCoef;
-		double DoubleMagic1;
-		double DoubleMagic2;
-		double DoubleTreshMin;
-		double DoubleTreshMax;
-		double MaxLen1;
-		double MaxLen2;
-		double MaxLen3; 
-		double MaxLen4; 
-		double MaxLen5;
-		double MinLen1;
-		double MinLen2;
-		double mbe1;
-		double mbe2;
-		double mbe3;
-		double mbe4;
-		double mbe5;
-		double mbe6;
-		double mbe7;
-		double mbe_def;
-		double DoubleLeftLengthTresh;
-		double DoubleRightLengthTresh;
-		double TripleLeftLengthTresh;
-		double TripleRightLengthTresh;
-		double Case1LengthTresh;
-		double Case2LengthTresh;
-		double Case1Factor;
-		double Case2Factor;
-		double Case3Factor;
-	};
+    struct MainSettings // POD
+    {
+        int DissolvingsFactor;
+        int WarningsRecalcTreshold;
+        int MinGoodCharactersSize;
+        int WarningsForTooSmallCharacters;
+    };
 
-	struct SkeletonSettings // POD
-	{
-		double ShortBondLen;
-		double MediumBondLen;
-		double LongBondLen;
-		double ShortMul;
-		double MediumMul; 
-		double LongMul;
-		double BaseMult;
-		double MediumSmallErr;
-		double LongSmallErr;
-		double BaseSmallErr;
-		double BrokenRepairCoef1;
-		double BrokenRepairCoef2;
-		double BrokenRepairFactor;
-		double BrokenRepairAngleEps;
-		double DissolveMinErr;
-		double ConnectBlockS;
-		double ConnectFactor;
-		double JoinVerticiesConst;
-		double DissolveConst;
-		double Dissolve2Const;
-		double Join2Const;
-		double Join3Const;
-		double DistTreshLimFactor;
-		double SlopeFact1;
-		double SlopeFact2;
-		double ShrinkEps;
-	};
+    struct MultipleBondSettings // POD
+    {
+        double LongBond;
+        double LongErr;
+        double MediumBond;
+        double MediumErr;
+        double DefaultErr;
+        double ParBondsEps;
+        double DoubleRatioTresh;
+        double DoubleCoef;
+        double DoubleMagic1;
+        double DoubleMagic2;
+        double DoubleTreshMin;
+        double DoubleTreshMax;
+        double MaxLen1;
+        double MaxLen2;
+        double MaxLen3;
+        double MaxLen4;
+        double MaxLen5;
+        double MinLen1;
+        double MinLen2;
+        double mbe1;
+        double mbe2;
+        double mbe3;
+        double mbe4;
+        double mbe5;
+        double mbe6;
+        double mbe7;
+        double mbe_def;
+        double DoubleLeftLengthTresh;
+        double DoubleRightLengthTresh;
+        double TripleLeftLengthTresh;
+        double TripleRightLengthTresh;
+        double Case1LengthTresh;
+        double Case2LengthTresh;
+        double Case1Factor;
+        double Case2Factor;
+        double Case3Factor;
+    };
 
-	struct RoutinesSettings // POD
-	{
-		int    LineThick_Grid;		
-		double Circle_GapRadiusMax;
-		double Circle_GapAngleMax;
-		double Circle_MinRadius; 
-		double Circle_MaxDeviation;
-		double Circle_AsCharFactor;
-		double Algebra_IntersectionEps;
-		double Algebra_SameLineEps;
-	};
+    struct SkeletonSettings // POD
+    {
+        double ShortBondLen;
+        double MediumBondLen;
+        double LongBondLen;
+        double ShortMul;
+        double MediumMul;
+        double LongMul;
+        double BaseMult;
+        double MediumSmallErr;
+        double LongSmallErr;
+        double BaseSmallErr;
+        double BrokenRepairCoef1;
+        double BrokenRepairCoef2;
+        double BrokenRepairFactor;
+        double BrokenRepairAngleEps;
+        double DissolveMinErr;
+        double ConnectBlockS;
+        double ConnectFactor;
+        double JoinVerticiesConst;
+        double DissolveConst;
+        double Dissolve2Const;
+        double Join2Const;
+        double Join3Const;
+        double DistTreshLimFactor;
+        double SlopeFact1;
+        double SlopeFact2;
+        double ShrinkEps;
+    };
 
-	struct WedgeBondExtractorSettings // POD
-	{
-		int    PointsCompareDist;
-		int    SingleDownCompareDist;
-		int    MinimalSingleDownSegsCount;
-		double SingleDownEps;
-		double SingleDownAngleMax;
-		double SingleDownDistancesMax;
-		double SingleDownLengthMax;
-		double SingleUpDefCoeff;
-		double SingleUpIncCoeff;
-		double SingleUpIncLengthTresh;
-		double SingleUpInterpolateEps;
-		double SingleUpMagicAddition;
-		double SingleUpSlopeThresh;
-		double SingleUpThickThresh;
-		double SomeTresh;
-	};
+    struct RoutinesSettings // POD
+    {
+        int LineThick_Grid;
+        double Circle_GapRadiusMax;
+        double Circle_GapAngleMax;
+        double Circle_MinRadius;
+        double Circle_MaxDeviation;
+        double Circle_AsCharFactor;
+        double Algebra_IntersectionEps;
+        double Algebra_SameLineEps;
+    };
 
-	struct CharactersRecognitionSettings // POD
-	{		
-		int    MinEndpointsPossible;
-		int    InternalBinarizationThreshold;
-		int    ReestimateMinimalCharacters; 
-		int    MinimalRecognizableHeight; 
-		double DistanceScaleFactor; 
-		double RatioDiffThresh; 
-		double PossibleCharacterDistanceStrong;
-		double PossibleCharacterDistanceWeak;
-		double PossibleCharacterMinimalQuality;
-		double DistanceAbsolutelySure;
-		double HeightMinBound;
-		double HeightMaxBound;
-	};
-	
-	struct ChemicalStructureRecognizerSettings // POD
-	{
-		int    WeakSegmentatorDist;
-		int    SmallImageDim;
-		int    RescaleImageDimensions; 
-		int    ReconnectMinBads; 		
-		double Dissolve;
-		double DeleteBadTriangles;		
-		double LineVectorizationFactor;
-		double ReconnectSurelyBadCoef; 
-		double ReconnectSurelyGoodCoef;
-		double ReconnectProbablyGoodCoef;
-		bool   UseDPApproximator;
-		bool   StableDecorner;
-	};
+    struct WedgeBondExtractorSettings // POD
+    {
+        int PointsCompareDist;
+        int SingleDownCompareDist;
+        int MinimalSingleDownSegsCount;
+        double SingleDownEps;
+        double SingleDownAngleMax;
+        double SingleDownDistancesMax;
+        double SingleDownLengthMax;
+        double SingleUpDefCoeff;
+        double SingleUpIncCoeff;
+        double SingleUpIncLengthTresh;
+        double SingleUpInterpolateEps;
+        double SingleUpMagicAddition;
+        double SingleUpSlopeThresh;
+        double SingleUpThickThresh;
+        double SomeTresh;
+    };
 
-	struct GraphExtractorSettings // POD
-	{
-		double MinimalDistTresh;
-		double RatioSub;
-		double RatioTresh;
-	};
+    struct CharactersRecognitionSettings // POD
+    {
+        int MinEndpointsPossible;
+        int InternalBinarizationThreshold;
+        int ReestimateMinimalCharacters;
+        int MinimalRecognizableHeight;
+        double DistanceScaleFactor;
+        double RatioDiffThresh;
+        double PossibleCharacterDistanceStrong;
+        double PossibleCharacterDistanceWeak;
+        double PossibleCharacterMinimalQuality;
+        double DistanceAbsolutelySure;
+        double HeightMinBound;
+        double HeightMaxBound;
+    };
 
-	struct ImageUtilsSettings // POD
-	{
-		double SlashLineDensity;
-	};
+    struct ChemicalStructureRecognizerSettings // POD
+    {
+        int WeakSegmentatorDist;
+        int SmallImageDim;
+        int RescaleImageDimensions;
+        int ReconnectMinBads;
+        double Dissolve;
+        double DeleteBadTriangles;
+        double LineVectorizationFactor;
+        double ReconnectSurelyBadCoef;
+        double ReconnectSurelyGoodCoef;
+        double ReconnectProbablyGoodCoef;
+        bool UseDPApproximator;
+        bool StableDecorner;
+    };
 
-	struct SeparatorSettings // POD
-	{		
-		int    ltFactor1;
-		int    minApproxSegsStrong;
-		int    minApproxSegsWeak;
-		int    specialSegmentsTreat;
-		double hu_1_1;
-		double hu_1_2;
-		double hu_0_1;
-		double hu_1_3;
-		double hu_0_2;		
-		double capHeightMin;
-		double capHeightMax;
-		double gdConst;
-		double capHeightRatio;
-		double capHeightRatio2;
-		double getRatio1;
-		double getRatio2;
-		double testSlashLine1;
-		double testSlashLine2;
-		double minDensity;
-		double maxDensity;
-		double extCapHeightMin;
-		double extCapHeightMax;
-		double extRatioMin;
-		double extRatioMax;
-		double ext2charRatio;
-		bool   UseVoteArray;
-	};
+    struct GraphExtractorSettings // POD
+    {
+        double MinimalDistTresh;
+        double RatioSub;
+        double RatioTresh;
+    };
 
-	struct LabelLogicSettings // POD
-	{
-		int    adjustAttemptsCount;
-		double underlinePos;
-		double weightUnderline;
-		double ratioCapital;
-		double capitalAdjustFactor;
-		double ratioWeight;
-		double adjustDec;
-		double adjustInc;
-	};
+    struct ImageUtilsSettings // POD
+    {
+        double SlashLineDensity;
+    };
 
-	struct LabelCombinerSettings // POD
-	{
-		double MaximalDistanceFactor;
-		double MaximalYDistanceFactor;
-	};
+    struct SeparatorSettings // POD
+    {
+        int ltFactor1;
+        int minApproxSegsStrong;
+        int minApproxSegsWeak;
+        int specialSegmentsTreat;
+        double hu_1_1;
+        double hu_1_2;
+        double hu_0_1;
+        double hu_1_3;
+        double hu_0_2;
+        double capHeightMin;
+        double capHeightMax;
+        double gdConst;
+        double capHeightRatio;
+        double capHeightRatio2;
+        double getRatio1;
+        double getRatio2;
+        double testSlashLine1;
+        double testSlashLine2;
+        double minDensity;
+        double maxDensity;
+        double extCapHeightMin;
+        double extCapHeightMax;
+        double extRatioMin;
+        double extRatioMax;
+        double ext2charRatio;
+        bool UseVoteArray;
+    };
 
-	struct ProbabilitySettings // POD
-	{		
-		double DefaultApriority;
-		double ApriorProb4SymbolCase;
-		double MinRatio2ConsiderGrPr;
-		double LogisticScale;
-		double LogisticLocation;		
-		bool   UsePerimeterNormalization;
-	};	
+    struct LabelLogicSettings // POD
+    {
+        int adjustAttemptsCount;
+        double underlinePos;
+        double weightUnderline;
+        double ratioCapital;
+        double capitalAdjustFactor;
+        double ratioWeight;
+        double adjustDec;
+        double adjustInc;
+    };
 
-	#pragma pack (pop)
+    struct LabelCombinerSettings // POD
+    {
+        double MaximalDistanceFactor;
+        double MaximalYDistanceFactor;
+    };
 
-	/// ------------------ end of cluster-depending settings ------------------ ///
+    struct ProbabilitySettings // POD
+    {
+        double DefaultApriority;
+        double ApriorProb4SymbolCase;
+        double MinRatio2ConsiderGrPr;
+        double LogisticScale;
+        double LogisticLocation;
+        bool UsePerimeterNormalization;
+    };
 
-	struct Settings
-	{
-		Settings(); // default constructor
+#pragma pack(pop)
 
-		// loads settings from file, etc.
-		bool fillFromDataStream(const std::string& data);
+    /// ------------------ end of cluster-depending settings ------------------ ///
 
-		// stores settings into file, etc.
-		void saveToDataStream(std::string& data);
+    struct Settings
+    {
+        Settings(); // default constructor
 
-		// should be called after general settings are filled
-		void selectBestCluster();
+        // loads settings from file, etc.
+        bool fillFromDataStream(const std::string& data);
 
-		// loads configuration from file
-		bool forceSelectCluster(const std::string& clusterFileName);
+        // stores settings into file, etc.
+        void saveToDataStream(std::string& data);
 
-		// returns true if timelimit occures
-		bool checkTimeLimit();
-		bool checkTimeLimit() const;
+        // should be called after general settings are filled
+        void selectBestCluster();
 
-		// general settings and caches - shouldn't be loaded from config
-		int _configVersion;
-		GeneralSettings general;
-		DynamicEstimationSettings dynamic;
-		RecognitionCaches caches;
+        // loads configuration from file
+        bool forceSelectCluster(const std::string& clusterFileName);
 
-		// other settings, should be updated
-		PrefilterCVSettings prefilterCV;
-		MoleculeSettings molecule;
-		EstimationSettings estimation;
-		MainSettings main;
-		MultipleBondSettings mbond;
-		SkeletonSettings skeleton;
-		RoutinesSettings routines;
-		WeakSegmentatorSettings weak_seg;
-		WedgeBondExtractorSettings wbe;
-		CharactersRecognitionSettings characters;
-		ChemicalStructureRecognizerSettings csr;
-		GraphExtractorSettings graph;
-		ImageUtilsSettings utils;
-		SeparatorSettings separator;
-		LabelLogicSettings labels;
-		LabelCombinerSettings lcomb;
-		ProbabilitySettings p_estimator;
-		LabelRemoverSettings lab_remover;		
-		RetinexFilterSettings retinex;
+        // returns true if timelimit occures
+        bool checkTimeLimit();
+        bool checkTimeLimit() const;
 
-		void _fillReferenceMap(ReferenceAssignmentMap& result);
-	};
+        // general settings and caches - shouldn't be loaded from config
+        int _configVersion;
+        GeneralSettings general;
+        DynamicEstimationSettings dynamic;
+        RecognitionCaches caches;
+
+        // other settings, should be updated
+        PrefilterCVSettings prefilterCV;
+        MoleculeSettings molecule;
+        EstimationSettings estimation;
+        MainSettings main;
+        MultipleBondSettings mbond;
+        SkeletonSettings skeleton;
+        RoutinesSettings routines;
+        WeakSegmentatorSettings weak_seg;
+        WedgeBondExtractorSettings wbe;
+        CharactersRecognitionSettings characters;
+        ChemicalStructureRecognizerSettings csr;
+        GraphExtractorSettings graph;
+        ImageUtilsSettings utils;
+        SeparatorSettings separator;
+        LabelLogicSettings labels;
+        LabelCombinerSettings lcomb;
+        ProbabilitySettings p_estimator;
+        LabelRemoverSettings lab_remover;
+        RetinexFilterSettings retinex;
+
+        void _fillReferenceMap(ReferenceAssignmentMap& result);
+    };
 }
-
-#endif //_settings_h

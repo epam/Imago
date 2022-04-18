@@ -1,44 +1,40 @@
 /****************************************************************************
-* Copyright (C) from 2009 to Present EPAM Systems.
-*
-* This file is part of Imago toolkit.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-***************************************************************************/
+ * Copyright (C) from 2009 to Present EPAM Systems.
+ *
+ * This file is part of Imago toolkit.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ***************************************************************************/
 
-#include <iostream>
-#include <fstream>
-#include <sstream>
-#include <map>
-#include <cmath>
-#include <cfloat>
-#include <deque>
-#include <opencv2/opencv.hpp>
-#include <string.h> // memcpy
-#include "stl_fwd.h"
 #include "character_recognizer.h"
-#include "segment.h"
+
+#include <cmath>
+#include <deque>
+#include <map>
+#include <cstring>
+
+#include <opencv2/opencv.hpp>
+
 #include "exception.h"
-#include "scanner.h"
-#include "segmentator.h"
-#include "thin_filter2.h"
-#include "image_utils.h"
-#include "log_ext.h"
-#include "recognition_tree.h"
-#include "settings.h"
-#include "fonts_list.h"
 #include "file_helpers.h"
+#include "log_ext.h"
 #include "platform_tools.h"
+#include "recognition_tree.h"
+#include "segment.h"
+#include "segmentator.h"
+#include "settings.h"
+#include "stl_fwd.h"
+#include "thin_filter2.h"
 
 using namespace imago;
 
@@ -47,398 +43,391 @@ const std::string CharacterRecognizer::lower = "abcdefghijklmnopqrstuvwxyz";
 const std::string CharacterRecognizer::digits = "0123456789";
 const std::string CharacterRecognizer::brackets = "()[]";
 const std::string CharacterRecognizer::charges = "+-";
-const std::string CharacterRecognizer::all = CharacterRecognizer::upper + CharacterRecognizer::lower +
-	                                         CharacterRecognizer::digits + CharacterRecognizer::charges + 
-											 CharacterRecognizer::brackets + "=";
+const std::string CharacterRecognizer::all =
+    CharacterRecognizer::upper + CharacterRecognizer::lower + CharacterRecognizer::digits + CharacterRecognizer::charges + CharacterRecognizer::brackets + "=";
 const std::string CharacterRecognizer::graphics = "!";
 const std::string CharacterRecognizer::like_bonds = "lL1iVv";
 
-
 bool imago::CharacterRecognizer::isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp, char* result)
 {
-	RecognitionDistance rd = recognize(vars, seg, CharacterRecognizer::all + CharacterRecognizer::graphics);
-	
-	double best_dist;
-	char ch = rd.getBest(&best_dist);
+    RecognitionDistance rd = recognize(vars, seg, CharacterRecognizer::all + CharacterRecognizer::graphics);
 
-	if (result)
-		*result = ch;
+    double best_dist;
+    char ch = rd.getBest(&best_dist);
 
-	if (CharacterRecognizer::graphics.find(ch) != std::string::npos)
-		return false;
+    if (result)
+        *result = ch;
 
-	if (CharacterRecognizer::like_bonds.find(ch) != std::string::npos)
-	{
-		Points2i endpoints = SegmentTools::getEndpoints(seg);
-		if ((int)endpoints.size() < vars.characters.MinEndpointsPossible)
-		{
-			return false;
-		}
-	}
+    if (CharacterRecognizer::graphics.find(ch) != std::string::npos)
+        return false;
 
-	if (best_dist < vars.characters.PossibleCharacterDistanceStrong && 
-		rd.getQuality() > vars.characters.PossibleCharacterMinimalQuality) 
-	{
-		return true;
-	}
+    if (CharacterRecognizer::like_bonds.find(ch) != std::string::npos)
+    {
+        Points2i endpoints = SegmentTools::getEndpoints(seg);
+        if ((int)endpoints.size() < vars.characters.MinEndpointsPossible)
+        {
+            return false;
+        }
+    }
 
-	if (loose_cmp && (best_dist < vars.characters.PossibleCharacterDistanceWeak 
-		          && rd.getQuality() > vars.characters.PossibleCharacterMinimalQuality))
-	{
-		return true;
-	}
+    if (best_dist < vars.characters.PossibleCharacterDistanceStrong && rd.getQuality() > vars.characters.PossibleCharacterMinimalQuality)
+    {
+        return true;
+    }
 
-	return false;
+    if (loose_cmp && (best_dist < vars.characters.PossibleCharacterDistanceWeak && rd.getQuality() > vars.characters.PossibleCharacterMinimalQuality))
+    {
+        return true;
+    }
+
+    return false;
 }
 
-qword CharacterRecognizer::getSegmentHash(const Segment &seg) 
+qword CharacterRecognizer::getSegmentHash(const Segment& seg)
 {
-	logEnterFunction();
+    logEnterFunction();
 
-	qword segHash = 0, shift = 0;
-   
-	// hash against the source pixels
-	for (int y = 0; y < seg.getHeight(); y++)
-	{
-		for (int x = 0; x < seg.getWidth(); x++)
-			if (seg.getByte(x,y) == 0) // ink
-			{
-				shift = (shift << 1) + x * 3 + y * 7;
-				segHash ^= shift;
-			}
-	}
+    qword segHash = 0, shift = 0;
 
-	return segHash;
+    // hash against the source pixels
+    for (int y = 0; y < seg.getHeight(); y++)
+    {
+        for (int x = 0; x < seg.getWidth(); x++)
+            if (seg.getByte(x, y) == 0) // ink
+            {
+                shift = (shift << 1) + x * 3 + y * 7;
+                segHash ^= shift;
+            }
+    }
+
+    return segHash;
 }
 
 void internalInitTemplates(imago::CharacterRecognizerImp::Templates& templates)
-{	
-	//unsigned int start = platform::TICKS();
-	{
-		#include "font.inc"
-	}
-	//printf("Loaded font (%u entries) in %u ms\n", templates.size(), platform::TICKS() - start);
-}
-
-
-RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const Segment &seg, const std::string &candidates) const
 {
-	logEnterFunction();
-		   
-	getLogExt().appendSegment("Source segment", seg);
-	getLogExt().append("Candidates", candidates);
-
-	qword segHash = getSegmentHash(seg);	
-	getLogExt().append("Segment hash", segHash);
-	RecognitionDistance rec;
-   
-	if (vars.caches.PCacheSymbolsRecognition &&
-		vars.caches.PCacheSymbolsRecognition->find(segHash) != vars.caches.PCacheSymbolsRecognition->end())
-	{
-		rec = (*vars.caches.PCacheSymbolsRecognition)[segHash];
-		getLogExt().appendText("Used cache: clean");
-	}
-	else
-	{
-		static bool init = false;
-		static CharacterRecognizerImp::Templates templates;
-		
-		if (!init)
-		{
-			internalInitTemplates(templates);
-			init = true;
-		}
-
-		rec = CharacterRecognizerImp::recognizeMat(vars, seg, templates);
-		getLogExt().appendMap("Font recognition result", rec);
-
-		if (vars.caches.PCacheSymbolsRecognition)
-		{
-			(*vars.caches.PCacheSymbolsRecognition)[segHash] = rec;
-			getLogExt().appendText("Filled cache: clean");
-		}
-	}
-
-	RecognitionDistance result;
-
-	for (RecognitionDistance::iterator it = rec.begin(); it != rec.end(); it++)
-	{
-		if (candidates.find(it->first) != std::string::npos)
-		{
-			result[it->first] = it->second;
-		}
-	}
-
-	if (getLogExt().loggingEnabled())
-	{
-		getLogExt().append("Result candidates", result.getBest());
-		getLogExt().append("Recognition quality", result.getQuality());
-	}
-
-   return result;
+    // unsigned int start = platform::TICKS();
+    {
+#include "font.inc"
+    }
+    // printf("Loaded font (%u entries) in %u ms\n", templates.size(), platform::TICKS() - start);
 }
 
+RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const Segment& seg, const std::string& candidates) const
+{
+    logEnterFunction();
+
+    getLogExt().appendSegment("Source segment", seg);
+    getLogExt().append("Candidates", candidates);
+
+    qword segHash = getSegmentHash(seg);
+    getLogExt().append("Segment hash", segHash);
+    RecognitionDistance rec;
+
+    if (vars.caches.PCacheSymbolsRecognition && vars.caches.PCacheSymbolsRecognition->find(segHash) != vars.caches.PCacheSymbolsRecognition->end())
+    {
+        rec = (*vars.caches.PCacheSymbolsRecognition)[segHash];
+        getLogExt().appendText("Used cache: clean");
+    }
+    else
+    {
+        static bool init = false;
+        static CharacterRecognizerImp::Templates templates;
+
+        if (!init)
+        {
+            internalInitTemplates(templates);
+            init = true;
+        }
+
+        rec = CharacterRecognizerImp::recognizeMat(vars, seg, templates);
+        getLogExt().appendMap("Font recognition result", rec);
+
+        if (vars.caches.PCacheSymbolsRecognition)
+        {
+            (*vars.caches.PCacheSymbolsRecognition)[segHash] = rec;
+            getLogExt().appendText("Filled cache: clean");
+        }
+    }
+
+    RecognitionDistance result;
+
+    for (RecognitionDistance::iterator it = rec.begin(); it != rec.end(); it++)
+    {
+        if (candidates.find(it->first) != std::string::npos)
+        {
+            result[it->first] = it->second;
+        }
+    }
+
+    if (getLogExt().loggingEnabled())
+    {
+        getLogExt().append("Result candidates", result.getBest());
+        getLogExt().append("Recognition quality", result.getQuality());
+    }
+
+    return result;
+}
 
 namespace imago
 {
-	namespace CharacterRecognizerImp
-	{
-		typedef std::vector<cv::Point> Points;
+    namespace CharacterRecognizerImp
+    {
+        typedef std::vector<cv::Point> Points;
 
-		class CircleOffsetPoints : public std::vector<Points>
-		{
-		public: CircleOffsetPoints(int radius)
-			{
-				clear();
-				resize(radius+1);
+        class CircleOffsetPoints : public std::vector<Points>
+        {
+        public:
+            CircleOffsetPoints(int radius)
+            {
+                clear();
+                resize(radius + 1);
 
-				for (int dx = -radius; dx <= radius; dx++)
-					for (int dy = -radius; dy <= radius; dy++)
-					{
-						int distance = imago::round(sqrt((double)(imago::square(dx) + imago::square(dy))));
-						if (distance <= radius)
-							at(distance).push_back(cv::Point(dx, dy));
-					}
-			}
-		};
+                for (int dx = -radius; dx <= radius; dx++)
+                    for (int dy = -radius; dy <= radius; dy++)
+                    {
+                        int distance = imago::round(sqrt((double)(imago::square(dx) + imago::square(dy))));
+                        if (distance <= radius)
+                            at(distance).push_back(cv::Point(dx, dy));
+                    }
+            }
+        };
 
-		static CircleOffsetPoints offsets(REQUIRED_SIZE);
+        static CircleOffsetPoints offsets(REQUIRED_SIZE);
 
-		void calculatePenalties(const cv::Mat1b& img, unsigned char* penalty_ink, unsigned char* penalty_white)
-		{				
-			for (int y = -PENALTY_SHIFT; y < REQUIRED_SIZE + PENALTY_SHIFT; y++)
-				for (int x = -PENALTY_SHIFT; x < REQUIRED_SIZE + PENALTY_SHIFT; x++)
-				{
-					for (int value = 0; value <= 255; value += 255)
-					{
-						double min_dist = REQUIRED_SIZE;
-						for (size_t radius = 0; radius < offsets.size(); radius++)
-							for (size_t point = 0; point < offsets[radius].size(); point++)
-							{
-								int j = y + offsets[radius].at(point).y;
-								if (j < 0 || j >= img.cols)
-									continue;
-								int i = x + offsets[radius].at(point).x;
-								if (i < 0 || i >= img.rows)
-									continue;
+        void calculatePenalties(const cv::Mat1b& img, unsigned char* penalty_ink, unsigned char* penalty_white)
+        {
+            for (int y = -PENALTY_SHIFT; y < REQUIRED_SIZE + PENALTY_SHIFT; y++)
+                for (int x = -PENALTY_SHIFT; x < REQUIRED_SIZE + PENALTY_SHIFT; x++)
+                {
+                    for (int value = 0; value <= 255; value += 255)
+                    {
+                        double min_dist = REQUIRED_SIZE;
+                        for (size_t radius = 0; radius < offsets.size(); radius++)
+                            for (size_t point = 0; point < offsets[radius].size(); point++)
+                            {
+                                int j = y + offsets[radius].at(point).y;
+                                if (j < 0 || j >= img.cols)
+                                    continue;
+                                int i = x + offsets[radius].at(point).x;
+                                if (i < 0 || i >= img.rows)
+                                    continue;
 
-								if (img(j,i) == value)
-								{
-									min_dist = (double)radius;
-									goto found;
-								}
-							}
+                                if (img(j, i) == value)
+                                {
+                                    min_dist = (double)radius;
+                                    goto found;
+                                }
+                            }
 
-						found:
+                    found:
 
-						double result = (value == 0) ? min_dist : sqrt(min_dist);
-					
-						int idx = (y + PENALTY_SHIFT) * INTERNAL_ARRAY_DIM + (x + PENALTY_SHIFT);
+                        double result = (value == 0) ? min_dist : sqrt(min_dist);
 
-						if (value == 0)
-							penalty_ink[idx] = std::min(255, CHARACTERS_OFFSET + imago::round(result));
-						else
-							penalty_white[idx] = std::min(255, CHARACTERS_OFFSET + imago::round(PENALTY_WHITE_FACTOR * result));
-					}
-				}	
-		}
+                        int idx = (y + PENALTY_SHIFT) * INTERNAL_ARRAY_DIM + (x + PENALTY_SHIFT);
 
-		double compareImages(const cv::Mat1b& img, const unsigned char* penalty_ink, const unsigned char* penalty_white)
-		{
-			double best = imago::DIST_INF;
-			for (int shift_x = 0; shift_x <= 2 * PENALTY_SHIFT; shift_x += PENALTY_STEP)
-			{
-				for (int shift_y = 0; shift_y <= 2 * PENALTY_SHIFT; shift_y += PENALTY_STEP)
-				{
-					int sum_ink = 0;
-					int sum_white = 0;
-					for (int y = 0; y < img.cols; y++)
-					{
-						for (int x = 0; x < img.rows; x++)
-						{
-							int value = img(y,x);
+                        if (value == 0)
+                            penalty_ink[idx] = std::min(255, CHARACTERS_OFFSET + imago::round(result));
+                        else
+                            penalty_white[idx] = std::min(255, CHARACTERS_OFFSET + imago::round(PENALTY_WHITE_FACTOR * result));
+                    }
+                }
+        }
 
-							int idx = (y + PENALTY_SHIFT) * INTERNAL_ARRAY_DIM + (x + PENALTY_SHIFT);
+        double compareImages(const cv::Mat1b& img, const unsigned char* penalty_ink, const unsigned char* penalty_white)
+        {
+            double best = imago::DIST_INF;
+            for (int shift_x = 0; shift_x <= 2 * PENALTY_SHIFT; shift_x += PENALTY_STEP)
+            {
+                for (int shift_y = 0; shift_y <= 2 * PENALTY_SHIFT; shift_y += PENALTY_STEP)
+                {
+                    int sum_ink = 0;
+                    int sum_white = 0;
+                    for (int y = 0; y < img.cols; y++)
+                    {
+                        for (int x = 0; x < img.rows; x++)
+                        {
+                            int value = img(y, x);
 
-							if (value == 0)
-							{
-								sum_ink += penalty_ink[idx] - CHARACTERS_OFFSET;
-							}
-							else
-							{
-								sum_white += penalty_white[idx] - CHARACTERS_OFFSET;
-							}
-						}
-					}
+                            int idx = (y + PENALTY_SHIFT) * INTERNAL_ARRAY_DIM + (x + PENALTY_SHIFT);
 
-					double result = (double)sum_ink + (double)sum_white / (double)PENALTY_WHITE_FACTOR;
-					if (result < best)
-						best = result;
-				}
-			}
-			return best;
-		}
+                            if (value == 0)
+                            {
+                                sum_ink += penalty_ink[idx] - CHARACTERS_OFFSET;
+                            }
+                            else
+                            {
+                                sum_white += penalty_white[idx] - CHARACTERS_OFFSET;
+                            }
+                        }
+                    }
 
-		cv::Mat1b prepareImage(const Settings& vars, const cv::Mat1b& src, double &ratio)
-		{
-			imago::Image temp;
-			cv::threshold(src, temp, vars.characters.InternalBinarizationThreshold, 255, cv::THRESH_BINARY);
-			temp.crop();
-			
-			if (temp.cols * temp.rows == 0)
-				throw ImagoException("Empty mat passed");
-		
-			int size_y = temp.rows;
-			int size_x = temp.cols;
+                    double result = (double)sum_ink + (double)sum_white / (double)PENALTY_WHITE_FACTOR;
+                    if (result < best)
+                        best = result;
+                }
+            }
+            return best;
+        }
 
-			ratio = (double)size_x / (double)size_y;
-		
-			size_y = REQUIRED_SIZE;
-			size_x = REQUIRED_SIZE;
+        cv::Mat1b prepareImage(const Settings& vars, const cv::Mat1b& src, double& ratio)
+        {
+            imago::Image temp;
+            cv::threshold(src, temp, vars.characters.InternalBinarizationThreshold, 255, cv::THRESH_BINARY);
+            temp.crop();
 
-			cv::resize(temp, temp, cv::Size(size_x, size_y), 0.0, 0.0, cv::INTER_CUBIC);
+            if (temp.cols * temp.rows == 0)
+                throw ImagoException("Empty mat passed");
 
-			cv::threshold(temp, temp, vars.characters.InternalBinarizationThreshold, 255, cv::THRESH_BINARY);
-		
-			return temp;
-		}	
+            int size_y = temp.rows;
+            int size_x = temp.cols;
 
-		cv::Mat1b load(const std::string& filename)
-		{
-			const int CV_FORCE_GRAYSCALE = 0;
-			return cv::imread(filename, CV_FORCE_GRAYSCALE);
-		}		
+            ratio = (double)size_x / (double)size_y;
 
-		std::string convertFileNameToLetter(const std::string& name)
-		{
-			std::string temp = name;
-			strings levels;
+            size_y = REQUIRED_SIZE;
+            size_x = REQUIRED_SIZE;
 
-			for (size_t u = 0; u < 3; u++)
-			{
-				size_t pos_slash = file_helpers::getLastSlashPos(temp);
+            cv::resize(temp, temp, cv::Size(size_x, size_y), 0.0, 0.0, cv::INTER_CUBIC);
 
-				if (pos_slash == std::string::npos)
-				{
-					break;
-				}
+            cv::threshold(temp, temp, vars.characters.InternalBinarizationThreshold, 255, cv::THRESH_BINARY);
 
-				std::string sub = temp.substr(pos_slash+1);
-				levels.push_back(sub);
-				temp = temp.substr(0, pos_slash);			
-			}
+            return temp;
+        }
 
-		
-			if (levels.size() >= 3)
-			{
-				if (lower(levels[2]) == "capital")
-					return upper(levels[1]);
-				else if (lower(levels[2]) == "special")
-					return levels[1];
-				else
-					return lower(levels[1]);
-			}
-			else if (levels.size() >= 2)
-			{
-				return lower(levels[1]);
-			}
+        cv::Mat1b load(const std::string& filename)
+        {
+            const int CV_FORCE_GRAYSCALE = 0;
+            return cv::imread(filename, CV_FORCE_GRAYSCALE);
+        }
 
-			// failsafe
-			return name;
-		}
+        std::string convertFileNameToLetter(const std::string& name)
+        {
+            std::string temp = name;
+            strings levels;
 
-		bool initializeTemplates(const Settings& vars, const std::string& path, Templates& templates)
-		{
-			strings files;
-			file_helpers::getDirectoryContent(path, files, true);
-			file_helpers::filterOnlyImages(files);
-			for (size_t u = 0; u < files.size(); u++)
-			{
-				MatchRecord mr;
-				cv::Mat1b image = load(files[u]);
-				mr.text = convertFileNameToLetter(files[u]);
-				if (!image.empty())
-				{
-					cv::Mat1b prepared = prepareImage(vars, image, mr.wh_ratio);
-					calculatePenalties(prepared, mr.penalty_ink, mr.penalty_white);
-					templates.push_back(mr);
-				}
-			}
-			return !templates.empty();
-		}
+            for (size_t u = 0; u < 3; u++)
+            {
+                size_t pos_slash = file_helpers::getLastSlashPos(temp);
 
-		struct ResultEntry
-		{
-			double value;
-			std::string text;
-			ResultEntry(double _value, std::string _text)
-			{
-				value = _value;
-				text = _text;
-			}
-			bool operator <(const ResultEntry& second) const
-			{
-				if (this->value < second.value)
-					return true;
-				else
-					return false;
-			}
-		};
+                if (pos_slash == std::string::npos)
+                {
+                    break;
+                }
 
-		imago::RecognitionDistance recognizeMat(const Settings& vars, const cv::Mat1b& rect, const Templates& templates)
-		{
-			imago::RecognitionDistance _result;
+                std::string sub = temp.substr(pos_slash + 1);
+                levels.push_back(sub);
+                temp = temp.substr(0, pos_slash);
+            }
 
-			std::vector<ResultEntry> results;
-		
-			double ratio;
-			cv::Mat1b img;
-			try
-			{
-				img = prepareImage(vars, rect, ratio);
-			}
-			catch (ImagoException& e)
-			{
-				getLogExt().append("Exception", e.what());
-				return _result;
-			}
+            if (levels.size() >= 3)
+            {
+                if (lower(levels[2]) == "capital")
+                    return upper(levels[1]);
+                else if (lower(levels[2]) == "special")
+                    return levels[1];
+                else
+                    return lower(levels[1]);
+            }
+            else if (levels.size() >= 2)
+            {
+                return lower(levels[1]);
+            }
 
-			for (size_t u = 0; u < templates.size(); u++)
-			{
-				// Imago supports only one-char-length templates, TODO: upgrade
-				if (templates[u].text.size() != 1)
-					continue;
+            // failsafe
+            return name;
+        }
 
-				try
-				{
-					double distance = compareImages(img, templates[u].penalty_ink, templates[u].penalty_white);
-					double ratio_diff = imago::absolute(ratio - templates[u].wh_ratio);
-				
-					if (ratio_diff < vars.characters.RatioDiffThresh)
-					{
-						results.push_back(ResultEntry(distance, templates[u].text));
-					}
-				}
-				catch(std::exception& e)
-				{
-					printf("Exception: %s\n", e.what());
-				}
-			}
+        bool initializeTemplates(const Settings& vars, const std::string& path, Templates& templates)
+        {
+            strings files;
+            file_helpers::getDirectoryContent(path, files, true);
+            file_helpers::filterOnlyImages(files);
+            for (size_t u = 0; u < files.size(); u++)
+            {
+                MatchRecord mr;
+                cv::Mat1b image = load(files[u]);
+                mr.text = convertFileNameToLetter(files[u]);
+                if (!image.empty())
+                {
+                    cv::Mat1b prepared = prepareImage(vars, image, mr.wh_ratio);
+                    calculatePenalties(prepared, mr.penalty_ink, mr.penalty_white);
+                    templates.push_back(mr);
+                }
+            }
+            return !templates.empty();
+        }
 
-			if (results.empty())
-				return _result;
+        struct ResultEntry
+        {
+            double value;
+            std::string text;
+            ResultEntry(double _value, std::string _text)
+            {
+                value = _value;
+                text = _text;
+            }
+            bool operator<(const ResultEntry& second) const
+            {
+                if (this->value < second.value)
+                    return true;
+                else
+                    return false;
+            }
+        };
 
-			std::sort(results.begin(), results.end());
+        imago::RecognitionDistance recognizeMat(const Settings& vars, const cv::Mat1b& rect, const Templates& templates)
+        {
+            imago::RecognitionDistance _result;
 
-			for (int u = (int)results.size() - 1; u >= 0; u--)
-			{
-				if (results[u].text.size() == 1) // Imago supports only one-char-length templates
-				{
-					_result[results[u].text[0]] = results[u].value / vars.characters.DistanceScaleFactor;
-				}
-			}
+            std::vector<ResultEntry> results;
 
-			return _result;
-		}
-	}
+            double ratio;
+            cv::Mat1b img;
+            try
+            {
+                img = prepareImage(vars, rect, ratio);
+            }
+            catch (ImagoException& e)
+            {
+                getLogExt().append("Exception", e.what());
+                return _result;
+            }
+
+            for (size_t u = 0; u < templates.size(); u++)
+            {
+                // Imago supports only one-char-length templates, TODO: upgrade
+                if (templates[u].text.size() != 1)
+                    continue;
+
+                try
+                {
+                    double distance = compareImages(img, templates[u].penalty_ink, templates[u].penalty_white);
+                    double ratio_diff = imago::absolute(ratio - templates[u].wh_ratio);
+
+                    if (ratio_diff < vars.characters.RatioDiffThresh)
+                    {
+                        results.push_back(ResultEntry(distance, templates[u].text));
+                    }
+                }
+                catch (std::exception& e)
+                {
+                    printf("Exception: %s\n", e.what());
+                }
+            }
+
+            if (results.empty())
+                return _result;
+
+            std::sort(results.begin(), results.end());
+
+            for (int u = (int)results.size() - 1; u >= 0; u--)
+            {
+                if (results[u].text.size() == 1) // Imago supports only one-char-length templates
+                {
+                    _result[results[u].text[0]] = results[u].value / vars.characters.DistanceScaleFactor;
+                }
+            }
+
+            return _result;
+        }
+    }
 }

@@ -1,468 +1,460 @@
 /****************************************************************************
-* Copyright (C) from 2009 to Present EPAM Systems.
-*
-* This file is part of Imago toolkit.
-*
-* Licensed under the Apache License, Version 2.0 (the "License");
-* you may not use this file except in compliance with the License.
-* You may obtain a copy of the License at
-*
-* http://www.apache.org/licenses/LICENSE-2.0
-*
-* Unless required by applicable law or agreed to in writing, software
-* distributed under the License is distributed on an "AS IS" BASIS,
-* WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-* See the License for the specific language governing permissions and
-* limitations under the License.
-***************************************************************************/
+ * Copyright (C) from 2009 to Present EPAM Systems.
+ *
+ * This file is part of Imago toolkit.
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ * http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ ***************************************************************************/
 
+#include "image_utils.h"
+
+#include <algorithm>
 #include <cmath>
 #include <cstdarg>
-#include <algorithm>
 #include <string>
 
 #include <opencv2/opencv.hpp>
-//#include <opencv/highgui.h>
 
+#include "failsafe_png.h"
 #include "image.h"
-#include "image_utils.h"
 #include "image_draw_utils.h"
+#include "log_ext.h"
 #include "output.h"
 #include "scanner.h"
 #include "segment.h"
+#include "stat_utils.h"
 #include "thin_filter2.h"
 #include "vec2d.h"
-#include "log_ext.h"
-#include "failsafe_png.h"
-#include "stat_utils.h"
 
 namespace imago
 {
-   bool ImageUtils::testSlashLine(const Settings& vars, Segment &img, double *angle, double eps )
-   {
-	   logEnterFunction();
+    bool ImageUtils::testSlashLine(const Settings& vars, Segment& img, double* angle, double eps)
+    {
+        logEnterFunction();
 
-      double density, thetha, r;
+        double density, thetha, r;
 
-	  getLogExt().appendSegment("segment", img);
+        getLogExt().appendSegment("segment", img);
 
-      Image tmp;   
+        Image tmp;
 
-      tmp.copy(img);   
-      ThinFilter2(tmp).apply();   
-   
-      thetha = HALF_PI + atan2((double)img.getHeight(), (double)img.getWidth());
-      r = 0;
-      density = tmp.density();
-      ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
-      density = tmp.density() / density;
+        tmp.copy(img);
+        ThinFilter2(tmp).apply();
 
-	  if (density < vars.utils.SlashLineDensity)
-      {
-         if (angle != 0)
+        thetha = HALF_PI + atan2((double)img.getHeight(), (double)img.getWidth());
+        r = 0;
+        density = tmp.density();
+        ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
+        density = tmp.density() / density;
+
+        if (density < vars.utils.SlashLineDensity)
+        {
+            if (angle != 0)
+                *angle = thetha;
+            return true;
+        }
+
+        tmp.copy(img);
+        ThinFilter2(tmp).apply();
+
+        thetha = -thetha;
+        r = cos(thetha) * img.getWidth();
+        density = tmp.density();
+        ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
+        density = tmp.density() / density;
+
+        if (density < vars.utils.SlashLineDensity)
+        {
+            if (angle != 0)
+                *angle = thetha;
+            return true;
+        }
+
+        if (angle != 0)
             *angle = thetha;
-         return true;
-      }
 
-      tmp.copy(img);
-      ThinFilter2(tmp).apply();   
+        return false;
+    }
 
-      thetha = -thetha;
-      r = cos(thetha) * img.getWidth();
-      density = tmp.density();
-      ImageDrawUtils::putLine(tmp, thetha, r, eps, 255);
-      density = tmp.density() / density;
-   
-      if (density < vars.utils.SlashLineDensity)
-      {
-         if (angle != 0)
-            *angle = thetha;
-         return true;
-      }
+    void ImageUtils::putSegment(Image& img, const Segment& seg, bool careful)
+    {
+        int i, j, img_cols = img.getWidth(), seg_x = seg.getX(), seg_y = seg.getY(), seg_rows = seg.getHeight(), seg_cols = seg.getWidth(),
+                  img_size = img.getWidth() * img.getHeight();
 
-      if (angle != 0)
-         *angle = thetha;
+        for (j = 0; j < seg_rows; j++)
+            for (i = 0; i < seg_cols; i++)
+            {
+                int y = j + seg_y;
+                int x = i + seg_x;
+                // int address = (j + seg_y) * img_cols + (i + seg_x);
 
-      return false;
-   }
-
-   void ImageUtils::putSegment( Image &img, const Segment &seg, bool careful )
-   {
-      int i, j, img_cols = img.getWidth(),
-         seg_x = seg.getX(), seg_y = seg.getY(),
-         seg_rows = seg.getHeight(), seg_cols = seg.getWidth(),
-         img_size = img.getWidth() * img.getHeight();
-
-      for (j = 0; j < seg_rows; j++)
-         for (i = 0; i < seg_cols; i++)
-         {
-			 int y = j+seg_y;
-			 int x = i+seg_x;
-            //int address = (j + seg_y) * img_cols + (i + seg_x);
-
-            //if (address < img_size)
-			 if (y >= 0 && y < img.getHeight() && x >= 0 && x < img.getWidth())
-            { 
-               if (careful)
-               {
-				   if (img.getByte(x,y) == 255)
-                     img.getByte(x,y) = seg.getByte(i, j);
-               }
-               else
-			   {
-                  img.getByte(x,y) = seg.getByte(i, j);
-			   }
+                // if (address < img_size)
+                if (y >= 0 && y < img.getHeight() && x >= 0 && x < img.getWidth())
+                {
+                    if (careful)
+                    {
+                        if (img.getByte(x, y) == 255)
+                            img.getByte(x, y) = seg.getByte(i, j);
+                    }
+                    else
+                    {
+                        img.getByte(x, y) = seg.getByte(i, j);
+                    }
+                }
             }
-         }
-   }
+    }
 
-   void ImageUtils::cutSegment( Image &img, const Segment &seg, bool forceCut, byte val )
-   {
-      int i, j, img_cols = img.getWidth(),
-         seg_x = seg.getX(), seg_y = seg.getY(),
-         seg_rows = seg.getHeight(), seg_cols = seg.getWidth();
+    void ImageUtils::cutSegment(Image& img, const Segment& seg, bool forceCut, byte val)
+    {
+        int i, j, img_cols = img.getWidth(), seg_x = seg.getX(), seg_y = seg.getY(), seg_rows = seg.getHeight(), seg_cols = seg.getWidth();
 
-      for (j = 0; j < seg_rows; j++)
-         for (i = 0; i < seg_cols; i++)
-         {
-			 int y = j+seg_y;
-			 int x = i+seg_x;
-            //int address = (j + seg_y) * img_cols + (i + seg_x);
+        for (j = 0; j < seg_rows; j++)
+            for (i = 0; i < seg_cols; i++)
+            {
+                int y = j + seg_y;
+                int x = i + seg_x;
+                // int address = (j + seg_y) * img_cols + (i + seg_x);
 
-			 if (y >= 0 && y < img.getHeight() && x >= 0 && x < img.getWidth())
-			 {
-				if (seg.getByte(i, j) == 0)
-					if (img.getByte(x,y) == 0 || forceCut)
-						img.getByte(x,y) = val;
-			 }
-         }
-   }
+                if (y >= 0 && y < img.getHeight() && x >= 0 && x < img.getWidth())
+                {
+                    if (seg.getByte(i, j) == 0)
+                        if (img.getByte(x, y) == 0 || forceCut)
+                            img.getByte(x, y) = val;
+                }
+            }
+    }
 
-   void ImageUtils::copyImageToMat ( const Image &img, cv::Mat &mat)
-   {
-	   img.copyTo(mat);
+    void ImageUtils::copyImageToMat(const Image& img, cv::Mat& mat)
+    {
+        img.copyTo(mat);
 
-	   /*
-      int w = img.getWidth();
-      int h = img.getHeight();
+        /*
+       int w = img.getWidth();
+       int h = img.getHeight();
 
-      mat.create(h, w, CV_8U);
-      int i, j;
+       mat.create(h, w, CV_8U);
+       int i, j;
 
-      for (i = 0; i < w; i++)
-         for (j = 0; j < h; j++)
-            mat.at<unsigned char>(j, i) = img.getByte(i, j);*/
-   }
+       for (i = 0; i < w; i++)
+          for (j = 0; j < h; j++)
+             mat.at<unsigned char>(j, i) = img.getByte(i, j);*/
+    }
 
-   void ImageUtils::copyMatToImage (const cv::Mat &mat, Image &img)
-   {
-	   mat.copyTo(img);
+    void ImageUtils::copyMatToImage(const cv::Mat& mat, Image& img)
+    {
+        mat.copyTo(img);
 
-	   /*
-      int w = mat.cols;
-      int h = mat.rows;
+        /*
+       int w = mat.cols;
+       int h = mat.rows;
 
-      img.init(w, h);
-      int i, j;
+       img.init(w, h);
+       int i, j;
 
-      for (i = 0; i < w; i++)
-         for (j = 0; j < h; j++)
-            img.getByte(i, j) = mat.at<unsigned char>(j, i);*/
-   }
+       for (i = 0; i < w; i++)
+          for (j = 0; j < h; j++)
+             img.getByte(i, j) = mat.at<unsigned char>(j, i);*/
+    }
 
-   void ImageUtils::loadImageFromBuffer( const std::vector<byte> &buffer, Image &img )
-   {
-      cv::Mat mat = cv::imdecode(cv::Mat(buffer), 0);
-      if (mat.empty())
-         throw ImagoException("Image data is invalid");
-      copyMatToImage(mat, img);
-   }
+    void ImageUtils::loadImageFromBuffer(const std::vector<byte>& buffer, Image& img)
+    {
+        cv::Mat mat = cv::imdecode(cv::Mat(buffer), 0);
+        if (mat.empty())
+            throw ImagoException("Image data is invalid");
+        copyMatToImage(mat, img);
+    }
 
-   void ImageUtils::loadImageFromFile( Image &img, const char *format, ... )
-   {
-	   logEnterFunction();
+    void ImageUtils::loadImageFromFile(Image& img, const char* format, ...)
+    {
+        logEnterFunction();
 
-      char str[MAX_TEXT_LINE];
-      va_list args;
+        char str[MAX_TEXT_LINE];
+        va_list args;
 
-      va_start(args, format);   
-      vsnprintf(str, sizeof(str), format, args);
-      va_end(args);
+        va_start(args, format);
+        vsnprintf(str, sizeof(str), format, args);
+        va_end(args);
 
-      const char *FileName = str;
-      img.clear(); 
-   
-      std::string fname(FileName);
+        const char* FileName = str;
+        img.clear();
 
-      if (fname.length() < 5)
-         throw ImagoException("Unknown file format " + fname);
+        std::string fname(FileName);
 
-      FILE *f = fopen(fname.c_str(), "r");
-      if (f == 0)
-         throw FileNotFoundException(fname.c_str());
-      fclose(f);
+        if (fname.length() < 5)
+            throw ImagoException("Unknown file format " + fname);
 
-      cv::Mat mat = cv::imread(fname, -1 /*BGRA*/);
+        FILE* f = fopen(fname.c_str(), "r");
+        if (f == 0)
+            throw FileNotFoundException(fname.c_str());
+        fclose(f);
 
-      if (mat.empty())
-	  {
-		  getLogExt().appendText("CV returned empty mat");
-		  if (failsafePngLoadFile(fname, img))
-		  {			  
-			  getLogExt().appendText("... but failsafePngLoad helps");
-		  }
-		  else
-		  {
-			  throw ImagoException("Image file is invalid");
-		  }
-	  }
-	  else
-	  {
-		  if (mat.type() == CV_8UC4)
-		  {
-			  getLogExt().append("Image type", "CV_8UC4 / BGRA");
-			  for (int row = 0; row < mat.rows; row++)
-				  for (int col = 0; col < mat.cols; col++)
-				  {
-					  cv::Vec4b& v = mat.at<cv::Vec4b>(row, col);
-					  if (v[3] == 0) // transparent
-					  {
-						  v[0] = v[1] = v[2] = 255; // to white
-					  }
-				  }
-			  cv::cvtColor(mat, mat, cv::COLOR_BGRA2GRAY);
-		  }
-		  else if (mat.type() == CV_8UC3)
-		  {
-			  getLogExt().append("Image type", "CV_8UC3 / BGR");
-			  cv::cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
-		  }
-		  else if (mat.type() == CV_8UC1)
-		  {
-			  getLogExt().append("Image type", "CV_8UC1 / GRAY");
-		  }
-		  else
-		  {
-			  getLogExt().appendText("Unknown image type, attempt to reload as grayscale");
-			  mat = cv::imread(fname, 0 /*Grayscale*/);
-		  }
-		  copyMatToImage(mat, img);
-	  }
-   }
+        cv::Mat mat = cv::imread(fname, -1 /*BGRA*/);
 
-   void ImageUtils::saveImageToFile( const Image &img, const char *format, ... )
-   {
-      char str[MAX_TEXT_LINE];
-      va_list args;
+        if (mat.empty())
+        {
+            getLogExt().appendText("CV returned empty mat");
+            if (failsafePngLoadFile(fname, img))
+            {
+                getLogExt().appendText("... but failsafePngLoad helps");
+            }
+            else
+            {
+                throw ImagoException("Image file is invalid");
+            }
+        }
+        else
+        {
+            if (mat.type() == CV_8UC4)
+            {
+                getLogExt().append("Image type", "CV_8UC4 / BGRA");
+                for (int row = 0; row < mat.rows; row++)
+                    for (int col = 0; col < mat.cols; col++)
+                    {
+                        cv::Vec4b& v = mat.at<cv::Vec4b>(row, col);
+                        if (v[3] == 0) // transparent
+                        {
+                            v[0] = v[1] = v[2] = 255; // to white
+                        }
+                    }
+                cv::cvtColor(mat, mat, cv::COLOR_BGRA2GRAY);
+            }
+            else if (mat.type() == CV_8UC3)
+            {
+                getLogExt().append("Image type", "CV_8UC3 / BGR");
+                cv::cvtColor(mat, mat, cv::COLOR_BGR2GRAY);
+            }
+            else if (mat.type() == CV_8UC1)
+            {
+                getLogExt().append("Image type", "CV_8UC1 / GRAY");
+            }
+            else
+            {
+                getLogExt().appendText("Unknown image type, attempt to reload as grayscale");
+                mat = cv::imread(fname, 0 /*Grayscale*/);
+            }
+            copyMatToImage(mat, img);
+        }
+    }
 
-      va_start(args, format);   
-      vsnprintf(str, sizeof(str), format, args);
-      va_end(args);
+    void ImageUtils::saveImageToFile(const Image& img, const char* format, ...)
+    {
+        char str[MAX_TEXT_LINE];
+        va_list args;
 
-      std::string fname(str);
-      cv::Mat mat;
-      copyImageToMat(img, mat);
-      cv::imwrite(fname, mat);
-   }
+        va_start(args, format);
+        vsnprintf(str, sizeof(str), format, args);
+        va_end(args);
 
-   void ImageUtils::saveImageToBuffer( const Image &img, const std::string &ext, std::vector<byte> &buffer )
-   {
-      cv::Mat mat;
-      copyImageToMat(img, mat);
-      cv::imencode(ext, mat, buffer);
-   }
+        std::string fname(str);
+        cv::Mat mat;
+        copyImageToMat(img, mat);
+        cv::imwrite(fname, mat);
+    }
 
-	struct _AngRadius
-	{
-	   float ang;
-	   float radius;
-	};
+    void ImageUtils::saveImageToBuffer(const Image& img, const std::string& ext, std::vector<byte>& buffer)
+    {
+        cv::Mat mat;
+        copyImageToMat(img, mat);
+        cv::imencode(ext, mat, buffer);
+    }
 
-	static int _cmp_ang (const void *p1, const void *p2)
-	{
-	   const _AngRadius &f1 = *(const _AngRadius *)p1;
-	   const _AngRadius &f2 = *(const _AngRadius *)p2;
+    struct _AngRadius
+    {
+        float ang;
+        float radius;
+    };
 
-	   if (f1.ang < f2.ang)
-		  return -1;
-	   return 1;
-	}
+    static int _cmp_ang(const void* p1, const void* p2)
+    {
+        const _AngRadius& f1 = *(const _AngRadius*)p1;
+        const _AngRadius& f2 = *(const _AngRadius*)p2;
 
-   bool ImageUtils::isThinCircle (const Settings& vars, Image &seg, double &radius, bool asChar)
-   {
-	   logEnterFunction();
+        if (f1.ang < f2.ang)
+            return -1;
+        return 1;
+    }
 
-	   int w = seg.getWidth();
-	   int h = seg.getHeight();
-	   int i, j;
-	   float centerx = 0, centery = 0;
-	   int npoints = 0;
+    bool ImageUtils::isThinCircle(const Settings& vars, Image& seg, double& radius, bool asChar)
+    {
+        logEnterFunction();
 
-	   for (j = 0; j < h; j++)
-	   {
-		  for (i = 0; i < w; i++)
-		  {
-			 if (seg.getByte(i, j) == 0)
-			 {
-				centerx += i;
-				centery += j;
-				npoints++;
-			 }
-		  }
-	   }
+        int w = seg.getWidth();
+        int h = seg.getHeight();
+        int i, j;
+        float centerx = 0, centery = 0;
+        int npoints = 0;
 
-	   if (npoints == 0)
-		  throw ImagoException("Empty fragment");
+        for (j = 0; j < h; j++)
+        {
+            for (i = 0; i < w; i++)
+            {
+                if (seg.getByte(i, j) == 0)
+                {
+                    centerx += i;
+                    centery += j;
+                    npoints++;
+                }
+            }
+        }
 
-	   centerx /= npoints;
-	   centery /= npoints;
+        if (npoints == 0)
+            throw ImagoException("Empty fragment");
 
-	   _AngRadius *points = new _AngRadius[npoints + 1];
-	   int k = 0;
-	   float avg_radius = 0;
+        centerx /= npoints;
+        centery /= npoints;
 
-	   for (i = 0; i < w; i++)
-		  for (j = 0; j < h; j++)
-		  {
-			 if (seg.getByte(i, j) == 0)
-			 {
-				float radius = sqrt((i - centerx) * (i - centerx) +
-									(j - centery) * (j - centery));
-				points[k].radius = radius;
-				avg_radius += radius;
-				float cosine = (i - centerx) / radius;
-				float sine = (centery - j) / radius;
-				float ang = (float)atan2(sine, cosine);
-				if (ang < 0)
-				   ang += TWO_PI_f;
-				points[k].ang = ang;
-				k++;
-			 }
-		  }
+        _AngRadius* points = new _AngRadius[npoints + 1];
+        int k = 0;
+        float avg_radius = 0;
 
-	   qsort(points, npoints, sizeof(_AngRadius), _cmp_ang);
-   
-	   points[npoints].ang = points[0].ang + TWO_PI_f;
-	   points[npoints].radius = points[0].radius;
+        for (i = 0; i < w; i++)
+            for (j = 0; j < h; j++)
+            {
+                if (seg.getByte(i, j) == 0)
+                {
+                    float radius = sqrt((i - centerx) * (i - centerx) + (j - centery) * (j - centery));
+                    points[k].radius = radius;
+                    avg_radius += radius;
+                    float cosine = (i - centerx) / radius;
+                    float sine = (centery - j) / radius;
+                    float ang = (float)atan2(sine, cosine);
+                    if (ang < 0)
+                        ang += TWO_PI_f;
+                    points[k].ang = ang;
+                    k++;
+                }
+            }
 
-	   for (i = 0; i < npoints; i++)
-	   {
-		  float gap = points[i + 1].ang - points[i].ang;
-		  float r1 = fabs(points[i].radius);
-		  float r2 = fabs(points[i + 1].radius);
-		  float gapr = 1.f;
+        qsort(points, npoints, sizeof(_AngRadius), _cmp_ang);
 
-		  if (r1 > r2 && r2 > EPS)
-			 gapr = r1 / r2;
-		  else if (r2 < r1 && r1 > EPS)
-			 gapr = r2 / r1;
+        points[npoints].ang = points[0].ang + TWO_PI_f;
+        points[npoints].radius = points[0].radius;
 
-		  double c = asChar ? vars.routines.Circle_AsCharFactor : 1.0;
+        for (i = 0; i < npoints; i++)
+        {
+            float gap = points[i + 1].ang - points[i].ang;
+            float r1 = fabs(points[i].radius);
+            float r2 = fabs(points[i + 1].radius);
+            float gapr = 1.f;
 
-		  if (gapr > vars.routines.Circle_GapRadiusMax * c)
-		  {
-			  getLogExt().append("Radius gap", gapr);
-			 delete[] points;
-			 return false;
-		  }
+            if (r1 > r2 && r2 > EPS)
+                gapr = r1 / r2;
+            else if (r2 < r1 && r1 > EPS)
+                gapr = r2 / r1;
 
-		  if (gap > vars.routines.Circle_GapAngleMax * c && gap < 2 * PI - vars.routines.Circle_GapAngleMax * c)
-		  {
-			  getLogExt().append("C-like gap", gap);
-			 delete[] points;
-			 return false;
-		  }
-	   }
+            double c = asChar ? vars.routines.Circle_AsCharFactor : 1.0;
 
-	   avg_radius /= npoints;
+            if (gapr > vars.routines.Circle_GapRadiusMax * c)
+            {
+                getLogExt().append("Radius gap", gapr);
+                delete[] points;
+                return false;
+            }
 
-	   if (avg_radius < vars.routines.Circle_MinRadius)
-	   {
-		   getLogExt().append("Degenerated circle", avg_radius);
-		  delete[] points;
-		  return false;
-	   }
+            if (gap > vars.routines.Circle_GapAngleMax * c && gap < 2 * PI - vars.routines.Circle_GapAngleMax * c)
+            {
+                getLogExt().append("C-like gap", gap);
+                delete[] points;
+                return false;
+            }
+        }
 
-	   float disp = 0;
+        avg_radius /= npoints;
 
-	   for (i = 0; i < npoints; i++)
-		  disp += (points[i].radius - avg_radius) * (points[i].radius - avg_radius);
+        if (avg_radius < vars.routines.Circle_MinRadius)
+        {
+            getLogExt().append("Degenerated circle", avg_radius);
+            delete[] points;
+            return false;
+        }
 
-	   disp /= npoints;
-	   float ratio = sqrt(disp) / avg_radius;
+        float disp = 0;
 
-	   #ifdef DEBUG
-	   printf("avgr %.3f dev %.3f ratio %.3f\n",
-			  avg_radius, sqrt(disp), ratio);
-	   #endif
+        for (i = 0; i < npoints; i++)
+            disp += (points[i].radius - avg_radius) * (points[i].radius - avg_radius);
 
-	   getLogExt().append("avg_radius", avg_radius);
-	   radius = avg_radius;
-	   getLogExt().append("Ratio", ratio);
+        disp /= npoints;
+        float ratio = sqrt(disp) / avg_radius;
 
-	   delete[] points;
-	   if (ratio > vars.routines.Circle_MaxDeviation)
-		  return false; // not a circle
-	   return true;
-	}
+#ifdef DEBUG
+        printf("avgr %.3f dev %.3f ratio %.3f\n", avg_radius, sqrt(disp), ratio);
+#endif
 
+        getLogExt().append("avg_radius", avg_radius);
+        radius = avg_radius;
+        getLogExt().append("Ratio", ratio);
 
-	double ImageUtils::estimateLineThickness(Image &bwimg, int grid)
-	{
-		int w = bwimg.getWidth();
-		int h = bwimg.getHeight();
-		int d = grid;
+        delete[] points;
+        if (ratio > vars.routines.Circle_MaxDeviation)
+            return false; // not a circle
+        return true;
+    }
 
-		IntVector lthick;
+    double ImageUtils::estimateLineThickness(Image& bwimg, int grid)
+    {
+        int w = bwimg.getWidth();
+        int h = bwimg.getHeight();
+        int d = grid;
 
-		if(w < d)
-			d = std::max<int>(w >>1, 1) ; 
-		{
-			int startseg = -1;
-			for(int i = 0; i < w ; i += d)
-			{
-				for(int j = 0; j < h; j++)
-				{
-					byte val = bwimg.getByte(i, j);
-					if(val == 0 && (startseg == -1))
-						startseg = j;
-					if((val > 0 || j==(h-1)) && startseg != -1)
-					{
-						lthick.push_back(j - startseg + 1);
-						startseg = -1;
-					}
-				}
-			}
-		}
+        IntVector lthick;
 
-		if(h > d)
-			d = grid;
-		else
-			d = std::max<int>(h >>1, 1) ; 
+        if (w < d)
+            d = std::max<int>(w >> 1, 1);
+        {
+            int startseg = -1;
+            for (int i = 0; i < w; i += d)
+            {
+                for (int j = 0; j < h; j++)
+                {
+                    byte val = bwimg.getByte(i, j);
+                    if (val == 0 && (startseg == -1))
+                        startseg = j;
+                    if ((val > 0 || j == (h - 1)) && startseg != -1)
+                    {
+                        lthick.push_back(j - startseg + 1);
+                        startseg = -1;
+                    }
+                }
+            }
+        }
 
-		{
-			int startseg = -1;
-			for(int j = 0; j< h; j+=d)
-			{
-				for(int i = 0; i < w; i++)
-				{
-					byte val = bwimg.getByte(i, j);
-					if(val == 0 && (startseg == -1))
-						startseg = i;
-					if((val > 0 || i==(w-1)) && startseg != -1)
-					{
-						lthick.push_back(i - startseg + 1);
-						startseg = -1;
-					}
-				}
-			}
-		}
-		std::sort(lthick.begin(), lthick.end());
-		double thickness = 0;
-		if(lthick.size() > 0)
-			thickness = StatUtils::interMean(lthick.begin(), lthick.end());
-	
-		return thickness;
-	}
+        if (h > d)
+            d = grid;
+        else
+            d = std::max<int>(h >> 1, 1);
 
+        {
+            int startseg = -1;
+            for (int j = 0; j < h; j += d)
+            {
+                for (int i = 0; i < w; i++)
+                {
+                    byte val = bwimg.getByte(i, j);
+                    if (val == 0 && (startseg == -1))
+                        startseg = i;
+                    if ((val > 0 || i == (w - 1)) && startseg != -1)
+                    {
+                        lthick.push_back(i - startseg + 1);
+                        startseg = -1;
+                    }
+                }
+            }
+        }
+        std::sort(lthick.begin(), lthick.end());
+        double thickness = 0;
+        if (lthick.size() > 0)
+            thickness = StatUtils::interMean(lthick.begin(), lthick.end());
+
+        return thickness;
+    }
 }

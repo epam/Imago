@@ -1,118 +1,117 @@
+#include "prefilter_entry.h"
+
 #include <opencv2/opencv.hpp>
 
-#include "prefilter_entry.h"
-#include "log_ext.h"
-#include "prefilter_basic.h"
 #include "filters_list.h"
+#include "log_ext.h"
 
 namespace imago
 {
-	namespace PrefilterUtils
-	{
-		bool downscale(cv::Mat& image, int max_dim)
-		{
-			if (std::max(image.cols, image.rows) > max_dim)
-			{
-				int src_width = image.cols;	
-				cv::Size size;
+    namespace PrefilterUtils
+    {
+        bool downscale(cv::Mat& image, int max_dim)
+        {
+            if (std::max(image.cols, image.rows) > max_dim)
+            {
+                int src_width = image.cols;
+                cv::Size size;
 
-				if (image.cols > image.rows)
-				{
-					size.width = max_dim;
-					size.height = imago::round((double)image.rows * ((double)max_dim / image.cols));
-				}
-				else
-				{
-					size.height = max_dim;
-					size.width = imago::round((double)image.cols * ((double)max_dim / image.rows));
-				}
+                if (image.cols > image.rows)
+                {
+                    size.width = max_dim;
+                    size.height = imago::round((double)image.rows * ((double)max_dim / image.cols));
+                }
+                else
+                {
+                    size.height = max_dim;
+                    size.width = imago::round((double)image.cols * ((double)max_dim / image.rows));
+                }
 
-				cv::resize(image, image, size, 0.0, 0.0, cv::INTER_AREA);		
-				return true;
-			}
-			return false; // not required
-		}
+                cv::resize(image, image, size, 0.0, 0.0, cv::INTER_AREA);
+                return true;
+            }
+            return false; // not required
+        }
 
-		bool resampleImage(const Settings& vars, Image &image)
-		{
-			logEnterFunction();
-			
-			int dim = std::max(image.getWidth(), image.getHeight());
-			if (dim > vars.csr.RescaleImageDimensions) 
-			{
-				cv::Mat mat;
-				ImageUtils::copyImageToMat(image, mat);
-				if (downscale(mat, vars.csr.RescaleImageDimensions))
-				{
-					image.clear();
-					ImageUtils::copyMatToImage(mat, image);
-					return true;
-				}
-			}
-			return false;
-		}
-	}
+        bool resampleImage(const Settings& vars, Image& image)
+        {
+            logEnterFunction();
 
-	bool prefilterEntrypoint(Settings& vars, Image& output, const Image& src)
-	{
-		logEnterFunction();
+            int dim = std::max(image.getWidth(), image.getHeight());
+            if (dim > vars.csr.RescaleImageDimensions)
+            {
+                cv::Mat mat;
+                ImageUtils::copyImageToMat(image, mat);
+                if (downscale(mat, vars.csr.RescaleImageDimensions))
+                {
+                    image.clear();
+                    ImageUtils::copyMatToImage(mat, image);
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
 
-		bool result = false;
+    bool prefilterEntrypoint(Settings& vars, Image& output, const Image& src)
+    {
+        logEnterFunction();
 
-		output.copy(src);
-		
-		vars.general.ImageWidth = vars.general.OriginalImageWidth = src.getWidth();
-		vars.general.ImageHeight = vars.general.OriginalImageHeight = src.getHeight();
+        bool result = false;
 
-		vars.general.ImageAlreadyBinarized = false;
-		vars.general.FilterIndex = 0;
-		
-		return applyNextPrefilter(vars, output, src, false);
-	}
+        output.copy(src);
 
-	bool applyNextPrefilter(Settings& vars, Image& output, const Image& src, bool iterateNext)
-	{
-		logEnterFunction();
-		bool result = false;
+        vars.general.ImageWidth = vars.general.OriginalImageWidth = src.getWidth();
+        vars.general.ImageHeight = vars.general.OriginalImageHeight = src.getHeight();
 
-		if (iterateNext)
-		{
-			vars.general.FilterIndex++;
-		}
+        vars.general.ImageAlreadyBinarized = false;
+        vars.general.FilterIndex = 0;
 
-		FilterEntries filters = getFiltersList();
+        return applyNextPrefilter(vars, output, src, false);
+    }
 
-		for (; vars.general.FilterIndex < (int)filters.size(); vars.general.FilterIndex++)
-		{
-			output.copy(src);
+    bool applyNextPrefilter(Settings& vars, Image& output, const Image& src, bool iterateNext)
+    {
+        logEnterFunction();
+        bool result = false;
 
-			int& u = vars.general.FilterIndex;
+        if (iterateNext)
+        {
+            vars.general.FilterIndex++;
+        }
 
-			getLogExt().append("use filter", filters[u].name);
+        FilterEntries filters = getFiltersList();
 
-			if (filters[u].condition != NULL &&
-				filters[u].condition(output) == false)
-			{
-				getLogExt().append("filter condition failed", filters[u].name);
-				continue;
-			}
+        for (; vars.general.FilterIndex < (int)filters.size(); vars.general.FilterIndex++)
+        {
+            output.copy(src);
 
-			if (filters[u].routine(vars, output))
-			{
-				getLogExt().append("filter success", filters[u].name);
-				if (!filters[u].update_config_string.empty())
-				{
-					vars.fillFromDataStream(filters[u].update_config_string);
-				}
-				result = true;
-				break;
-			}
-			else
-			{
-				getLogExt().append("filter failed", filters[u].name);
-			}
-		}
+            int& u = vars.general.FilterIndex;
 
-		return result;
-	}
+            getLogExt().append("use filter", filters[u].name);
+
+            if (filters[u].condition != NULL && filters[u].condition(output) == false)
+            {
+                getLogExt().append("filter condition failed", filters[u].name);
+                continue;
+            }
+
+            if (filters[u].routine(vars, output))
+            {
+                getLogExt().append("filter success", filters[u].name);
+                if (!filters[u].update_config_string.empty())
+                {
+                    vars.fillFromDataStream(filters[u].update_config_string);
+                }
+                result = true;
+                break;
+            }
+            else
+            {
+                getLogExt().append("filter failed", filters[u].name);
+            }
+        }
+
+        return result;
+    }
 }

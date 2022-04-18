@@ -1,17 +1,27 @@
 import platform
-from ctypes import (CDLL, POINTER, c_byte, c_char_p, c_double,
-                    c_int, c_ulonglong, pointer, byref, c_ubyte, cast)
-from pathlib import Path
 import threading
-from typing import Optional, TypeVar, Generic, List, Tuple, AnyStr
-
-from PIL import Image
+from ctypes import (
+    CDLL,
+    POINTER,
+    byref,
+    c_byte,
+    c_char_p,
+    c_double,
+    c_int,
+    c_ubyte,
+    c_ulonglong,
+    cast,
+    pointer,
+)
+from pathlib import Path
+from typing import AnyStr, Generic, List, Optional, Tuple, TypeVar
 
 from imago.imago_exception import ImagoException
 from imago.imago_filters import ImagoFilter
 from imago.imago_log_record import ImagoLogRecord
+from PIL import Image
 
-T = TypeVar('T')
+T = TypeVar("T")
 
 
 class Imago:
@@ -25,34 +35,32 @@ class Imago:
 
     @staticmethod
     def _get_arch_name() -> str:
-        replacement_dict = {
-            'amd64': 'x86_64'
-        }
+        replacement_dict = {"amd64": "x86_64"}
         raw_arch = platform.uname().machine.lower()
         return replacement_dict.get(raw_arch, raw_arch)
 
     @staticmethod
     def _get_shared_library_name(basename: str) -> str:
         system = Imago._get_system_name()
-        if system == 'windows':
-            library_prefix = ''
-            library_suffix = '.dll'
-        elif system == 'linux':
-            library_prefix = 'lib'
-            library_suffix = '.so'
-        elif system == 'darwin':
-            library_prefix = 'lib'
-            library_suffix = '.dylib'
+        if system == "windows":
+            library_prefix = ""
+            library_suffix = ".dll"
+        elif system == "linux":
+            library_prefix = "lib"
+            library_suffix = ".so"
+        elif system == "darwin":
+            library_prefix = "lib"
+            library_suffix = ".dylib"
         else:
-            raise RuntimeError(f'Unsupported OS: {system}')
-        return f'{library_prefix}{basename}{library_suffix}'
+            raise RuntimeError(f"Unsupported OS: {system}")
+        return f"{library_prefix}{basename}{library_suffix}"
 
     @staticmethod
     def _get_path_to_native_library(lib_name: str) -> Path:
         package_path = Path(__file__).parent
         system = Imago._get_system_name()
         arch = Imago._get_arch_name()
-        folder = package_path / 'lib' / f"{system}-{arch}"
+        folder = package_path / "lib" / f"{system}-{arch}"
         return folder / Imago._get_shared_library_name(lib_name)
 
     @staticmethod
@@ -83,14 +91,25 @@ class Imago:
             Imago._lib.imagoGetLogCount.argtypes = [POINTER(c_int)]
             # imagoGetLogRecord
             Imago._lib.imagoGetLogRecord.restype = c_int
-            Imago._lib.imagoGetLogRecord.argtypes = [c_int, POINTER(POINTER(c_byte)), POINTER(c_int),
-                                                     POINTER(POINTER(c_byte))]
+            Imago._lib.imagoGetLogRecord.argtypes = [
+                c_int,
+                POINTER(POINTER(c_byte)),
+                POINTER(c_int),
+                POINTER(POINTER(c_byte)),
+            ]
             # imagoGetPrefilteredImage
             Imago._lib.imagoGetPrefilteredImage.restype = c_int
-            Imago._lib.imagoGetPrefilteredImage.argtypes = [POINTER(POINTER(c_ubyte)), POINTER(c_int), POINTER(c_int)]
+            Imago._lib.imagoGetPrefilteredImage.argtypes = [
+                POINTER(POINTER(c_ubyte)),
+                POINTER(c_int),
+                POINTER(c_int),
+            ]
             # imagoGetPrefilteredImageSize
             Imago._lib.imagoGetPrefilteredImageSize.restype = c_int
-            Imago._lib.imagoGetPrefilteredImageSize.argtypes = [POINTER(c_int), POINTER(c_int)]
+            Imago._lib.imagoGetPrefilteredImageSize.argtypes = [
+                POINTER(c_int),
+                POINTER(c_int),
+            ]
             # imagoGetMol
             Imago._lib.imagoGetMol.restype = c_char_p
             Imago._lib.imagoGetMol.argtypes = None
@@ -99,10 +118,17 @@ class Imago:
             Imago._lib.imagoGetVersion.argtypes = None
             # imagoLoadGreyscaleRawImage
             Imago._lib.imagoLoadGreyscaleRawImage.restype = c_int
-            Imago._lib.imagoLoadGreyscaleRawImage.argtypes = [POINTER(c_byte), c_int, c_int]
+            Imago._lib.imagoLoadGreyscaleRawImage.argtypes = [
+                POINTER(c_byte),
+                c_int,
+                c_int,
+            ]
             # imagoLoadImageFromBuffer
             Imago._lib.imagoLoadImageFromBuffer.restype = c_int
-            Imago._lib.imagoLoadImageFromBuffer.argtypes = [POINTER(c_byte), c_int]
+            Imago._lib.imagoLoadImageFromBuffer.argtypes = [
+                POINTER(c_byte),
+                c_int,
+            ]
             # imagoLoadImageFromFile
             Imago._lib.imagoLoadImageFromFile.restype = c_int
             Imago._lib.imagoLoadImageFromFile.argtypes = [c_char_p]
@@ -173,16 +199,18 @@ class Imago:
 
     def load_image_from_pillow(self, image: Image) -> None:
         """Load raw grayscale image from Pillow Image instance"""
-        image = image.convert('L')
+        image = image.convert("L")
         width = c_int(image.width)
         height = c_int(image.height)
-        data = image.tobytes('raw')
+        data = image.tobytes("raw")
         image_size = image.width * image.height
         buf = (c_byte * image_size)()
         for i in range(image_size):
             buf[i] = data[i]
         self._set_session_id()
-        Imago._check_result(Imago._lib.imagoLoadGreyscaleRawImage(buf, width, height))
+        Imago._check_result(
+            Imago._lib.imagoLoadGreyscaleRawImage(buf, width, height)
+        )
 
     def load_image_from_buffer(self, buffer: bytes) -> None:
         """Load image from buffer with given size"""
@@ -190,12 +218,16 @@ class Imago:
         for i in range(len(buffer)):
             buf[i] = buffer[i]
         self._set_session_id()
-        Imago._check_result(Imago._lib.imagoLoadImageFromBuffer(buf, len(buffer)))
+        Imago._check_result(
+            Imago._lib.imagoLoadImageFromBuffer(buf, len(buffer))
+        )
 
     def load_image_from_file(self, filename: Path) -> None:
         """Load image from file"""
         self._set_session_id()
-        Imago._check_result(Imago._lib.imagoLoadImageFromFile(str(filename).encode()))
+        Imago._check_result(
+            Imago._lib.imagoLoadImageFromFile(str(filename).encode())
+        )
 
     def set_config(self, filename: Path) -> None:
         """Set config file"""
@@ -209,12 +241,14 @@ class Imago:
         result = Imago._lib.imagoGetConfigsList()
         if not result:
             return []
-        return result.decode().split(',')
+        return result.decode().split(",")
 
     def filter_image(self, imago_filter: ImagoFilter) -> None:
         """Set image filter according to parameter and process filtering. Should be performed before recognize()"""
         self._set_session_id()
-        Imago._check_result(Imago._lib.imagoSetFilter(imago_filter.value.encode()))
+        Imago._check_result(
+            Imago._lib.imagoSetFilter(imago_filter.value.encode())
+        )
         Imago._check_result(Imago._lib.imagoFilterImage())
 
     def recognize(self) -> int:
@@ -234,10 +268,16 @@ class Imago:
         height = c_int()
         buffer = POINTER(c_ubyte)()
         self._set_session_id()
-        Imago._check_result(Imago._lib.imagoGetPrefilteredImage(pointer(buffer), byref(width), byref(height)))
+        Imago._check_result(
+            Imago._lib.imagoGetPrefilteredImage(
+                pointer(buffer), byref(width), byref(height)
+            )
+        )
         size = width.value * height.value
         data = memoryview(cast(buffer, POINTER(c_ubyte * size))[0]).tobytes()
-        return Image.frombytes(mode='L', size=(width.value, height.value), data=bytes(data))
+        return Image.frombytes(
+            mode="L", size=(width.value, height.value), data=bytes(data)
+        )
 
     @property
     def image_size(self) -> Tuple[int, int]:
@@ -245,7 +285,11 @@ class Imago:
         width = c_int()
         height = c_int()
         self._set_session_id()
-        Imago._check_result(Imago._lib.imagoGetPrefilteredImageSize(byref(width), byref(height)))
+        Imago._check_result(
+            Imago._lib.imagoGetPrefilteredImageSize(
+                byref(width), byref(height)
+            )
+        )
         return width.value, height.value
 
     @property
@@ -259,7 +303,9 @@ class Imago:
     def save_image_to_file(self, filename: Path) -> None:
         """Save image to file"""
         self._set_session_id()
-        Imago._check_result(Imago._lib.imagoSaveImageToFile(str(filename).encode()))
+        Imago._check_result(
+            Imago._lib.imagoSaveImageToFile(str(filename).encode())
+        )
 
     @property
     def molecule(self) -> str:
@@ -270,7 +316,9 @@ class Imago:
     def save_molecule_to_file(self, filename: Path) -> None:
         """Save recognized molecule as a molfile to specified file path"""
         self._set_session_id()
-        Imago._check_result(Imago._lib.imagoSaveMolToFile(str(filename).encode()))
+        Imago._check_result(
+            Imago._lib.imagoSaveMolToFile(str(filename).encode())
+        )
 
     @property
     def version(self) -> str:
@@ -292,9 +340,14 @@ class Imago:
         buffer = POINTER(c_byte)()
         length = c_int()
         self._set_session_id()
-        Imago._check_result(Imago._lib.imagoGetLogRecord(index, pointer(name),
-                                                         pointer(buffer), byref(length)))
-        data_result = memoryview(cast(buffer, POINTER(c_ubyte * length.value))[0]).tobytes()
+        Imago._check_result(
+            Imago._lib.imagoGetLogRecord(
+                index, pointer(name), pointer(buffer), byref(length)
+            )
+        )
+        data_result = memoryview(
+            cast(buffer, POINTER(c_ubyte * length.value))[0]
+        ).tobytes()
         name_result = str(name.value)
         return ImagoLogRecord(Path(name_result), data_result)
 
