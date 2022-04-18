@@ -1,45 +1,18 @@
 cmake_minimum_required(VERSION 3.0)
-
 project("Imago")
 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/cmake/)
-set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/dist) 
-
-include(GetSystemVersion)
-include(BuildOptions)
-
-message(STATUS "Subsystem: ${SUBSYSTEM_NAME}")
-
-message(STATUS "**** Third-party ****")
-set(WITH_STATIC ON)
-add_subdirectory(${THIRD_PARTY_DIR}/indigo)
-set(BUILD_SHARED_LIBS OFF)
-add_subdirectory(${THIRD_PARTY_DIR}/opencv)
-
-message(STATUS "**** Imago ****")
-add_subdirectory(imago)
-
-if(SUBSYSTEM_NAME STREQUAL "iOS")
-    add_subdirectory(ireco)
-else()
-    add_subdirectory(font_generator)
-
-    if(SYSTEM_NAME STREQUAL "Windows")
-        # windows only tools
-        add_subdirectory(tools/calculate_probability_matrices)
-    endif()
-
-    add_subdirectory(imago_c)
-
-    if(Java_JAVAC_EXECUTABLE)
-        Include(UseJava)
-        add_subdirectory(imago_java)
-        # add_subdirectory(ego)
-    else()
-        message(STATUS "Java is not found!")
-    endif()
-
-    add_subdirectory(imago_python)
-
-    add_subdirectory(imago_console)
+option(IMAGO_ENABLE_TESTS "Enable tests for Imago" ON)
+if (IMAGO_ENABLE_TESTS)
+    enable_testing()
 endif()
+
+set(IMAGO_DIST_DIR ${CMAKE_CURRENT_LIST_DIR}/dist)
+set(IMAGO_THIRD_PARTY_DIR ${CMAKE_CURRENT_LIST_DIR}/third_party)
+
+add_subdirectory(third_party)
+
+include(third_party/indigo/cmake/setup.cmake)
+
+add_subdirectory(core)
+add_subdirectory(api)
+add_subdirectory(tools)
