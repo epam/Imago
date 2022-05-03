@@ -20,7 +20,10 @@
 
 #include <algorithm>
 #include <cmath>
+#include <cstdio>
 #include <deque>
+#include <list>
+#include <queue>
 #include <stack>
 #include <vector>
 
@@ -31,14 +34,17 @@
 #include "character_recognizer.h"
 #include "comdef.h"
 #include "exception.h"
+#include "graph_extractor.h"
 #include "graphics_detector.h"
 #include "image.h"
 #include "image_draw_utils.h"
 #include "image_utils.h"
 #include "log_ext.h"
+#include "molecule.h"
 #include "probability_separator.h"
 #include "segment.h"
 #include "segmentator.h"
+#include "separator.h"
 #include "stat_utils.h"
 #include "thin_filter2.h"
 
@@ -320,7 +326,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
 
     PriorityQueue pq;
     IntDeque symInds;
-    for (int i = 0; i < classes.size(); i++)
+    for (size_t i = 0; i < classes.size(); i++)
         if (classes[i] == 0)
         {
             symInds.push_back(i);
@@ -389,7 +395,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
             {
                 SegmentIndx si = pq.top();
 
-                size_t currInd2 = si._indx;
+                int currInd2 = si._indx;
                 if (visited[currInd2] || currInd == currInd2)
                 {
                     pq.pop();
@@ -448,6 +454,10 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
         return;
 
     bool found_symbol = false;
+    int nsymbs_added = 0;
+    int nsymbs_leave = 0;
+
+    getLogExt().append("Number of rects for analysis", symbRects.size());
 
     double adequate_ratio_min = vars.estimation.MinSymRatio;
 
@@ -459,23 +469,38 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
         bool isTextContext = _bIsTextContext(vars, layer_symbols, symbRects[i]);
 
         // TODO: check width/height bound
+
+        getLogExt().append("Lines count", LineCount[i]);
+
         if (LineCount[i] < 2 && (!isTextContext || ((double)symbRects[i].width / symbRects[i].height) >= 1 /*adequate_ratio_min*/))
+        {
+            getLogExt().appendText("Skip rect! Too small lines.");
             continue;
+        }
 
         if (LineCount[i] == 2)
         {
             if (Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1], RectPoints[i][2], RectPoints[i][3], 0.1))
+            {
+                getLogExt().appendText("Skip rect! Lines are parallel.");
                 continue;
+            }
             Vec2d p1 = RectPoints[i][0];
             Vec2d p2 = RectPoints[i][1];
             if (Algebra::distance2segment(p1, RectPoints[i][2], RectPoints[i][3]) > line_thick &&
                 Algebra::distance2segment(p2, RectPoints[i][2], RectPoints[i][3]) > line_thick)
+            {
+                getLogExt().appendText("Skip rect! Distance too large.");
                 continue;
+            }
             Line l1 = Algebra::points2line(p1, p2);
             Line l2 = Algebra::points2line(RectPoints[i][2], RectPoints[i][3]);
             Vec2d pintersect = Algebra::linesIntersection(vars, l1, l2);
             if (absolute(pintersect.y - symbRects[i].y) < (symbRects[i].height / 2))
+            {
+                getLogExt().appendText("Skip rect! Intersect too far.");
                 continue;
+            }
         }
 
         if (LineCount[i] == 3)
@@ -483,7 +508,10 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
             if (Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1], RectPoints[i][2], RectPoints[i][3], 0.13) ||
                 Algebra::segmentsParallel(RectPoints[i][4], RectPoints[i][5], RectPoints[i][2], RectPoints[i][3], 0.13) ||
                 Algebra::segmentsParallel(RectPoints[i][0], RectPoints[i][1], RectPoints[i][4], RectPoints[i][5], 0.13))
-                continue;
+            {
+                getLogExt().appendText("Skip rect! Lines are parallel.");
+                //				continue;
+            }
         }
 
         int left = round((symbRects[i].x - line_thick < 0) ? 0 : (symbRects[i].x - line_thick));
@@ -549,6 +577,7 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
 
         if ((int)(linesegs.size() / 2) > LineCount[i])
         {
+
             for (size_t k = 0; k < linesegs.size() / 2; k++)
             {
                 if (vars.checkTimeLimit())
@@ -572,9 +601,32 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
 
                 if (xmin > symbRects[i].x + symbRects[i].width - 1)
                 {
+                    getLogExt().append("line_thick", line_thick);
+
+                    getLogExt().append("rect.x", symbRects[i].x);
+                    getLogExt().append("rect.y", symbRects[i].y);
+                    getLogExt().append("rect.width", symbRects[i].width);
+                    getLogExt().append("rect.height", symbRects[i].height);
+
+                    getLogExt().append("xmin", xmin);
+                    getLogExt().append("xmax", xmax);
+                    getLogExt().append("ymin", ymin);
+                    getLogExt().append("ymax", ymax);
+
+                    getLogExt().append("left", left);
+                    getLogExt().append("top", top);
+                    getLogExt().append("right", right);
+                    getLogExt().append("bottom", bottom);
+
+                    getLogExt().append("s.width", s->getWidth());
+                    getLogExt().append("s.height", s->getHeight());
+
                     int limit = round(xmin - left);
                     if (w_h_ratio < 0.5)
                         limit += round(line_thick / 2.0);
+
+                    getLogExt().append("limit", limit);
+
                     for (int m = 0; m < s->getHeight(); m++)
                         for (int n = limit; n < s->getWidth(); n++)
                             s->getByte(n, m) = 255;
@@ -582,6 +634,27 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
                 }
                 else if (xmax < symbRects[i].x)
                 {
+
+                    getLogExt().append("line_thick", line_thick);
+
+                    getLogExt().append("rect.x", symbRects[i].x);
+                    getLogExt().append("rect.y", symbRects[i].y);
+                    getLogExt().append("rect.width", symbRects[i].width);
+                    getLogExt().append("rect.height", symbRects[i].height);
+
+                    getLogExt().append("xmin", xmin);
+                    getLogExt().append("xmax", xmax);
+                    getLogExt().append("ymin", ymin);
+                    getLogExt().append("ymax", ymax);
+
+                    getLogExt().append("left", left);
+                    getLogExt().append("top", top);
+                    getLogExt().append("right", right);
+                    getLogExt().append("bottom", bottom);
+
+                    getLogExt().append("s.width", s->getWidth());
+                    getLogExt().append("s.height", s->getHeight());
+
                     int limit = round(xmax - left);
                     if (w_h_ratio < 0.5)
                         limit += round(line_thick / 2.0);
@@ -592,6 +665,27 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
                 }
                 else if (ymin > symbRects[i].y + symbRects[i].height)
                 {
+
+                    getLogExt().append("line_thick", line_thick);
+
+                    getLogExt().append("rect.x", symbRects[i].x);
+                    getLogExt().append("rect.y", symbRects[i].y);
+                    getLogExt().append("rect.width", symbRects[i].width);
+                    getLogExt().append("rect.height", symbRects[i].height);
+
+                    getLogExt().append("xmin", xmin);
+                    getLogExt().append("xmax", xmax);
+                    getLogExt().append("ymin", ymin);
+                    getLogExt().append("ymax", ymax);
+
+                    getLogExt().append("left", left);
+                    getLogExt().append("top", top);
+                    getLogExt().append("right", right);
+                    getLogExt().append("bottom", bottom);
+
+                    getLogExt().append("s.width", s->getWidth());
+                    getLogExt().append("s.height", s->getHeight());
+
                     int limit = round(ymin - top);
                     if (w_h_ratio > 0.5)
                         limit += round(line_thick / 2.0);
@@ -602,6 +696,27 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
                 }
                 else if (ymax < symbRects[i].y)
                 {
+
+                    getLogExt().append("line_thick", line_thick);
+
+                    getLogExt().append("rect.x", symbRects[i].x);
+                    getLogExt().append("rect.y", symbRects[i].y);
+                    getLogExt().append("rect.width", symbRects[i].width);
+                    getLogExt().append("rect.height", symbRects[i].height);
+
+                    getLogExt().append("xmin", xmin);
+                    getLogExt().append("xmax", xmax);
+                    getLogExt().append("ymin", ymin);
+                    getLogExt().append("ymax", ymax);
+
+                    getLogExt().append("left", left);
+                    getLogExt().append("top", top);
+                    getLogExt().append("right", right);
+                    getLogExt().append("bottom", bottom);
+
+                    getLogExt().append("s.width", s->getWidth());
+                    getLogExt().append("s.height", s->getHeight());
+
                     int limit = round(ymax - top);
                     if (w_h_ratio > 0.5)
                         limit += round(line_thick / 2.0);
@@ -623,7 +738,8 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
         try
         {
             ClassifySegment(vars, layer_symbols, rec, scopy, cres);
-            delete scopy;
+            //			delete scopy;
+            delete s;
         }
         catch (ImagoException ex)
         {
@@ -634,13 +750,31 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
         //	classify object
         if (GetClass(cres) == SEP_SYMBOL || isTextContext)
         {
-            imago::ImageUtils::cutSegment(timg, *s, false, 255);
-            layer_symbols.push_back(s);
-            found_symbol = true;
+            imago::ImageUtils::cutSegment(timg, *scopy, false, 255);
+            if (!cres.Processed)
+            {
+                layer_symbols.push_back(scopy);
+                found_symbol = true;
+                nsymbs_added++;
+                getLogExt().appendImage(std::string("Add as symbol"), *scopy);
+            }
+            else
+            {
+                found_symbol = true;
+                nsymbs_added += 2;
+                getLogExt().appendImage(std::string("Add as two symbols"), *scopy);
+            }
         }
         else
-            delete s;
+        {
+            getLogExt().appendImage(std::string("Leave in graphics"), *scopy);
+            nsymbs_leave++;
+            delete scopy;
+        }
     }
+
+    getLogExt().append("Number of symbs added", nsymbs_added);
+    getLogExt().append("Number of symbs leave", nsymbs_leave);
 
     if (found_symbol)
     {
@@ -648,6 +782,767 @@ void Separator::SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer
 
         Segmentator::segmentate(timg, layer_graphics);
     }
+}
+bool Separator::RepairBrokenSymbols(const Settings& vars, SegmentDeque& layer_symbols, SegmentDeque& layer_graphics, CharacterRecognizer& rec)
+{
+    logEnterFunction();
+
+    std::vector<Segment*> to_delete_segs;
+    std::vector<Segment*> to_add_segs;
+    std::vector<Segment*> added_segs;
+
+    SegmentDeque::iterator sit;
+
+    RecognitionDistance rd;
+    double best_dist;
+    char ch;
+
+    int count = 0;
+
+    int symbols_before = layer_symbols.size();
+    int graphics_before = layer_graphics.size();
+
+    getLogExt().append("Segments before repaire:", layer_symbols.size());
+
+    for (sit = layer_graphics.begin(); sit != layer_graphics.end(); ++sit)
+    {
+        getLogExt().append("graphics ref", *sit);
+        getLogExt().appendImage(std::string("graphics segment"), *(*sit));
+    }
+
+    for (sit = layer_symbols.begin(); sit != layer_symbols.end(); ++sit)
+    {
+        getLogExt().append("symbol ref", *sit);
+        getLogExt().appendImage(std::string("symbol segment"), *(*sit));
+    }
+
+    int capital_height = (int)vars.dynamic.CapitalHeight;
+    if (capital_height < 0)
+        capital_height = 32;
+    Image timg(capital_height * 3, capital_height * 3);
+
+    getLogExt().append("Number of graphics segements:", layer_graphics.size());
+    getLogExt().append("Number of symbol segements:", layer_symbols.size());
+
+    getLogExt().appendText("Try to repaire graphics segements...");
+
+    to_delete_segs.clear();
+
+    for (sit = layer_graphics.begin(); sit != layer_graphics.end(); ++sit)
+    {
+        Segment* s_symb = *sit;
+        if (vars.checkTimeLimit())
+            throw ImagoException("Timelimit exceeded");
+
+        std::vector<Segment*>::iterator res = std::find(to_delete_segs.begin(), to_delete_segs.end(), *sit);
+
+        if (res != to_delete_segs.end())
+        {
+            continue;
+        }
+
+        timg.fillWhite();
+
+        int rowsc = s_symb->getHeight();
+        int colsc = s_symb->getWidth();
+        int xc0 = s_symb->getX();
+        int yc0 = s_symb->getY();
+        int xc = capital_height;
+        int yc = capital_height;
+
+        if (colsc > capital_height * 1.2 || rowsc > capital_height * 1.2)
+        {
+            continue;
+        }
+
+        if ((xc + colsc) >= capital_height * 3 || (yc + rowsc) >= capital_height * 3)
+        {
+            continue;
+        }
+
+        getLogExt().append("1 Graph height", rowsc);
+        getLogExt().append("1 Graph width", colsc);
+        getLogExt().append("1 Graph x", xc0);
+        getLogExt().append("1 Graph y", yc0);
+
+        getLogExt().append("1 Graph temp x", xc);
+        getLogExt().append("1 Graph temp y", yc);
+
+        for (int y = 0; y < rowsc; y++)
+            for (int x = 0; x < colsc; x++)
+                if ((yc + y) >= 0 && (yc + y) < timg.getHeight() && (xc + x) >= 0 && (xc + x) < timg.getWidth())
+                    timg.getByte(xc + x, yc + y) = s_symb->getByte(x, y);
+
+        getLogExt().appendImage(std::string("Intitial segment"), *s_symb);
+
+        SegmentDeque::iterator git;
+        bool rem_graphics_seg = false;
+        added_segs.clear();
+
+        for (git = sit; git != layer_graphics.end(); ++git)
+        {
+
+            Segment* s_gr = *git;
+
+            if (git == sit)
+                continue;
+
+            if (vars.checkTimeLimit())
+                throw ImagoException("Timelimit exceeded");
+
+            std::vector<Segment*>::iterator res = std::find(to_delete_segs.begin(), to_delete_segs.end(), *git);
+
+            if (res != to_delete_segs.end())
+            {
+                continue;
+            }
+
+            int rowsg = s_gr->getHeight();
+            int colsg = s_gr->getWidth();
+            int xg0 = s_gr->getX();
+            int yg0 = s_gr->getY();
+            int xg = xg0 - xc0 + xc;
+            int yg = yg0 - yc0 + yc;
+
+            if (colsg > capital_height * 1.2 || rowsg > capital_height * 1.2)
+                continue;
+
+            if (xg < 0 || yg < 0 || (xg + colsg) >= capital_height * 3 || (yg + rowsg) >= capital_height * 3)
+                continue;
+
+            if (s_symb->getDiameter() < vars.dynamic.LineThickness && s_gr->getDiameter() < vars.dynamic.LineThickness)
+                continue;
+
+            if (SegmentTools::getRealDistance(*s_symb, *s_gr, SegmentTools::dtEuclidian) > vars.dynamic.LineThickness)
+                continue;
+
+            getLogExt().append("2 Graph height", rowsg);
+            getLogExt().append("2 Graph width", colsg);
+            getLogExt().append("2 Graph x", xg0);
+            getLogExt().append("2 Graph y", yg0);
+
+            getLogExt().append("2 Graph temp x", xg);
+            getLogExt().append("2 Graph temp y", yg);
+
+            getLogExt().appendImage(std::string("Possible graphics for join"), *s_gr);
+
+            for (int y = 0; y < rowsg; y++)
+                for (int x = 0; x < colsg; x++)
+                    if ((yg + y) >= 0 && (yg + y) < timg.getHeight() && (xg + x) >= 0 && (xg + x) < timg.getWidth())
+                        if (s_gr->getByte(x, y) != 255)
+                            timg.getByte(xg + x, yg + y) = s_gr->getByte(x, y);
+
+            Segment* s = new Segment();
+            s->copy(timg);
+            s->getX() = 0;
+            s->getY() = 0;
+
+            getLogExt().appendImage(std::string("repaired image"), timg);
+            getLogExt().appendImage(std::string("repaired segment"), *s);
+
+            imago::Segment* scopy = new Segment(*s);
+            scopy->crop();
+
+            if (scopy->getWidth() > capital_height)
+            {
+                delete s;
+                delete scopy;
+                getLogExt().append("Looks like to wide:", scopy->getWidth());
+
+                continue;
+            }
+
+            try
+            {
+                rd = rec.recognize(vars, *scopy, CharacterRecognizer::all);
+                ch = rd.getBest(&best_dist);
+                getLogExt().append("Result best distance:", best_dist);
+                delete s;
+            }
+            catch (ImagoException ex)
+            {
+                delete s;
+                delete scopy;
+                continue;
+            }
+            if (best_dist < vars.characters.PossibleCharacterDistanceStrong && rd.getQuality() > vars.characters.PossibleCharacterMinimalQuality)
+            {
+                to_delete_segs.push_back(*sit);
+                to_delete_segs.push_back(*git);
+                scopy->getX() = xc0 >= xg0 ? xg0 : xc0;
+                scopy->getY() = yc0 >= yg0 ? yg0 : yc0;
+                if (added_segs.size() > 0)
+                {
+                    for (std::vector<Segment*>::iterator it = added_segs.begin(); it != added_segs.end(); ++it)
+                    {
+                        Segment* s_tmp = *it;
+                        scopy->getX() = scopy->getX() >= s_tmp->getX() ? s_tmp->getX() : scopy->getX();
+                        scopy->getY() = scopy->getY() >= s_tmp->getY() ? s_tmp->getY() : scopy->getY();
+                        to_delete_segs.push_back(s_tmp);
+                    }
+                }
+                layer_symbols.push_back(scopy);
+                getLogExt().appendImage(std::string("New possible symbol found!!!"), *scopy);
+                getLogExt().append("         Char:", ch);
+                getLogExt().append("Best distance:", best_dist);
+                getLogExt().append("      Quality:", rd.getQuality());
+                break;
+            }
+            else
+            {
+                added_segs.push_back(*git);
+                delete scopy;
+            }
+        }
+    }
+
+    for (SegmentDeque::iterator it = layer_graphics.begin(); it != layer_graphics.end();)
+    {
+        std::vector<Segment*>::iterator res = std::find(to_delete_segs.begin(), to_delete_segs.end(), *it);
+
+        if (res != to_delete_segs.end())
+        {
+            it = layer_graphics.erase(it);
+        }
+        else
+            ++it;
+    }
+
+    getLogExt().append("Number of graphics segements:", layer_graphics.size());
+    getLogExt().append("Number of symbol segements:", layer_symbols.size());
+
+    getLogExt().appendText("Try to repaire symbols+graphics segements...");
+
+    to_add_segs.clear();
+
+    for (sit = layer_symbols.begin(); sit != layer_symbols.end();)
+    {
+        Segment* s_symb = *sit;
+        if (vars.checkTimeLimit())
+            throw ImagoException("Timelimit exceeded");
+
+        count++;
+        getLogExt().append("symbol number", count);
+        getLogExt().append("symbol ref", *sit);
+
+        timg.fillWhite();
+
+        int rowsc = s_symb->getHeight();
+        int colsc = s_symb->getWidth();
+        int xc0 = s_symb->getX();
+        int yc0 = s_symb->getY();
+        int xc = capital_height;
+        int yc = capital_height;
+
+        getLogExt().append("Symbol height", rowsc);
+        getLogExt().append("Symbol width", colsc);
+        getLogExt().append("Symbol x", xc0);
+        getLogExt().append("Symbol y", yc0);
+
+        getLogExt().append("Symbol temp x", xc);
+        getLogExt().append("Symbol temp y", yc);
+
+        for (int y = 0; y < rowsc; y++)
+            for (int x = 0; x < colsc; x++)
+                if ((yc + y) >= 0 && (yc + y) < timg.getHeight() && (xc + x) >= 0 && (xc + x) < timg.getWidth())
+                    timg.getByte(xc + x, yc + y) = s_symb->getByte(x, y);
+
+        getLogExt().appendImage(std::string("Intitial symbol"), *s_symb);
+
+        SegmentDeque::iterator git;
+        to_delete_segs.clear();
+        bool rem_graphics_seg = false;
+        bool rem_symbol_seg = false;
+        added_segs.clear();
+
+        double orig_dist;
+        rd = rec.recognize(vars, *s_symb, CharacterRecognizer::all);
+        ch = rd.getBest(&orig_dist);
+        getLogExt().append(std::string("Orignal distance"), orig_dist);
+
+        for (git = layer_graphics.begin(); git != layer_graphics.end(); ++git)
+        {
+            Segment* s_gr = *git;
+
+            std::vector<Segment*>::iterator res = std::find(to_delete_segs.begin(), to_delete_segs.end(), *git);
+
+            if (res != to_delete_segs.end())
+            {
+                continue;
+            }
+
+            if (vars.checkTimeLimit())
+                throw ImagoException("Timelimit exceeded");
+
+            int rowsg = s_gr->getHeight();
+            int colsg = s_gr->getWidth();
+            int xg0 = s_gr->getX();
+            int yg0 = s_gr->getY();
+            int xg = xg0 - xc0 + xc;
+            int yg = yg0 - yc0 + yc;
+
+            if (xg < 0 || yg < 0 || (xg + colsg) >= capital_height * 3 || (yg + rowsg) >= capital_height * 3)
+                continue;
+
+            if (SegmentTools::getRealDistance(*s_symb, *s_gr, SegmentTools::dtEuclidian) > capital_height / 2)
+                continue;
+
+            getLogExt().append("Graph height", rowsg);
+            getLogExt().append("Graph width", colsg);
+            getLogExt().append("Graph x", xg0);
+            getLogExt().append("Graph y", yg0);
+
+            getLogExt().append("Graph temp x", xg);
+            getLogExt().append("Graph temp y", yg);
+
+            getLogExt().appendImage(std::string("Possible graphics for join"), *s_gr);
+
+            for (int y = 0; y < rowsg; y++)
+                for (int x = 0; x < colsg; x++)
+                    if ((yg + y) >= 0 && (yg + y) < timg.getHeight() && (xg + x) >= 0 && (xg + x) < timg.getWidth())
+                        if (s_gr->getByte(x, y) != 255)
+                            timg.getByte(xg + x, yg + y) = s_gr->getByte(x, y);
+
+            Segment* s = new Segment();
+            s->copy(timg);
+            s->getX() = 0;
+            s->getY() = 0;
+
+            getLogExt().appendImage(std::string("repaired image"), timg);
+            getLogExt().appendImage(std::string("repaired segment"), *s);
+
+            imago::Segment* scopy = new Segment(*s);
+            scopy->crop();
+
+            try
+            {
+                rd = rec.recognize(vars, *scopy, CharacterRecognizer::all);
+                ch = rd.getBest(&best_dist);
+                getLogExt().append("Result best distance:", best_dist);
+                delete s;
+            }
+            catch (ImagoException ex)
+            {
+                delete s;
+                delete scopy;
+                continue;
+            }
+            if (best_dist < vars.characters.PossibleCharacterDistanceStrong && rd.getQuality() > vars.characters.PossibleCharacterMinimalQuality)
+            {
+                double best_other = CheckOtherSymbols(vars, *s_gr, layer_symbols, rec, sit);
+                if ((best_dist < orig_dist) && (best_dist < best_other))
+                {
+                    to_delete_segs.push_back(*git);
+                    rem_graphics_seg = true;
+                    rem_symbol_seg = true;
+                    scopy->getX() = xc0 >= xg0 ? xg0 : xc0;
+                    scopy->getY() = yc0 >= yg0 ? yg0 : yc0;
+                    if (added_segs.size() > 0)
+                    {
+                        for (std::vector<Segment*>::iterator it = added_segs.begin(); it != added_segs.end(); ++it)
+                        {
+                            Segment* s_tmp = *it;
+                            scopy->getX() = scopy->getX() >= s_tmp->getX() ? s_tmp->getX() : scopy->getX();
+                            scopy->getY() = scopy->getY() >= s_tmp->getY() ? s_tmp->getY() : scopy->getY();
+                            to_delete_segs.push_back(s_tmp);
+                        }
+                    }
+                    to_add_segs.push_back(scopy);
+                    getLogExt().appendImage(std::string("New possible symbol found!!!"), *scopy);
+                    getLogExt().append("         Char:", ch);
+                    getLogExt().append("Best distance:", best_dist);
+                    getLogExt().append("      Quality:", rd.getQuality());
+                    break;
+                }
+                else if (best_dist < best_other)
+                {
+                    // Special check for possible indices and (-) charge symbol
+                    rd = rec.recognize(vars, *s_gr, CharacterRecognizer::all);
+
+                    ch = rd.getBest(&best_dist);
+                    if (((CharacterRecognizer::digits.find(ch) != std::string::npos) || (CharacterRecognizer::charges.find(ch) != std::string::npos) ||
+                         (CharacterRecognizer::like_bonds.find(ch) != std::string::npos)) &&
+                        (s_gr->getDiameter() > vars.dynamic.LineThickness))
+                    {
+                        rem_graphics_seg = true;
+                        to_add_segs.push_back(s_gr);
+                        to_delete_segs.push_back(*git);
+                        getLogExt().appendImage(std::string("Added as possible index or charge sign or symbol like bond!!!"), *s_gr);
+                        break;
+                    }
+                    else
+                    {
+                        delete scopy;
+                        added_segs.push_back(s_gr);
+                    }
+                }
+            }
+            else
+            {
+                // Special check for possible indices and (-) charge symbol
+                rd = rec.recognize(vars, *s_gr, CharacterRecognizer::all);
+
+                ch = rd.getBest(&best_dist);
+                getLogExt().append("Ranged best candidates", rd.getRangedBest());
+
+                if (((CharacterRecognizer::digits.find(ch) != std::string::npos) || (CharacterRecognizer::charges.find(ch) != std::string::npos) ||
+                     (CharacterRecognizer::like_bonds.find(ch) != std::string::npos) || (rd.getRangedBest().find('l') != std::string::npos) ||
+                     (rd.getRangedBest().find('1') != std::string::npos) || (rd.getRangedBest().find('I') != std::string::npos)) &&
+                    (s_gr->getDiameter() > vars.dynamic.LineThickness))
+                {
+                    rem_graphics_seg = true;
+                    to_add_segs.push_back(s_gr);
+                    to_delete_segs.push_back(*git);
+                    getLogExt().appendImage(std::string("Added as possible index or charge sign or symbol like bond!!!"), *s_gr);
+                    break;
+                }
+                else
+                {
+                    delete scopy;
+                    added_segs.push_back(s_gr);
+                }
+            }
+        }
+        if (rem_graphics_seg)
+        {
+            for (SegmentDeque::iterator it = layer_graphics.begin(); it != layer_graphics.end();)
+            {
+                std::vector<Segment*>::iterator res = std::find(to_delete_segs.begin(), to_delete_segs.end(), *it);
+
+                if (res != to_delete_segs.end())
+                {
+                    it = layer_graphics.erase(it);
+                }
+                else
+                    ++it;
+            }
+        }
+        if (rem_symbol_seg)
+            sit = layer_symbols.erase(sit);
+        else
+            ++sit;
+    }
+
+    for (std::vector<Segment*>::iterator it = to_add_segs.begin(); it != to_add_segs.end(); ++it)
+    {
+        Segment* s = *it;
+        layer_symbols.push_back(s);
+    }
+
+    getLogExt().append("Symbol segments proceed:", count);
+
+    getLogExt().append("Number of graphics segments:", layer_graphics.size());
+    getLogExt().append("Number of symbol segments:", layer_symbols.size());
+
+    getLogExt().appendText("Try to repaire symbols segments...");
+
+    to_delete_segs.clear();
+    to_add_segs.clear();
+
+    for (sit = layer_symbols.begin(); sit != layer_symbols.end(); ++sit)
+    {
+        Segment* s_symb = *sit;
+        if (vars.checkTimeLimit())
+            throw ImagoException("Timelimit exceeded");
+
+        std::vector<Segment*>::iterator res = std::find(to_delete_segs.begin(), to_delete_segs.end(), *sit);
+
+        if (res != to_delete_segs.end())
+        {
+            continue;
+        }
+
+        timg.fillWhite();
+
+        int rowsc = s_symb->getHeight();
+        int colsc = s_symb->getWidth();
+        int xc0 = s_symb->getX();
+        int yc0 = s_symb->getY();
+        int xc = capital_height;
+        int yc = capital_height;
+
+        getLogExt().append("1 Symbol height", rowsc);
+        getLogExt().append("1 Symbol width", colsc);
+        getLogExt().append("1 Symbol x", xc0);
+        getLogExt().append("1 Symbol y", yc0);
+
+        getLogExt().append("1 Symbol temp x", xc);
+        getLogExt().append("1 Symbol temp y", yc);
+
+        for (int y = 0; y < rowsc; y++)
+            for (int x = 0; x < colsc; x++)
+                if ((yc + y) >= 0 && (yc + y) < timg.getHeight() && (xc + x) >= 0 && (xc + x) < timg.getWidth())
+                    timg.getByte(xc + x, yc + y) = s_symb->getByte(x, y);
+
+        getLogExt().appendImage(std::string("Intitial symbol"), *s_symb);
+
+        double orig_dist1;
+        rd = rec.recognize(vars, *s_symb, CharacterRecognizer::all);
+        ch = rd.getBest(&orig_dist1);
+        double orig_qual1;
+        orig_qual1 = rd.getQuality();
+        getLogExt().append(std::string("Orignal distance 1"), orig_dist1);
+        getLogExt().append(std::string("Orignal quality 1"), rd.getQuality());
+
+        SegmentDeque::iterator git;
+        added_segs.clear();
+
+        for (git = layer_symbols.begin(); git != layer_symbols.end(); ++git)
+        {
+            if (sit == git)
+                continue;
+
+            std::vector<Segment*>::iterator res = std::find(to_delete_segs.begin(), to_delete_segs.end(), *git);
+
+            if (res != to_delete_segs.end())
+            {
+                continue;
+            }
+
+            Segment* s_gr = *git;
+
+            if (vars.checkTimeLimit())
+                throw ImagoException("Timelimit exceeded");
+
+            timg.fillWhite();
+
+            for (int y = 0; y < rowsc; y++)
+                for (int x = 0; x < colsc; x++)
+                    if ((yc + y) >= 0 && (yc + y) < timg.getHeight() && (xc + x) >= 0 && (xc + x) < timg.getWidth())
+                        timg.getByte(xc + x, yc + y) = s_symb->getByte(x, y);
+
+            int rowsg = s_gr->getHeight();
+            int colsg = s_gr->getWidth();
+            int xg0 = s_gr->getX();
+            int yg0 = s_gr->getY();
+            int xg = xg0 - xc0 + xc;
+            int yg = yg0 - yc0 + yc;
+
+            if (xg < 0 || yg < 0 || (xg + colsg) >= capital_height * 3 || (yg + rowsg) >= capital_height * 3)
+                continue;
+
+            if (SegmentTools::getRealDistance(*s_symb, *s_gr, SegmentTools::dtEuclidian) > vars.dynamic.LineThickness * 2.0)
+                continue;
+
+            getLogExt().append("2 Symb height", rowsg);
+            getLogExt().append("2 Symb width", colsg);
+            getLogExt().append("2 Symb x", xg0);
+            getLogExt().append("2 Symb y", yg0);
+
+            getLogExt().append("2 Symb temp x", xg);
+            getLogExt().append("2 Symb temp y", yg);
+
+            getLogExt().appendImage(std::string("Possible symbol for join"), *s_gr);
+
+            double orig_dist2;
+            rd = rec.recognize(vars, *s_gr, CharacterRecognizer::all);
+            ch = rd.getBest(&orig_dist2);
+            double orig_qual2;
+            orig_qual2 = rd.getQuality();
+            getLogExt().append(std::string("Orignal distance 2"), orig_dist2);
+            getLogExt().append(std::string("Orignal quality 2"), rd.getQuality());
+
+            for (int y = 0; y < rowsg; y++)
+                for (int x = 0; x < colsg; x++)
+                    if ((yg + y) >= 0 && (yg + y) < timg.getHeight() && (xg + x) >= 0 && (xg + x) < timg.getWidth())
+                        if (s_gr->getByte(x, y) != 255)
+                            timg.getByte(xg + x, yg + y) = s_gr->getByte(x, y);
+
+            Segment* s = new Segment();
+            s->copy(timg);
+            s->getX() = 0;
+            s->getY() = 0;
+
+            getLogExt().appendImage(std::string("repaired image"), timg);
+            getLogExt().appendImage(std::string("repaired segment"), *s);
+
+            imago::Segment* scopy = new Segment(*s);
+            scopy->crop();
+
+            try
+            {
+                rd = rec.recognize(vars, *scopy, CharacterRecognizer::all);
+                ch = rd.getBest(&best_dist);
+                double best_qual = rd.getQuality();
+                getLogExt().append(std::string("Result distance"), best_dist);
+                getLogExt().append(std::string("Result quality "), rd.getQuality());
+
+                delete s;
+
+                if ((best_dist < vars.characters.PossibleCharacterDistanceStrong) && (ch != '!') && (ch != '='))
+                //                rd.getQuality() > vars.characters.PossibleCharacterMinimalQuality)
+                {
+                    if (best_dist < (orig_dist1 + orig_dist2) / 2)
+                    //               if ( (best_dist < orig_dist1) && (best_dist < orig_dist2) )
+                    //                    ( (best_qual >= orig_qual1) && (best_qual >= orig_qual2) ) )
+                    {
+                        to_delete_segs.push_back(*sit);
+                        to_delete_segs.push_back(*git);
+                        scopy->getX() = xc0 >= xg0 ? xg0 : xc0;
+                        scopy->getY() = yc0 >= yg0 ? yg0 : yc0;
+                        /*
+                                          if (added_segs.size() > 0)
+                                          {
+                                             for (std::vector<Segment *>::iterator it = added_segs.begin(); it != added_segs.end(); ++it)
+                                             {
+                                                Segment *s_tmp = *it;
+                                                scopy->getX() = scopy->getX() >= s_tmp->getX() ? s_tmp->getX() : scopy->getX();
+                                                scopy->getY() = scopy->getY() >= s_tmp->getY() ? s_tmp->getY() : scopy->getY();
+                                                to_delete_segs.push_back(s_tmp);
+                                             }
+                                          }
+                        */
+                        to_add_segs.push_back(scopy);
+                        getLogExt().appendImage(std::string("New possible symbol found!!!"), *scopy);
+                        getLogExt().append("         Char:", ch);
+                        getLogExt().append("Best distance:", best_dist);
+                        getLogExt().append("      Quality:", rd.getQuality());
+                        break;
+                    }
+                    else
+                    {
+                        //                  added_segs.push_back(s_gr);
+                        delete scopy;
+                    }
+                }
+                else
+                {
+                    //               added_segs.push_back(s_gr);
+                    delete scopy;
+                }
+            }
+            catch (ImagoException ex)
+            {
+                delete s;
+                delete scopy;
+                continue;
+            }
+        }
+    }
+    // delete elements from queue (note: iterators invalidation after erase)
+
+    for (SegmentDeque::iterator it = layer_symbols.begin(); it != layer_symbols.end();)
+    {
+        std::vector<Segment*>::iterator res = std::find(to_delete_segs.begin(), to_delete_segs.end(), *it);
+
+        if (res != to_delete_segs.end())
+        {
+            it = layer_symbols.erase(it);
+        }
+        else
+            ++it;
+    }
+
+    for (std::vector<Segment*>::iterator it = to_add_segs.begin(); it != to_add_segs.end(); ++it)
+    {
+        Segment* s = *it;
+        layer_symbols.push_back(s);
+    }
+
+    getLogExt().append("Number of graphics segements:", layer_graphics.size());
+    getLogExt().append("Number of symbol segements:", layer_symbols.size());
+
+    getLogExt().append("Symbols after repare:", layer_symbols.size());
+
+    for (sit = layer_symbols.begin(); sit != layer_symbols.end(); ++sit)
+    {
+        getLogExt().appendImage(std::string("symbol"), *(*sit));
+    }
+
+    return (layer_symbols.size() != symbols_before) || (layer_graphics.size() != graphics_before);
+}
+
+double Separator::CheckOtherSymbols(const Settings& vars, Segment& s_gr, SegmentDeque& layer_symbols, CharacterRecognizer& rec, SegmentDeque::iterator symb)
+{
+    logEnterFunction();
+
+    double best_quality = imago::DIST_INF;
+
+    SegmentDeque::iterator sit;
+
+    int capital_height = (int)vars.dynamic.CapitalHeight;
+    if (capital_height < 0)
+        capital_height = 32;
+    Image timg(capital_height * 3, capital_height * 3);
+
+    for (sit = layer_symbols.begin(); sit != layer_symbols.end(); ++sit)
+    {
+        if (sit == symb)
+            continue;
+
+        Segment* s_symb = *sit;
+        if (vars.checkTimeLimit())
+            throw ImagoException("Timelimit exceeded");
+
+        timg.fillWhite();
+
+        int rowsc = s_symb->getHeight();
+        int colsc = s_symb->getWidth();
+        int xc0 = s_symb->getX();
+        int yc0 = s_symb->getY();
+        int xc = capital_height;
+        int yc = capital_height;
+
+        for (int y = 0; y < rowsc; y++)
+            for (int x = 0; x < colsc; x++)
+                if ((yc + y) >= 0 && (yc + y) < timg.getHeight() && (xc + x) >= 0 && (xc + x) < timg.getWidth())
+                    timg.getByte(xc + x, yc + y) = s_symb->getByte(x, y);
+
+        if (vars.checkTimeLimit())
+            throw ImagoException("Timelimit exceeded");
+
+        int rowsg = s_gr.getHeight();
+        int colsg = s_gr.getWidth();
+        int xg0 = s_gr.getX();
+        int yg0 = s_gr.getY();
+        int xg = xg0 - xc0 + xc;
+        int yg = yg0 - yc0 + yc;
+
+        if (xg < 0 || yg < 0 || (xg + colsg) >= capital_height * 3 || (yg + rowsg) >= capital_height * 3)
+            continue;
+
+        for (int y = 0; y < rowsg; y++)
+            for (int x = 0; x < colsg; x++)
+                if ((yg + y) >= 0 && (yg + y) < timg.getHeight() && (xg + x) >= 0 && (xg + x) < timg.getWidth())
+                    if (s_gr.getByte(x, y) != 255)
+                        timg.getByte(xg + x, yg + y) = s_gr.getByte(x, y);
+
+        Segment* s = new Segment();
+        s->copy(timg);
+        s->getX() = 0;
+        s->getY() = 0;
+
+        RecognitionDistance rd;
+        double best_dist;
+        double quality;
+        char ch;
+
+        imago::Segment* scopy = new Segment(*s);
+        scopy->crop();
+
+        try
+        {
+            rd = rec.recognize(vars, *scopy, CharacterRecognizer::all + CharacterRecognizer::graphics);
+            ch = rd.getBest(&best_dist);
+            quality = rd.getQuality();
+
+            delete s;
+            delete scopy;
+        }
+        catch (ImagoException ex)
+        {
+            delete s;
+            delete scopy;
+            continue;
+        }
+
+        quality = best_dist;
+        if ((quality < best_quality) && (ch != '%') && (ch != '^') && (ch != '!') && (ch != '='))
+            best_quality = quality;
+    }
+    getLogExt().append("Best other candidates quality:", best_quality);
+
+    return best_quality;
 }
 
 int Separator::PredictGroup(const Settings& vars, Segment* seg, int mark, SegmentDeque& layer_symbols)
@@ -837,7 +1732,8 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque& layer_symbol
                     strict = false;
                 }
             }
-            else if (two_chars_probably)
+            //			else if (two_chars_probably)
+            else if ((two_chars_probably) || (s->getWidth() > cap_height))
             {
                 // calculate split
                 int mid = s->getWidth() / 2;
@@ -866,7 +1762,11 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque& layer_symbol
                 {
                     Segment* s1 = new Segment();
                     Segment* s2 = new Segment();
+
                     s->splitVert(best_x, *s1, *s2);
+
+                    s1->crop();
+                    s2->crop();
 
                     getLogExt().appendSegment("Split: S1", *s1);
                     getLogExt().appendSegment("Split: S2", *s2);
@@ -884,6 +1784,36 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque& layer_symbol
                             // continue;
                         }
                     }
+                    else if (rec.isPossibleCharacter(vars, *s1, true, &ch))
+                    {
+                        getLogExt().appendText("First is symbol");
+                        if (segs > vars.separator.minApproxSegsWeak)
+                        {
+                            getLogExt().appendText("Segments criteria passed");
+                            layer_symbols.push_back(s1);
+                            layer_symbols.push_back(s2);
+
+                            cresults.KNN = SEP_SYMBOL;
+                            cresults.Processed = true;
+                            // continue;
+                        }
+                    }
+
+                    else if (rec.isPossibleCharacter(vars, *s2, true, &ch))
+                    {
+                        getLogExt().appendText("Second is symbol");
+                        if (segs > vars.separator.minApproxSegsWeak)
+                        {
+                            getLogExt().appendText("Segments criteria passed");
+                            layer_symbols.push_back(s1);
+                            layer_symbols.push_back(s2);
+
+                            cresults.KNN = SEP_SYMBOL;
+                            cresults.Processed = true;
+                            // continue;
+                        }
+                    }
+
                     if (!cresults.Processed)
                     {
                         delete s1;
@@ -930,15 +1860,26 @@ void Separator::ClassifySegment(const Settings& vars, SegmentDeque& layer_symbol
     if (cresults.KNN == -1 || cresults.KNN == 3)
     {
         cresults.KNN = rec.isPossibleCharacter(vars, *s, true, &ch) ? 1 : 0;
-        if (ch == '(' || ch == ')' || ch == '[' || ch == ']')
+        /*
+                if (ch == '(' || ch == ')' || ch == '[' || ch == ']')
+                {
+                    cresults.HuMoments = SEP_SYMBOL;
+                    cresults.Probability = SEP_SYMBOL;
+                    mark = SEP_SYMBOL;
+                }
+        */
+    }
+
+    if (cresults.Probability == -1)
+        cresults.Probability = PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND, layer_symbols);
+
+    if ((cresults.Probability == SEP_SYMBOL) && (rec.isPossibleCharacter(vars, *s, true, &ch)))
+    {
+        if (CharacterRecognizer::like_bonds.find(ch) != std::string::npos)
         {
-            cresults.HuMoments = SEP_SYMBOL;
-            cresults.Probability = SEP_SYMBOL;
             mark = SEP_SYMBOL;
         }
     }
-    if (cresults.Probability == -1)
-        cresults.Probability = PredictGroup(vars, s, votes[SEP_SYMBOL] > votes[SEP_BOND] ? SEP_SYMBOL : SEP_BOND, layer_symbols);
 
     cresults.OverAll = mark;
 }
@@ -954,12 +1895,18 @@ void Separator::Separate(Settings& vars, CharacterRecognizer& rec, SegmentDeque&
         getLogExt().appendText("Warning, _segs.size is 0!");
         return;
     }
-    else
+    else if (_segs.size() > 5)
     {
         bool _heightRestricted = false;
-        guessedHeight = _estimateCapHeight(vars, _heightRestricted);
+        guessedHeight = estimateCapHeight(vars, _heightRestricted);
         vars.dynamic.CapitalHeight = guessedHeight;
         getLogExt().append("Capital height", vars.dynamic.CapitalHeight);
+    }
+    else
+    {
+        getLogExt().append("Warning, _segs.size is too small, use predefined Capital height", _segs.size());
+        guessedHeight = 32;
+        vars.dynamic.CapitalHeight = guessedHeight;
     }
 
     double height_sum = 0.0;
@@ -1005,6 +1952,8 @@ pre_classify:
                 classified_at_least_one_char = true;
                 layer_symbols.push_back(s);
             }
+            else
+                getLogExt().appendText("Not classified on first stage");
         }
         else
         {
@@ -1060,8 +2009,23 @@ pre_classify:
             else
                 ClassifySegment(vars, layer_symbols, rec, s, cres);
 
+            // Check if segment too large for symbol
+            if ((s->getHeight() > vars.dynamic.CapitalHeight * 3) || (s->getWidth() > vars.dynamic.CapitalHeight * 3))
+            {
+                layer_graphics.push_back(s);
+                continue;
+            }
+
             if (!cres.Processed)
             {
+
+                getLogExt().append("Classified results (OverAll)", cres.OverAll);
+                getLogExt().append("Classified results (Probability)", cres.Probability);
+                getLogExt().append("Classified results (KNN)", cres.KNN);
+                getLogExt().append("Classified results (KNNRatios)", cres.KNNRatios);
+                getLogExt().append("Classified results (HuMoments)", cres.HuMoments);
+                getLogExt().append("Classified results (Ratios)", cres.Ratios);
+
                 switch (cres.OverAll)
                 {
                 case SEP_BOND:
@@ -1078,6 +2042,8 @@ pre_classify:
     }
 
     SeparateStuckedSymbols(vars, layer_symbols, layer_graphics, rec);
+
+    RepairBrokenSymbols(vars, layer_symbols, layer_graphics, rec);
 
     std::sort(layer_symbols.begin(), layer_symbols.end(), _segmentsComparator);
 }
@@ -1098,7 +2064,7 @@ int Separator::_getApproximationSegmentsCount(const Settings& vars, Segment* seg
     return (int)lsegments.size();
 }
 
-int Separator::_estimateCapHeight(const Settings& vars, bool& restrictedHeight)
+int Separator::estimateCapHeight(const Settings& vars, bool& restrictedHeight)
 {
     logEnterFunction();
 
@@ -1160,7 +2126,7 @@ int Separator::_estimateCapHeight(const Settings& vars, bool& restrictedHeight)
     DoubleVector densities(symbols_found.size(), 0.0);
     PairIntVector symbols_graphics(seq_pairs.size());
 
-    size_t symbols_seq = -1, max_seq_length_i;
+    int symbols_seq = -1, max_seq_length_i;
 
     while (true)
     {
@@ -1185,7 +2151,7 @@ int Separator::_estimateCapHeight(const Settings& vars, bool& restrictedHeight)
         if (_checkSequence(vars, p, symbols_graphics[max_seq_length_i], density))
         {
             densities.push_back(density);
-            symbols_found.push_back((int)max_seq_length_i);
+            symbols_found.push_back(max_seq_length_i);
         }
     }
 

@@ -26,15 +26,27 @@
 #include "image_utils.h"
 #include "label_combiner.h"
 #include "log_ext.h"
+#include "periodic_table.h"
 #include "segment.h"
 
 using namespace imago;
 
 const std::string exact_as_lower = "OSWVPZXCV";
 const std::string can_not_be_capital = "XJUVWQ";
+const std::string can_not_be_only_one_capital = "ADEGJLMQRTXZ";
+const std::string can_not_be_in_comb[] = {"abdefhijknopqvwxyz",         "bcdfgjlmnopqstuvwxyz",       "bcghijknpqtvwxyz",           "acdefghijklmnopqrstuvwxz",
+                                          "abcdefghijklmnopqtvwxyz",    "abcdfghijklnopqstuvwxyz",    "bcfghijklmnopqrstuvwxyz",    "abcdhijklmnpqrtuvwxyz",
+                                          "abcdefghijklmopqstuvwxyz",   "abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqstuvwxyz",  "bcdefghjklmnopqstvwxyz",
+                                          "abcefhijklmpqrsuvwxyz",      "cfghjklmnqrstuvwxyz",        "abcdefghijklmnopqrtuvwxyz",  "cefghijklnpqsvwxyz",
+                                          "abcdefghijklmnopqrstuvwxyz", "cdgijklmopqrstvwxyz",        "adfhjklopqstuvwxyz",         "dfgjknopqrstuvwxyz",
+                                          "abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz", "abcdefghijklmnopqrstuvwxyz", "abcdfghijklmnopqrstuvwxyz",
+                                          "acdefghijklmnopqrstuvwxyz",  "abcdefghijklmopqstuvwxyz"};
+
+std::string allowed_comb[26];
 
 LabelLogic::LabelLogic(const CharacterRecognizer& cr) : _cr(cr), _satom(NULL), _cur_atom(NULL)
 {
+    //   _buildPossibleCombArray();
 }
 
 LabelLogic::~LabelLogic()
@@ -62,7 +74,12 @@ void LabelLogic::process_ext(const Settings& vars, Segment* seg, int line_y)
     logEnterFunction();
     getLogExt().appendSegmentWithYLine(vars, "segment with baseline", *seg, line_y);
 
+    bool possible_upperscript = false;
+    bool possible_subscript = false;
+
     RecognitionDistance pr = _cr.recognize(vars, *seg);
+
+    getLogExt().append("Ranged best candidates", pr.getRangedBest());
 
     {
         // adjust using image params
@@ -73,15 +90,49 @@ void LabelLogic::process_ext(const Settings& vars, Segment* seg, int line_y)
             pr.adjust(1.0 - vars.labels.weightUnderline * (underline - vars.labels.underlinePos), CharacterRecognizer::digits);
         }
 
+        getLogExt().append("Ranged best candidates", pr.getRangedBest());
+
+        if ((vars.dynamic.CapitalHeight > 0) && (line_y > 0))
+        {
+            if ((line_y - seg->getY() >= vars.dynamic.CapitalHeight * 0.8) &&
+                (line_y - seg->getY() - SegmentTools::getRealHeight(*seg)) > vars.dynamic.CapitalHeight / 2)
+            {
+                possible_upperscript = true;
+            }
+            else if ((seg->getY() + SegmentTools::getRealHeight(*seg)) > line_y)
+            {
+                possible_subscript = true;
+            }
+        }
+
+        if ((possible_upperscript || possible_subscript) && (pr.getBest() == 'l'))
+        {
+            pr.adjust(0.1, "1");
+        }
+        else if (possible_upperscript || possible_subscript)
+        {
+            pr.adjust(vars.labels.adjustInc, CharacterRecognizer::digits);
+        }
+        else
+        {
+            pr.adjust(vars.labels.adjustDec, substract(CharacterRecognizer::digits, "1"));
+        }
+
+        getLogExt().append("Ranged best candidates", pr.getRangedBest());
+
         if (vars.dynamic.CapitalHeight > 0)
         {
             double ratio = (double)SegmentTools::getRealHeight(*seg) / (vars.dynamic.CapitalHeight - 1);
             getLogExt().append("Height ratio", ratio);
-            double base = 1.0 - vars.labels.ratioWeight * 1.0;
-            pr.adjust(base + vars.labels.ratioWeight * ratio, CharacterRecognizer::lower + CharacterRecognizer::digits);
+
+            //			double base = 1.0 - vars.labels.ratioWeight * 1.0;
+            //			pr.adjust(base + vars.labels.ratioWeight * ratio , CharacterRecognizer::lower + CharacterRecognizer::digits);
+
+            pr.adjust(1.0 + (ratio - 0.8), substract(CharacterRecognizer::lower + CharacterRecognizer::digits + CharacterRecognizer::charges, "l1"));
 
             // complicated cases: there are some symbols with exactly the same representation in lower and upper cases
-            if (ratio > vars.labels.ratioCapital)
+            // and this is first symbol for current atom
+            if ((ratio > vars.labels.ratioCapital) && (_cur_atom->getLabelFirst() == 0))
             {
                 std::string lower_em = lower(exact_as_lower);
                 if (lower_em.find(pr.getBest()) != std::string::npos)
@@ -89,11 +140,30 @@ void LabelLogic::process_ext(const Settings& vars, Segment* seg, int line_y)
                     pr.adjust(vars.labels.capitalAdjustFactor, exact_as_lower);
                 }
             }
+            /*
+                                    else if (ratio > vars.labels.ratioCapital)
+                                    {
+                            std::string lower_em = lower(exact_as_lower);
+                            if (lower_em.find(pr.getBest()) != std::string::npos)
+                            {
+            //					pr.adjust(vars.labels.adjustInc, exact_as_lower);
+                                pr.adjust(vars.labels.capitalAdjustFactor, exact_as_lower);
+                            }
+                        }
+            */
+            else if ((ratio < 0.25) && (pr.getBest() != '+') && (pr.getBest() != '-'))
+            {
+                getLogExt().appendText("Too small symbol, probably some mech. Just ignore it");
+                return;
+            }
         }
+
+        getLogExt().append("Ranged best candidates", pr.getRangedBest());
     }
 
     {
         // adjust using chemical structure logic
+
         if (_cur_atom->getLabelFirst() != 0 && _cur_atom->getLabelSecond() == 0)
         {
             // can be a capital or digit or small
@@ -102,12 +172,28 @@ void LabelLogic::process_ext(const Settings& vars, Segment* seg, int line_y)
             {
                 if (_cur_atom->getLabelFirst() == 'C')
                     pr.adjust(vars.labels.adjustInc, "l");
+                if ((_cur_atom->getLabelFirst() == 'C') && !possible_subscript && ((pr.getBest() == '1') || (pr.getBest() == 'I')))
+                    pr.adjust(0.1, "l");
+                if ((_cur_atom->getLabelFirst() == 'S') && ((pr.getBest() == 'l') || (pr.getBest() == '1')))
+                    pr.adjust(0.1, "i");
+                if ((_cur_atom->getLabelFirst() == 'O') && (pr.getBest() == 'l') && !possible_upperscript && !possible_subscript)
+                    _cur_atom->setLabel("C");
+
                 // decrease probability of unallowed characters
-                // TODO: not implemented
-                // pr.adjust(vars.labels.adjustDec, substract(CharacterRecognizer::lower, comb[idx]));
+                pr.adjust(vars.labels.adjustDec, can_not_be_in_comb[idx]);
+
+                // increase probability of small characters if first capital can not be just one symbol
+                if (can_not_be_only_one_capital.find(_cur_atom->getLabelFirst()) != std::string::npos)
+                {
+                    pr.adjust(vars.labels.adjustInc, substract(CharacterRecognizer::lower, can_not_be_in_comb[idx]));
+                }
+            }
+            else if ((_cur_atom->getLabelFirst() == ')') && (possible_subscript))
+            {
+                pr.adjust(vars.labels.adjustInc, CharacterRecognizer::digits);
             }
         }
-        else if (_cur_atom->getLabelFirst() == 0)
+        else if ((_cur_atom->getLabelFirst() == 0) && !possible_upperscript)
         {
             // should be a capital letter, increase probability of allowed characters
             pr.adjust(vars.labels.adjustInc, substract(CharacterRecognizer::upper, can_not_be_capital));
@@ -128,7 +214,8 @@ retry:
     getLogExt().append("Quality", pr.getQuality());
 
     char ch = pr.getBest();
-    if (CharacterRecognizer::upper.find(ch) != std::string::npos) // it also includes 'tricky' symbols
+    if ((CharacterRecognizer::upper.find(ch) != std::string::npos) ||
+        (CharacterRecognizer::specials.find(ch) != std::string::npos)) // it also includes 'tricky' symbols
     {
         _addAtom();
         if (!_multiLetterSubst(ch)) // 'tricky'
@@ -163,13 +250,15 @@ retry:
     }
     else if (CharacterRecognizer::digits.find(ch) != std::string::npos)
     {
-        if (_cur_atom->count != 0)
-        {
-            getLogExt().appendText("Count specified twice, fixup & retry");
-            pr.adjust(vars.labels.adjustDec, CharacterRecognizer::digits);
-            goto retry;
-        }
-        else if (_cur_atom->getLabelFirst() == 0)
+        /*
+                if (_cur_atom->count != 0)
+                {
+                    getLogExt().appendText("Count specified twice, fixup & retry");
+                    pr.adjust(vars.labels.adjustDec, CharacterRecognizer::digits);
+                    goto retry;
+                }
+        */
+        if ((_cur_atom->getLabelFirst() == 0) && !possible_upperscript)
         {
             getLogExt().appendText("Count specified for non-set atom, fixup & retry");
             pr.adjust(vars.labels.adjustDec, CharacterRecognizer::digits);
@@ -183,10 +272,26 @@ retry:
                 _cur_atom->charge = _cur_atom->charge * 10 + digit;
                 getLogExt().append("Initialized R-group index", _cur_atom->charge);
             }
-            else
+            else if (!possible_upperscript)
             {
                 _cur_atom->count = _cur_atom->count * 10 + digit;
                 getLogExt().append("Initialized atom count", _cur_atom->count);
+            }
+            else if (_cur_atom->getLabelFirst() != 0)
+            {
+                getLogExt().append("Current atom charge", _cur_atom->charge);
+
+                if (_cur_atom->charge == 0)
+                    _cur_atom->charge = digit;
+                else
+                    _cur_atom->charge = _cur_atom->charge * digit;
+
+                getLogExt().append("Initialized atom charge", _cur_atom->charge);
+            }
+            else
+            {
+                _cur_atom->isotope = _cur_atom->isotope * 10 + digit;
+                getLogExt().append("Initialized atom isotope", _cur_atom->isotope);
             }
         }
     }
@@ -198,9 +303,27 @@ retry:
     }
     else if (CharacterRecognizer::charges.find(ch) != std::string::npos) // charges
     {
-        _cur_atom->charge = (ch == '+') ? +1 : -1;
+        // Special check fo possible chain construction
+        // just ignore this symbol in that case
+        if (ch == '-' && !possible_upperscript)
+        {
+            getLogExt().appendText("Possible chain found. Just ignore minus sign in that case!");
+            return;
+        }
+
+        if (_cur_atom->getLabelFirst() == 0)
+        {
+            getLogExt().appendText("Atom charge specified for non-set atom. Try to process this label later");
+            return;
+        }
+
+        getLogExt().append("Current atom charge", _cur_atom->charge);
+        if (_cur_atom->charge == 0)
+            _cur_atom->charge = (ch == '+') ? +1 : -1;
+        else
+            _cur_atom->charge = _cur_atom->charge * ((ch == '+') ? +1 : -1);
+
         getLogExt().append("Initialized atom charge", _cur_atom->charge);
-        // TODO: charges like "-3"
     }
     else
     {
@@ -224,7 +347,8 @@ bool LabelLogic::_multiLetterSubst(char sym)
     switch (sym)
     {
     case '$':
-        _cur_atom->setLabel("Cl");
+        _cur_atom->setLabel("F");
+        _cur_atom->count = 3;
         return true;
     case '%':
         _cur_atom->setLabel("H");
@@ -250,6 +374,30 @@ bool LabelLogic::_multiLetterSubst(char sym)
     }
 
     return false;
+}
+
+void LabelLogic::_buildPossibleCombArray()
+{
+    for (int i = 0; i < 26; i++)
+    {
+        char ch = 'A' + i;
+        std::string allowed = "";
+        for (std::string el : AtomMap.Elements)
+        {
+            char c_str[2] = {0};
+            for (size_t c = 0; c < el.size() && c < 2; c++)
+                c_str[c] = el[c];
+            if (ch == c_str[0] && c_str[1] != 0)
+            {
+                allowed.push_back(c_str[1]);
+            }
+        }
+        std::sort(allowed.begin(), allowed.end());
+        allowed_comb[i] = allowed;
+        getLogExt().append("", ch);
+        getLogExt().appendText(substract(CharacterRecognizer::lower, allowed_comb[i]));
+        getLogExt().appendText(can_not_be_in_comb[i]);
+    }
 }
 
 void LabelLogic::_postProcessLabel(Label& label)
@@ -299,6 +447,53 @@ void LabelLogic::_postProcessLabel(Label& label)
     {
         sa.atoms[0].setLabel("H");
     }
+}
+
+void LabelLogic::checkUnmappedLabels(const Settings& vars, std::deque<Label>& unmapped_labels, std::deque<Label>& labels)
+{
+    logEnterFunction();
+
+    for (Label& ul : unmapped_labels)
+    {
+        for (Label& l : labels)
+        {
+            if ((_isPossibleSubscript(vars, ul, l)) || (_isPossibleChain(vars, ul, l)))
+            {
+                l.satom.atoms.clear();
+                l.symbols.insert(l.symbols.end(), ul.symbols.begin(), ul.symbols.end());
+                LabelCombiner::fillLabelInfo(vars, l, _cr);
+                recognizeLabel(vars, l);
+            }
+        }
+    }
+}
+
+bool LabelLogic::_isPossibleSubscript(const Settings& vars, Label& subscript, Label& label)
+{
+    if ((subscript.rect.x == label.rect.x) && (subscript.rect.y == label.rect.y) && (subscript.rect.width == label.rect.width) &&
+        (subscript.rect.height == label.rect.height))
+        return false;
+
+    if (Rectangle::distance(subscript.rect, label.rect) < vars.dynamic.CapitalHeight)
+    {
+        if (((label.rect.x >= (subscript.rect.x + subscript.rect.width)) && (subscript.rect.y < label.rect.y)) ||
+            ((subscript.rect.x >= (label.rect.x + label.rect.width)) && (subscript.rect.y < label.rect.y)) ||
+            ((subscript.rect.x >= (label.rect.x + label.rect.width)) && (subscript.rect.y > label.rect.y)))
+            return true;
+    }
+    return false;
+}
+
+bool LabelLogic::_isPossibleChain(const Settings& vars, Label& tail, Label& label)
+{
+    if ((tail.rect.x == label.rect.x) && (tail.rect.y == label.rect.y) && (tail.rect.width == label.rect.width) && (tail.rect.height == label.rect.height))
+        return false;
+
+    if (Rectangle::distance(tail.rect, label.rect) < vars.dynamic.CapitalHeight)
+    {
+        return true;
+    }
+    return false;
 }
 
 void LabelLogic::recognizeLabel(const Settings& vars, Label& label)

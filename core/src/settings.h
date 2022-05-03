@@ -41,6 +41,10 @@ namespace imago
         bool UseProbablistics;
         bool ImageAlreadyBinarized;
         bool ExpandAbbreviations;
+        bool RemoveSuperatomSGroups;
+        bool NeutralizeZwitterions;
+        bool RemoveExtraStereoBonds;
+        bool ReplaceHaworthProjection;
         GeneralSettings();
     };
 

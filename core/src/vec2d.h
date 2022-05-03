@@ -217,6 +217,11 @@ namespace imago
             return a.x * b.x + a.y * b.y;
         }
 
+        static Type cross(const Vec2<Type>& a, const Vec2<Type>& b)
+        {
+            return a.x * b.y - a.y * b.x;
+        }
+
         template <typename OtherType>
         static double ddot(const Vec2<Type>& a, const Vec2<OtherType>& b)
         {
@@ -278,6 +283,10 @@ namespace imago
     inline bool operator==(const Vec2i& a, const Vec2i& b)
     {
         return (a.x == b.x && a.y == b.y);
+    }
+    inline bool operator<(const Vec2i& a, const Vec2i& b)
+    {
+        return (a.x < b.x || (a.x == b.x && a.y < b.y));
     }
 
 }

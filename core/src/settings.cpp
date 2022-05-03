@@ -43,6 +43,10 @@ namespace imago
         ClusterIndex = 0;              // default
         StartTime = TimeLimit = 0;
         ExpandAbbreviations = true;
+        RemoveSuperatomSGroups = false;
+        NeutralizeZwitterions = false;
+        RemoveExtraStereoBonds = false;
+        ReplaceHaworthProjection = false;
     }
 
     imago::Settings::Settings()

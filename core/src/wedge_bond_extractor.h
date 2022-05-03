@@ -24,6 +24,7 @@
 
 namespace imago
 {
+    class Skeleton;
     class Molecule;
     class Image;
     struct Bond;
@@ -43,7 +44,7 @@ namespace imago
             {
             }
 
-            SegCenter(SegmentDeque::iterator new_seg_iterator, const Vec2d& new_center, double new_angle)
+            SegCenter(SegmentDeque::iterator new_seg_iterator, Vec2d new_center, double new_angle)
                 : seg_iterator(new_seg_iterator), center(new_center), angle(new_angle)
             {
                 used = true;
@@ -58,7 +59,8 @@ namespace imago
 
         WedgeBondExtractor(SegmentDeque& segs, Image& img);
 
-        int singleDownFetch(const Settings& vars, Skeleton& g);
+        int singleDownFetchOld(const Settings& vars, Skeleton& g, SegmentDeque& sdb_segs);
+        int singleDownFetch(const Settings& vars, Skeleton& g, SegmentDeque& sdb_segs, double bond_len);
         void singleUpFetch(const Settings& vars, Skeleton& g);
 
         void fixStereoCenters(Molecule& mol);
@@ -76,10 +78,10 @@ namespace imago
             bool white_found;
         };
 
-        void _fitSingleDownBorders(Vec2d& p1, Vec2d& p2, const Vec2d& v1, const Vec2d& v2);
+        void _fitSingleDownBorders(Vec2d& p1, Vec2d& p2, Vec2d& v1, Vec2d& v2);
         static bool _intersectionFinderPlotCallBack(int x, int y, int color, void* userdata);
 
-        bool _isSingleUp(const Settings& vars, Skeleton& g, const Skeleton::Edge& e, BondType& return_type);
+        bool _isSingleUp(const Settings& vars, Skeleton& g, Skeleton::Edge& e, BondType& return_type);
         int _radiusFinder(const Vec2d& v);
         static bool _radiusFinderPlotCallback(int x, int y, int color, void* userdata);
         static int _doubleCompare(const void* a, const void* b);
@@ -95,7 +97,7 @@ namespace imago
             int n_double_bonds;
         };
 
-        bool _checkStereoCenter(Skeleton::Vertex v, Molecule& mol);
+        bool _checkStereoCenter(Skeleton::Vertex& v, Molecule& mol);
 
         std::map<Skeleton::Vertex, int> _thicknesses;
         std::vector<Skeleton::Edge> _bonds_to_reverse;
@@ -105,7 +107,7 @@ namespace imago
         std::vector<byte> _bfs_state;
         double _bond_length;
 
-        int getVertexValence(Skeleton::Vertex v, Skeleton& mol);
+        int getVertexValence(Skeleton::Vertex& v, Skeleton& mol);
         void CurateSingleUpBonds(Skeleton& graph);
 
         struct _CircleContext

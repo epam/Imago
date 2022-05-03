@@ -47,6 +47,8 @@ namespace imago
 
         void mapLabels(const Settings& vars, std::deque<Label>& unmapped_labels);
 
+        void updateLabels();
+
         void clear();
 
         ~Molecule();

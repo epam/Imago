@@ -102,7 +102,7 @@ namespace imago
         insert("Cs");
         insert("Ba");
         insert("La");
-        // insert("Ce");
+        insert("Ce");
         insert("Pr");
         insert("Nd");
         insert("Pm");
@@ -149,10 +149,10 @@ namespace imago
         insert("No");
         insert("Lr");
         insert("Rf");
-        insert("Df");
+        insert("Db");
         insert("Sg");
         insert("Bh");
-        insert("Hn");
+        insert("Hs");
         insert("Mt");
     }
 }

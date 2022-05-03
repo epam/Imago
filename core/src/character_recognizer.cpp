@@ -19,9 +19,9 @@
 #include "character_recognizer.h"
 
 #include <cmath>
+#include <cstring>
 #include <deque>
 #include <map>
-#include <cstring>
 
 #include <opencv2/opencv.hpp>
 
@@ -38,15 +38,16 @@
 
 using namespace imago;
 
-const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ$%^&#";
+const std::string CharacterRecognizer::upper = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const std::string CharacterRecognizer::lower = "abcdefghijklmnopqrstuvwxyz";
 const std::string CharacterRecognizer::digits = "0123456789";
 const std::string CharacterRecognizer::brackets = "()[]";
 const std::string CharacterRecognizer::charges = "+-";
-const std::string CharacterRecognizer::all =
-    CharacterRecognizer::upper + CharacterRecognizer::lower + CharacterRecognizer::digits + CharacterRecognizer::charges + CharacterRecognizer::brackets + "=";
+const std::string CharacterRecognizer::specials = "%^&#";
+const std::string CharacterRecognizer::all = CharacterRecognizer::upper + CharacterRecognizer::lower + CharacterRecognizer::digits +
+                                             CharacterRecognizer::charges + CharacterRecognizer::specials + CharacterRecognizer::brackets + "=";
 const std::string CharacterRecognizer::graphics = "!";
-const std::string CharacterRecognizer::like_bonds = "lL1iVv";
+const std::string CharacterRecognizer::like_bonds = "lL1IiVv";
 
 bool imago::CharacterRecognizer::isPossibleCharacter(const Settings& vars, const Segment& seg, bool loose_cmp, char* result)
 {
@@ -107,7 +108,7 @@ void internalInitTemplates(imago::CharacterRecognizerImp::Templates& templates)
 {
     // unsigned int start = platform::TICKS();
     {
-#include "font.inc"
+#include    "font.inc"
     }
     // printf("Loaded font (%u entries) in %u ms\n", templates.size(), platform::TICKS() - start);
 }
@@ -162,6 +163,7 @@ RecognitionDistance CharacterRecognizer::recognize(const Settings& vars, const S
     if (getLogExt().loggingEnabled())
     {
         getLogExt().append("Result candidates", result.getBest());
+        getLogExt().append("Char code", (int)result.getBest());
         getLogExt().append("Recognition quality", result.getQuality());
     }
 
@@ -248,7 +250,8 @@ namespace imago
                         {
                             int value = img(y, x);
 
-                            int idx = (y + PENALTY_SHIFT) * INTERNAL_ARRAY_DIM + (x + PENALTY_SHIFT);
+                            //							int idx = (y + PENALTY_SHIFT) * INTERNAL_ARRAY_DIM + (x + PENALTY_SHIFT);
+                            int idx = (y + shift_y) * INTERNAL_ARRAY_DIM + (x + shift_x);
 
                             if (value == 0)
                             {
@@ -262,6 +265,77 @@ namespace imago
                     }
 
                     double result = (double)sum_ink + (double)sum_white / (double)PENALTY_WHITE_FACTOR;
+                    if (result < best)
+                        best = result;
+                }
+            }
+            return best;
+        }
+
+        double compareImages2(const cv::Mat1b& img, const unsigned char* penalty_ink, const unsigned char* penalty_white)
+        {
+            double best = imago::DIST_INF;
+
+            int template_size = INTERNAL_ARRAY_DIM - 2 * PENALTY_SHIFT;
+            int template_h = template_size;
+            int template_w = template_size;
+            int image_h = img.rows;
+            int image_w = img.cols;
+            std::set<int> xset;
+            std::set<int> yset;
+            for (int x = 0; x <= template_w; x++)
+                xset.insert(x * image_w);
+            for (int x = 0; x <= image_w; x++)
+                xset.insert(x * template_w);
+            for (int y = 0; y <= template_h; y++)
+                yset.insert(y * image_h);
+            for (int y = 0; y <= image_h; y++)
+                yset.insert(y * template_h);
+            IntVector xs, ys, xs_img, ys_img, xs_tmpl, ys_tmpl;
+            for (int x : xset)
+                xs.push_back(x);
+            for (int y : yset)
+                ys.push_back(y);
+            for (int x : xs)
+            {
+                xs_img.push_back(x / template_w);
+                xs_tmpl.push_back(x / image_w);
+            }
+            for (int y : ys)
+            {
+                ys_img.push_back(y / template_h);
+                ys_tmpl.push_back(y / image_h);
+            }
+
+            for (int shift_x = 0; shift_x <= 2 * PENALTY_SHIFT; shift_x += PENALTY_STEP)
+            {
+                for (int shift_y = 0; shift_y <= 2 * PENALTY_SHIFT; shift_y += PENALTY_STEP)
+                {
+                    int sum_ink = 0;
+                    int sum_white = 0;
+
+                    for (int i = 0; i < xs.size() - 1; i++)
+                        for (int j = 0; j < ys.size() - 1; j++)
+                        {
+                            // int value = img(ys[j] / template_h, xs[i] / template_w);
+                            int value = img(ys_img[j], xs_img[i]);
+
+                            //							int idx = (y + PENALTY_SHIFT) * INTERNAL_ARRAY_DIM + (x + PENALTY_SHIFT);
+                            int idx = (ys_tmpl[j] + shift_y) * INTERNAL_ARRAY_DIM + (xs_tmpl[i] + shift_x);
+
+                            int sq = (ys[j + 1] - ys[j]) * (xs[i + 1] - xs[i]);
+
+                            if (value == 0)
+                            {
+                                sum_ink += sq * (penalty_ink[idx] - CHARACTERS_OFFSET);
+                            }
+                            else
+                            {
+                                sum_white += sq * (penalty_white[idx] - CHARACTERS_OFFSET);
+                            }
+                        }
+
+                    double result = ((double)sum_ink + (double)sum_white / (double)PENALTY_WHITE_FACTOR) / image_h / image_w;
                     if (result < best)
                         best = result;
                 }
@@ -286,9 +360,9 @@ namespace imago
             size_y = REQUIRED_SIZE;
             size_x = REQUIRED_SIZE;
 
-            cv::resize(temp, temp, cv::Size(size_x, size_y), 0.0, 0.0, cv::INTER_CUBIC);
+            // cv::resize(temp, temp, cv::Size(size_x, size_y), 0.0, 0.0, cv::INTER_CUBIC);
 
-            cv::threshold(temp, temp, vars.characters.InternalBinarizationThreshold, 255, cv::THRESH_BINARY);
+            // cv::threshold(temp, temp, vars.characters.InternalBinarizationThreshold, 255, CV_THRESH_BINARY);
 
             return temp;
         }
@@ -400,7 +474,7 @@ namespace imago
 
                 try
                 {
-                    double distance = compareImages(img, templates[u].penalty_ink, templates[u].penalty_white);
+                    double distance = compareImages2(img, templates[u].penalty_ink, templates[u].penalty_white);
                     double ratio_diff = imago::absolute(ratio - templates[u].wh_ratio);
 
                     if (ratio_diff < vars.characters.RatioDiffThresh)

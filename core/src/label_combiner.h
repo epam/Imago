@@ -66,17 +66,20 @@ namespace imago
 
         void extractLabels(std::deque<Label>& labels);
 
+        static void fillLabelInfo(const Settings& vars, Label& l, const CharacterRecognizer& cr);
+
+        static bool segmentsComparator(const Segment* const& a, const Segment* const& b);
+
+        static bool segmentsCompareX(const Segment* const& a, const Segment* const& b);
+
     private:
         SegmentDeque& _symbols_layer;
         SegmentDeque& _graphic_layer;
         const CharacterRecognizer& _cr;
+
         double _capHeightStandardDeviation;
 
         std::deque<Label> _labels;
         void _locateLabels(const Settings& vars);
-        void _fillLabelInfo(const Settings& vars, Label& l);
-        static bool _segmentsComparator(const Segment* const& a, const Segment* const& b);
-
-        static bool _segmentsCompareX(const Segment* const& a, const Segment* const& b);
     };
 }

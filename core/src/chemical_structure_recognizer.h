@@ -36,6 +36,7 @@ namespace imago
 
         void setImage(Image& img);
         void recognize(Settings& vars, Molecule& mol);
+        void recognize_new(Settings& vars, Molecule& mol);
         void image2mol(Settings& vars, Image& img, Molecule& mol);
         void extractCharacters(Settings& vars, Image& img);
         const CharacterRecognizer& getCharacterRecognizer()

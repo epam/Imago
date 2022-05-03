@@ -24,22 +24,29 @@
 
 #pragma once
 
+#include <vector>
+
 #include <opencv2/opencv.hpp>
 
 #include "comdef.h"
 #include "exception.h"
+#include "stl_fwd.h"
 
 namespace imago
 {
     class Image : public cv::Mat1b
     {
+        std::vector<std::vector<std::vector<Vec2i>>> _stopVectorField;
+
     public:
         Image()
         {
+            isStopVectorFieldCalulated = false;
         }
 
         Image(int width, int height) : cv::Mat1b(height, width)
         {
+            isStopVectorFieldCalulated = false;
         }
 
         Image(const Image& other)
@@ -137,6 +144,12 @@ namespace imago
             extractRect(x + 1, 0, getWidth() - 1, getHeight() - 1, right);
         }
 
+        inline void splitHor(int y, Image& up, Image& down) const
+        {
+            extractRect(0, 0, getWidth() - 1, y, up);
+            extractRect(0, y + 1, getWidth() - 1, getHeight() - 1, down);
+        }
+
         inline double density() const
         {
             int density = 0;
@@ -156,5 +169,38 @@ namespace imago
         {
             cv::transpose(*this, *this);
         }
+
+        inline bool in(int x, int y)
+        {
+            return x >= 0 && y >= 0 && x < cols && y < rows;
+        }
+
+        bool isPixel(int x, int y)
+        {
+            return in(x, y) && isFilled(x, y);
+        }
+
+        bool isInternal(int x, int y, double r);
+
+        void initStopVectorField();
+        void calculateLinearity(std::vector<std::vector<double>>&);
+        void calculateCentrality(std::vector<std::vector<double>>&);
+        double estimateBondLen(SegmentDeque& segments);
+        void shiftBorder(int n);
+        void getInterior(int r);
+        void smoothing(int r);
+
+        int getSquare();
+        int getPerimeter();
+        int getBadPixelsCount();
+        double getRoughness();
+        double getRoughness2();
+        double getRoughness3();
+
+        void _findGraph(SegmentDeque& _segs, std::vector<Vec2i>& atoms, std::vector<std::pair<int, int>>& edge);
+
+    private:
+        bool isStopVectorFieldCalulated;
+        std::vector<std::vector<std::vector<Vec2i>>>& getStopVectorField();
     };
 }

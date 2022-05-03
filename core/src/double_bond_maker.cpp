@@ -23,6 +23,7 @@
 #include "algebra.h"
 #include "exception.h"
 #include "image_draw_utils.h"
+#include "log_ext.h"
 #include "settings.h"
 
 using namespace imago;
@@ -47,25 +48,25 @@ void DoubleBondMaker::_disconnect(Vertex a, Vertex b, const Vertex* third)
 
     std::vector<Vertex> toDelete;
 
-    for (Graph::adjacency_iterator begin = _g.adjacencyBegin(a), end = _g.adjacencyEnd(a); begin != end; ++begin)
-    {
-        Graph::vertex_descriptor v = *begin;
-        if (third && v == *third)
-            continue;
-
-        for (Graph::adjacency_iterator begin = _g.adjacencyBegin(v), end = _g.adjacencyEnd(v); begin != end; ++begin)
+    for (Graph::adjacency_iterator begin = _g.adjacencyBegin(a), end = _g.adjacencyEnd(a); begin != end; begin = end)
+        for (Graph::vertex_descriptor v; begin != end ? (v = *begin, true) : false; ++begin)
         {
-            Graph::vertex_descriptor u = *begin;
-            if (u == a)
+            if (third && v == *third)
                 continue;
 
-            if (u == b)
-            {
-                toDelete.push_back(v);
-                break;
-            }
+            for (Graph::adjacency_iterator begin = _g.adjacencyBegin(v), end = _g.adjacencyEnd(v); begin != end; begin = end)
+                for (Graph::vertex_descriptor u; begin != end ? (u = *begin, true) : false; ++begin)
+                {
+                    if (u == a)
+                        continue;
+
+                    if (u == b)
+                    {
+                        toDelete.push_back(v);
+                        break;
+                    }
+                }
         }
-    }
 
     for (std::vector<Vertex>::iterator it = toDelete.begin(); it != toDelete.end(); ++it)
     {
@@ -176,6 +177,8 @@ DoubleBondMaker::Result DoubleBondMaker::_hard()
     }
     else
     {
+        getLogExt().append("l1:", l1);
+        getLogExt().append("l2:", l2);
         throw LogicException("DoubleBondMake::_hard");
     }
 }

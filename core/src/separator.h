@@ -62,6 +62,14 @@ namespace imago
 
         void SeparateStuckedSymbols(const Settings& vars, SegmentDeque& layer_symbols, SegmentDeque& layer_graphics, CharacterRecognizer& rec);
 
+        bool RepairBrokenSymbols(const Settings& vars, SegmentDeque& layer_symbols, SegmentDeque& layer_graphics, CharacterRecognizer& rec);
+
+        double CheckOtherSymbols(const Settings& vars, Segment& s_gr, SegmentDeque& layer_symbols, CharacterRecognizer& rec, SegmentDeque::iterator symb);
+
+        int estimateCapHeight(const Settings& vars, bool& restrictedHeight);
+
+        static bool _segmentsComparator(Segment* a, Segment* b);
+
     private:
         SegmentDeque& _segs;
         const Image& _img;
@@ -74,8 +82,6 @@ namespace imago
             SEP_SUSPICIOUS
         };
 
-        int _estimateCapHeight(const Settings& vars, bool& restrictedHeight);
-
         bool _testDoubleBondV(const Settings& vars, Segment& segment);
 
         int _getApproximationSegmentsCount(const Settings& vars, Segment* cur_seg);
@@ -83,8 +89,6 @@ namespace imago
         bool _analyzeSpecialSegment(const Settings& vars, Segment* cur_seg);
 
         bool _checkSequence(const Settings& vars, IntPair& checking, IntPair& symbols_graphics, double& density);
-
-        static bool _segmentsComparator(Segment* a, Segment* b);
 
         bool _bIsTextContext(const Settings& vars, SegmentDeque& layer_symbols, Rectangle rec);
 

@@ -18,7 +18,7 @@
 
 #include "segment_tools.h"
 
-#include <float.h>
+#include <cfloat>
 #include <queue>
 
 #include "image.h"

@@ -45,11 +45,11 @@ namespace imago
             SegmentsGraph()
             {
             }
-            Segment* getVertexSegment(vertex_descriptor v) const
+            Segment* getVertexSegment(vertex_descriptor v)
             {
                 return _vertex_indices[v.id]->data.segment;
             }
-            const Vec2d& getVertexPosition(vertex_descriptor v) const
+            Vec2d getVertexPosition(vertex_descriptor v)
             {
                 return _vertex_indices[v.id]->data.position;
             }
@@ -61,7 +61,7 @@ namespace imago
             {
                 _vertex_indices[v.id]->data.segment = val;
             }
-            void setVertexPosition(vertex_descriptor v, const Vec2d& val)
+            void setVertexPosition(vertex_descriptor v, Vec2d val)
             {
                 _vertex_indices[v.id]->data.position = val;
             }

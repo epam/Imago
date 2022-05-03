@@ -35,13 +35,16 @@ namespace imago
         std::string molString;
         ArrayOutput so(molString);
         MolfileSaver ma(so);
-        ma.saveMolecule(vars, molecule);
 
-        if (!vars.general.ExpandAbbreviations)
-            return molString;
+        ma.saveMolecule(vars, molecule);
 
         indigoSetOption("treat-x-as-pseudoatom", "true");
         indigoSetOption("ignore-stereochemistry-errors", "true");
+
+        if (vars.general.ReplaceHaworthProjection)
+            indigoSetOption("stereochemistry-detect-haworth-projection", "true");
+        else
+            indigoSetOption("stereochemistry-detect-haworth-projection", "false");
 
         int mol = indigoLoadMoleculeFromString(molString.c_str());
 
@@ -51,11 +54,50 @@ namespace imago
             return molString;
         }
 
-        int expCount = indigoExpandAbbreviations(mol);
-        if (expCount == -1)
+        if (vars.general.ExpandAbbreviations)
         {
-            fprintf(stderr, "%s\n", indigoGetLastError());
-            return molString;
+            int expCount = indigoExpandAbbreviations(mol);
+            if (expCount == -1)
+            {
+                fprintf(stderr, "%s\n", indigoGetLastError());
+                return molString;
+            }
+        }
+
+        if (vars.general.RemoveSuperatomSGroups)
+        {
+            int sg_iter = indigoFindSGroups(mol, "SG_TYPE", "SUP");
+
+            if (sg_iter != -1)
+            {
+                while (indigoHasNext(sg_iter))
+                {
+                    int sg = indigoNext(sg_iter);
+                    indigoRemove(sg);
+                }
+            }
+        }
+
+        if (vars.general.NeutralizeZwitterions)
+        {
+            indigoSetOption("standardize-neutralize-zwitterions", "true");
+            indigoStandardize(mol);
+        }
+
+        if (vars.general.ReplaceHaworthProjection)
+        {
+            indigoMarkStereobonds(mol);
+            indigoLayout(mol);
+        }
+
+        if (vars.general.RemoveExtraStereoBonds)
+        {
+            indigoSetOption("standardize-remove-extra-stereo-bonds", "true");
+            //      indigoSetOption("standardize-build-stereo-bonds", "true");
+            //      indigoSetOption("standardize-reposition-stereo-bonds", "true");
+            //      indigoSetOption("standardize-fix-direction-wedge-bonds", "true");
+            indigoStandardize(mol);
+            //      indigoMarkStereobonds(mol);
         }
 
         std::string newMolfile = indigoMolfile(mol);

@@ -347,16 +347,16 @@ ComplexContour ComplexContour::RetrieveContour(const Settings& vars, Image& seg,
 
     // Find start vertex with minimal degree
     size_t minDeg = _g.vertexCount();
-    for (Skeleton::SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
-    {
-        Skeleton::SkeletonGraph::vertex_descriptor v = *begin;
-        size_t deg = _g.getDegree(v);
-        if (minDeg > deg)
+    for (Skeleton::SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; begin = end)
+        for (Skeleton::SkeletonGraph::vertex_descriptor v; begin != end ? (v = *begin, true) : false; ++begin)
         {
-            minDeg = deg;
-            vert1 = v;
+            size_t deg = _g.getDegree(v);
+            if (minDeg > deg)
+            {
+                minDeg = deg;
+                vert1 = v;
+            }
         }
-    }
 
     vertIt = vert1;
     b = _g.adjacencyBegin(vert1);

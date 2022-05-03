@@ -28,6 +28,7 @@ namespace imago
     class Segment;
     class CharacterRecognizer;
     struct Label;
+    class Molecule;
 
     class LabelLogic
     {
@@ -36,6 +37,8 @@ namespace imago
         ~LabelLogic();
 
         void recognizeLabel(const Settings& vars, Label& label);
+
+        void checkUnmappedLabels(const Settings& vars, std::deque<Label>& unmapped_labels, std::deque<Label>& labels);
 
     protected:
         void process_ext(const Settings& vars, Segment* seg, int line_y);
@@ -51,5 +54,9 @@ namespace imago
         void _predict(const Settings& vars, const Segment* seg, std::string& letters);
         void _postProcessLabel(Label& label);
         bool _multiLetterSubst(char sym);
+        bool _isPossibleSubscript(const Settings& vars, Label& subscript, Label& label);
+        bool _isPossibleChain(const Settings& vars, Label& tail, Label& label);
+
+        void _buildPossibleCombArray();
     };
 }

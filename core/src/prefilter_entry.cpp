@@ -48,8 +48,10 @@ namespace imago
                     ImageUtils::copyMatToImage(mat, image);
                     return true;
                 }
+                else
+                    return false;
             }
-            return false;
+            return true;
         }
     }
 

@@ -19,6 +19,7 @@
 #include "segment.h"
 
 #include <deque>
+#include <vector>
 
 #include "rectangle.h"
 #include "vec2d.h"
@@ -130,6 +131,29 @@ double Segment::getDensity()
     return _density;
 }
 
+double Segment::getDiameter()
+{
+    int d = 0;
+    std::vector<int> left(rows, cols);
+    std::vector<int> right(rows, -1);
+    for (int y = 0; y < rows; y++)
+        for (int x = 0; x < cols; x++)
+            if (!getByte(x, y))
+            {
+                if (left[y] == cols)
+                    left[y] = x;
+                right[y] = x;
+            }
+
+    for (int y1 = 0; y1 < rows; y1++)
+        if (left[y1] < cols)
+            for (int y2 = 0; y2 < rows; y2++)
+                if (right[y2] > -1)
+                    d = std::max(d, (y2 - y1) * (y2 - y1) + (left[y1] - right[y2]) * (left[y1] - right[y2]));
+
+    return sqrt(1. * d);
+}
+
 void Segment::splitVert(int x, Segment& left, Segment& right) const
 {
     Image::splitVert(x, left, right);
@@ -137,6 +161,15 @@ void Segment::splitVert(int x, Segment& left, Segment& right) const
     left._x = _x;
     right._x = _x + x;
     left._y = right._y = _y;
+}
+
+void Segment::splitHor(int y, Segment& up, Segment& down) const
+{
+    Image::splitHor(y, up, down);
+
+    up._y = _y;
+    down._y = _y + y;
+    up._x = down._x = _x;
 }
 
 void Segment::crop()

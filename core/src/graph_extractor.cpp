@@ -18,7 +18,6 @@
 
 #include <deque>
 
-#include "comdef.h"
 #include "graph_extractor.h"
 #include "graphics_detector.h"
 #include "image_draw_utils.h"
@@ -83,6 +82,8 @@ void GraphExtractor::extract(Settings& vars, const GraphicsDetector& gd, const I
         avg_size /= (lsegments.size() / 2.0);
 
         graph.setInitialAvgBondLength(vars, avg_size);
+
+        getLogExt().appendSkeleton(vars, "Graph before", (Skeleton::SkeletonGraph)graph);
 
         for (size_t i = 0; i < lsegments.size() / 2; i++)
         {

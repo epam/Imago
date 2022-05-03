@@ -24,6 +24,7 @@
 #include "beast.h"
 #include "comdef.h"
 #include "settings.h"
+#include "stl_fwd.h"
 #include "vec2d.h"
 
 namespace imago
@@ -75,7 +76,7 @@ namespace imago
             SkeletonGraph()
             {
             }
-            const Vec2d& getVertexPosition(vertex_descriptor v) const
+            Vec2d getVertexPosition(vertex_descriptor v) const
             {
                 return _vertex_indices[v.id]->data.position;
             }
@@ -100,27 +101,27 @@ namespace imago
 
         Vertex addVertex(const Vec2d& pos);
 
-        Edge addBond(Vertex v1, Vertex v2, BondType type = BT_SINGLE, bool throw_if_error = false);
+        Edge addBond(Vertex& v1, Vertex& v2, BondType type = BT_SINGLE, bool throw_if_error = false);
         Edge addBond(const Vec2d& begin, const Vec2d& end, BondType type = BT_SINGLE, bool throw_if_error = false);
 
-        void removeBond(Vertex v1, Vertex v2);
-        void removeBond(const Edge& e);
+        void removeBond(Vertex& v1, Vertex& v2);
+        void removeBond(Edge& e);
 
         Vertex getBondBegin(const Edge& e) const;
         Vertex getBondEnd(const Edge& e) const;
 
         int getVerticesCount() const;
         int getEdgesCount() const;
-        const Vec2d& getVertexPos(Vertex v1) const;
+        Vec2d getVertexPos(const Vertex& v1) const;
         BondType getBondType(const Edge& e) const;
         Bond getBondInfo(const Edge& e) const;
-        void setBondType(const Edge& e, BondType t);
+        void setBondType(Edge e, BondType t);
 
         void reverseEdge(const Edge& e);
 
         void setInitialAvgBondLength(Settings& vars, double avg_length);
         void recalcAvgBondLength();
-        double bondLength() const
+        double bondLength()
         {
             return _avg_bond_length;
         }
@@ -167,29 +168,26 @@ namespace imago
         void _findMultiple(const Settings& vars);
 
     public:
-        void _joinVertices(double eps);
-        bool _dissolveShortEdges(double coeff, const bool has2nb = false);
+        void _joinVertices(double eps, bool parallel_check = false);
+        bool _dissolveShortEdges(const Settings& vars, double coeff, const bool has2nb, SegmentDeque& layer_symbols);
+        bool _dissolveIntermediateVertices(const Settings& vars);
         void deleteBadTriangles(double eps);
 
     private:
-        bool _dissolveIntermediateVertices(const Settings& vars);
-        double _avgEdgeLendth(Vertex v, int& nnei);
+        double _avgEdgeLendth(const Vertex& v, int& nnei);
         typedef std::tuple<bool, Edge, Edge> MakersReturn;
         // MakersReturn _makeDouble( std::pair<Edge, Edge> edges );
-        // MakersReturn _makeTriple( std::tuple<Edge, Edge, Edge> edges );
+        MakersReturn _makeTriple(std::tuple<Edge, Edge, Edge> edges);
         bool _isParallel(const Edge& first, const Edge& second) const;
         bool _isEqualDirection(const Edge& first, const Edge& second) const;
-        bool _isEqualDirection(Vertex b1, Vertex e1, Vertex b2, Vertex e2) const;
-        bool _isSegmentIntersectedByEdge(const Settings& vars, const Vec2d& b, const Vec2d& e, const std::deque<Edge>& edges) const;
+        bool _isEqualDirection(const Vertex& b1, const Vertex& e1, const Vertex& b2, const Vertex& e2) const;
+        bool _isSegmentIntersectedByEdge(const Settings& vars, Vec2d& b, Vec2d& e, std::deque<Edge> edges);
         void _processInlineDoubleBond(const Settings& vars);
+        bool _checkParallelEdges(const Vertex& v1, const Vertex& v2);
 
         void _connectBridgedBonds(const Settings& vars);
 
-        double _avg_bond_length;
-        double _parLinesEps;
-        double _addVertexEps;
-        double _min_bond_length;
-        double _min_bond_h2nb_length;
+        double _avg_bond_length, _parLinesEps, _addVertexEps, _min_bond_length, _min_bond_h2nb_length;
         std::vector<Vec2d> _vertices_big_degree;
 
         Skeleton(const Skeleton& g);

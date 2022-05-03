@@ -44,7 +44,7 @@ LabelCombiner::LabelCombiner(Settings& vars, SegmentDeque& symbols_layer, Segmen
         _locateLabels(vars);
         for (Label& l : _labels)
         {
-            _fillLabelInfo(vars, l);
+            fillLabelInfo(vars, l, _cr);
         }
     }
 }
@@ -103,10 +103,35 @@ void LabelCombiner::_locateLabels(const Settings& vars)
         Segment* s_b = seg_graph.getVertexSegment(ei.get_source());
         Segment* s_e = seg_graph.getVertexSegment(ei.get_target());
 
+        RecognitionDistance pr_b = _cr.recognize(vars, *s_b);
+        RecognitionDistance pr_e = _cr.recognize(vars, *s_e);
+
         ++next;
         if (SegmentTools::getRealDistance(*s_b, *s_e, SegmentTools::dtEuclidian) < distance_constraint &&
             SegmentTools::getRealDistance(*s_b, *s_e, SegmentTools::dtDeltaY) < distance_constraint_y)
-            continue;
+        {
+            // Special check for "-" and "+" symbols
+            if ((pr_b.getBest() == '-') || (pr_e.getBest() == '-') || (pr_b.getBest() == '+') || (pr_e.getBest() == '+'))
+                continue;
+
+            // Check diagonal case
+            getLogExt().append("DeltaX", absolute(s_b->getX() - s_e->getX()));
+            getLogExt().append("DeltaY", absolute(s_b->getY() - s_e->getY()));
+            getLogExt().append("Y Overlap (1)", (s_b->getY() + SegmentTools::getRealHeight(*s_b) - s_e->getY()));
+            getLogExt().append("Y Overlap (2)", (s_e->getY() + SegmentTools::getRealHeight(*s_e) - s_b->getY()));
+
+            if (absolute(s_b->getX() - s_e->getX()) > vars.dynamic.CapitalHeight / 3 && absolute(s_b->getY() - s_e->getY()) > vars.dynamic.CapitalHeight)
+            {
+                seg_graph.removeEdge(*ei);
+            }
+            else if (((s_b->getY() < s_e->getY()) && ((s_b->getY() + SegmentTools::getRealHeight(*s_b) - s_e->getY()) < vars.dynamic.CapitalHeight * 0.1)) ||
+                     ((s_b->getY() > s_e->getY()) && ((s_e->getY() + SegmentTools::getRealHeight(*s_e) - s_b->getY()) < vars.dynamic.CapitalHeight * 0.1)))
+            {
+                seg_graph.removeEdge(*ei);
+            }
+            else
+                continue;
+        }
         else
             seg_graph.removeEdge(*ei);
     }
@@ -122,11 +147,9 @@ void LabelCombiner::_locateLabels(const Settings& vars)
     size_t n = seg_graph.vertexCount();
     std::vector<typename SegmentsGraph::vertex_descriptor> ind2vert(n);
     size_t i = 0;
-    for (auto begin = seg_graph.vertexBegin(), end = seg_graph.vertexEnd(); begin != end; ++begin, ++i)
-    {
-        SegmentsGraph::vertex_descriptor v = *begin;
-        ind2vert[i] = v;
-    }
+    for (auto begin = seg_graph.vertexBegin(), end = seg_graph.vertexEnd(); begin != end; begin = end)
+        for (SegmentsGraph::vertex_descriptor v; begin != end ? (v = *begin, true) : false; ++begin, ++i)
+            ind2vert[i] = v;
     for (size_t i = 0; i < ind2vert.size(); ++i)
         seg_graph.setVertexIndex(ind2vert[i], i);
 
@@ -143,17 +166,20 @@ void LabelCombiner::_locateLabels(const Settings& vars)
     }
 }
 
-void LabelCombiner::_fillLabelInfo(const Settings& vars, Label& l)
+void LabelCombiner::fillLabelInfo(const Settings& vars, Label& l, const CharacterRecognizer& cr)
 {
     logEnterFunction();
 
     int min_x = INT_MAX, min_y = INT_MAX, max_x = 0, max_y = 0;
+
+    int capital_height = (int)vars.dynamic.CapitalHeight;
 
     if (l.symbols.size())
     {
         int sum = 0;
         int min_end = INT_MAX;
         int max_begin = 0;
+        int max_end = 0;
         bool multiline = false;
         for (size_t u = 0; u < l.symbols.size(); u++)
         {
@@ -169,19 +195,41 @@ void LabelCombiner::_fillLabelInfo(const Settings& vars, Label& l)
             max_x = std::max(max_x, x_end);
             max_y = std::max(max_y, y_end);
 
-            if (y_end < min_end)
-                min_end = y_end;
-
-            if (y_begin > max_begin)
+            if ((y_begin > max_begin) && (l.symbols[u]->getHeight() > capital_height * 0.8))
                 max_begin = y_begin;
 
-            if (y_begin >= min_end)
+            if ((y_begin >= min_end) && (l.symbols[u]->getHeight() > capital_height * 0.8))
                 multiline = true;
 
-            if (y_end <= max_begin)
+            if ((y_end <= max_begin) && (l.symbols[u]->getHeight() > capital_height * 0.8))
                 multiline = true;
+
+            if ((l.symbols[u]->getHeight() > capital_height * 0.9) && (l.symbols[u]->getHeight() < capital_height * 1.1))
+            {
+                RecognitionDistance pr = cr.recognize(vars, *l.symbols[u]);
+                char ch = pr.getBest();
+                if ((ch == '%') || (ch == '^') || (ch == '$') || (ch == '='))
+                {
+                    getLogExt().append("Symb with subscript found %s , ignore it for baseline calc.", ch);
+                    continue;
+                }
+
+                if (y_end > max_end)
+                    max_end = y_end;
+            }
         }
-        l.baseline_y = sum / (int)l.symbols.size();
+        if (multiline)
+        {
+            l.baseline_y = sum / (int)l.symbols.size();
+        }
+        else if (max_end > 0)
+        {
+            l.baseline_y = max_end;
+        }
+        else
+        {
+            l.baseline_y = -1;
+        }
         l.multiline = multiline;
     }
     else
@@ -192,10 +240,10 @@ void LabelCombiner::_fillLabelInfo(const Settings& vars, Label& l)
 
     l.rect = Rectangle(min_x, min_y, max_x, max_y, 1);
 
-    std::sort(l.symbols.begin(), l.symbols.end(), _segmentsCompareX);
+    std::sort(l.symbols.begin(), l.symbols.end(), segmentsCompareX);
 }
 
-bool LabelCombiner::_segmentsComparator(const Segment* const& a, const Segment* const& b)
+bool LabelCombiner::segmentsComparator(const Segment* const& a, const Segment* const& b)
 {
     if (a->getY() < b->getY())
         return true;
@@ -208,7 +256,7 @@ bool LabelCombiner::_segmentsComparator(const Segment* const& a, const Segment* 
     return false;
 }
 
-bool LabelCombiner::_segmentsCompareX(const Segment* const& a, const Segment* const& b)
+bool LabelCombiner::segmentsCompareX(const Segment* const& a, const Segment* const& b)
 {
     if (a->getX() < b->getX())
         return true;

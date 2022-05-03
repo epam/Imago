@@ -51,6 +51,7 @@ namespace imago
         static const std::string all;
         static const std::string graphics;
         static const std::string like_bonds;
+        static const std::string specials;
 
     private:
         static qword getSegmentHash(const Segment& seg);
@@ -80,6 +81,7 @@ namespace imago
 
         void calculatePenalties(const cv::Mat1b& img, unsigned char* penalty_ink, unsigned char* penalty_white);
         double compareImages(const cv::Mat1b& img, const unsigned char* penalty_ink, const unsigned char* penalty_white);
+        double compareImages2(const cv::Mat1b& img, const unsigned char* penalty_ink, const unsigned char* penalty_white);
         cv::Mat1b prepareImage(const Settings& vars, const cv::Mat1b& src, double& ratio);
         bool initializeTemplates(const Settings& vars, const std::string& path, Templates& templates);
         RecognitionDistance recognizeMat(const Settings& vars, const cv::Mat1b& image, const Templates& templates);

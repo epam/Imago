@@ -64,19 +64,19 @@ void Skeleton::recalcAvgBondLength()
     _avg_bond_length = 0;
     _min_bond_length = DIST_INF;
 
-    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; ++begin)
-    {
-        SkeletonGraph::edge_descriptor e = *begin;
-        double len = _g.getEdgeBond(e).length;
-        _avg_bond_length += len;
-        if (_min_bond_length > len)
-            _min_bond_length = len;
-    }
+    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; begin = end)
+        for (SkeletonGraph::edge_descriptor e; begin != end ? (e = *begin, true) : false; ++begin)
+        {
+            double len = _g.getEdgeBond(e).length;
+            _avg_bond_length += len;
+            if (_min_bond_length > len)
+                _min_bond_length = len;
+        }
 
     _avg_bond_length /= bonds_num;
 }
 
-Skeleton::Edge Skeleton::addBond(Vertex v1, Vertex v2, BondType type, bool throw_if_error)
+Skeleton::Edge Skeleton::addBond(Vertex& v1, Vertex& v2, BondType type, bool throw_if_error)
 {
     std::pair<Edge, bool> p;
 
@@ -90,10 +90,15 @@ Skeleton::Edge Skeleton::addBond(Vertex v1, Vertex v2, BondType type, bool throw
         }
         else
         {
-            _warnings++;
+            //		   _warnings++;
             std::ostringstream temp;
             temp << "WARNING: Already has edge (" << v1.id << ", " << v2.id << ")";
             getLogExt().appendText(temp.str());
+            if (getBondType(p.first) == BT_SINGLE)
+                setBondType(p.first, BT_DOUBLE);
+            else if (getBondType(p.first) == BT_DOUBLE)
+                setBondType(p.first, BT_TRIPLE);
+
             return p.first;
         }
     }
@@ -138,12 +143,12 @@ Skeleton::Edge Skeleton::addBond(const Vec2d& begin, const Vec2d& end, BondType 
     return addBond(v1, v2, type, throw_if_error);
 }
 
-void Skeleton::removeBond(Vertex v1, Vertex v2)
+void Skeleton::removeBond(Vertex& v1, Vertex& v2)
 {
     _g.removeEdge(v1, v2);
 }
 
-void Skeleton::removeBond(const Edge& e)
+void Skeleton::removeBond(Edge& e)
 {
     _g.removeEdge(e);
 }
@@ -157,7 +162,7 @@ Skeleton::Vertex Skeleton::addVertex(const Vec2d& pos)
     return v;
 }
 
-const Vec2d& Skeleton::getVertexPos(Vertex v1) const
+Vec2d Skeleton::getVertexPos(const Vertex& v1) const
 {
     return _g.getVertexPosition(v1);
 }
@@ -204,64 +209,64 @@ void Skeleton::_repairBroken(const Settings& vars)
 
     std::deque<Vertex> toRemove;
 
-    for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
-    {
-        SkeletonGraph::vertex_descriptor v = *begin;
-        if (_g.getDegree(v) != 2)
-            continue;
-
-        SkeletonGraph::adjacency_iterator vi = _g.adjacencyBegin(v);
-        Vertex x, y;
-        x = *vi;
-        y = *(++vi);
-        Edge e1, e2;
-        Bond e1b, e2b;
-        e1 = _g.getEdge(x, v).first;
-        e2 = _g.getEdge(v, y).first;
-        e1b = getBondInfo(e1);
-        e2b = getBondInfo(e2);
-
-        if (e1b.length < toSmallErr * _avg_bond_length && e2b.length < toSmallErr * _avg_bond_length)
-            continue;
-
-        coef = vars.skeleton.BrokenRepairCoef1;
-        if (e1b.length < vars.skeleton.BrokenRepairFactor * toSmallErr * _avg_bond_length ||
-            e2b.length < vars.skeleton.BrokenRepairFactor * toSmallErr * _avg_bond_length)
-            coef = vars.skeleton.BrokenRepairCoef2;
-
-        Vec2d x_pos, y_pos, v_pos;
-        x_pos = _g.getVertexPosition(x);
-        y_pos = _g.getVertexPosition(y);
-        v_pos = _g.getVertexPosition(v);
-        Vec2d v1, v2;
-        v1.diff(x_pos, v_pos);
-        v2.diff(y_pos, v_pos);
-
-        bool found = false;
-        try
+    for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; begin = end)
+        for (SkeletonGraph::vertex_descriptor v; begin != end ? (v = *begin, true) : false; ++begin)
         {
-            double angle = Vec2d::angle(v1, v2);
-            if (angle > PI - coef * vars.skeleton.BrokenRepairAngleEps)
-                found = true;
-        }
-        catch (DivizionByZeroException&)
-        {
-        }
+            if (_g.getDegree(v) != 2)
+                continue;
 
-        if (found)
-        {
-            Edge e;
-            Vertex to;
-            if (e1b.length < e2b.length)
-                e = e1, to = x;
-            else
-                e = e2, to = y;
+            SkeletonGraph::adjacency_iterator vi = _g.adjacencyBegin(v);
+            Vertex x, y;
+            x = *vi;
+            y = *(++vi);
+            Edge e1, e2;
+            Bond e1b, e2b;
+            e1 = _g.getEdge(x, v).first;
+            e2 = _g.getEdge(v, y).first;
+            e1b = getBondInfo(e1);
+            e2b = getBondInfo(e2);
 
-            _g.removeEdge(e);
-            _reconnectBonds(v, to);
-            toRemove.push_back(v);
+            if (e1b.length < toSmallErr * _avg_bond_length && e2b.length < toSmallErr * _avg_bond_length)
+                continue;
+
+            coef = vars.skeleton.BrokenRepairCoef1;
+            if (e1b.length < vars.skeleton.BrokenRepairFactor * toSmallErr * _avg_bond_length ||
+                e2b.length < vars.skeleton.BrokenRepairFactor * toSmallErr * _avg_bond_length)
+                coef = vars.skeleton.BrokenRepairCoef2;
+
+            Vec2d x_pos, y_pos, v_pos;
+            x_pos = _g.getVertexPosition(x);
+            y_pos = _g.getVertexPosition(y);
+            v_pos = _g.getVertexPosition(v);
+            Vec2d v1, v2;
+            v1.diff(x_pos, v_pos);
+            v2.diff(y_pos, v_pos);
+
+            bool found = false;
+            try
+            {
+                double angle = Vec2d::angle(v1, v2);
+                if (angle > PI - coef * vars.skeleton.BrokenRepairAngleEps)
+                    found = true;
+            }
+            catch (DivizionByZeroException&)
+            {
+            }
+
+            if (found)
+            {
+                Edge e;
+                Vertex to;
+                if (e1b.length < e2b.length)
+                    e = e1, to = x;
+                else
+                    e = e2, to = y;
+
+                _g.removeEdge(e);
+                _reconnectBonds(v, to);
+                toRemove.push_back(v);
+            }
         }
-    }
 
     for (Vertex v : toRemove)
         _g.removeVertex(v);
@@ -274,7 +279,7 @@ bool Skeleton::_isEqualDirection(const Edge& first, const Edge& second) const
     return (fabs(f.k - s.k) < _parLinesEps);
 }
 
-bool Skeleton::_isEqualDirection(Vertex b1, Vertex e1, Vertex b2, Vertex e2) const
+bool Skeleton::_isEqualDirection(const Vertex& b1, const Vertex& e1, const Vertex& b2, const Vertex& e2) const
 {
     Vec2d begin1 = _g.getVertexPosition(b1), end1 = _g.getVertexPosition(e1);
 
@@ -318,19 +323,19 @@ void Skeleton::calcShortBondsPenalty(const Settings& vars)
 
     int probablyWarnings = 0;
     int minSize = (std::max)((int)vars.dynamic.CapitalHeight / 2, vars.main.MinGoodCharactersSize);
-    for (SkeletonGraph::edge_iterator begin_range = _g.edgeBegin(), end_range = _g.edgeEnd(); begin_range != end_range; ++begin_range)
-    {
-        SkeletonGraph::edge_descriptor edge = *begin_range;
-        const Vertex& beg = edge.m_source;
-        const Vertex& end = edge.m_target;
+    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; begin = end)
+        for (SkeletonGraph::edge_descriptor edge; begin != end ? (edge = *begin, true) : false; ++begin)
+        {
+            const Vertex& beg = edge.m_source;
+            const Vertex& end = edge.m_target;
 
-        double edge_len = _g.getEdgeBond(edge).length;
+            double edge_len = _g.getEdgeBond(edge).length;
 
-        if (edge_len < minSize / 2)
-            probablyWarnings += 2;
-        else if (edge_len < minSize)
-            probablyWarnings += 1;
-    }
+            if (edge_len < minSize / 2)
+                probablyWarnings += 2;
+            else if (edge_len < minSize)
+                probablyWarnings += 1;
+        }
     getLogExt().append("probablyWarnings", probablyWarnings);
     _warnings += probablyWarnings / 2;
     getLogExt().append("_warnings updated", _warnings);
@@ -341,195 +346,258 @@ void Skeleton::calcCloseVerticiesPenalty(const Settings& vars)
     logEnterFunction();
 
     int probablyWarnings = 0;
-    for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
-    {
-        SkeletonGraph::vertex_descriptor one = *begin;
-        for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
+    for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; begin = end)
+        for (SkeletonGraph::vertex_descriptor one; begin != end ? (one = *begin, true) : false; ++begin)
         {
-            SkeletonGraph::vertex_descriptor two = *begin;
-            if (one == two)
-                continue;
+            for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; begin = end)
+                for (SkeletonGraph::vertex_descriptor two; begin != end ? (two = *begin, true) : false; ++begin)
+                {
+                    if (one == two)
+                        continue;
 
-            double dist = Vec2d::distance(getVertexPos(one), getVertexPos(two));
+                    double dist = Vec2d::distance(getVertexPos(one), getVertexPos(two));
 
-            if (!_g.getEdge(one, two).second)
-            {
-                if (dist < vars.dynamic.CapitalHeight / 4)
-                    probablyWarnings += 2;
-                else if (dist < vars.dynamic.CapitalHeight / 2)
-                    probablyWarnings += 1;
-            }
+                    if (!_g.getEdge(one, two).second)
+                    {
+                        if (dist < vars.dynamic.CapitalHeight / 4)
+                            probablyWarnings += 2;
+                        else if (dist < vars.dynamic.CapitalHeight / 2)
+                            probablyWarnings += 1;
+                    }
+                }
         }
-    }
     getLogExt().append("probablyWarnings", probablyWarnings);
     _warnings += probablyWarnings / 2; // each counted twice
     getLogExt().append("_warnings updated", _warnings);
 }
 
-bool Skeleton::_dissolveShortEdges(double coeff, const bool has2nb)
+bool Skeleton::_dissolveShortEdges(const Settings& vars, double coeff, const bool has2nb, SegmentDeque& layer_symbols)
 {
-    for (SkeletonGraph::edge_iterator begin_range = _g.edgeBegin(), end_range = _g.edgeEnd(); begin_range != end_range; ++begin_range)
-    {
-        SkeletonGraph::edge_descriptor edge = *begin_range;
-        const Vertex& beg = edge.m_source;
-        const Vertex& end = edge.m_target;
+    std::vector<Edge> edgesToRemove;
+    edgesToRemove.clear();
 
-        double edge_len = _g.getEdgeBond(edge).length;
-        double max_edge_beg = 0, max_edge_end = 0;
-        bool pb_e = false, pb_b = false;
-
-        // find the longest edge going from the beginning of our edge
+    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; begin = end)
+        for (SkeletonGraph::edge_descriptor edge; begin != end ? (edge = *begin, true) : false; ++begin)
         {
-            bool state_conected_b = false;
-            std::deque<Vertex> neighbors_b;
-            SkeletonGraph::adjacency_iterator b_b, e_b;
-            b_b = _g.adjacencyBegin(beg);
-            e_b = _g.adjacencyEnd(beg);
-            neighbors_b.assign(b_b, e_b);
+            const Vertex& beg = edge.m_source;
+            const Vertex& end = edge.m_target;
 
-            if (neighbors_b.size() > 1)
-                for (size_t i = 0; i < neighbors_b.size(); i++)
-                {
-                    if (neighbors_b[i] != end)
-                    {
-                        Edge ee = _g.getEdge(neighbors_b[i], beg).first; // order is significant for taking edge with eqval direction
-                        double len = _g.getEdgeBond(ee).length;
-                        state_conected_b = state_conected_b | _checkMidBonds(neighbors_b[i], beg);
+            double edge_len = _g.getEdgeBond(edge).length;
+            double max_edge_beg = 0, max_edge_end = 0;
+            bool pb_e = false, pb_b = false;
 
-                        if (len > max_edge_beg)
-                            max_edge_beg = len;
-                        if (!pb_b)
-                            pb_b = _isEqualDirection(end, beg, neighbors_b[i], beg);
-                    }
-                }
-
-            // find the longest edge going from the end of our edge
-
-            bool state_conected_e = false;
-            std::deque<Vertex> neighbors_e;
-            SkeletonGraph::adjacency_iterator b_e, e_e;
-            b_e = _g.adjacencyBegin(end);
-            e_e = _g.adjacencyEnd(end);
-            neighbors_e.assign(b_e, e_e);
-            if (neighbors_e.size() > 1)
-                for (size_t i = 0; i < neighbors_e.size(); i++)
-                {
-                    if (neighbors_e[i] != beg)
-                    {
-                        Edge ee = _g.getEdge(neighbors_e[i], end).first; // order is significant for taking edge with eqval direction
-                        double len = _g.getEdgeBond(ee).length;
-
-                        if (len > max_edge_end)
-                            max_edge_end = len;
-                        state_conected_e = state_conected_e | _checkMidBonds(neighbors_e[i], end);
-                        if (!pb_e)
-                            pb_e = _isEqualDirection(beg, end, neighbors_e[i], end);
-                    }
-                }
-
-            if (has2nb)
+            // find the longest edge going from the beginning of our edge
             {
-                if (edge_len < max_edge_beg * (coeff) && edge_len < max_edge_end * (coeff) && edge_len < _avg_bond_length * coeff)
-                {
-                    _dissolvings++;
+                bool state_conected_b = false;
+                std::deque<Vertex> neighbors_b;
+                SkeletonGraph::adjacency_iterator b_b, e_b;
+                b_b = _g.adjacencyBegin(beg);
+                e_b = _g.adjacencyEnd(beg);
+                neighbors_b.assign(b_b, e_b);
 
-                    std::ostringstream temp;
-                    temp << "dissolving edge len: " << edge_len << ", max_edge_beg: " << max_edge_beg << ", max_edge_end: " << max_edge_end;
-                    getLogExt().appendText(temp.str());
-
-                    // dissolve the edge
-                    if (max_edge_end < max_edge_beg)
+                if (neighbors_b.size() > 1)
+                    for (size_t i = 0; i < neighbors_b.size(); i++)
                     {
-                        _reconnectBonds(end, beg);
-                        _g.removeVertex(end);
+                        if (neighbors_b[i] != end)
+                        {
+                            Edge ee = _g.getEdge(neighbors_b[i], beg).first; // order is significant for taking edge with eqval direction
+                            double len = _g.getEdgeBond(ee).length;
+                            state_conected_b = state_conected_b | _checkMidBonds(neighbors_b[i], beg);
+
+                            if (len > max_edge_beg)
+                                max_edge_beg = len;
+                            if (!pb_b)
+                                pb_b = _isEqualDirection(end, beg, neighbors_b[i], beg);
+                        }
+                    }
+
+                // find the longest edge going from the end of our edge
+
+                bool state_conected_e = false;
+                std::deque<Vertex> neighbors_e;
+                SkeletonGraph::adjacency_iterator b_e, e_e;
+                b_e = _g.adjacencyBegin(end);
+                e_e = _g.adjacencyEnd(end);
+                neighbors_e.assign(b_e, e_e);
+                if (neighbors_e.size() > 1)
+                    for (size_t i = 0; i < neighbors_e.size(); i++)
+                    {
+                        if (neighbors_e[i] != beg)
+                        {
+                            Edge ee = _g.getEdge(neighbors_e[i], end).first; // order is significant for taking edge with eqval direction
+                            double len = _g.getEdgeBond(ee).length;
+
+                            if (len > max_edge_end)
+                                max_edge_end = len;
+                            state_conected_e = state_conected_e | _checkMidBonds(neighbors_e[i], end);
+                            if (!pb_e)
+                                pb_e = _isEqualDirection(beg, end, neighbors_e[i], end);
+                        }
+                    }
+
+                if (has2nb)
+                {
+                    if (edge_len < max_edge_beg * (coeff) && edge_len < max_edge_end * (coeff) && edge_len < _avg_bond_length * coeff)
+                    {
+                        _dissolvings++;
+
+                        std::ostringstream temp;
+                        temp << "dissolving edge len: " << edge_len << ", max_edge_beg: " << max_edge_beg << ", max_edge_end: " << max_edge_end
+                             << ", avg_bond_length: " << _avg_bond_length;
+                        getLogExt().appendText(temp.str());
+
+                        // dissolve the edge
+                        if (max_edge_end < max_edge_beg)
+                        {
+                            _reconnectBonds(end, beg);
+                            _g.removeVertex(end);
+                        }
+                        else
+                        {
+                            _reconnectBonds(beg, end);
+                            _g.removeVertex(beg);
+                        }
+                        return true;
                     }
                     else
                     {
-                        _reconnectBonds(beg, end);
-                        _g.removeVertex(beg);
+                        if ((max_edge_end < _avg_bond_length * coeff) && (edge_len * (coeff) > max_edge_end) && absolute(max_edge_end) > EPS)
+                        {
+                            bool ret = false;
+                            if (neighbors_e.size() > 1 && !state_conected_e)
+                                for (size_t i = 0; i < neighbors_e.size(); i++)
+                                {
+                                    if (neighbors_e[i] != beg)
+                                    {
+                                        _reconnectBonds(neighbors_e[i], end);
+                                        _g.removeVertex(neighbors_e[i]);
+                                        ret = true;
+                                    }
+                                }
+                            if (ret)
+                                return ret;
+                        }
+
+                        if ((max_edge_beg < _avg_bond_length * coeff) && (edge_len * (coeff) > max_edge_beg) && absolute(max_edge_beg) > EPS)
+                        {
+
+                            bool ret = false;
+                            if (neighbors_b.size() > 1 && !state_conected_b)
+                                for (size_t i = 0; i < neighbors_b.size(); i++)
+                                {
+                                    if (neighbors_b[i] != end)
+                                    {
+                                        _reconnectBonds(neighbors_b[i], beg);
+                                        _g.removeVertex(neighbors_b[i]);
+                                        ret = true;
+                                    }
+                                }
+                            if (ret)
+                                return ret;
+                        }
                     }
-                    return true;
+                    if (edge_len < _avg_bond_length * (coeff))
+                    {
+                        BondType type = getBondType(edge);
+                        if (pb_e && !state_conected_b && type == BT_SINGLE)
+                        {
+                            _reconnectBonds(beg, end);
+                            _g.removeVertex(beg);
+                            return true;
+                        }
+                        if (pb_b && !state_conected_e && type == BT_SINGLE)
+                        {
+                            _reconnectBonds(end, beg);
+                            _g.removeVertex(end);
+                            return true;
+                        }
+                    }
+                    if (_g.getDegree(beg) == 1 && _g.getDegree(end) == 1 && edge_len < _avg_bond_length)
+                    {
+                        // Check existing symbols near bond ends
+                        if (layer_symbols.size() > 0)
+                        {
+
+                            Vec2d p1 = _g.getVertexPosition(beg);
+                            Vec2d p2 = _g.getVertexPosition(end);
+
+                            double length = vars.dynamic.CapitalHeight * 0.75;
+
+                            Vec2d orient;
+                            orient.diff(p2, p1);
+                            orient = orient.getNormalized();
+
+                            orient.scale(length);
+
+                            Vec2d v1 = p1, v2 = p2;
+                            v1.diff(v1, orient);
+                            v2.sum(v2, orient);
+
+                            bool rem_bond = true;
+                            for (Segment* s : layer_symbols)
+                            {
+                                int symb_x = s->getX();
+                                int symb_y = s->getY();
+                                int symb_h = s->getHeight();
+                                int symb_w = s->getWidth();
+                                double b_d = Algebra::distance2rect(v1, symb_x, symb_y, symb_w, symb_h);
+                                double e_d = Algebra::distance2rect(v2, symb_x, symb_y, symb_w, symb_h);
+
+                                if (b_d < vars.dynamic.LineThickness || e_d < vars.dynamic.LineThickness)
+                                {
+                                    rem_bond = false;
+                                }
+                            }
+                            if (rem_bond)
+                            {
+                                edgesToRemove.push_back(edge);
+                            }
+                        }
+                    }
                 }
                 else
                 {
-                    if ((max_edge_end < _avg_bond_length * coeff) && (edge_len * (coeff) > max_edge_end) && absolute(max_edge_end) > EPS)
+                    if ((max_edge_beg < _avg_bond_length * 5) && (max_edge_end < _avg_bond_length * 5))
                     {
-                        bool ret = false;
-                        if (neighbors_e.size() > 1 && !state_conected_e)
-                            for (size_t i = 0; i < neighbors_e.size(); i++)
+                        if (edge_len < max_edge_beg * coeff || edge_len < max_edge_end * coeff)
+                        {
+                            _dissolvings++;
+
+                            std::ostringstream temp;
+                            temp << "dissolving edge len: " << edge_len << ", max_edge_beg: " << max_edge_beg << ", max_edge_end: " << max_edge_end;
+                            getLogExt().appendText(temp.str());
+
+                            // dissolve the edge
+                            if (max_edge_end < max_edge_beg)
                             {
-                                if (neighbors_e[i] != beg)
-                                {
-                                    _reconnectBonds(neighbors_e[i], end);
-                                    _g.removeVertex(neighbors_e[i]);
-                                    ret = true;
-                                }
+                                _reconnectBonds(end, beg);
+                                _g.removeVertex(end);
                             }
-                        if (ret)
-                            return ret;
-                    }
-
-                    if ((max_edge_beg < _avg_bond_length * coeff) && (edge_len * (coeff) > max_edge_beg) && absolute(max_edge_beg) > EPS)
-                    {
-
-                        bool ret = false;
-                        if (neighbors_b.size() > 1 && !state_conected_b)
-                            for (size_t i = 0; i < neighbors_b.size(); i++)
+                            else
                             {
-                                if (neighbors_b[i] != end)
-                                {
-                                    _reconnectBonds(neighbors_b[i], beg);
-                                    _g.removeVertex(neighbors_b[i]);
-                                    ret = true;
-                                }
+                                _reconnectBonds(beg, end);
+                                _g.removeVertex(beg);
                             }
-                        if (ret)
-                            return ret;
+                            return true;
+                        }
                     }
-                }
-                if (edge_len < _avg_bond_length * (coeff))
-                {
-                    BondType type = getBondType(edge);
-                    if (pb_e && !state_conected_b && type == BT_SINGLE)
-                    {
-                        _reconnectBonds(beg, end);
-                        _g.removeVertex(beg);
-                        return true;
-                    }
-                    if (pb_b && !state_conected_e && type == BT_SINGLE)
-                    {
-                        _reconnectBonds(end, beg);
-                        _g.removeVertex(end);
-                        return true;
-                    }
-                }
-            }
-            else
-            {
-                if (edge_len < max_edge_beg * coeff || edge_len < max_edge_end * coeff)
-                {
-                    _dissolvings++;
-
-                    std::ostringstream temp;
-                    temp << "dissolving edge len: " << edge_len << ", max_edge_beg: " << max_edge_beg << ", max_edge_end: " << max_edge_end;
-                    getLogExt().appendText(temp.str());
-
-                    // dissolve the edge
-                    if (max_edge_end < max_edge_beg)
-                    {
-                        _reconnectBonds(end, beg);
-                        _g.removeVertex(end);
-                    }
-                    else
-                    {
-                        _reconnectBonds(beg, end);
-                        _g.removeVertex(beg);
-                    }
-                    return true;
                 }
             }
         }
+
+    if (edgesToRemove.size() > 0)
+    {
+        for (Edge e : edgesToRemove)
+        {
+            Vertex beg = e.m_source;
+            Vertex end = e.m_target;
+            _g.removeEdge(e);
+            _g.removeVertex(beg);
+            _g.removeVertex(end);
+        }
+        return true;
     }
+
     return false;
 }
 
@@ -618,7 +686,19 @@ bool Skeleton::_dissolveIntermediateVertices(const Settings& vars)
         b = _g.adjacencyBegin(to_dissolve);
         e = _g.adjacencyEnd(to_dissolve);
         neighbors.assign(b, e);
-        addBond(neighbors[0], neighbors[1], BT_SINGLE);
+
+        Skeleton::Edge edge1 = _g.getEdge(neighbors[0], to_dissolve).first;
+        Skeleton::Edge edge2 = _g.getEdge(neighbors[1], to_dissolve).first;
+        BondType t1 = getBondType(edge1);
+        BondType t2 = getBondType(edge2);
+
+        if (t1 == t2)
+            addBond(neighbors[0], neighbors[1], t1);
+        else if (_g.getEdgeBond(edge1).length >= _g.getEdgeBond(edge2).length)
+            addBond(neighbors[0], neighbors[1], t1);
+        else
+            addBond(neighbors[0], neighbors[1], t2);
+
         // The clear function for vertex was needed by boost. Now clearing is implemented in removeVertex.
         //      _g.clearVertex(to_dissolve);
         _g.removeVertex(to_dissolve);
@@ -630,6 +710,8 @@ bool Skeleton::_dissolveIntermediateVertices(const Settings& vars)
 
 void Skeleton::_findMultiple(const Settings& vars)
 {
+    logEnterFunction();
+
     DoubleBondMaker _makeDouble(vars, *this);
     TripleBondMaker _makeTriple(vars, *this);
     MultipleBondChecker _checker(vars, *this);
@@ -658,68 +740,68 @@ void Skeleton::_findMultiple(const Settings& vars)
             if (used[i])
                 continue;
 
-            for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; ++begin)
-            {
-                SkeletonGraph::edge_descriptor j = *begin;
-                if (i == j || _g.getEdgeBond(j).type != BT_SINGLE || used[j])
-                    continue;
-
-                if (!_checker.checkDouble(vars, i, j))
-                    continue;
-
+            for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; begin = end)
+                for (SkeletonGraph::edge_descriptor j; begin != end ? (j = *begin, true) : false; ++begin)
                 {
-                    std::pair<double, Edge*> arr[3];
-                    arr[0].first = _g.getEdgeBond(i).length;
-                    arr[0].second = &i;
-                    arr[1].first = _g.getEdgeBond(j).length;
-                    arr[1].second = &j;
+                    if (i == j || _g.getEdgeBond(j).type != BT_SINGLE || used[j])
+                        continue;
 
-                    if (arr[1].first > arr[0].first)
-                        std::swap(arr[0], arr[1]);
+                    if (!_checker.checkDouble(vars, i, j))
+                        continue;
 
-                    bool is_triple = false;
-
-                    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; ++begin)
                     {
-                        SkeletonGraph::edge_descriptor k = *begin;
-                        if (vars.checkTimeLimit())
-                            throw ImagoException("Timelimit exceeded");
+                        std::pair<double, Edge*> arr[3];
+                        arr[0].first = _g.getEdgeBond(i).length;
+                        arr[0].second = &i;
+                        arr[1].first = _g.getEdgeBond(j).length;
+                        arr[1].second = &j;
 
-                        if (k == i || k == j || _g.getEdgeBond(k).type != BT_SINGLE || used[k])
-                            continue;
+                        if (arr[1].first > arr[0].first)
+                            std::swap(arr[0], arr[1]);
 
-                        if (!_checker.checkTriple(vars, k))
-                            continue;
+                        bool is_triple = false;
 
-                        // Check degrees!
-                        arr[2].first = _g.getEdgeBond(k).length;
-                        arr[2].second = &k;
+                        for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; begin = end)
+                            for (SkeletonGraph::edge_descriptor k; begin != end ? (k = *begin, true) : false; ++begin)
+                            {
+                                if (vars.checkTimeLimit())
+                                    throw ImagoException("Timelimit exceeded");
 
-                        if (arr[2].first > arr[0].first)
+                                if (k == i || k == j || _g.getEdgeBond(k).type != BT_SINGLE || used[k])
+                                    continue;
+
+                                if (!_checker.checkTriple(vars, k))
+                                    continue;
+
+                                // Check degrees!
+                                arr[2].first = _g.getEdgeBond(k).length;
+                                arr[2].second = &k;
+
+                                if (arr[2].first > arr[0].first)
+                                {
+                                    std::swap(arr[2], arr[0]);
+                                    std::swap(arr[1], arr[2]);
+                                }
+                                else if (arr[2].first > arr[1].first)
+                                    std::swap(arr[1], arr[2]);
+
+                                is_triple = true;
+                                break;
+                            }
+
+                        if (is_triple)
                         {
-                            std::swap(arr[2], arr[0]);
-                            std::swap(arr[1], arr[2]);
+                            used[i] = used[j] = used[*arr[2].second] = true;
+                            tripleBonds.push_back(std::make_tuple(*arr[0].second, *arr[1].second, *arr[2].second));
                         }
-                        else if (arr[2].first > arr[1].first)
-                            std::swap(arr[1], arr[2]);
-
-                        is_triple = true;
+                        else
+                        {
+                            used[i] = used[j] = true;
+                            doubleBonds.push_back(std::make_pair(*arr[0].second, *arr[1].second));
+                        }
                         break;
                     }
-
-                    if (is_triple)
-                    {
-                        used[i] = used[j] = used[*arr[2].second] = true;
-                        tripleBonds.push_back(std::make_tuple(*arr[0].second, *arr[1].second, *arr[2].second));
-                    }
-                    else
-                    {
-                        used[i] = used[j] = true;
-                        doubleBonds.push_back(std::make_pair(*arr[0].second, *arr[1].second));
-                    }
-                    break;
                 }
-            }
         }
 
         toProcess.erase(toProcess.begin(), toProcess.begin() + end);
@@ -787,14 +869,14 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
         toSmallErr = vars.skeleton.BaseSmallErr;
     toSmallErr *= _avg_bond_length;
 
-    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; ++begin)
-    {
-        SkeletonGraph::edge_descriptor j = *begin;
-        if (getBondType(j) == BT_SINGLE)
-            singles.push_back(j);
-        if (getBondType(j) == BT_DOUBLE)
-            toProcess.push_back(j);
-    }
+    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; begin = end)
+        for (SkeletonGraph::edge_descriptor j; begin != end ? (j = *begin, true) : false; ++begin)
+        {
+            if (getBondType(j) == BT_SINGLE)
+                singles.push_back(j);
+            if (getBondType(j) == BT_DOUBLE)
+                toProcess.push_back(j);
+        }
 
     for (size_t i = 0; i < toProcess.size(); i++)
     {
@@ -822,7 +904,8 @@ void Skeleton::_processInlineDoubleBond(const Settings& vars)
             midOfSingle.middle(p2b, p2e);
 
             if (Algebra::SegmentsOnSameLine(vars, p1b, p1e, p2b, p2e) &&
-                (Vec2d::distance(midOfSingle, p1b) + Vec2d::distance(midOfSingle, p1e)) < Vec2d::distance(p2b, p2e))
+                (Vec2d::distance(midOfSingle, p1b) + Vec2d::distance(midOfSingle, p1e)) < Vec2d::distance(p2b, p2e) &&
+                Vec2d::distance(p2b, p2e) < _avg_bond_length * 3)
             {
                 foundIt = it;
                 foundInlineEdge = true;
@@ -920,7 +1003,7 @@ void Skeleton::_reconnectBondsRWT(Vertex from, Vertex to, BondType new_t)
     }
 }
 
-double Skeleton::_avgEdgeLendth(Vertex v, int& nnei)
+double Skeleton::_avgEdgeLendth(const Vertex& v, int& nnei)
 {
     std::deque<Vertex> neighbors;
     SkeletonGraph::adjacency_iterator b, e;
@@ -938,63 +1021,101 @@ double Skeleton::_avgEdgeLendth(Vertex v, int& nnei)
     for (size_t i = 0; i < neighbors.size(); i++)
     {
         Edge e = _g.getEdge(v, neighbors[i]).first;
-        avg += _g.getEdgeBond(e).length;
+        if (_g.getEdgeBond(e).length < _avg_bond_length * 3)
+            avg += _g.getEdgeBond(e).length;
     }
     return avg / neighbors.size();
 }
 
-void Skeleton::_joinVertices(double eps)
+bool Skeleton::_checkParallelEdges(const Vertex& v1, const Vertex& v2)
+{
+    std::deque<Vertex> neighbors1;
+    std::deque<Vertex> neighbors2;
+    SkeletonGraph::adjacency_iterator b, e;
+    b = _g.adjacencyBegin(v1);
+    e = _g.adjacencyEnd(v1);
+    neighbors1.assign(b, e);
+
+    b = _g.adjacencyBegin(v2);
+    e = _g.adjacencyEnd(v2);
+    neighbors2.assign(b, e);
+
+    if ((neighbors1.size() < 1) || (neighbors2.size() < 1))
+        return false;
+
+    for (size_t i = 0; i < neighbors1.size(); i++)
+    {
+        Edge e1 = _g.getEdge(v1, neighbors1[i]).first;
+        for (size_t j = 0; j < neighbors2.size(); j++)
+        {
+            Edge e2 = _g.getEdge(v2, neighbors2[j]).first;
+            if (_isParallel(e1, e2))
+                return true;
+        }
+    }
+    return false;
+}
+
+void Skeleton::_joinVertices(double eps, bool do_parallel_check)
 {
     logEnterFunction();
     std::deque<std::deque<Vertex>> nearVertices;
     std::deque<size_t> join_ind;
 
-#ifdef DEBUG
-    LPRINT(0, "joining vertices, eps = %lf", eps);
-#endif /* DEBUG */
+    getLogExt().append("Joining vertices (eps)", eps);
+    getLogExt().append("_avg_bond_length", _avg_bond_length);
 
-    for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
-    {
-        SkeletonGraph::vertex_descriptor v = *begin;
-        Vec2d v_pos = _g.getVertexPosition(v);
-        int v_nnei;
-        double v_avg_edge_len = _avgEdgeLendth(v, v_nnei);
-
-        for (size_t i = 0; i < nearVertices.size(); i++)
+    for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; begin = end)
+        for (SkeletonGraph::vertex_descriptor v; begin != end ? (v = *begin, true) : false; ++begin)
         {
-            for (size_t j = 0; j < nearVertices[i].size(); j++)
-            {
-                const Vertex& nei = nearVertices[i][j];
-                int nei_nnei;
-                double nei_avg_edge_len = _avgEdgeLendth(nei, nei_nnei);
-                double thresh = eps * (nei_nnei * nei_avg_edge_len + v_nnei * v_avg_edge_len) / (v_nnei + nei_nnei);
+            Vec2d v_pos = _g.getVertexPosition(v);
+            int v_nnei;
+            double v_avg_edge_len = _avgEdgeLendth(v, v_nnei);
 
-                if (v_nnei + nei_nnei > 0 && Vec2d::distance(v_pos, _g.getVertexPosition(nei)) < thresh)
+            for (size_t i = 0; i < nearVertices.size(); i++)
+            {
+                for (size_t j = 0; j < nearVertices[i].size(); j++)
                 {
-                    join_ind.push_back(i);
-                    break;
+                    const Vertex& nei = nearVertices[i][j];
+                    int nei_nnei;
+                    double nei_avg_edge_len = _avgEdgeLendth(nei, nei_nnei);
+
+                    if (v_nnei + nei_nnei > 0 && !_g.getEdge(v, nei).second)
+                    {
+                        double thresh = eps * (nei_nnei * nei_avg_edge_len + v_nnei * v_avg_edge_len) / (v_nnei + nei_nnei);
+
+                        if (Vec2d::distance(v_pos, _g.getVertexPosition(nei)) < thresh)
+                        {
+                            join_ind.push_back(i);
+                            break;
+                        }
+                        else if (do_parallel_check && _checkParallelEdges(v, nei) && Vec2d::distance(v_pos, _g.getVertexPosition(nei)) < _avg_bond_length * 0.4)
+                        {
+                            join_ind.push_back(i);
+                            break;
+                        }
+                    }
                 }
             }
-        }
 
-        if (join_ind.size() == 0)
-        {
-            nearVertices.push_back(std::deque<Vertex>(1, v));
-        }
-        else
-        {
-            size_t first = join_ind[0];
-            nearVertices[first].push_back(v);
-
-            for (size_t i = join_ind.size() - 1; i >= 1; i--)
+            if (join_ind.size() == 0)
             {
-                size_t ii = join_ind[i];
-                nearVertices[first].insert(nearVertices[first].end(), nearVertices[ii].begin(), nearVertices[ii].end());
-                nearVertices.erase(nearVertices.begin() + ii);
+                nearVertices.push_back(std::deque<Vertex>(1, v));
             }
+            else
+            {
+                size_t first = join_ind[0];
+                nearVertices[first].push_back(v);
+
+                for (size_t i = join_ind.size() - 1; i >= 1; i--)
+                {
+                    size_t ii = join_ind[i];
+                    nearVertices[first].insert(nearVertices[first].end(), nearVertices[ii].begin(), nearVertices[ii].end());
+                    nearVertices.erase(nearVertices.begin() + ii);
+                }
+            }
+            join_ind.clear();
         }
-        join_ind.clear();
-    }
 
     for (size_t i = 0; i < nearVertices.size(); i++)
     {
@@ -1017,9 +1138,9 @@ void Skeleton::_joinVertices(double eps)
     }
 }
 
-bool Skeleton::_isSegmentIntersectedByEdge(const Settings& vars, const Vec2d& b, const Vec2d& e, const std::deque<Edge>& edges) const
+bool Skeleton::_isSegmentIntersectedByEdge(const Settings& vars, Vec2d& b, Vec2d& e, std::deque<Edge> edges)
 {
-    std::deque<Edge>::const_iterator it;
+    std::deque<Edge>::iterator it;
 
     for (it = edges.begin(); it != edges.end(); ++it)
     {
@@ -1055,37 +1176,37 @@ void Skeleton::_connectBridgedBonds(const Settings& vars)
     std::vector<double> kFactor;
     std::vector<std::vector<Edge>> edge_groups_k;
     // group all parallel edges by similar factors
-    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; ++begin)
-    {
-        SkeletonGraph::edge_descriptor edge = *begin;
-        Bond f = _g.getEdgeBond(edge);
-        Vec2d p1 = getVertexPos(getBondBegin(edge));
-        Vec2d p2 = getVertexPos(getBondEnd(edge));
-        double slope = Algebra::slope(p1, p2);
-        if (f.type == BT_SINGLE)
+    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; begin = end)
+        for (SkeletonGraph::edge_descriptor edge; begin != end ? (edge = *begin, true) : false; ++begin)
         {
-            bool found_kFactor = false;
-            for (size_t i = 0; i < kFactor.size(); i++)
+            Bond f = _g.getEdgeBond(edge);
+            Vec2d p1 = getVertexPos(getBondBegin(edge));
+            Vec2d p2 = getVertexPos(getBondEnd(edge));
+            double slope = Algebra::slope(p1, p2);
+            if (f.type == BT_SINGLE)
             {
-                if (vars.checkTimeLimit())
-                    throw ImagoException("Timelimit exceeded");
-
-                if (fabs(slope - kFactor[i]) < vars.skeleton.SlopeFact1 || fabs(fabs(slope - kFactor[i]) - PI) < vars.skeleton.SlopeFact2)
+                bool found_kFactor = false;
+                for (size_t i = 0; i < kFactor.size(); i++)
                 {
-                    edge_groups_k[i].push_back(edge);
-                    found_kFactor = true;
-                    break;
+                    if (vars.checkTimeLimit())
+                        throw ImagoException("Timelimit exceeded");
+
+                    if (fabs(slope - kFactor[i]) < vars.skeleton.SlopeFact1 || fabs(fabs(slope - kFactor[i]) - PI) < vars.skeleton.SlopeFact2)
+                    {
+                        edge_groups_k[i].push_back(edge);
+                        found_kFactor = true;
+                        break;
+                    }
+                }
+
+                if (!found_kFactor)
+                {
+                    edge_groups_k.push_back(std::vector<Edge>());
+                    edge_groups_k[edge_groups_k.size() - 1].push_back(edge);
+                    kFactor.push_back(slope);
                 }
             }
-
-            if (!found_kFactor)
-            {
-                edge_groups_k.push_back(std::vector<Edge>());
-                edge_groups_k[edge_groups_k.size() - 1].push_back(edge);
-                kFactor.push_back(slope);
-            }
         }
-    }
     getLogExt().append("Group size of edges which could bridge:", edge_groups_k.size());
     std::deque<std::pair<Edge, Edge>> edges_to_connect;
 
@@ -1228,6 +1349,7 @@ void Skeleton::modifyGraph(Settings& vars)
     // RecognitionSettings &rs = getSettings();
 
     _parLinesEps = vars.estimation.ParLinesEps;
+    SegmentDeque empty;
 
     recalcAvgBondLength();
 
@@ -1236,7 +1358,9 @@ void Skeleton::modifyGraph(Settings& vars)
 
     getLogExt().appendSkeleton(vars, "init", _g);
 
-    _joinVertices(vars.skeleton.JoinVerticiesConst);
+    _joinVertices(vars.skeleton.JoinVerticiesConst, true);
+
+    getLogExt().appendSkeleton(vars, "after join verticies", _g);
 
     if (vars.checkTimeLimit())
         throw ImagoException("Timelimit exceeded");
@@ -1245,22 +1369,17 @@ void Skeleton::modifyGraph(Settings& vars)
 
     _vertices_big_degree.clear();
 
-    if (vars.checkTimeLimit())
-        throw ImagoException("Timelimit exceeded");
-
-    for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
-    {
-        SkeletonGraph::vertex_descriptor v = *begin;
-        if (_g.getDegree(v) > 2)
+    for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; begin = end)
+        for (SkeletonGraph::vertex_descriptor v; begin != end ? (v = *begin, true) : false; ++begin)
         {
-            Vec2d pos = _g.getVertexPosition(v);
-            _vertices_big_degree.push_back(pos);
+            if (_g.getDegree(v) > 2)
+            {
+                Vec2d pos = _g.getVertexPosition(v);
+                _vertices_big_degree.push_back(pos);
+            }
         }
-    }
 
-    getLogExt().appendSkeleton(vars, "after join verticies", _g);
-
-    while (_dissolveShortEdges(vars.skeleton.DissolveConst))
+    while (_dissolveShortEdges(vars, vars.skeleton.DissolveConst, false, empty))
     {
         if (vars.checkTimeLimit())
             throw ImagoException("Timelimit exceeded");
@@ -1278,25 +1397,30 @@ void Skeleton::modifyGraph(Settings& vars)
 
     getLogExt().appendSkeleton(vars, "after dissolve intermediate vertrices", _g);
 
-    recalcAvgBondLength();
+    /*
+        try
+        {
+           _findMultiple(vars);
+        }
+        catch (ImagoException &)
+        {}
 
-    _findMultiple(vars);
 
-    if (vars.checkTimeLimit())
-        throw ImagoException("Timelimit exceeded");
+        getLogExt().appendSkeleton(vars, "after find multiple", _g);
 
-    getLogExt().appendSkeleton(vars, "after find multiple", _g);
+        if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
+    */
 
-    _connectBridgedBonds(vars);
+    /*
+        _connectBridgedBonds(vars);
 
-    if (vars.checkTimeLimit())
-        throw ImagoException("Timelimit exceeded");
+        if (vars.checkTimeLimit()) throw ImagoException("Timelimit exceeded");
 
-    getLogExt().appendSkeleton(vars, "after connecting bridge bonds", _g);
+        getLogExt().appendSkeleton(vars, "after connecting bridge bonds", _g);
 
-    recalcAvgBondLength();
-
-    while (_dissolveShortEdges(vars.skeleton.Dissolve2Const))
+        recalcAvgBondLength();
+    */
+    while (_dissolveShortEdges(vars, vars.skeleton.Dissolve2Const, false, empty))
     {
         if (vars.checkTimeLimit())
             throw ImagoException("Timelimit exceeded");
@@ -1306,26 +1430,31 @@ void Skeleton::modifyGraph(Settings& vars)
 
     recalcAvgBondLength();
 
-    _joinVertices(vars.skeleton.Join2Const);
-    _joinVertices(vars.skeleton.Join3Const);
+    //    _joinVertices(vars.skeleton.Join2Const, true);
+
+    //    getLogExt().appendSkeleton(vars, "after join vertices (const 2)", _g);
+
+    //	_joinVertices(vars.skeleton.Join3Const);
+
+    //	getLogExt().appendSkeleton(vars, "after join vertices (const 3)", _g);
 
     // Shrinking short bonds (dots)
     std::vector<Edge> edgesToRemove;
-    for (SkeletonGraph::edge_iterator begin_range = _g.edgeBegin(), end_range = _g.edgeEnd(); begin_range != end_range; ++begin_range)
-    {
-        SkeletonGraph::edge_descriptor edge = *begin_range;
-        const Vertex& beg = edge.m_source;
-        const Vertex& end = edge.m_target;
-        Vec2d beg_pos = _g.getVertexPosition(beg);
-        const Vec2d& end_pos = _g.getVertexPosition(end);
-        if (_g.getDegree(beg) == 1 && _g.getDegree(end) == 1 && _g.getEdgeBond(edge).length < vars.skeleton.ShrinkEps * _avg_bond_length)
+    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; begin = end)
+        for (SkeletonGraph::edge_descriptor edge; begin != end ? (edge = *begin, true) : false; ++begin)
         {
-            beg_pos.add(end_pos);
-            beg_pos.scale(0.5); // average
-            addVertex(beg_pos);
-            edgesToRemove.push_back(edge);
+            const Vertex& beg = edge.m_source;
+            const Vertex& end = edge.m_target;
+            Vec2d beg_pos = _g.getVertexPosition(beg);
+            const Vec2d& end_pos = _g.getVertexPosition(end);
+            if (_g.getDegree(beg) == 1 && _g.getDegree(end) == 1 && _g.getEdgeBond(edge).length < vars.skeleton.ShrinkEps * _avg_bond_length)
+            {
+                beg_pos.add(end_pos);
+                beg_pos.scale(0.5); // average
+                addVertex(beg_pos);
+                edgesToRemove.push_back(edge);
+            }
         }
-    }
     for (Edge e : edgesToRemove)
     {
         Vertex beg = e.m_source;
@@ -1340,6 +1469,7 @@ void Skeleton::modifyGraph(Settings& vars)
     // ---------------------------------------------------------
     // analyze graph for vertex mess
     Image temp(vars.general.ImageWidth, vars.general.ImageHeight);
+    temp.fillWhite();
 
     double distTresh = vars.dynamic.CapitalHeight;
 
@@ -1347,39 +1477,40 @@ void Skeleton::modifyGraph(Settings& vars)
         distTresh = _avg_bond_length / vars.skeleton.DistTreshLimFactor;
 
     std::vector<Skeleton::Edge> bad_edges;
-    for (SkeletonGraph::edge_iterator begin_range = _g.edgeBegin(), end_range = _g.edgeEnd(); begin_range != end_range; ++begin_range)
-    {
-        SkeletonGraph::edge_descriptor e = *begin_range;
-        const Skeleton::Vertex& beg = e.m_source;
-        const Skeleton::Vertex& end = e.m_target;
-        Vec2d pos_beg = _g.getVertexPosition(beg);
-        Vec2d pos_end = _g.getVertexPosition(end);
-        double d = Vec2d::distance(pos_beg, pos_end);
-        if (d < distTresh)
+    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; begin = end)
+        for (SkeletonGraph::edge_descriptor e; begin != end ? (e = *begin, true) : false; ++begin)
         {
-            for (SkeletonGraph::vertex_iterator range_begin = _g.vertexBegin(), range_end = _g.vertexEnd(); range_begin != range_end; ++range_begin)
+            const Skeleton::Vertex& beg = e.m_source;
+            const Skeleton::Vertex& end = e.m_target;
+            Vec2d pos_beg = _g.getVertexPosition(beg);
+            Vec2d pos_end = _g.getVertexPosition(end);
+            double d = Vec2d::distance(pos_beg, pos_end);
+            if (d < distTresh)
             {
-                SkeletonGraph::vertex_descriptor v = *range_begin;
-                if (vars.checkTimeLimit())
-                    throw ImagoException("Timelimit exceeded");
-
-                if (v != beg && v != end)
-                {
-                    Vec2d pos = _g.getVertexPosition(v);
-                    if (Vec2i::distance(pos, pos_beg) < distTresh && Vec2i::distance(pos, pos_end) < distTresh)
+                for (SkeletonGraph::vertex_iterator range_begin = _g.vertexBegin(), range_end = _g.vertexEnd(); range_begin != range_end;
+                     range_begin = range_end)
+                    for (SkeletonGraph::vertex_descriptor v; range_begin != range_end ? (v = *range_begin, true) : false; ++range_begin)
                     {
-                        if (getLogExt().loggingEnabled())
+                        if (vars.checkTimeLimit())
+                            throw ImagoException("Timelimit exceeded");
+
+                        if (v != beg && v != end)
                         {
-                            ImageDrawUtils::putCircle(temp, round(pos.x), round(pos.y), 2, 0);
-                            ImageDrawUtils::putLineSegment(temp, pos_beg, pos_end, 0);
+                            Vec2d pos = _g.getVertexPosition(v);
+                            if (Vec2i::distance(pos, pos_beg) < distTresh && Vec2i::distance(pos, pos_end) < distTresh)
+                            {
+                                if (getLogExt().loggingEnabled())
+                                {
+                                    ImageDrawUtils::putCircle(temp, round(pos.x), round(pos.y), 2, 0);
+                                    ImageDrawUtils::putLineSegment(temp, pos_beg, pos_end, 0);
+                                }
+                                bad_edges.push_back(e);
+                                break;
+                            }
                         }
-                        bad_edges.push_back(e);
-                        break;
                     }
-                }
             }
         }
-    }
 
     for (Skeleton::Edge e : bad_edges)
     {
@@ -1398,17 +1529,17 @@ void Skeleton::modifyGraph(Settings& vars)
 
     vars.dynamic.AvgBondLength = _avg_bond_length;
 
-    for (SkeletonGraph::edge_iterator begin_range = _g.edgeBegin(), end_range = _g.edgeEnd(); begin_range != end_range; ++begin_range)
-    {
-        SkeletonGraph::edge_descriptor edge = *begin_range;
-        const Vertex& beg = edge.m_source;
-        const Vertex& end = edge.m_target;
-        Vec2d beg_pos = _g.getVertexPosition(beg);
-        const Vec2d& end_pos = _g.getVertexPosition(end);
+    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; begin = end)
+        for (SkeletonGraph::edge_descriptor edge; begin != end ? (edge = *begin, true) : false; ++begin)
+        {
+            const Vertex& beg = edge.m_source;
+            const Vertex& end = edge.m_target;
+            Vec2d beg_pos = _g.getVertexPosition(beg);
+            const Vec2d& end_pos = _g.getVertexPosition(end);
 #ifdef DEBUG
-        printf("(%lf, %lf) - (%lf, %lf) | %lf\n", beg_pos.x, beg_pos.y, end_pos.x, end_pos.y, _g.getEdgeBond(edge).length);
+            printf("(%lf, %lf) - (%lf, %lf) | %lf\n", beg_pos.x, beg_pos.y, end_pos.x, end_pos.y, _g.getEdgeBond(edge).length);
 #endif
-    }
+        }
 }
 
 void Skeleton::deleteBadTriangles(double eps)
@@ -1416,79 +1547,79 @@ void Skeleton::deleteBadTriangles(double eps)
     std::set<Edge> edges_to_delete;
     std::set<Vertex> vertices_to_delete;
 
-    for (SkeletonGraph::edge_iterator begin_range = _g.edgeBegin(), end_range = _g.edgeEnd(); begin_range != end_range; ++begin_range)
-    {
-        SkeletonGraph::edge_descriptor edge = *begin_range;
-        if (edges_to_delete.find(edge) != edges_to_delete.end())
-            continue;
-
-        Vertex beg = edge.m_source;
-        Vertex end = edge.m_target;
-
-        SkeletonGraph::adjacency_iterator b1, e1, b2, e2;
-        std::set<Vertex> intrsect, beg_neigh, end_neigh;
-        b1 = _g.adjacencyBegin(beg);
-        e1 = _g.adjacencyEnd(beg);
-        b2 = _g.adjacencyBegin(end);
-        e2 = _g.adjacencyEnd(end);
-        beg_neigh.insert(b1, e1);
-        end_neigh.insert(b2, e2);
-        std::set_intersection(beg_neigh.begin(), beg_neigh.end(), end_neigh.begin(), end_neigh.end(), std::inserter(intrsect, intrsect.begin()));
-
-        for (Vertex v : intrsect)
+    for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; begin = end)
+        for (SkeletonGraph::edge_descriptor edge; begin != end ? (edge = *begin, true) : false; ++begin)
         {
-            if (v == beg || v == end || vertices_to_delete.find(v) != vertices_to_delete.end())
+            if (edges_to_delete.find(edge) != edges_to_delete.end())
                 continue;
 
-            double l_b, l_e, l_be;
-            // add asserts
-            l_b = _g.getEdgeBond(_g.getEdge(v, beg).first).length;
-            l_e = _g.getEdgeBond(_g.getEdge(v, end).first).length;
-            l_be = _g.getEdgeBond(edge).length;
-            if (fabs(l_b - (l_e + l_be)) < eps) // v - b
+            Vertex beg = edge.m_source;
+            Vertex end = edge.m_target;
+
+            SkeletonGraph::adjacency_iterator b1, e1, b2, e2;
+            std::set<Vertex> intrsect, beg_neigh, end_neigh;
+            b1 = _g.adjacencyBegin(beg);
+            e1 = _g.adjacencyEnd(beg);
+            b2 = _g.adjacencyBegin(end);
+            e2 = _g.adjacencyEnd(end);
+            beg_neigh.insert(b1, e1);
+            end_neigh.insert(b2, e2);
+            std::set_intersection(beg_neigh.begin(), beg_neigh.end(), end_neigh.begin(), end_neigh.end(), std::inserter(intrsect, intrsect.begin()));
+
+            for (Vertex v : intrsect)
             {
-                if (_g.getDegree(end) == 2)
+                if (v == beg || v == end || vertices_to_delete.find(v) != vertices_to_delete.end())
+                    continue;
+
+                double l_b, l_e, l_be;
+                // add asserts
+                l_b = _g.getEdgeBond(_g.getEdge(v, beg).first).length;
+                l_e = _g.getEdgeBond(_g.getEdge(v, end).first).length;
+                l_be = _g.getEdgeBond(edge).length;
+                if (fabs(l_b - (l_e + l_be)) < eps) // v - b
                 {
-                    edges_to_delete.insert(edge);
-                    edges_to_delete.insert(_g.getEdge(v, end).first);
-                    vertices_to_delete.insert(end);
-                    setBondType(_g.getEdge(v, beg).first, BT_SINGLE_UP);
+                    if (_g.getDegree(end) == 2)
+                    {
+                        edges_to_delete.insert(edge);
+                        edges_to_delete.insert(_g.getEdge(v, end).first);
+                        vertices_to_delete.insert(end);
+                        setBondType(_g.getEdge(v, beg).first, BT_SINGLE_UP);
+                    }
+                    else
+                        edges_to_delete.insert(_g.getEdge(v, beg).first);
+                    // v - e
+                    // edge
                 }
-                else
-                    edges_to_delete.insert(_g.getEdge(v, beg).first);
-                // v - e
-                // edge
-            }
-            else if (fabs(l_e - (l_b + l_be)) < eps) // v - e
-            {
-                // v - b
-                // edge
-                if (_g.getDegree(beg) == 2)
+                else if (fabs(l_e - (l_b + l_be)) < eps) // v - e
                 {
-                    edges_to_delete.insert(edge);
-                    edges_to_delete.insert(_g.getEdge(v, beg).first);
-                    vertices_to_delete.insert(beg);
-                    setBondType(_g.getEdge(v, end).first, BT_SINGLE_UP);
+                    // v - b
+                    // edge
+                    if (_g.getDegree(beg) == 2)
+                    {
+                        edges_to_delete.insert(edge);
+                        edges_to_delete.insert(_g.getEdge(v, beg).first);
+                        vertices_to_delete.insert(beg);
+                        setBondType(_g.getEdge(v, end).first, BT_SINGLE_UP);
+                    }
+                    else
+                        edges_to_delete.insert(_g.getEdge(v, end).first);
                 }
-                else
-                    edges_to_delete.insert(_g.getEdge(v, end).first);
-            }
-            else if (fabs(l_be - (l_b + l_e)) < eps) // edge
-            {
-                // v - e
-                // v - b
-                if (_g.getDegree(v) == 2)
+                else if (fabs(l_be - (l_b + l_e)) < eps) // edge
                 {
-                    edges_to_delete.insert(_g.getEdge(v, end).first);
-                    edges_to_delete.insert(_g.getEdge(v, beg).first);
-                    vertices_to_delete.insert(v);
-                    setBondType(edge, BT_SINGLE_UP);
+                    // v - e
+                    // v - b
+                    if (_g.getDegree(v) == 2)
+                    {
+                        edges_to_delete.insert(_g.getEdge(v, end).first);
+                        edges_to_delete.insert(_g.getEdge(v, beg).first);
+                        vertices_to_delete.insert(v);
+                        setBondType(edge, BT_SINGLE_UP);
+                    }
+                    else
+                        edges_to_delete.insert(edge);
                 }
-                else
-                    edges_to_delete.insert(edge);
             }
         }
-    }
 
     for (Edge edge : edges_to_delete)
         _g.removeEdge(edge);
@@ -1496,7 +1627,7 @@ void Skeleton::deleteBadTriangles(double eps)
         _g.removeVertex(v);
 }
 
-void Skeleton::setBondType(const Edge& e, BondType t)
+void Skeleton::setBondType(Edge e, BondType t)
 {
     Bond b = _g.getEdgeBond(e);
 

@@ -147,7 +147,7 @@ namespace imago
 
             if (vars.dynamic.CapitalHeight <= EPS)
             {
-                base_ratio = 4.0;
+                base_ratio = 1.0;
             }
             else
             {
@@ -177,9 +177,11 @@ namespace imago
 
             cv::Mat reduced2x((grayFrame.rows + 1) / 2, (grayFrame.cols + 1) / 2, CV_8U);
             cv::pyrDown(grayFrame, reduced2x);
+            getLogExt().appendMat("reduced2x", reduced2x);
 
             cv::Mat smoothed2x(grayFrame.rows, grayFrame.cols, CV_8U);
             cv::pyrUp(reduced2x, smoothed2x);
+            getLogExt().appendMat("smoothed2x", smoothed2x);
 
             cv::Mat strong;
             cv::adaptiveThreshold(smoothed2x, strong, 255, cv::ADAPTIVE_THRESH_GAUSSIAN_C, CV_THRESH_BINARY,
@@ -202,8 +204,11 @@ namespace imago
             Rectangle viewport;
             int tresholdPassSum = 0, tresholdPassCount = 0;
 
-            int borderX = raw.getWidth() / vars.prefilterCV.BorderPartProportion + 1;
-            int borderY = raw.getHeight() / vars.prefilterCV.BorderPartProportion + 1;
+            //			int borderX = raw.getWidth()  / vars.prefilterCV.BorderPartProportion + 1;
+            //			int borderY = raw.getHeight() / vars.prefilterCV.BorderPartProportion + 1;
+
+            int borderX = 5;
+            int borderY = 5;
 
             for (int iter = 0; iter <= (vars.prefilterCV.UseOtsuPixelsAddition ? 1 : 0); iter++)
             {

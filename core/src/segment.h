@@ -59,14 +59,17 @@ namespace imago
         Vec2i getCenter() const;
 
         void splitVert(int x, Segment& left, Segment& right) const;
+        void splitHor(int y, Segment& left, Segment& right) const;
         void crop();
         void rotate90();
 
         double getRatio();
         double getDensity();
+        double getDiameter();
 
         double getRatio() const;
         double getDensity() const;
+        double getDiameter() const;
 
     private:
         int _x, _y;

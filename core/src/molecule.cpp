@@ -60,7 +60,7 @@ Skeleton::SkeletonGraph& Molecule::getSkeleton()
     return _g;
 }
 
-bool testNear(const Vec2d& point, const Rectangle& rec, double margin)
+bool testNear(Vec2d& point, Rectangle& rec, double margin)
 {
     double top = rec.y - margin;  // std::max<int>(0, rec.y - margin);
     double left = rec.x - margin; // std::max<int>(0, rec.x - margin);
@@ -70,7 +70,7 @@ bool testNear(const Vec2d& point, const Rectangle& rec, double margin)
 
 // returns true if edge is directed to rectangle
 //  end is the closest point to rectangle
-bool testCollision(const Vec2d& beg, const Vec2d& end, const Rectangle& rec)
+bool testCollision(Vec2d& beg, Vec2d& end, Rectangle& rec)
 {
     Vec2d perp(-(end.y - beg.y), end.x - beg.x);
     try
@@ -125,81 +125,84 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label>& unmapped_label
 #endif
 
         nearest.clear();
-        space = l.MaxSymbolWidth() * vars.molecule.SpaceMultiply;
-        space2 = l.rect.width < l.rect.height ? l.rect.width : l.rect.height;
 
-        for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; ++begin)
-        {
-            SkeletonGraph::edge_descriptor e = *begin;
-            if (vars.checkTimeLimit())
-                throw ImagoException("Timelimit exceeded");
+        //	  space = l.MaxSymbolWidth() * vars.molecule.SpaceMultiply;
+        space = vars.dynamic.CapitalHeight * vars.molecule.SpaceMultiply;
+        //	  space2 = l.rect.width < l.rect.height ? l.rect.width : l.rect.height;
+        space2 = vars.dynamic.CapitalHeight;
 
-            double d1, d2;
-            d1 = d2 = DIST_INF;
-
-            if (_g.getDegree(e.m_source) > 1 && _g.getDegree(e.m_target) > 1)
-                continue;
-
-            if (_g.getDegree(e.m_source) == 1)
-                d1 = Algebra::distance2rect(_g.getVertexPosition(e.m_source), l.rect);
-
-            if (_g.getDegree(e.m_target) == 1)
-                d2 = Algebra::distance2rect(_g.getVertexPosition(e.m_target), l.rect);
-
-            auto v_m_target = _g.getVertexPosition(e.m_target);
-            auto v_m_source = _g.getVertexPosition(e.m_source);
-
-            if (d1 <= d2 &&
-                ((testCollision(v_m_target, v_m_source, l.rect) && testNear(v_m_source, l.rect, space)) || testNear(v_m_source, l.rect, space2 / 2)))
-                nearest.push_back(e.m_source);
-            else if (d2 < d1 &&
-                     ((testCollision(v_m_source, v_m_target, l.rect) && testNear(v_m_target, l.rect, space)) || testNear(v_m_target, l.rect, space2 / 2)))
-                nearest.push_back(e.m_target);
-        }
-
-        for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
-        {
-            SkeletonGraph::vertex_descriptor v = *begin;
-            auto v_position = _g.getVertexPosition(v);
-
-            if (_g.getDegree(v) != 2)
-                continue;
-            if (!testNear(v_position, l.rect, space2 / 2))
-                continue;
-
-            std::deque<Skeleton::Vertex> neighbors;
-            Skeleton::SkeletonGraph::adjacency_iterator b_e, e_e;
-            b_e = _g.adjacencyBegin(v);
-            e_e = _g.adjacencyEnd(v);
-            neighbors.assign(b_e, e_e);
-
-            Skeleton::Edge edge1 = _g.getEdge(neighbors[0], v).first;
-            Skeleton::Edge edge2 = _g.getEdge(neighbors[1], v).first;
-            BondType t1 = getBondType(edge1);
-            BondType t2 = getBondType(edge2);
-
-            if (t1 != BT_SINGLE || t2 != BT_SINGLE)
-                continue;
-
-            Vec2d p_v = _g.getVertexPosition(v);
-            Vec2d p1 = _g.getVertexPosition(neighbors[0]);
-            Vec2d p2 = _g.getVertexPosition(neighbors[1]);
-
-            Vec2d ap1, ap2;
-            ap1.diff(p1, p_v);
-            ap2.diff(p2, p_v);
-
-            if (testCollision(p1, p_v, l.rect) && testCollision(p2, p_v, l.rect) && testNear(p_v, l.rect, space) && !testNear(p1, l.rect, space) &&
-                !testNear(p2, l.rect, space))
+        for (SkeletonGraph::edge_iterator begin = _g.edgeBegin(), end = _g.edgeEnd(); begin != end; begin = end)
+            for (SkeletonGraph::edge_descriptor e; begin != end ? (e = *begin, true) : false; ++begin)
             {
+                if (vars.checkTimeLimit())
+                    throw ImagoException("Timelimit exceeded");
 
-                removeBond(edge1);
-                Vertex v_d = addVertex(p_v);
-                addBond(neighbors[0], v_d, BT_SINGLE, true);
-                nearest.push_back(v_d);
-                nearest.push_back(v);
+                double d1, d2;
+                d1 = d2 = DIST_INF;
+
+                if (_g.getDegree(e.m_source) > 1 && _g.getDegree(e.m_target) > 1)
+                    continue;
+
+                if (_g.getDegree(e.m_source) == 1)
+                    d1 = Algebra::distance2rect(_g.getVertexPosition(e.m_source), l.rect);
+
+                if (_g.getDegree(e.m_target) == 1)
+                    d2 = Algebra::distance2rect(_g.getVertexPosition(e.m_target), l.rect);
+
+                auto v_m_target = _g.getVertexPosition(e.m_target);
+                auto v_m_source = _g.getVertexPosition(e.m_source);
+
+                if (d1 <= d2 &&
+                    ((testCollision(v_m_target, v_m_source, l.rect) && testNear(v_m_source, l.rect, space)) || testNear(v_m_source, l.rect, space2 / 2)))
+                    nearest.push_back(e.m_source);
+                else if (d2 < d1 &&
+                         ((testCollision(v_m_source, v_m_target, l.rect) && testNear(v_m_target, l.rect, space)) || testNear(v_m_target, l.rect, space2 / 2)))
+                    nearest.push_back(e.m_target);
             }
-        }
+
+        for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; begin = end)
+            for (SkeletonGraph::vertex_descriptor v; begin != end ? (v = *begin, true) : false; ++begin)
+            {
+                auto v_position = _g.getVertexPosition(v);
+
+                if (_g.getDegree(v) != 2)
+                    continue;
+                if (!testNear(v_position, l.rect, space2 / 2))
+                    continue;
+
+                std::deque<Skeleton::Vertex> neighbors;
+                Skeleton::SkeletonGraph::adjacency_iterator b_e, e_e;
+                b_e = _g.adjacencyBegin(v);
+                e_e = _g.adjacencyEnd(v);
+                neighbors.assign(b_e, e_e);
+
+                Skeleton::Edge edge1 = _g.getEdge(neighbors[0], v).first;
+                Skeleton::Edge edge2 = _g.getEdge(neighbors[1], v).first;
+                BondType t1 = getBondType(edge1);
+                BondType t2 = getBondType(edge2);
+
+                if (t1 != BT_SINGLE || t2 != BT_SINGLE)
+                    continue;
+
+                Vec2d p_v = _g.getVertexPosition(v);
+                Vec2d p1 = _g.getVertexPosition(neighbors[0]);
+                Vec2d p2 = _g.getVertexPosition(neighbors[1]);
+
+                Vec2d ap1, ap2;
+                ap1.diff(p1, p_v);
+                ap2.diff(p2, p_v);
+
+                if (testCollision(p1, p_v, l.rect) && testCollision(p2, p_v, l.rect) && testNear(p_v, l.rect, space) && !testNear(p1, l.rect, space) &&
+                    !testNear(p2, l.rect, space))
+                {
+
+                    removeBond(edge1);
+                    Vertex v_d = addVertex(p_v);
+                    addBond(neighbors[0], v_d, BT_SINGLE, true);
+                    nearest.push_back(v_d);
+                    nearest.push_back(v);
+                }
+            }
 
         size_t s = nearest.size();
         if (s == 0)
@@ -230,14 +233,23 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label>& unmapped_label
 
                 Vec2d n1, n2;
                 Vec2d v_a, v_b, v_c, v_d;
+                Vec2d m;
+
                 v_a = _g.getVertexPosition(a);
                 v_b = _g.getVertexPosition(b);
                 v_c = _g.getVertexPosition(c);
                 v_d = _g.getVertexPosition(d);
+
+                n1.diff(v_c, v_d);
+                if (n1.norm() < space)
+                {
+                    m.middle(v_a, v_b);
+                    middle.add(m);
+                    continue;
+                }
+
                 n1.diff(v_a, v_c);
                 n2.diff(v_b, v_d);
-
-                Vec2d m;
 
                 double ang = Vec2d::angle(n1, n2);
                 if (fabs(ang) < vars.molecule.AngleTreshold || fabs(ang - PI) < vars.molecule.AngleTreshold)
@@ -255,6 +267,7 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label>& unmapped_label
 
         middle.scale(2.0 / (s * (s - 1)));
         Vertex newVertex = addVertex(middle);
+
         for (int j = 0; j < s; j++)
         {
             Vertex e = nearest[j];
@@ -272,16 +285,20 @@ void Molecule::mapLabels(const Settings& vars, std::deque<Label>& unmapped_label
     std::deque<Skeleton::Vertex> deck;
 
     // Removing dots without labels
-
-    for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
-    {
-        SkeletonGraph::vertex_descriptor v = *begin;
-        if (_g.getDegree(v) == 0 && _mapping.find(v) == _mapping.end())
-            deck.push_back(v);
-    }
+    for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; begin = end)
+        for (SkeletonGraph::vertex_descriptor v; begin != end ? (v = *begin, true) : false; ++begin)
+        {
+            if (_g.getDegree(v) == 0 && _mapping.find(v) == _mapping.end())
+                deck.push_back(v);
+        }
 
     for (Skeleton::Vertex v : deck)
         _g.removeVertex(v);
+}
+
+void Molecule::updateLabels()
+{
+    labels.assign(_labels.begin(), _labels.end());
 }
 
 void Molecule::aromatize(Points2d& aromatic_centers)
@@ -291,21 +308,19 @@ void Molecule::aromatize(Points2d& aromatic_centers)
         Vertex begin_vertex = (Vertex)0;
         double distance = DIST_INF;
 
-        for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
-        {
-            SkeletonGraph::vertex_descriptor v = *begin;
-            double tmp = Vec2d::distance(arom_center, getVertexPos(v));
-
-            if (tmp < distance)
+        for (SkeletonGraph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; begin = end)
+            for (SkeletonGraph::vertex_descriptor v; begin != end ? (v = *begin, true) : false; ++begin)
             {
-                distance = tmp;
-                begin_vertex = v;
-            }
-        }
+                double tmp = Vec2d::distance(arom_center, getVertexPos(v));
 
-        Vertex cur_vertex = begin_vertex;
-        Vertex prev_vertex = (Vertex)0;
-        Vertex next_vertex = (Vertex)0;
+                if (tmp < distance)
+                {
+                    distance = tmp;
+                    begin_vertex = v;
+                }
+            }
+
+        Vertex cur_vertex = begin_vertex, prev_vertex = (Vertex)0, next_vertex = (Vertex)0;
 
         if (cur_vertex == 0)
             return;
@@ -316,22 +331,22 @@ void Molecule::aromatize(Points2d& aromatic_centers)
         {
             distance = DIST_INF;
 
-            for (SkeletonGraph::adjacency_iterator begin = _g.adjacencyBegin(cur_vertex), end = _g.adjacencyEnd(cur_vertex); begin != end; ++begin)
-            {
-                SkeletonGraph::vertex_descriptor u = *begin;
-                Vec2d bond_middle;
-                bond_middle.middle(getVertexPos(cur_vertex), getVertexPos(u));
-                double tmp = Vec2d::distance(arom_center, bond_middle);
-
-                if (tmp < distance)
+            for (SkeletonGraph::adjacency_iterator begin = _g.adjacencyBegin(cur_vertex), end = _g.adjacencyEnd(cur_vertex); begin != end; begin = end)
+                for (SkeletonGraph::vertex_descriptor u; begin != end ? (u = *begin, true) : false; ++begin)
                 {
-                    if (u != prev_vertex)
+                    Vec2d bond_middle;
+                    bond_middle.middle(getVertexPos(cur_vertex), getVertexPos(u));
+                    double tmp = Vec2d::distance(arom_center, bond_middle);
+
+                    if (tmp < distance)
                     {
-                        distance = tmp;
-                        next_vertex = u;
+                        if (u != prev_vertex)
+                        {
+                            distance = tmp;
+                            next_vertex = u;
+                        }
                     }
                 }
-            }
 
             if (next_vertex == cur_vertex || next_vertex == 0)
                 break;

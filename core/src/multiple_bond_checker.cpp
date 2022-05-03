@@ -126,34 +126,32 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
                    Algebra::distance2segment(se_pos, fb_pos, fe_pos));
 
     if (!(dm < vars.mbond.DoubleMagic1 * de && dm < vars.mbond.DoubleMagic2 * db))
-    {
         return false;
-    }
 
-    for (Graph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; ++begin)
-    {
-        Graph::vertex_descriptor v = *begin;
-        if (v == fb || v == fe || v == sb || v == se)
-            continue;
-
-        Vec2d v_pos = _g.getVertexPosition(v);
-        double d1 = Algebra::distance2segment(v_pos, fb_pos, fe_pos);
-        double d2 = Algebra::distance2segment(v_pos, sb_pos, se_pos);
-
-        double coef;
-        if (bf.length < bs.length)
-            coef = Algebra::pointProjectionCoef(v_pos, fb_pos, fe_pos);
-        else
-            coef = Algebra::pointProjectionCoef(v_pos, sb_pos, se_pos);
-
-        if (d1 > d || d2 > d)
-            continue;
-
-        if (coef > vars.mbond.DoubleTreshMin && coef < vars.mbond.DoubleTreshMax)
+    for (Graph::vertex_iterator begin = _g.vertexBegin(), end = _g.vertexEnd(); begin != end; begin = end)
+        for (Graph::vertex_descriptor v; begin != end ? (v = *begin, true) : false; ++begin)
         {
-            return false;
+            if (v == fb || v == fe || v == sb || v == se)
+                continue;
+
+            Vec2d v_pos = _g.getVertexPosition(v);
+            double d1 = Algebra::distance2segment(v_pos, fb_pos, fe_pos);
+            double d2 = Algebra::distance2segment(v_pos, sb_pos, se_pos);
+
+            double coef;
+            if (bf.length < bs.length)
+                coef = Algebra::pointProjectionCoef(v_pos, fb_pos, fe_pos);
+            else
+                coef = Algebra::pointProjectionCoef(v_pos, sb_pos, se_pos);
+
+            if (d1 > d || d2 > d)
+                continue;
+
+            if (coef > vars.mbond.DoubleTreshMin && coef < vars.mbond.DoubleTreshMax)
+            {
+                return false;
+            }
         }
-    }
 
     double maxLength, minLength;
     if (bf.length > bs.length)
@@ -197,8 +195,12 @@ bool MultipleBondChecker::checkDouble(const Settings& vars, Edge frst, Edge scnd
 #endif
 
     if (d > _multiBondErr * maxLength)
+    {
+        getLogExt().append("d > _multiBondErr * maxLength:", d);
+        getLogExt().append("_multiBondErr:", _multiBondErr);
+        getLogExt().append("maxLength:", maxLength);
         return false;
-
+    }
 #ifdef DEBUG
     LPRINT(0, "found double bond:");
     LPRINT(0, "(%.1lf %.1lf) - (%.1lf %.1lf)", fb_pos.x, fb_pos.y, fe_pos.x, fe_pos.y);
