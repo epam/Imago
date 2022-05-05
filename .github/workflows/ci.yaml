@@ -38,7 +38,7 @@ jobs:
             mkdir build &&
             cd build &&
             cmake .. &&
-            cmake --build . --config Release --target all -- -j $(nproc) &&
+            cmake --build . --config Release --target imago -- -j $(nproc) &&
             ctest --verbose
             "
       - name: Build macOS
@@ -47,7 +47,7 @@ jobs:
           mkdir build
           cd build
           cmake ..
-          cmake --build . --config Release --target all -- -j $(sysctl -n hw.logicalcpu)
+          cmake --build . --config Release --target imago -- -j $(sysctl -n hw.logicalcpu)
           ctest --verbose
       - name: Build Windows
         if: ${{ matrix.os == 'windows' }}
@@ -55,5 +55,5 @@ jobs:
           mkdir build
           cd build
           cmake ..
-          cmake --build . --config Release --target ALL_BUILD
+          cmake --build . --config Release --target imago
           ctest --verbose -C Release
