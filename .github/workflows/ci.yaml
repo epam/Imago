@@ -38,9 +38,10 @@ jobs:
             mkdir build &&
             cd build &&
             cmake .. &&
-            cmake --build . --config Release --target indigo-python -- -j $(nproc) &&
             cmake --build . --config Release --target imago -- -j $(nproc) &&
             cmake --build . --config Release --target imago-python -- -j $(nproc) &&
+            python3 -m pip install epam.indigo &&
+            cd ..
             python3 tools/imago/tests/run.py
             "
       - name: Build macOS
@@ -49,9 +50,10 @@ jobs:
           mkdir build
           cd build
           cmake ..
-          cmake --build . --config Release --target indigo-python -- -j $(sysctl -n hw.logicalcpu)
           cmake --build . --config Release --target imago -- -j $(sysctl -n hw.logicalcpu)
           cmake --build . --config Release --target imago-python -- -j $(sysctl -n hw.logicalcpu)
+          python3 -m pip install epam.indigo
+          cd ..
           python3 tools/imago/tests/run.py
       - name: Build Windows
         if: ${{ matrix.os == 'windows' }}
@@ -59,9 +61,10 @@ jobs:
           mkdir build
           cd build
           cmake ..
-          cmake --build . --config Release --target indigo-python
           cmake --build . --config Release --target imago
           cmake --build . --config Release --target imago-python
+          python3 -m pip install epam.indigo
+          cd ..
           python3 tools/imago/tests/run.py
       - name: Publish Test Report
         if: always()
