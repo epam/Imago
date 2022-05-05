@@ -40,7 +40,7 @@ jobs:
             cmake .. &&
             cmake --build . --config Release --target imago -- -j $(nproc) &&
             cmake --build . --config Release --target imago-python -- -j $(nproc) &&
-            python3 -m pip install epam.indigo &&
+            python3 -m pip install epam.indigo Pillow==8.4.0 &&
             cd ..
             python3 tools/imago/tests/run.py
             "

@@ -13,5 +13,8 @@ set(WITH_STATIC ON)
 add_subdirectory(indigo)
 
 set(BUILD_SHARED_LIBS OFF)
+if (MSVC)
+    set(BUILD_WITH_STATIC_CRT ON)
+endif()
 set(BUILD_ZLIB ON)
 add_subdirectory(opencv)
