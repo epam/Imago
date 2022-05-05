@@ -38,8 +38,10 @@ jobs:
             mkdir build &&
             cd build &&
             cmake .. &&
+            cmake --build . --config Release --target indigo-python -- -j $(nproc) &&
             cmake --build . --config Release --target imago -- -j $(nproc) &&
-            ctest --verbose
+            cmake --build . --config Release --target imago-python -- -j $(nproc) &&
+            python3 tools/imago/tests/run.py
             "
       - name: Build macOS
         if: ${{ matrix.os == 'macos' }}
@@ -47,13 +49,24 @@ jobs:
           mkdir build
           cd build
           cmake ..
+          cmake --build . --config Release --target indigo-python -- -j $(sysctl -n hw.logicalcpu)
           cmake --build . --config Release --target imago -- -j $(sysctl -n hw.logicalcpu)
-          ctest --verbose
+          cmake --build . --config Release --target imago-python -- -j $(sysctl -n hw.logicalcpu)
+          python3 tools/imago/tests/run.py
       - name: Build Windows
         if: ${{ matrix.os == 'windows' }}
         run: |
           mkdir build
           cd build
           cmake ..
+          cmake --build . --config Release --target indigo-python
           cmake --build . --config Release --target imago
-          ctest --verbose -C Release
+          cmake --build . --config Release --target imago-python
+          python3 tools/imago/tests/run.py
+      - name: Publish Test Report
+        if: always()
+        uses: mikepenz/action-junit-report@v1
+        with:
+          report_paths: 'report.xml'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          check_name: "${{ matrix.os }}-test_report"

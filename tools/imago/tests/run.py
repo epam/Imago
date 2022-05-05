@@ -4,6 +4,7 @@ import sys
 from time import time
 from xml.etree.ElementTree import Element, tostring
 
+dirname = os.path.dirname(os.path.abspath(__file__))
 imago_root = os.path.normpath(
     os.path.join(os.path.abspath(__file__), "..", "..", "..", "..")
 )
@@ -83,7 +84,7 @@ if __name__ == "__main__":
     testSuite = Element("test-suite", name="Imago")
     results = Element("results")
 
-    for root, dirs, files in os.walk("images"):
+    for root, dirs, files in os.walk(os.path.join(dirname, "images")):
         for f in sorted(files):
             file = os.path.join(root, f)
             if file.endswith(".mol"):
