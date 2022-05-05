@@ -37,7 +37,7 @@ jobs:
             /bin/sh -c "
             mkdir build &&
             cd build &&
-            cmake ..
+            cmake .. &&
             cmake --build . --config Release --target all -- -j $(nproc) &&
             ctest --verbose
             "
