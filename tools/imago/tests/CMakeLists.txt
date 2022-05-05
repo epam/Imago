@@ -6,5 +6,5 @@ else()
         COMMAND ${Python3_EXECUTABLE} run.py
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
     )
-    set_tests_properties(imago-tests PROPERTIES DEPENDS "imago;indigo-python")
+#    set_tests_properties(imago-tests PROPERTIES DEPENDS "imago;indigo-python")
 endif()
