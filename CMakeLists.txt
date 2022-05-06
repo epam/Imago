@@ -13,6 +13,14 @@ add_subdirectory(third_party)
 
 include(third_party/indigo/cmake/setup.cmake)
 
+set(CompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE)
+foreach(CompilerFlag ${CompilerFlags})
+    string(REPLACE "/MD" "/MT" ${CompilerFlag} "${${CompilerFlag}}")
+endforeach()
+
 add_subdirectory(core)
 add_subdirectory(api)
 add_subdirectory(tools)
