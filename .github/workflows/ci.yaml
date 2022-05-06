@@ -24,6 +24,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v2
         with:
+          submodules: 'recursive'
           lfs: false
           fetch-depth: 500
       - name: Git fetch tags
@@ -36,9 +37,12 @@ jobs:
             /bin/sh -c "
             mkdir build &&
             cd build &&
-            cmake ..
-            cmake --build . --config Release --target all -- -j $(nproc) &&
-            ctest --verbose
+            cmake .. &&
+            cmake --build . --config Release --target imago -- -j $(nproc) &&
+            cmake --build . --config Release --target imago-python -- -j $(nproc) &&
+            python3 -m pip install epam.indigo Pillow==8.4.0 &&
+            cd ..
+            python3 tools/imago/tests/run.py
             "
       - name: Build macOS
         if: ${{ matrix.os == 'macos' }}
@@ -46,13 +50,26 @@ jobs:
           mkdir build
           cd build
           cmake ..
-          cmake --build . --config Release --target all -- -j $(sysctl -n hw.logicalcpu)
-          ctest --verbose
+          cmake --build . --config Release --target imago -- -j $(sysctl -n hw.logicalcpu)
+          cmake --build . --config Release --target imago-python -- -j $(sysctl -n hw.logicalcpu)
+          python3 -m pip install epam.indigo
+          cd ..
+          python3 tools/imago/tests/run.py
       - name: Build Windows
         if: ${{ matrix.os == 'windows' }}
         run: |
           mkdir build
           cd build
           cmake ..
-          cmake --build . --config Release --target ALL_BUILD
-          ctest --verbose -C Release
+          cmake --build . --config Release --target imago
+          cmake --build . --config Release --target imago-python
+          python3 -m pip install epam.indigo
+          cd ..
+          python3 tools/imago/tests/run.py
+      - name: Publish Test Report
+        if: always()
+        uses: mikepenz/action-junit-report@v1
+        with:
+          report_paths: 'report.xml'
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          check_name: "${{ matrix.os }}-test_report"
